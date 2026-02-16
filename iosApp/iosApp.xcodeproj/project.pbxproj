@@ -6,13 +6,8 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		A855B26E2F42E81600585535 /* MapLibre.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A855B26D2F42E81600585535 /* MapLibre.xcframework */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		5E77048F5F12CA99656C4C34 /* OceanWaterInfo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OceanWaterInfo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A855B26D2F42E81600585535 /* MapLibre.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MapLibre.xcframework; path = ../../../Desktop/MapLibre.dynamic.xcframework/MapLibre.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -46,7 +41,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A855B26E2F42E81600585535 /* MapLibre.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,7 +60,6 @@
 		A82159362F42D9A2004C9C22 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A855B26D2F42E81600585535 /* MapLibre.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
