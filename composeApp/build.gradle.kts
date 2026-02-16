@@ -73,8 +73,6 @@ kotlin {
 
         iosMain.dependencies {
 
-            implementation(libs.maplibre.compose)
-
         }
 
         jvmMain.dependencies {

@@ -29,10 +29,7 @@ import androidx.compose.ui.unit.sp
 fun OceanWaterInfo(){
 
 
-    MaterialTheme(
-        typography = getTypography(),
-        colorScheme = getColorScheme(false)
-    ) {
+
             Column(
                 modifier = paddingMod.fillMaxSize()
                     .verticalScroll(rememberScrollState())
@@ -68,6 +65,6 @@ fun OceanWaterInfo(){
 
 
             }
-    }
+
 
 }

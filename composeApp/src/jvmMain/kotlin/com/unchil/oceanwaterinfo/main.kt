@@ -52,7 +52,6 @@ fun main() = application {
         state = state,
     ) {
         MaterialTheme(
-            typography = getTypography(),
             colorScheme = getColorScheme(false)
         ) {
             CompositionLocalProvider(LocalPlatform provides getPlatform()) {
