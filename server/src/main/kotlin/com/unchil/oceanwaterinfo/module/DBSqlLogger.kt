@@ -6,7 +6,7 @@ import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.statements.StatementContext
 import org.jetbrains.exposed.v1.core.statements.expandArgs
 
-val LOGGER = KtorSimpleLogger( "FullStackTaskManagerSample")
+val LOGGER = KtorSimpleLogger( "OceanWaterInformation")
 
 
 object DBSqlLogger: SqlLogger {

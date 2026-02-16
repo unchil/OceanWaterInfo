@@ -48,7 +48,7 @@ fun main() = application {
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Fullstacktaskmanagersample",
+        title = "OceanWaterInformation",
         state = state,
     ) {
         MaterialTheme(

@@ -133,7 +133,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.unchil.full_stack_task_manager_sample"
+            packageName = "com.unchil.oceanwaterinfo"
             packageVersion = "1.0.0"
         }
     }
