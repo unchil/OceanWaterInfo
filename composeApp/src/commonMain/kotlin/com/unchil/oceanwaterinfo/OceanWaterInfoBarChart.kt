@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -37,6 +38,7 @@ import io.github.koalaplot.core.xygraph.GridStyle
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OceanWaterInfoBarChart(){
 
@@ -68,6 +70,16 @@ fun OceanWaterInfoBarChart(){
     val chartYTitle = remember { "Water Temperature °C"}
     val chartCaption = remember {"from https://www.nifs.go.kr (National Institute of Fisheries Science)"}
 
+    var isLegend by remember { mutableStateOf(true) }
+
+    LaunchedEffect( isLegend){
+        chartLayout.value = chartLayout.value.copy(
+            legend = chartLayout.value.legend.copy(
+                isUsable = isLegend,
+            )
+        )
+    }
+
 
     LaunchedEffect(key1= seaWaterInfo.value, key2=selectedOption){
         val filteredList = seaWaterInfo.value.filter {
@@ -98,7 +110,7 @@ fun OceanWaterInfoBarChart(){
                 chartLayout.value = LayoutData(
                     type = ChartType.VerticalBar,
                     layout = TitleConfig(true, chartTitle.value),
-                    legend = LegendConfig(true, true, chartXTitle),
+                    legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(
                         chartXTitle,
                         model = CategoryAxisModel(data.value.map{ triple -> triple.first }),
@@ -186,6 +198,20 @@ fun OceanWaterInfoBarChart(){
                     data = state.chartData,
                     entries = state.entries
                 )
+                HorizontalDivider()
+                Row(modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    ToggleButton(
+                        checked = isLegend,
+                        colors = ToggleButtonDefaults.toggleButtonColors(
+                            checkedContainerColor  = Color.LightGray,
+                            checkedContentColor  = Color.Black,
+                        ),
+                        onCheckedChange = { isLegend = it }
+                    ){  Text(  text = "Legend"   )  }
+                }
 
             }
         }

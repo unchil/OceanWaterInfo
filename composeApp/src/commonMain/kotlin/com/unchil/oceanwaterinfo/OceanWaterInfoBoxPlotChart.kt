@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.GridStyle
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OceanWaterInfoBoxPlotChart(){
 
@@ -46,6 +48,8 @@ fun OceanWaterInfoBoxPlotChart(){
     }
 
     val uiState: MutableState<ChartUiState> = remember { mutableStateOf(ChartUiState.Loading) }
+
+
 
     LaunchedEffect( viewModel){
         while(true){
@@ -64,6 +68,19 @@ fun OceanWaterInfoBoxPlotChart(){
     val chartXTitle = remember { "Observatory"}
     val chartYTitle = remember { "Water Temperature °C"}
     val chartCaption = remember {"from https://www.nifs.go.kr (National Institute of Fisheries Science)"}
+
+
+    var isLegend by remember { mutableStateOf(true) }
+
+    LaunchedEffect( isLegend){
+        chartLayout.value = chartLayout.value.copy(
+            legend = chartLayout.value.legend.copy(
+                isUsable = isLegend,
+            )
+        )
+    }
+
+
 
     LaunchedEffect(key1= seaWaterInfo.value, key2=selectedOption){
         val filteredList = seaWaterInfo.value.filter {
@@ -87,7 +104,7 @@ fun OceanWaterInfoBoxPlotChart(){
                 chartLayout.value = LayoutData(
                     type = ChartType.BoxPlot,
                     layout = TitleConfig(true, chartTitle),
-                    legend = LegendConfig(true, true, chartXTitle),
+                    legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(
                         chartXTitle,
                         model = CategoryAxisModel(data.value.keys.toList()),
@@ -116,7 +133,7 @@ fun OceanWaterInfoBoxPlotChart(){
             data.value.isEmpty()-> {
                 chartLayout.value = LayoutData(
                     layout = TitleConfig(true, chartTitle),
-                    legend = LegendConfig(false, true, chartXTitle),
+                    legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
                     yAxis = AxisConfig( chartYTitle),
                     size = SizeConfig(height = chartHeight),
@@ -173,6 +190,20 @@ fun OceanWaterInfoBoxPlotChart(){
                     entries = state.entries
                 )
 
+                HorizontalDivider()
+                Row(modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    ToggleButton(
+                        checked = isLegend,
+                        colors = ToggleButtonDefaults.toggleButtonColors(
+                            checkedContainerColor  = Color.LightGray,
+                            checkedContentColor  = Color.Black,
+                        ),
+                        onCheckedChange = { isLegend = it }
+                    ){  Text(  text = "Legend"   )  }
+                }
 
             }
         }

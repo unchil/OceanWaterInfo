@@ -76,6 +76,7 @@ fun OceanWaterInfoLineChart_MOF(){
 
     var isTooltips by remember { mutableStateOf(false) }
     var isSymbol by remember { mutableStateOf(false) }
+    var isLegend by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1= seaWaterInfo.value, key2=selectedOption){
         data.value = seaWaterInfo.value.toMofLineTripleList(selectedOption)
@@ -89,6 +90,15 @@ fun OceanWaterInfoLineChart_MOF(){
             )
         )
     }
+
+    LaunchedEffect( isLegend){
+        chartLayout.value = chartLayout.value.copy(
+            legend = chartLayout.value.legend.copy(
+                isUsable = isLegend,
+            )
+        )
+    }
+
 
     LaunchedEffect(data.value){
 
@@ -122,7 +132,7 @@ fun OceanWaterInfoLineChart_MOF(){
                 chartLayout.value = LayoutData(
                     type = ChartType.Line,
                     layout = TitleConfig(true, "${chartTitle} (${selectedOption.name()})", description = selectedOption.desc()),
-                    legend = LegendConfig(true, true, legendTitle),
+                    legend = LegendConfig(isLegend, true, legendTitle),
                     xAxis = AxisConfig(
                         model = DoubleLinearAxisModel(xRange) ,
                         style = AxisStyle(labelRotation = 0),
@@ -230,6 +240,16 @@ fun OceanWaterInfoLineChart_MOF(){
                         ),
                         onCheckedChange = { isSymbol = it }
                     ){  Text(  text = "Symbol"   )  }
+                    VerticalDivider()
+                    ToggleButton(
+                        checked = isLegend,
+                        colors = ToggleButtonDefaults.toggleButtonColors(
+                            checkedContainerColor  = Color.LightGray,
+                            checkedContentColor  = Color.Black,
+                        ),
+                        onCheckedChange = { isLegend = it }
+                    ){  Text(  text = "Legend"   )  }
+
                 }
 
 

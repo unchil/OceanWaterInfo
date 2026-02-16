@@ -138,7 +138,13 @@ fun CustomizerPlatformViewJVM(){
                             .weight(weight1),
                         contentAlignment = Alignment.Center,
                     ) {
+                        Column(
+                            modifier = Modifier.verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+
                             OceanWaterInfoGeoChart()
+                        }
                     }
 
 

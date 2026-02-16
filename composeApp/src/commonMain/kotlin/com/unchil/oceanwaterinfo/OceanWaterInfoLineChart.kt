@@ -74,6 +74,7 @@ fun OceanWaterInfoLineChart(){
 
     var isTooltips by remember { mutableStateOf(true) }
     var isSymbol by remember { mutableStateOf(true) }
+    var isLegend by remember { mutableStateOf(true) }
 
 
     LaunchedEffect(key1= seaWaterInfo.value, key2=selectedOption){
@@ -98,6 +99,15 @@ fun OceanWaterInfoLineChart(){
         )
     }
 
+    LaunchedEffect( isLegend){
+        chartLayout.value = chartLayout.value.copy(
+            legend = chartLayout.value.legend.copy(
+                isUsable = isLegend,
+            )
+        )
+    }
+
+
     LaunchedEffect(data.value){
 
         uiState.value = when {
@@ -117,7 +127,7 @@ fun OceanWaterInfoLineChart(){
                 chartLayout.value = LayoutData(
                     type = ChartType.Line,
                     layout = TitleConfig(true, chartTitle),
-                    legend = LegendConfig(true, true, "Observatory"),
+                    legend = LegendConfig(isLegend, true, "Observatory"),
                     xAxis = AxisConfig(
                         model = DoubleLinearAxisModel(xRange) ,
                     ),
@@ -139,7 +149,7 @@ fun OceanWaterInfoLineChart(){
             data.value.isEmpty()-> {
                 chartLayout.value = LayoutData(
                     layout = TitleConfig(true, chartTitle),
-                    legend = LegendConfig(false, true, chartXTitle),
+                    legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
                     yAxis = AxisConfig( chartYTitle),
                     size = SizeConfig(height = chartHeight),
@@ -219,6 +229,15 @@ fun OceanWaterInfoLineChart(){
                         ),
                         onCheckedChange = { isSymbol = it }
                     ){  Text(  text = "Symbol"   )  }
+                    VerticalDivider()
+                    ToggleButton(
+                        checked = isLegend,
+                        colors = ToggleButtonDefaults.toggleButtonColors(
+                            checkedContainerColor  = Color.LightGray,
+                            checkedContentColor  = Color.Black,
+                        ),
+                        onCheckedChange = { isLegend = it }
+                    ){  Text(  text = "Legend"   )  }
                 }
 
             }

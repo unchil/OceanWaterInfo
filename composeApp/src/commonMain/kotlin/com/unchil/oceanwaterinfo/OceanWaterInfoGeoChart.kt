@@ -1,10 +1,19 @@
 package com.unchil.oceanwaterinfo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -14,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -34,7 +44,9 @@ import org.maplibre.spatialk.geojson.Polygon
 import org.maplibre.spatialk.geojson.Position
 
 
-@OptIn(ExperimentalKoalaPlotApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalKoalaPlotApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun OceanWaterInfoGeoChart(){
 
@@ -62,8 +74,18 @@ fun OceanWaterInfoGeoChart(){
     val legendTitle = remember { "Observatory"}
     val chartXTitle = remember { "Longitude"}
     val chartYTitle = remember { "Latitude"}
-    val chartHeight = remember { 900.dp}
+    val chartHeight = remember { 600.dp}
     val chartCaption = remember {"from https://www.nifs.go.kr (National Institute of Fisheries Science)"}
+
+    var isLegend by remember { mutableStateOf(true) }
+
+    LaunchedEffect( isLegend){
+        chartLayout.value = chartLayout.value.copy(
+            legend = chartLayout.value.legend.copy(
+                isUsable = isLegend,
+            )
+        )
+    }
 
     var featureCollection by remember {
         mutableStateOf<FeatureCollection<Geometry, JsonObject>?>(null)
@@ -124,7 +146,7 @@ fun OceanWaterInfoGeoChart(){
                 chartLayout.value = LayoutData(
                     type = ChartType.Geo,
                     layout = TitleConfig(true, chartTitle.value),
-                    legend = LegendConfig(true, true, legendTitle),
+                    legend = LegendConfig(isLegend, true, legendTitle),
                     xAxis = AxisConfig(
                         chartXTitle,
                         model = DoubleLinearAxisModel(geoData.value.getRange().first)
@@ -143,7 +165,7 @@ fun OceanWaterInfoGeoChart(){
                 chartLayout.value = LayoutData(
                     type = ChartType.Geo,
                     layout = TitleConfig(true,  "${data.value.first().third.first} ${chartTitle.value}" ),
-                    legend = LegendConfig(true, true, legendTitle),
+                    legend = LegendConfig(isLegend, true, legendTitle),
                     xAxis = AxisConfig(
                         chartXTitle,
                         model = DoubleLinearAxisModel(geoData.value.getRange().first)
@@ -177,15 +199,44 @@ fun OceanWaterInfoGeoChart(){
         }
     }
 
-    Column(modifier = paddingMod) {
+    Column(modifier = paddingMod.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
 
         when (val state = uiState.value) {
             is ChartUiState.Success -> {
+
                 ComposeXYPlot(
                     layout = chartLayout.value,
-                    data = Triple( state.entries,  state.chartData,  state.geoData),
+                    data = Triple(state.entries, state.chartData, state.geoData),
                     entries = state.entries
                 )
+
+                HorizontalDivider()
+
+                Row(modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+
+                    ToggleButton(
+                        checked = isLegend,
+                        colors = ToggleButtonDefaults.toggleButtonColors(
+                            checkedContainerColor  = Color.LightGray,
+                            checkedContentColor  = Color.Black,
+                        ),
+                        onCheckedChange = { isLegend = it }
+                    ){  Text(  text = "Legend"   )  }
+                }
+
+
+
+
+
+
+
+
+
             }
             is ChartUiState.EmptyChart -> {
                 GeoEmptyChart(
