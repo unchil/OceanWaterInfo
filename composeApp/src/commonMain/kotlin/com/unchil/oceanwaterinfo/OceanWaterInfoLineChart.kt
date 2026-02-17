@@ -216,12 +216,16 @@ fun OceanWaterInfoLineChart(){
                     entries = state.entries
                 )
 
-                val selectedOptions = remember { mutableStateListOf(0,1,2) }
+                val optionList = listOf("Tooltips", "Symbol", "Legend")
+
+                val selectedOptions = remember {
+                    mutableStateListOf<Int>().apply { addAll(optionList.indices) }
+                }
 
                 MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    listOf("Tooltips", "Symbol", "Legend").forEachIndexed { index, label ->
+                    optionList.forEachIndexed { index, label ->
                         SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count =optionList.size),
                             onCheckedChange = {
                                 if (index in selectedOptions) selectedOptions.remove(index)
                                 else selectedOptions.add(index)
