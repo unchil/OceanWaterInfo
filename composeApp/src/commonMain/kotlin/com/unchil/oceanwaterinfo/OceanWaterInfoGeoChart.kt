@@ -1,24 +1,21 @@
 package com.unchil.oceanwaterinfo
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
-import oceanwaterinfo.composeapp.generated.resources.Res
 import io.github.koalaplot.core.style.LineStyle
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
@@ -37,6 +33,7 @@ import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.intOrNull
+import oceanwaterinfo.composeapp.generated.resources.Res
 import org.maplibre.spatialk.geojson.FeatureCollection
 import org.maplibre.spatialk.geojson.Geometry
 import org.maplibre.spatialk.geojson.MultiPolygon
@@ -212,29 +209,26 @@ fun OceanWaterInfoGeoChart(){
                     entries = state.entries
                 )
 
-                HorizontalDivider()
+                val selectedOptions = remember { mutableStateListOf(0) }
 
-                Row(modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
+                MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    listOf("Legend").forEachIndexed { index, label ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 1),
+                            onCheckedChange = {
+                                if (index in selectedOptions) selectedOptions.remove(index)
+                                else selectedOptions.add(index)
 
-                    ToggleButton(
-                        checked = isLegend,
-                        colors = ToggleButtonDefaults.toggleButtonColors(
-                            checkedContainerColor  = Color.LightGray,
-                            checkedContentColor  = Color.Black,
-                        ),
-                        onCheckedChange = { isLegend = it }
-                    ){  Text(  text = "Legend"   )  }
+                                when(index){
+                                    0 -> isLegend = it
+                                }
+                            },
+                            checked = index in selectedOptions
+                        ) {
+                            Text(label)
+                        }
+                    }
                 }
-
-
-
-
-
-
-
 
 
             }

@@ -16,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +30,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import kotlinx.coroutines.delay
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MaplibreMap
@@ -83,17 +81,7 @@ fun KoreaMap(){
 fun CustomizerPlatformViewJVM(){
 
     val coroutineScope = rememberCoroutineScope()
-    val viewModelCurrent: NifsSeaWaterInfoCurrentViewModel = remember {
-        NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
-    }
 
-    LaunchedEffect(key1 = viewModelCurrent, ){
-        while(true){
-            delay(1 * 60 * 1000L).let{
-                viewModelCurrent.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
-            }
-        }
-    }
 
     var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
 
