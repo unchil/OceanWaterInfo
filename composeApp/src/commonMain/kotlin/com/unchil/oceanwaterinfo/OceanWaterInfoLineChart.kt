@@ -172,7 +172,28 @@ fun OceanWaterInfoLineChart(){
 
     Column (modifier = paddingMod) {
 
+        var selectedTabIndex by remember { mutableIntStateOf(0) }
 
+        SecondaryTabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
+            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+        ) {
+            SEA_AREA.GRU_NAME.entries.forEachIndexed { index, entrie ->
+
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { selectedTabIndex = index
+                        selectedOption = entrie},
+                    text = {
+                        Text(
+                            text = entrie.name,
+                            style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
+                        )
+                    }
+                )
+            }
+        }
 
         when( val state = uiState.value){
             is ChartUiState.EmptyChart -> {
@@ -186,28 +207,7 @@ fun OceanWaterInfoLineChart(){
             }
             is ChartUiState.Success -> {
 
-                var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-                SecondaryTabRow(
-                    selectedTabIndex = selectedTabIndex,
-                    containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-                    contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
-                ) {
-                    SEA_AREA.GRU_NAME.entries.forEachIndexed { index, entrie ->
-
-                        Tab(
-                            selected = selectedTabIndex == index,
-                            onClick = { selectedTabIndex = index
-                                selectedOption = entrie},
-                            text = {
-                                Text(
-                                    text = entrie.name,
-                                    style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
-                                )
-                            }
-                        )
-                    }
-                }
 
 
                 ComposeXYPlot(

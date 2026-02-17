@@ -41,8 +41,6 @@ external object google {
 @Composable
 fun WasmGoogleMap(lat: Double, lng: Double) {
 
-
-
     val mapElement = remember {
         document.createElement("map").apply {
             setAttribute("style", "width: 100%; height: 100%;")
@@ -66,6 +64,8 @@ fun WasmGoogleMap(lat: Double, lng: Double) {
         google.maps.Map(mapElement, myOptions as JsAny)
 
     }
+
+
 
 
 }
