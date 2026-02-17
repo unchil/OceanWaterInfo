@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -24,8 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
@@ -80,9 +86,6 @@ fun KoreaMap(){
 @Composable
 fun CustomizerPlatformViewJVM(){
 
-    val coroutineScope = rememberCoroutineScope()
-
-
     var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
 
 
@@ -93,8 +96,37 @@ fun CustomizerPlatformViewJVM(){
             modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.surface)
         ) {
 
+            Text(
+                "Korea Ocean Water Information",
+                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
             Box(modifier = Modifier.fillMaxHeight(splitFractionHorizontal)) {
-                OceanWaterInfo()
+
+                Column(
+                    modifier = paddingMod.fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .safeContentPadding(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+
+                    OceanWaterInfoBoxPlotChart()
+
+                    OceanWaterInfoLineChart()
+
+                    OceanWaterInfoBarChart()
+
+                    OceanWaterInfoLineChart_MOF()
+
+                    OceanWaterInfoDataGrid()
+
+                    OceanWaterInfoGeoChart()
+
+                }
             }
 
 

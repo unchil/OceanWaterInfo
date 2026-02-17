@@ -49,9 +49,9 @@ fun main() {
 
                         Text(
                             "Korea Ocean Water Information",
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 24.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
                         )
