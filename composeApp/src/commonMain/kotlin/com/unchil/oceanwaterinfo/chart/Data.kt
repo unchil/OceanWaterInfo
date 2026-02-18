@@ -22,7 +22,7 @@ import kotlin.Any
 import kotlin.math.ceil
 
 typealias ObservationtDataType = List< Triple< String, Point<Double, Double>, Pair<String, Float>> >
-typealias GeoShapeDataType = List<Point<Double,Double>>
+typealias GeoShapeDataType =  Pair<List<Point<Double,Double>>, (Point<Double,Double>)->Unit>
 typealias GeoChartDataType =  Triple< List<String>,  ObservationtDataType , GeoShapeDataType >
 
 typealias ChartEntriesType = List<String>

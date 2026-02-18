@@ -31,7 +31,7 @@ import io.github.koalaplot.core.xygraph.rememberDoubleLinearAxisModel
 
 @OptIn(ExperimentalKoalaPlotApi::class)
 @Composable
-fun GeoEmptyChart(layout: LayoutData, data:List<Point<Double,Double>> ){
+fun GeoEmptyChart(layout: LayoutData, data: Pair<List<Point<Double, Double>>, Any>){
 
 
     Box(
@@ -49,8 +49,8 @@ fun GeoEmptyChart(layout: LayoutData, data:List<Point<Double,Double>> ){
         ) {
 
             XYGraph(
-                rememberDoubleLinearAxisModel(data.getRange().first),
-                rememberDoubleLinearAxisModel(data.getRange().second),
+                rememberDoubleLinearAxisModel(data.first.getRange().first),
+                rememberDoubleLinearAxisModel(data.first.getRange().second),
                 xAxisContent = AxisContent(
                     labels = { AxisLabel(it.toString(), Modifier.padding(top = 2.dp)) },
                     title = {
@@ -82,7 +82,7 @@ fun GeoEmptyChart(layout: LayoutData, data:List<Point<Double,Double>> ){
             ) {
 
                 LinePlot2(
-                    data,
+                    data.first,
                     lineStyle = LineStyle(SolidColor(Color.Transparent)),
                     symbol = {
                         Symbol(

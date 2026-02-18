@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.PlainTooltip
@@ -34,7 +35,7 @@ fun XYGraphScope<Double, Double>.GeoChart(
 
 
     LinePlot2(
-        data.third,
+        data.third.first,
         lineStyle = LineStyle(SolidColor(Color.Transparent)),
         symbol = {
             Symbol(
@@ -73,7 +74,9 @@ fun XYGraphScope<Double, Double>.GeoChart(
                 ) {
 
                     Symbol(
-                        modifier = Modifier,
+                        modifier = Modifier.clickable(){
+                            data.third.second(point)
+                        },
                         shape = ShapeDefaults.Medium,
                         fillBrush = SolidColor(colors.entries.toList()[index].value ),
                         outlineBrush = SolidColor( Color.Black),

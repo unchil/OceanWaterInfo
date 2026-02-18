@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,9 +38,11 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import dev.datlag.kcef.KCEF
+import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+val LocalPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
 
 fun main() = application {
 
@@ -73,6 +76,13 @@ fun main() = application {
         position = WindowPosition(Alignment.Center)
     )
 
+    val clickPoint = mutableStateOf(Point(126.9780, 37.5665))
+
+    val onClickPoint = { point:Point<Double, Double> ->
+        clickPoint.value = point
+    }
+
+
     Window(
         onCloseRequest = ::exitApplication,
         title = "OceanWaterInformation",
@@ -81,11 +91,9 @@ fun main() = application {
         MaterialTheme(
             colorScheme = getColorScheme(false)
         ) {
-            CompositionLocalProvider(LocalPlatform provides getPlatform()) {
-
+            CompositionLocalProvider(  LocalPlatform provides getPlatform() ) {
 
                 var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
-
 
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val totalHeight = constraints.maxHeight.toFloat()
@@ -127,7 +135,6 @@ fun main() = application {
                             }
                         }
 
-
                         DraggableHorizontalDivider(
                             onDrag = { deltaPx ->
                                 val deltaWeight = deltaPx / totalHeight
@@ -159,7 +166,7 @@ fun main() = application {
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
 
-                                        OceanWaterInfoGeoChart()
+                                        OceanWaterInfoGeoChart(onClickPoint)
                                     }
                                 }
 
@@ -213,12 +220,11 @@ fun main() = application {
                                         shape = RoundedCornerShape(6.dp)
 
                                     ) {
-                                        SimpleMapScreen(initialized, download, errorMessage)
-                                  //      DesktopMapScreen(initialized, download, errorMessage)
+                                        CompositionLocalProvider( LocalPoint provides clickPoint.value){
+                                            SimpleMapScreen(initialized, download, errorMessage)
+                                        }
+
                                     }
-
-
-
 
                                 }
                             }

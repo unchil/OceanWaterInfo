@@ -39,13 +39,14 @@ import org.maplibre.spatialk.geojson.Geometry
 import org.maplibre.spatialk.geojson.MultiPolygon
 import org.maplibre.spatialk.geojson.Polygon
 import org.maplibre.spatialk.geojson.Position
+import kotlin.collections.emptyList
 
 
 @OptIn(ExperimentalKoalaPlotApi::class, ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun OceanWaterInfoGeoChart(){
+fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double,Double>)->Unit = { point -> }  ){
 
 
     val coroutineScope = rememberCoroutineScope()
@@ -156,7 +157,7 @@ fun OceanWaterInfoGeoChart(){
                     caption = CaptionConfig(true,  chartCaption ),
                 )
 
-                ChartUiState.EmptyChart(chartLayout = chartLayout.value, geoData = geoData.value)
+                ChartUiState.EmptyChart(chartLayout = chartLayout.value, geoData = Pair(geoData.value, onClickPoint))
             }
             geoData.value.isNotEmpty() && data.value.isNotEmpty() -> {
                 chartLayout.value = LayoutData(
@@ -184,7 +185,7 @@ fun OceanWaterInfoGeoChart(){
                     chartData = data.value,
                     entries = data.value.map{ triple -> triple.first },
                     chartLayout = chartLayout.value,
-                    geoData = geoData.value
+                    geoData = Pair(geoData.value, onClickPoint)
                 )
             }
             errorMessage != null -> {
@@ -205,7 +206,7 @@ fun OceanWaterInfoGeoChart(){
 
                 ComposeXYPlot(
                     layout = chartLayout.value,
-                    data = Triple(state.entries, state.chartData, state.geoData),
+                    data = Triple(state.entries, state.chartData, state.geoData ),
                     entries = state.entries
                 )
 
@@ -240,7 +241,7 @@ fun OceanWaterInfoGeoChart(){
             is ChartUiState.EmptyChart -> {
                 GeoEmptyChart(
                     layout = chartLayout.value,
-                    data = state.geoData ?: emptyList()
+                    data = state.geoData ?: Pair(emptyList(), onClickPoint )
                 )
             }
             is ChartUiState.Error -> {

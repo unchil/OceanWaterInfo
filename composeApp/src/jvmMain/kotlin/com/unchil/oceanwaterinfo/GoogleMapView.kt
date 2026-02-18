@@ -10,8 +10,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CoroutineScope
@@ -23,13 +27,22 @@ import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
+import io.github.koalaplot.core.xygraph.Point
+
 
 @Composable
 fun SimpleMapScreen(
     initialized: Boolean,
     download:Int,
-    errorMessage:String
+    errorMessage:String,
+
 ){
+    val center = LocalPoint.current
+    val endPoint = remember {"https://www.google.com/maps/search/?api=1&map_action=map"}
+    val zoom = remember { 5 }
+    val basemap = remember { "satellite"}
+
+    val params = "&query=${center.y}%2C${center.x}&zoom=${zoom}&basemap=${basemap}"
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -37,14 +50,9 @@ fun SimpleMapScreen(
     ) {
         when {
             initialized -> {
-
-
-                val state = rememberWebViewState("https://www.google.com/maps")
+                val url = "${endPoint}${params}"
+                val state = rememberWebViewState(url)
                 val navigator = rememberWebViewNavigator()
-
-                if (state.isLoading) {
-                    CircularProgressIndicator()
-                }
 
                 WebView(
                     state = state,
