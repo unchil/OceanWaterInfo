@@ -36,6 +36,8 @@ dependencyResolutionManagement {
 
             }
         }
+
+        maven("https://jogamp.org/deployment/maven/")
     }
 }
 

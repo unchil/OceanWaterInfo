@@ -44,7 +44,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
 
 
-            implementation(libs.maplibre.compose)
+
 
         }
         commonMain.dependencies {
@@ -81,14 +81,15 @@ kotlin {
 
             implementation(compose.desktop.currentOs)
 
-
-            implementation(libs.maplibre.compose)
+            implementation(libs.kcef)
+            implementation(libs.compose.webview.multiplatform)
 
             runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.12.1") {
                 capabilities {
                     requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
                 }
             }
+
 
         }
     }
