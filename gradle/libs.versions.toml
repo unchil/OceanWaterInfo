@@ -37,8 +37,6 @@ un7datagrid = "0.2.10-1"
 koalaplotCore = "0.11.0"
 geojson = "0.6.1"
 
-
-kcef = "2023.10.11.1"
 composeWebviewMultiplatform = "2.0.3"
 
 
@@ -104,7 +102,7 @@ un7datagrid = { module = "com.github.unchil:un7datagrid", version.ref = "un7data
 koalaplot-core = { module = "io.github.koalaplot:koalaplot-core", version.ref = "koalaplotCore" }
 geojson = { module = "org.maplibre.spatialk:geojson", version.ref = "geojson" }
 
-kcef = { group = "dev.datlag", name = "kcef", version.ref = "kcef" }
+#kcef = { group = "dev.datlag", name = "kcef", version.ref = "kcef" }
 compose-webview-multiplatform = { module = "io.github.kevinnzou:compose-webview-multiplatform", version.ref = "composeWebviewMultiplatform" }
 
 

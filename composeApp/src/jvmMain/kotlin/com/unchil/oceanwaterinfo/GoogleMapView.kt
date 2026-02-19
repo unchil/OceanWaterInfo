@@ -3,31 +3,24 @@ package com.unchil.oceanwaterinfo
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.CoroutineScope
-
 import com.multiplatform.webview.jsbridge.IJsMessageHandler
 import com.multiplatform.webview.jsbridge.JsMessage
 import com.multiplatform.webview.jsbridge.WebViewJsBridge
+import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
-import io.github.koalaplot.core.xygraph.Point
+import kotlinx.coroutines.CoroutineScope
 
 
 @Composable
@@ -38,11 +31,21 @@ fun SimpleMapScreen(
 
 ){
     val center = LocalPoint.current
-    val endPoint = remember {"https://www.google.com/maps/search/?api=1&map_action=map"}
-    val zoom = remember { 5 }
-    val basemap = remember { "satellite"}
 
-    val params = "&query=${center.y}%2C${center.x}&zoom=${zoom}&basemap=${basemap}"
+    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=ssgbthk7rrm7nv0cagd2qfqhlu&_ij_reload=RELOAD_ON_SAVE"
+    val filUrl = "file:///Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/src/jvmMain/resources/googleMapView.html"
+    val remoteUrl = "https://www.google.com/maps/"
+
+    val webViewState = rememberWebViewState(localUrl)
+    val navigator = rememberWebViewNavigator()
+
+    LaunchedEffect( LocalPoint.current){
+        if (webViewState.loadingState is LoadingState.Finished) {
+           navigator.evaluateJavaScript("map.panTo({lat: ${center.y}, lng: ${center.x}});" )
+           navigator.evaluateJavaScript("addMarker({lat: ${center.y}, lng: ${center.x}});" )
+        }
+    }
+
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -50,16 +53,11 @@ fun SimpleMapScreen(
     ) {
         when {
             initialized -> {
-                val url = "${endPoint}${params}"
-                val state = rememberWebViewState(url)
-                val navigator = rememberWebViewNavigator()
-
                 WebView(
-                    state = state,
+                    state = webViewState,
                     navigator = navigator,
                     modifier = Modifier.fillMaxSize()
                 )
-
             }
             errorMessage.isNotEmpty() -> {
                 Text(errorMessage)
@@ -75,6 +73,7 @@ fun SimpleMapScreen(
             }
         }
     }
+
 
 }
 

@@ -65,7 +65,8 @@ fun main() = application {
                 },
                 onError = {
                     errorMessage = it?.printStackTrace().toString()
-                }
+                },
+
             )
         }
     }
@@ -76,7 +77,7 @@ fun main() = application {
         position = WindowPosition(Alignment.Center)
     )
 
-    val clickPoint = mutableStateOf(Point(126.9780, 37.5665))
+    val clickPoint = mutableStateOf(Point(126.934515, 37.385852))
 
     val onClickPoint = { point:Point<Double, Double> ->
         clickPoint.value = point

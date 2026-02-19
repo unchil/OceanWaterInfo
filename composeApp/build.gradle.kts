@@ -78,18 +78,8 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-
             implementation(compose.desktop.currentOs)
-
-            implementation(libs.kcef)
             implementation(libs.compose.webview.multiplatform)
-
-            runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.12.1") {
-                capabilities {
-                    requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
-                }
-            }
-
 
         }
     }
