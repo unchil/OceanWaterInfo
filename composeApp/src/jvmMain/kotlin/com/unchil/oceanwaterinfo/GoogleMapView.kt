@@ -8,6 +8,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -20,7 +22,9 @@ import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
+import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.CoroutineScope
+
 
 
 @Composable
@@ -28,21 +32,77 @@ fun SimpleMapScreen(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
-
 ){
+    val coroutineScope = rememberCoroutineScope()
+    val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
+        NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
+    }
+    LaunchedEffect(key1 = viewModel){
+        viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
+    }
+    val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
+    val data = remember { mutableStateOf(emptyList<Triple<String, Point<Double, Double>, Pair<String, Float>>>()) }
+
+    val locations = remember{ mutableStateOf( "" )}
+    val labels = remember{ mutableStateOf("" )}
+
+
+    LaunchedEffect(seaWaterInfo.value){
+
+        if(seaWaterInfo.value.size>0) {
+
+            data.value = seaWaterInfo.value.filter {
+                it.obs_lay == "1"
+            }.map {
+                Triple(
+                    it.sta_nam_kor,
+                    Point(it.lon, it.lat),
+                    Pair(it.obs_datetime, it.wtr_tmp.toFloat())
+                )
+            }
+
+            locations.value = data.value.map { triple ->
+                triple.second
+            }.joinToString(
+                separator = ",",
+                prefix = "[",
+                postfix = "]"
+            ) { point ->
+                "{ lat: ${point.y}, lng: ${point.x} }"
+            }
+
+            labels.value = data.value.map { triple ->
+                triple.first
+            }.joinToString(
+                separator = ",",
+                prefix = "[",
+                postfix = "]"
+            ) {  sta_nam_kor ->
+                "\"${sta_nam_kor}\""
+            }
+        }
+
+    }
+
+
+
     val center = LocalPoint.current
 
-    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=ssgbthk7rrm7nv0cagd2qfqhlu&_ij_reload=RELOAD_ON_SAVE"
-    val filUrl = "file:///Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/src/jvmMain/resources/googleMapView.html"
+    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=c4rqr38en4csvjaqg32fd8c6e1&_ij_reload=RELOAD_ON_SAVE"
     val remoteUrl = "https://www.google.com/maps/"
 
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
 
+    LaunchedEffect(locations.value, labels.value, webViewState.loadingState){
+        if(locations.value.isNotEmpty() && labels.value.isNotEmpty() && webViewState.loadingState is LoadingState.Finished){
+            navigator.evaluateJavaScript("addMarkerClusterer(${locations.value}, ${labels.value})")
+        }
+    }
+
     LaunchedEffect( LocalPoint.current){
         if (webViewState.loadingState is LoadingState.Finished) {
            navigator.evaluateJavaScript("map.panTo({lat: ${center.y}, lng: ${center.x}});" )
-           navigator.evaluateJavaScript("addMarker({lat: ${center.y}, lng: ${center.x}});" )
         }
     }
 
