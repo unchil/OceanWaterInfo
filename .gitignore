@@ -20,3 +20,5 @@ node_modules/
 /maplibre-cache
 /oceanwater.sqlite
 /composeApp/maplibre-cache
+/composeApp/src/jvmMain/resources/googleMapView.html
+
