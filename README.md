@@ -48,10 +48,10 @@ This project leverages several powerful libraries to handle data and UI:
 
 ## Screenshots
 
-|           ScreenShot [ Browser(Safari,Chrome)/Desktop(macOS 26.2)/iOS(26.2)/Android(api 36.0) ]            |
-|:----------------------------------------------------------------------------------------------------------:|
-| ![ScreenShot](https://github.com/unchil/OceanWaterInfo/raw/main/screenshot/screenshot_new.png) | 
-|    ![ScreenShot](https://github.com/unchil/OceanWaterInfo/raw/main/screenshot/full_new.gif)    | 
+|  ScreenShot [ Browser(Safari,Chrome)/Desktop(macOS 26.2)/iOS(26.2)/Android(api 36.0) ]   |
+|:----------------------------------------------------------------------------------------:|
+|  ![ScreenShot](https://github.com/unchil/OceanWaterInfo/raw/main/screenshot/full2.gif)   | 
+| ![ScreenShot](https://github.com/unchil/OceanWaterInfo/raw/main/screenshot/full_new.gif) | 
 
 
 ## API Authentication & Setup
