@@ -12,17 +12,19 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
 
-//AdvancedMarkerElement를 사용하려면 Map 객체를 생성할 때 반드시 mapId 옵션이 포함되어야 합니다.
     map  = new Map(document.getElementById('un7map'), {
+        mapId: "YOUR MAP ID",
         center: center,
-        zoom: 10,
-        mapId: "UN7_MAP_ID"
+        zoom: 15,
+        renderingType: google.maps.RenderingType.VECTOR,
+
     });
 
     // Set map options.
     map.setOptions({
-        mapTypeControl: true,
-        mapTypeId: google.maps.MapTypeId.SATELLITE
+        scaleControl: true,
+        mapTypeId: google.maps.MapTypeId.SATELLITE,
+
     });
 
 
@@ -45,11 +47,60 @@ async function initMap() {
     });
 
 
-//addMarkerClusterer(locations, labels)
 
 }
 
-async function addMarkerClusterer(locations, labels) {
+window.flyTo = function(target) {
+
+    setTimeout(() => {
+        map.setZoom(map.getZoom() - 8)
+        setTimeout(() => {
+            map.panTo(target)
+            setTimeout(() => {
+                map.setZoom(15)
+            }, 1000);
+        }, 1000)
+    }, 1000);
+
+}
+
+function smoothZoom ( targetZoom, currentZoom) {
+    if (currentZoom === targetZoom) return;
+    // 줌을 확대할지 축소할지 결정
+    let nextZoom = currentZoom < targetZoom ? currentZoom + 2 : currentZoom - 2;
+    // 맵의 줌 설정 (소수점 단위 지원 여부는 버전 및 맵 유형에 따라 다름)
+    map.setZoom(nextZoom);
+    // 재귀적으로 호출하여 애니메이션 효과 생성
+    setTimeout(function() {
+        smoothZoom(map, targetZoom, nextZoom);
+    }, 300); // 50ms 간격으로 실행
+}
+
+
+
+window.smoothFlyTo = function(target) {
+    if (!map) {
+        return;
+    }
+ //   let target =  { lat: parseFloat(lat), lng: parseFloat(lng) }
+    setTimeout(() => {
+        smoothZoom(7, map.getZoom())
+
+        setTimeout(() => {
+            map.panTo(target)
+            setTimeout(() => {
+                 smoothZoom(18, map.getZoom())
+            }, 500);
+        }, 500)
+    }, 500);
+
+};
+
+
+
+
+
+window.addMarkerClusterer =  function(locations, labels) {
 
     const markers = locations.map((position, i) => {
 
@@ -63,7 +114,6 @@ async function addMarkerClusterer(locations, labels) {
           position,
           map: map,
           content: pinGlyph.element,
-          title:labels[i],
         });
 
         marker.addListener("mouseover", () => {
@@ -84,15 +134,9 @@ async function addMarkerClusterer(locations, labels) {
 
         return marker;
 
-
-
     });
 
-
-
-
     new markerClusterer.MarkerClusterer({ map, markers });
-
 
 }
 

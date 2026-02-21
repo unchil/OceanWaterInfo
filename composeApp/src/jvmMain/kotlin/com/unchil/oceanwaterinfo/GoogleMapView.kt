@@ -88,7 +88,7 @@ fun SimpleMapScreen(
 
     val center = LocalPoint.current
 
-    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=b6q2pd7d60p3vlf9a1bjdmmhgi&_ij_reload=RELOAD_ON_SAVE"
+    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=bpspkkqmg50g0175k65u3f6kvo&_ij_reload=RELOAD_ON_SAVE"
     val remoteUrl = "https://www.google.com/maps/"
 
     val webViewState = rememberWebViewState(localUrl)
@@ -105,7 +105,9 @@ fun SimpleMapScreen(
     LaunchedEffect( LocalPoint.current){
         if (webViewState.loadingState is LoadingState.Finished) {
          //   navigator.evaluateJavaScript("alert(\"What a Wonderful World.\");" )
-           navigator.evaluateJavaScript("map.panTo({lat: ${center.y}, lng: ${center.x}});" )
+
+            val flyTo = "smoothFlyTo({lat: ${center.y}, lng: ${center.x}})"
+            navigator.evaluateJavaScript(flyTo )
         }
     }
 
