@@ -50,7 +50,7 @@ This project leverages several powerful libraries to handle data and UI:
 
 |  ScreenShot [ Browser(Safari,Chrome)/Desktop(macOS 26.2)/iOS(26.2)/Android(api 36.0) ]   |
 |:----------------------------------------------------------------------------------------:|
-|  ![ScreenShot](https://github.com/unchil/OceanWaterInfo/raw/main/screenshot/full2.gif)   | 
+|  ![ScreenShot](https://github.com/unchil/OceanWaterInfo/raw/main/screenshot/full3.gif)   | 
 | ![ScreenShot](https://github.com/unchil/OceanWaterInfo/raw/main/screenshot/full_new.gif) | 
 
 
