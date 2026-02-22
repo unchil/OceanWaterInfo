@@ -13,9 +13,9 @@ async function initMap() {
 
 
     map  = new Map(document.getElementById('un7map'), {
-        mapId: "YOUR MAP ID",
+        mapId: "YOUR_MAP_ID",
         center: center,
-        zoom: 15,
+        zoom: 16,
         renderingType: google.maps.RenderingType.VECTOR,
 
     });
@@ -57,7 +57,7 @@ window.flyTo = function(target) {
         setTimeout(() => {
             map.panTo(target)
             setTimeout(() => {
-                map.setZoom(15)
+                map.setZoom(16)
             }, 1000);
         }, 1000)
     }, 1000);
@@ -84,12 +84,12 @@ window.smoothFlyTo = function(target) {
     }
  //   let target =  { lat: parseFloat(lat), lng: parseFloat(lng) }
     setTimeout(() => {
-        smoothZoom(7, map.getZoom())
+        smoothZoom(10, map.getZoom())
 
         setTimeout(() => {
             map.panTo(target)
             setTimeout(() => {
-                 smoothZoom(18, map.getZoom())
+                 smoothZoom(16, map.getZoom())
             }, 500);
         }, 500)
     }, 500);
