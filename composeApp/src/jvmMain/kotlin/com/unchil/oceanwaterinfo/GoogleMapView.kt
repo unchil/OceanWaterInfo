@@ -102,7 +102,7 @@ fun SimpleMapScreen(
 
                 // 2. buildString을 사용하여 문자열 조립 (가독성 및 안전성)
                 val desc = buildString {
-                    append("\" build_data:${it?.bld_dat ?: "N/A"}<br>")
+                    append("\" build_date:${it?.bld_dat ?: "N/A"}<br>")
                     if (it?.sur_tmp_yn == "Y") append("surface_depth: ${it.sur_dep}M<br>")
                     if (it?.mid_tmp_yn == "Y") append("middle_depth: ${it.mid_dep}M<br>")
                     if (it?.bot_tmp_yn == "Y") append("bottom_depth: ${it.bot_dep}M<br>")
@@ -130,7 +130,7 @@ fun SimpleMapScreen(
 
     val center = LocalPoint.current
 
-    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=sq02jc3dshml38d5j37316hvq1&_ij_reload=RELOAD_ON_SAVE"
+    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=uj9t2va1sr6gdm4n8qsbsn02sj&_ij_reload=RELOAD_ON_SAVE"
     val remoteUrl = "https://www.google.com/maps/"
 
     val webViewState = rememberWebViewState(localUrl)
