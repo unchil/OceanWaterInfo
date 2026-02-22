@@ -13,7 +13,7 @@ async function initMap() {
 
 
     map  = new Map(document.getElementById('un7map'), {
-        mapId: "YOUR_MAP_ID",
+        mapId: "YOUR MAP ID",
         center: center,
         zoom: 16,
         renderingType: google.maps.RenderingType.VECTOR,
@@ -50,20 +50,6 @@ async function initMap() {
 
 }
 
-window.flyTo = function(target) {
-
-    setTimeout(() => {
-        map.setZoom(map.getZoom() - 8)
-        setTimeout(() => {
-            map.panTo(target)
-            setTimeout(() => {
-                map.setZoom(16)
-            }, 1000);
-        }, 1000)
-    }, 1000);
-
-}
-
 function smoothZoom ( targetZoom, currentZoom) {
     if (currentZoom === targetZoom) return;
     // 줌을 확대할지 축소할지 결정
@@ -73,7 +59,7 @@ function smoothZoom ( targetZoom, currentZoom) {
     // 재귀적으로 호출하여 애니메이션 효과 생성
     setTimeout(function() {
         smoothZoom(map, targetZoom, nextZoom);
-    }, 300); // 50ms 간격으로 실행
+    }, 300);
 }
 
 
@@ -82,18 +68,14 @@ window.smoothFlyTo = function(target) {
     if (!map) {
         return;
     }
- //   let target =  { lat: parseFloat(lat), lng: parseFloat(lng) }
+    smoothZoom(10, map.getZoom())
+
     setTimeout(() => {
-        smoothZoom(10, map.getZoom())
-
+        map.panTo(target)
         setTimeout(() => {
-            map.panTo(target)
-            setTimeout(() => {
-                 smoothZoom(16, map.getZoom())
-            }, 500);
-        }, 500)
-    }, 500);
-
+             smoothZoom(16, map.getZoom())
+        }, 500);
+    }, 500)
 };
 
 
