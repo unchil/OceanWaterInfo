@@ -77,6 +77,51 @@ data class  ObservatoryBody(
     val item: List<Observatory>
 )
 
+
+@Serializable
+data class KhoaObservationResponse(
+    val header: Header,
+    val body: KhoaObservationBody
+)
+
+//[obsvtrNm, lot, lat, obsrvnDt, wndrct, wspd, maxMmntWspd, artmp, atmpr, wvhgt, wvpd, crdir, crsp, wtem, slnty]
+// [관측소명, 관측소 경도, 관측소 위도, 관측일시, 풍향, 풍속, 최대풍속, 기온, 기압, 파고, 파주기, 유향, 유속, 수온, 염분]
+@Serializable
+data class KhoaObservation(
+    val obsvtrNm: String,
+    val lot: Double,
+    val lat: Double,
+    val obsrvnDt: String,
+    val wndrct: Float?,
+    val wspd: Float?,
+    val maxMmntWspd: Float?,
+    val artmp: Float?,
+    val atmpr: Float?,
+    val wvhgt: Float?,
+    val wvpd: Float?,
+    val crdir: Float?,
+    val crsp: Float?,
+    val wtem: Float?,
+    val slnty: Float?
+)
+
+@Serializable
+@SerialName("item")
+data class KhoaItems(
+    val item: List<KhoaObservation>
+)
+
+
+@Serializable
+@SerialName("body")
+data class KhoaObservationBody(
+    val items:  KhoaItems,
+    val numOfRows: Int,
+    val pageNo: Int,
+    val totalCount: Int,
+    val type: String
+)
+
 @Serializable
 data class ObservationResponse(
     val header: Header,
@@ -102,6 +147,7 @@ data class OceanWaterResponse(
 data class ConfigData(
     val NIFS_API: NifsApiConfig? = null,
     val MOF_API: MofApiConfig? = null,
+    val KHOA_API: KhoaApiConfig? = null,
     val SQLITE_DB: DatabaseConfig? = null,
     val COLLECTION_TYPE: CollectionConfig? = null
 )
@@ -126,6 +172,18 @@ data class  MofApiConfig(
     val apikey: String,
     val subPath: String
 )
+
+@Serializable
+data class  KhoaApiConfig(
+    val endPoint: String,
+    val apikey: String,
+    val subPath: String,
+    val type: String,
+    val min: String,
+    val pageNo: String,
+    val numOfRows: String
+)
+
 
 @Serializable
 data class DatabaseConfig(

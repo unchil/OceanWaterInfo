@@ -30,6 +30,14 @@ import java.nio.charset.StandardCharsets
 class RestApi {
 
     companion object {
+
+
+        suspend fun callKhoaAPI_json(url:String): String{
+            client.get(url).let {
+                return it.bodyAsText(java.nio.charset.Charset.forName("EUC-KR"))
+            }
+        }
+
         suspend fun callNifsAPI_json(id:String):String{
             client.get(urlString =  configData.NIFS_API?.endPoint ?: "") {
                 url{

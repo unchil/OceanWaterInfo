@@ -1,12 +1,22 @@
 package com.unchil.oceanwaterinfo
 
+import com.unchil.oceanwaterinfo.Config.Companion.configData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.count
 import org.jetbrains.kotlinx.dataframe.api.forEach
@@ -14,14 +24,97 @@ import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.json.XML
 
 class Repository {
-
-
     internal val LOGGER = KtorSimpleLogger( Repository::class.java.name )
 
     init {
         transaction(Config.conn) {
             addLogger(StdOutSqlLogger)
         }
+    }
+
+     @OptIn(FormatStringsInDatetimeFormats::class)
+     suspend fun getKhoaObservation()  {
+         try {
+             val reqDate =
+                 kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
+                     .format(LocalDateTime.Format { byUnicodePattern("yyyyMMdd") })
+
+             val url = "${configData.KHOA_API?.endPoint}/${configData.KHOA_API?.subPath}" +
+                     "?serviceKey=${configData.KHOA_API?.apikey}" +
+                     "&type=${configData.KHOA_API?.type}" +
+                     "&reqDate=${reqDate}" +
+                     "&min=${configData.KHOA_API?.min}" +
+                     "&pageNo=${configData.KHOA_API?.pageNo}" +
+                     "&numOfRows=${configData.KHOA_API?.numOfRows}"
+
+
+             val result = transaction(Config.conn) {
+                 ObservatoryKHOA.select(ObservatoryKHOA.obsCode).map { resultRow ->
+                     resultRow[ObservatoryKHOA.obsCode]
+                 }
+             }
+
+             result.forEach { obsCode ->
+                 RestApi.callKhoaAPI_json("${url}&obsCode=${obsCode}").let {
+                     val recvData = Json.decodeFromString<KhoaObservationResponse>(it)
+                     if(recvData.header.resultCode.equals("00")){
+                         LOGGER.info( "${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
+
+                         transaction (Config.conn){
+                             SchemaUtils.create( ObservationKHOA)
+                             SchemaUtils.create( ObservatoryKHOA)
+
+                             try {
+                                 recvData.body.items.item.forEach { item ->
+                                     ObservationKHOA.insert { it ->
+                                         it[ObservationKHOA.obsCode] = obsCode
+                                         it[ObservationKHOA.obsrvnDt] = item.obsrvnDt
+                                         it[ObservationKHOA.wndrct] = item.wndrct?.toString()
+                                         it[ObservationKHOA.wspd] = item.wspd?.toString()
+                                         it[ObservationKHOA.maxMmntWspd] = item.maxMmntWspd?.toString()
+                                         it[ObservationKHOA.artmp] = item.artmp?.toString()
+                                         it[ObservationKHOA.atmpr] = item.atmpr?.toString()
+                                         it[ObservationKHOA.wvhgt] = item.wvhgt?.toString()
+                                         it[ObservationKHOA.wvpd] = item.wvpd?.toString()
+                                         it[ObservationKHOA.crdir] = item.crdir?.toString()
+                                         it[ObservationKHOA.crsp] = item.crsp?.toString()
+                                         it[ObservationKHOA.wtem] = item.wtem?.toString()
+                                         it[ObservationKHOA.slnty] = item.slnty?.toString()
+                                     }
+                                 }
+
+                                 if(recvData.body.totalCount > 0) {
+                                     ObservatoryKHOA.update({ ObservatoryKHOA.obsCode eq obsCode }) { it ->
+                                         it[ObservatoryKHOA.obsvtrNm] =
+                                             recvData.body.items.item[0].obsvtrNm
+                                         it[ObservatoryKHOA.longitude] =
+                                             recvData.body.items.item[0].lot
+                                         it[ObservatoryKHOA.latitude] =
+                                             recvData.body.items.item[0].lat
+                                     }
+                                 }
+
+                             } catch (e:Exception){
+                                 e.localizedMessage?.let { msg ->
+                                     LOGGER.debug(msg)
+                                 }
+                            }
+
+                         }
+                     }else{
+                         LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
+                     }
+                 }
+
+             }
+
+
+         }catch(e: Exception) {
+             e.localizedMessage?.let { msg ->
+                 LOGGER.error( "${::getKhoaObservation.name} [${msg}]")
+             }
+         }
+
     }
 
 

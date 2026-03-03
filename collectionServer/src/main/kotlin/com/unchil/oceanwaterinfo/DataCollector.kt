@@ -15,6 +15,8 @@ class DataCollector {
             try {
                 repository.getRealTimeObservation()
                 repository.getRealTimeObservatory()
+                repository.getKhoaObservation()
+
 
                 //jobType:["batch", "schedule"]
                 //jobEvent:["recovery", "operation"]
