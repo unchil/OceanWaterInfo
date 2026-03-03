@@ -64,14 +64,15 @@ class Repository {
                              SchemaUtils.create( ObservationKHOA)
                              SchemaUtils.create( ObservatoryKHOA)
 
-                             try {
-                                 recvData.body.items.item.forEach { item ->
+                             recvData.body.items.item.forEach { item ->
+                                 try {
                                      ObservationKHOA.insert { it ->
                                          it[ObservationKHOA.obsCode] = obsCode
                                          it[ObservationKHOA.obsrvnDt] = item.obsrvnDt
                                          it[ObservationKHOA.wndrct] = item.wndrct?.toString()
                                          it[ObservationKHOA.wspd] = item.wspd?.toString()
-                                         it[ObservationKHOA.maxMmntWspd] = item.maxMmntWspd?.toString()
+                                         it[ObservationKHOA.maxMmntWspd] =
+                                             item.maxMmntWspd?.toString()
                                          it[ObservationKHOA.artmp] = item.artmp?.toString()
                                          it[ObservationKHOA.atmpr] = item.atmpr?.toString()
                                          it[ObservationKHOA.wvhgt] = item.wvhgt?.toString()
@@ -81,9 +82,15 @@ class Repository {
                                          it[ObservationKHOA.wtem] = item.wtem?.toString()
                                          it[ObservationKHOA.slnty] = item.slnty?.toString()
                                      }
+                                 } catch (e:Exception){
+                                     e.localizedMessage?.let { msg ->
+                                         LOGGER.debug(msg)
+                                     }
                                  }
+                             }
 
-                                 if(recvData.body.totalCount > 0) {
+                             if(recvData.body.totalCount > 0) {
+                                 try {
                                      ObservatoryKHOA.update({ ObservatoryKHOA.obsCode eq obsCode }) { it ->
                                          it[ObservatoryKHOA.obsvtrNm] =
                                              recvData.body.items.item[0].obsvtrNm
@@ -92,15 +99,13 @@ class Repository {
                                          it[ObservatoryKHOA.latitude] =
                                              recvData.body.items.item[0].lat
                                      }
+                                 } catch (e:Exception){
+                                     e.localizedMessage?.let { msg ->
+                                         LOGGER.debug(msg)
+                                     }
                                  }
-
-                             } catch (e:Exception){
-                                 e.localizedMessage?.let { msg ->
-                                     LOGGER.debug(msg)
-                                 }
-                            }
-
-                         }
+                             }
+                     }
                      }else{
                          LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
                      }
