@@ -84,7 +84,16 @@ data class KhoaObservationResponse(
     val body: KhoaObservationBody
 )
 
-//[obsvtrNm, lot, lat, obsrvnDt, wndrct, wspd, maxMmntWspd, artmp, atmpr, wvhgt, wvpd, crdir, crsp, wtem, slnty]
+//[
+// obsvtrNm, lot(Longitude), lat(Latitude), obsrvnDt,
+// wndrct(Wind direction), wspd(Wind speed), maxMmntWspd(Maximum moment wind speed),
+// artmp(Air temperature), atmpr(Atmospheric pressure),
+// wvhgt(Wave height), wvpd(Wave  ),
+// crdir( (Capsule radiation) Direction of sea water ), crsp( (Capsule radiation) Speed of sea water),
+// wtem(Water temperature),
+// slnty(Salinity)
+// ]
+//
 // [관측소명, 관측소 경도, 관측소 위도, 관측일시, 풍향, 풍속, 최대풍속, 기온, 기압, 파고, 파주기, 유향, 유속, 수온, 염분]
 @Serializable
 data class KhoaObservation(
