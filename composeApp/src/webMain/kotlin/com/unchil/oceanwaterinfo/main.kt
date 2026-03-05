@@ -61,6 +61,9 @@ fun main() {
                                 modifier = Modifier.verticalScroll(rememberScrollState()),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ){
+
+                                WindPolarChart()
+
                                 OceanWaterInfoBoxPlotChart()
 
                                 OceanWaterInfoBarChart()

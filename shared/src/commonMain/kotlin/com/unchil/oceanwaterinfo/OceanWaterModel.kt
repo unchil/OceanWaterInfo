@@ -108,4 +108,23 @@ data class Observatory(
     val sta_des: String?
 )
 
+@Serializable
+data class KhoaObservation(
+    val obsCode: String,
+    val obsvtrNm: String,
+    val lot: Double,
+    val lat: Double,
+    val obsrvnDt: String,
+    val wndrct: String?,
+    val wspd: String?,
+    val maxMmntWspd: String?,
+    val artmp: String?,
+    val atmpr: String?,
+    val wvhgt: String?,
+    val wvpd: String?,
+    val crdir: String?,
+    val crsp: String?,
+    val wtem: String?,
+    val slnty: String?
+)
 

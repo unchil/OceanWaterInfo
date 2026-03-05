@@ -41,6 +41,9 @@ private val cacheStorage_SeawaterInfo_Mof = ConcurrentHashMap<String, Pair<List<
 private val cacheStorage_SeaWaterInfoStatistics = ConcurrentHashMap<String, Pair<List<SeaWaterInfoByOneHourStat>, Long>>()
 
 private val cacheStorage_SeaWaterInfoBoxPlot = ConcurrentHashMap<String, Pair<List<SeaWaterBoxPlotStat>, Long>>()
+
+private val cacheStorage_KhoaObservationInfo = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
+
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
@@ -50,6 +53,30 @@ class Repository:RepositoryInterface {
 
     suspend fun <T> suspendTransaction(block: Transaction.() -> T): T =
         newSuspendedTransaction(Dispatchers.IO, statement = block)
+
+
+
+    suspend fun khoaObservationInfo(): List<KhoaObservation> {
+        val key = "cache_khoa"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KhoaObservationInfo[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID: khoa")
+                return cachedData.first
+            }
+        }
+        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        val resultFromDb = fetchKhoaObservationFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KhoaObservationInfo[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+    }
+
+
+
 
     // 캐시 로직과 DB 조회 호출을 담당하는 메인 함수
     suspend fun seaWaterInfo(division: String): List<SeawaterInformationByObservationPoint> {
@@ -419,6 +446,68 @@ class Repository:RepositoryInterface {
             }
         return@suspendTransaction result
     }
+
+
+
+    suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {
+        LOGGER.info("Serving from DB for : fetchKhoaObservationFromDb")
+
+        val maxDt = ObservationKHOA
+            .selectAll()
+            .orderBy(ObservationKHOA.obsrvnDt to SortOrder.DESC) // 날짜 내림차순 정렬
+            .limit(1)                                            // 제일 위 하나만
+            .singleOrNull()
+            ?.get(ObservationKHOA.obsrvnDt) ?: ""                   // 해당 날짜 추출
+
+        val result = ObservationKHOA
+            .join(
+                ObservatoryKHOA,
+                JoinType.INNER,
+                onColumn = ObservationKHOA.obsCode,
+                ObservatoryKHOA.obsCode
+            ).select(
+                ObservatoryKHOA.obsCode,
+                ObservatoryKHOA.obsvtrNm,
+                ObservatoryKHOA.latitude,
+                ObservatoryKHOA.longitude,
+                ObservationKHOA.obsrvnDt,
+                ObservationKHOA.wndrct,
+                ObservationKHOA.wspd,
+                ObservationKHOA.maxMmntWspd,
+                ObservationKHOA.artmp,
+                ObservationKHOA.atmpr,
+                ObservationKHOA.wvhgt,
+                ObservationKHOA.wvpd,
+                ObservationKHOA.crdir,
+                ObservationKHOA.crsp,
+                ObservationKHOA.wtem,
+                ObservationKHOA.slnty
+            ).where{
+                ObservationKHOA.obsrvnDt eq maxDt
+            }.map{
+                KhoaObservation(
+                    it[ObservatoryKHOA.obsCode],
+                    it[ObservatoryKHOA.obsvtrNm],
+                    it[ObservatoryKHOA.longitude],
+                    it[ObservatoryKHOA.latitude],
+                    it[ObservationKHOA.obsrvnDt],
+                    it[ObservationKHOA.wndrct],
+                    it[ObservationKHOA.wspd],
+                    it[ObservationKHOA.maxMmntWspd],
+                    it[ObservationKHOA.artmp],
+                    it[ObservationKHOA.atmpr],
+                    it[ObservationKHOA.wvhgt],
+                    it[ObservationKHOA.wvpd],
+                    it[ObservationKHOA.crdir],
+                    it[ObservationKHOA.crsp],
+                    it[ObservationKHOA.wtem],
+                    it[ObservationKHOA.slnty]
+                )
+            }
+
+        return@suspendTransaction result
+    }
+
 
 
     override suspend fun observatoryInfo(): List<Observatory> = suspendTransaction {

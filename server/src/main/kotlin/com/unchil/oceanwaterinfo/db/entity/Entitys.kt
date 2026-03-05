@@ -122,3 +122,33 @@ fun toObservatory(it: ResultRow) = Observatory(
     it[ObservatoryTable.sta_des]
 )
 
+
+object ObservationKHOA: Table("ObservationKHOA"){
+
+    val obsCode = varchar("obsCode", length=10)
+
+    val obsrvnDt = varchar("obsrvnDt", length=20)
+    val wndrct = varchar("wndrct", length=10).nullable()
+    val wspd = varchar("wspd", length=10).nullable()
+    val maxMmntWspd = varchar("maxMmntWspd", length=10).nullable()
+    val artmp = varchar("artmp", length=10).nullable()
+    val atmpr = varchar("atmpr", length=10).nullable()
+    val wvhgt = varchar("wvhgt", length=10).nullable()
+    val wvpd = varchar("wvpd", length=10).nullable()
+    val crdir = varchar("crdir", length=10).nullable()
+    val crsp = varchar("crsp", length=10).nullable()
+    val wtem = varchar("wtem", length=10).nullable()
+    val slnty = varchar("slnty", length=10).nullable()
+
+    override val primaryKey = PrimaryKey(obsCode, obsrvnDt, name = "primaryKey")
+
+}
+
+object ObservatoryKHOA: Table("ObservatoryKHOA"){
+    val obsCode = varchar("obsCode", length=10)
+    val obsvtrNm = varchar("obsvtrNm", length=200)
+    val longitude = double("longitude")
+    val latitude =  double("latitude")
+
+    override val primaryKey = PrimaryKey(obsCode, name = "primaryKey")
+}
