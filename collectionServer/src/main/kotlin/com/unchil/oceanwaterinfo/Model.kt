@@ -189,7 +189,6 @@ data class  KhoaApiConfig(
     val subPath: String,
     val type: String,
     val min: String,
-    val pageNo: String,
     val numOfRows: String
 )
 

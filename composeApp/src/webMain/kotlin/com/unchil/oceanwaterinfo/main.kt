@@ -62,7 +62,7 @@ fun main() {
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ){
 
-                                WindPolarChart()
+                         //       WindPolarChart()
 
                                 OceanWaterInfoBoxPlotChart()
 

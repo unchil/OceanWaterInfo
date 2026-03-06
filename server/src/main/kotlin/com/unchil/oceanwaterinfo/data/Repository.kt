@@ -44,6 +44,7 @@ private val cacheStorage_SeaWaterInfoBoxPlot = ConcurrentHashMap<String, Pair<Li
 
 private val cacheStorage_KhoaObservationInfo = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
 
+private val cacheStorage_KhoaObservatoryInfo = ConcurrentHashMap<String, Pair<List<KhonObservatory>, Long>>()
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
@@ -75,6 +76,24 @@ class Repository:RepositoryInterface {
         return resultFromDb
     }
 
+    suspend fun khoaObservatoryInfo(): List<KhonObservatory> {
+        val key = "cache_khoa_observatory"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KhoaObservatoryInfo[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID: khoa_observatory")
+                return cachedData.first
+            }
+        }
+        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        val resultFromDb = fetchKhoaObservatoryFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KhoaObservatoryInfo[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+    }
 
 
 
@@ -447,7 +466,23 @@ class Repository:RepositoryInterface {
         return@suspendTransaction result
     }
 
-
+    suspend fun fetchKhoaObservatoryFromDb():List<KhonObservatory> = suspendTransaction {
+        LOGGER.info("Serving from DB for : fetchKhoaObservatoryFromDb")
+        val result = ObservatoryKHOA.select(
+                ObservatoryKHOA.obsCode,
+                ObservatoryKHOA.obsvtrNm,
+                ObservatoryKHOA.latitude,
+                ObservatoryKHOA.longitude
+        ).map {
+            KhonObservatory(
+                it[ObservatoryKHOA.obsCode],
+                it[ObservatoryKHOA.obsvtrNm],
+                it[ObservatoryKHOA.longitude],
+                it[ObservatoryKHOA.latitude],
+            )
+        }
+        return@suspendTransaction result
+    }
 
     suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservationFromDb")

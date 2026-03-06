@@ -128,3 +128,10 @@ data class KhoaObservation(
     val slnty: String?
 )
 
+@Serializable
+data class KhonObservatory(
+    val obsCode: String,
+    val obsvtrNm: String,
+    val lot: Double,
+    val lat: Double,
+)
