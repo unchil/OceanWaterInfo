@@ -1,5 +1,11 @@
 package com.unchil.oceanwaterinfo.chart
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -22,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +43,8 @@ import io.github.koalaplot.core.xygraph.Point
 import io.github.koalaplot.core.xygraph.XYGraphScope
 import oceanwaterinfo.composeapp.generated.resources.Res
 import oceanwaterinfo.composeapp.generated.resources.arrow_downward_alt_24px
+import oceanwaterinfo.composeapp.generated.resources.arrow_upward_alt_24px
+import oceanwaterinfo.composeapp.generated.resources.baseline_arrow_circle_up_24
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -76,14 +85,30 @@ fun XYGraphScope<Double, Float>.DegLineChart(
         val interactionSource = remember { MutableInteractionSource() }
         val isPressed by interactionSource.collectIsPressedAsState()
         val isUsableSymbolTooltips by interactionSource.collectIsHoveredAsState()
-        strokeWidth.value = if (isPressed) 1.dp else 0.5.dp
+        strokeWidth.value = if (isPressed) 2.dp else 0.5.dp
+
+        // Compose 애니메이션 값 생성
+        val infiniteTransition = rememberInfiniteTransition()
+        val phase by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 20f, // 패턴의 총 합(20+10)만큼 이동하면 부드럽게 반복됨
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            )
+        )
 
         LinePlot2(
             data = triple.second,
             lineStyle = LineStyle(
                 brush = SolidColor(colors[triple.first] ?: Color.Black),
                 strokeWidth = strokeWidth.value,
-                alpha = 0.5f,
+                // [선 길이, 공백 길이] 순서로 입력 (단위: 픽셀)
+                pathEffect = PathEffect.dashPathEffect(
+                    intervals = floatArrayOf(10f, 10f), // 10px 그리고 10px 띔
+                    phase = -phase
+                ),
+                alpha = 1.0f,
             ),
             symbol = { point ->
 
@@ -98,7 +123,7 @@ fun XYGraphScope<Double, Float>.DegLineChart(
                     isUsableSymbolTooltips -> 16.dp
                     triple.second.indexOf(point) == 0 -> 16.dp
                     triple.second.indexOf(point) == triple.second.lastIndex ->16.dp
-                    usableSymbol -> 12.dp
+                    usableSymbol -> 16.dp
                     else -> 0.dp
                 }
 
@@ -143,14 +168,15 @@ fun XYGraphScope<Double, Float>.DegLineChart(
                     }.y
 
                     Icon(
-                        painterResource(Res.drawable.arrow_downward_alt_24px),
+                   //     painterResource(Res.drawable.baseline_arrow_circle_up_24),
+                        painterResource(Res.drawable.arrow_upward_alt_24px),
                         modifier = Modifier.clickable(
                             interactionSource =interactionSource,
                             indication = null, // 리플 효과
                             onClick = {
 
                             }
-                        ).size(symbolSize).rotate(deg + 180f ).alpha(symbolAlpha),
+                        ).size(symbolSize).rotate(deg  ).alpha(symbolAlpha),
                         contentDescription = "",
                         tint = colors[triple.first] ?: Color.Black
                     )
