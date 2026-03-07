@@ -121,7 +121,7 @@ fun main() = application {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
 
-                            //    WindPolarChart()
+                                WaterTempLineChart_KHOA()
 
                                 OceanWaterInfoBoxPlotChart()
 
@@ -129,11 +129,11 @@ fun main() = application {
 
                                 OceanWaterInfoBarChart()
 
-                                OceanWaterInfoLineChart_MOF()
+                            //    OceanWaterInfoLineChart_MOF()
 
                                 OceanWaterInfoDataGrid()
 
-                                OceanWaterInfoGeoChart()
+                              //  OceanWaterInfoGeoChart()
 
                             }
                         }

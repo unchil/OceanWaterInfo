@@ -60,82 +60,81 @@ class Repository {
 
                  var requestPage = 1
 
-                 do{
+              //   do{
                     val pageUrl = "${url}&pageNo=${requestPage}&obsCode=${obsCode}"
 
                      try {
+                            RestApi.callKhoaAPI_json(pageUrl).let {
+                             val recvData = Json.decodeFromString<KhoaObservationResponse>(it)
 
-                        RestApi.callKhoaAPI_json(pageUrl).let {
-                         val recvData = Json.decodeFromString<KhoaObservationResponse>(it)
+                             if(recvData.header.resultCode.equals("00")) {
+                             //    requestPage += 1
 
-                         if(recvData.header.resultCode.equals("00")) {
-                             requestPage += 1
+                                 LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
 
-                             LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
+                                 transaction(Config.conn) {
+                                     SchemaUtils.create(ObservationKHOA)
+                                     SchemaUtils.create(ObservatoryKHOA)
 
-                             transaction(Config.conn) {
-                                 SchemaUtils.create(ObservationKHOA)
-                                 SchemaUtils.create(ObservatoryKHOA)
-
-                                 recvData.body.items.item.forEach { item ->
-                                     try {
-                                         ObservationKHOA.insert { it ->
-                                             it[ObservationKHOA.obsCode] = obsCode
-                                             it[ObservationKHOA.obsrvnDt] = item.obsrvnDt
-                                             it[ObservationKHOA.wndrct] = item.wndrct?.toString()
-                                             it[ObservationKHOA.wspd] = item.wspd?.toString()
-                                             it[ObservationKHOA.maxMmntWspd] =
-                                                 item.maxMmntWspd?.toString()
-                                             it[ObservationKHOA.artmp] = item.artmp?.toString()
-                                             it[ObservationKHOA.atmpr] = item.atmpr?.toString()
-                                             it[ObservationKHOA.wvhgt] = item.wvhgt?.toString()
-                                             it[ObservationKHOA.wvpd] = item.wvpd?.toString()
-                                             it[ObservationKHOA.crdir] = item.crdir?.toString()
-                                             it[ObservationKHOA.crsp] = item.crsp?.toString()
-                                             it[ObservationKHOA.wtem] = item.wtem?.toString()
-                                             it[ObservationKHOA.slnty] = item.slnty?.toString()
+                                     recvData.body.items.item.forEach { item ->
+                                         try {
+                                             ObservationKHOA.insert { it ->
+                                                 it[ObservationKHOA.obsCode] = obsCode
+                                                 it[ObservationKHOA.obsrvnDt] = item.obsrvnDt
+                                                 it[ObservationKHOA.wndrct] = item.wndrct?.toString()
+                                                 it[ObservationKHOA.wspd] = item.wspd?.toString()
+                                                 it[ObservationKHOA.maxMmntWspd] =
+                                                     item.maxMmntWspd?.toString()
+                                                 it[ObservationKHOA.artmp] = item.artmp?.toString()
+                                                 it[ObservationKHOA.atmpr] = item.atmpr?.toString()
+                                                 it[ObservationKHOA.wvhgt] = item.wvhgt?.toString()
+                                                 it[ObservationKHOA.wvpd] = item.wvpd?.toString()
+                                                 it[ObservationKHOA.crdir] = item.crdir?.toString()
+                                                 it[ObservationKHOA.crsp] = item.crsp?.toString()
+                                                 it[ObservationKHOA.wtem] = item.wtem?.toString()
+                                                 it[ObservationKHOA.slnty] = item.slnty?.toString()
+                                             }
+                                         } catch (e: Exception) {
+                                             e.localizedMessage?.let { msg ->
+                                                 LOGGER.debug(msg)
+                                             }
                                          }
-                                     } catch (e: Exception) {
-                                         e.localizedMessage?.let { msg ->
-                                             LOGGER.debug(msg)
+                                     }
+
+                                     if (recvData.body.totalCount > 0) {
+                                         try {
+                                             ObservatoryKHOA.update({ ObservatoryKHOA.obsCode eq obsCode }) { it ->
+                                                 it[ObservatoryKHOA.obsvtrNm] =
+                                                     recvData.body.items.item[0].obsvtrNm
+                                                 it[ObservatoryKHOA.longitude] =
+                                                     recvData.body.items.item[0].lot
+                                                 it[ObservatoryKHOA.latitude] =
+                                                     recvData.body.items.item[0].lat
+                                             }
+                                         } catch (e: Exception) {
+                                             e.localizedMessage?.let { msg ->
+                                                 LOGGER.debug(msg)
+                                             }
                                          }
                                      }
                                  }
-
-                                 if (recvData.body.totalCount > 0) {
-                                     try {
-                                         ObservatoryKHOA.update({ ObservatoryKHOA.obsCode eq obsCode }) { it ->
-                                             it[ObservatoryKHOA.obsvtrNm] =
-                                                 recvData.body.items.item[0].obsvtrNm
-                                             it[ObservatoryKHOA.longitude] =
-                                                 recvData.body.items.item[0].lot
-                                             it[ObservatoryKHOA.latitude] =
-                                                 recvData.body.items.item[0].lat
-                                         }
-                                     } catch (e: Exception) {
-                                         e.localizedMessage?.let { msg ->
-                                             LOGGER.debug(msg)
-                                         }
-                                     }
-                                 }
+                             } else if(recvData.header.resultCode.equals("03")){
+                             //    break
+                             }else{
+                                 LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
+                             //    break
                              }
-                         } else if(recvData.header.resultCode.equals("03")){
-                             break
-                         }else{
-                             LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
-                             break
-                         }
 
-                     }
+                         }
 
                      }catch(e: Exception) {
                          e.localizedMessage?.let { msg ->
                              LOGGER.error( "${::getKhoaObservation.name} [${msg}]")
-                             break
+                      //       break
                          }
                      }
 
-                 } while (requestPage < 100 )
+               //  } while (requestPage < 100 )
 
              }
 

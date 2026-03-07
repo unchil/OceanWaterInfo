@@ -110,6 +110,73 @@ fun List<SeawaterInformationByObservationPoint>.toLineTripleList(): List<Triple<
 }
 
 
+
+@OptIn(FormatStringsInDatetimeFormats::class)
+fun List<KhoaObservation>.toLineTripleList2(): List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>{
+    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
+    val outputFormat = LocalDateTime.Format { byUnicodePattern("yy/MM/dd HH:mm") }
+
+    // 1. 기본 필터링 및 데이터 추출 (시간순 정렬 포함)
+    val rawData = this.sortedBy { it.obsrvnDt } // 이전 값을 참조하기 위해 시간순 정렬 필수
+
+    // 2. 관측소별로 그룹화하여 결측치 보정 (Forward Fill)
+    val validData = rawData.groupBy { it.obsvtrNm }
+        .flatMap { (obsvtrNm, items) ->
+            var lastValidValue = 0f // 이전 인덱스의 유효한 값을 저장
+            items.map { it ->
+
+                val formattedTime = LocalDateTime.parse(it.obsrvnDt, inputFormat)
+                    .toInstant(TimeZone.UTC)
+                    .toEpochMilliseconds().toDouble()
+
+                val currentValue = it.wtem?.trim()?.toFloatOrNull()
+
+                val finalValue:Float = if ( currentValue == null ) {
+                    lastValidValue
+                } else {
+                    lastValidValue = currentValue
+                    currentValue
+                }
+
+                obsvtrNm to (formattedTime to (kotlin.math.round(finalValue * 10) / 10.0).toFloat())
+
+            }
+        }
+
+    val xValues = validData.map { it.second.first }.distinct().sorted()
+
+    val groupedByStation = validData
+        .groupBy({ it.first }, { it.second })
+        .mapValues { (_, timeValuePairs) ->
+            // 시간별로 맵을 만들어 xValues 순서대로 값을 배치 (데이터가 없으면 0f)
+            val timeMap = timeValuePairs.toMap()
+            xValues.map {  time ->
+
+                // 1. 현재 시간에 데이터가 있으면 사용
+                // 2. 없으면 timeValuePairs(리스트)에서 현재 time보다 이전인 것 중 가장 늦은 시간의 값을 가져옴
+                timeMap[time] ?: timeValuePairs
+                    .filter { it.first < time }
+                    .maxByOrNull { it.first }?.second
+                ?: 0f // 이전 데이터도 전혀 없으면 0f
+
+            }
+        }
+
+    val result = groupedByStation.entries.map {  entry ->
+
+        val pointList = entry.value.mapIndexed { index, value ->
+            Point(xValues[index], value)
+        }
+
+        Triple(entry.key, pointList,  emptyMap<String,Any>() )
+    }
+
+
+    return result
+}
+
+
+
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun List<SeaWaterInformation>.toMofLineTripleList(qualityType: WATER_QUALITY.QualityType):List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>{
     val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm:ss") }

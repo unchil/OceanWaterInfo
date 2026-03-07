@@ -484,8 +484,16 @@ class Repository:RepositoryInterface {
         return@suspendTransaction result
     }
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservationFromDb")
+
+        //2026-03-06 13:59
+        val previous24Hour = Clock.System.now()
+            .minus(24, DateTimeUnit.HOUR)
+            .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
+
 
         val maxDt = ObservationKHOA
             .selectAll()
@@ -518,7 +526,8 @@ class Repository:RepositoryInterface {
                 ObservationKHOA.wtem,
                 ObservationKHOA.slnty
             ).where{
-                ObservationKHOA.obsrvnDt eq maxDt
+               // ObservationKHOA.obsrvnDt eq maxDt
+                ObservationKHOA.obsrvnDt greaterEq previous24Hour
             }.map{
                 KhoaObservation(
                     it[ObservatoryKHOA.obsCode],
