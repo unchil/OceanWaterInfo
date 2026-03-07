@@ -50,6 +50,7 @@ fun main() = application {
     var download by remember { mutableStateOf(-1) }
     var errorMessage by remember {mutableStateOf("")}
 
+
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             KCEF.init(
@@ -70,6 +71,8 @@ fun main() = application {
             )
         }
     }
+
+
 
 
     val state = WindowState(
@@ -94,7 +97,10 @@ fun main() = application {
         ) {
             CompositionLocalProvider(  LocalPlatform provides getPlatform() ) {
 
+              //  WindPolarChart()
+
                 var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
+
 
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val totalHeight = constraints.maxHeight.toFloat()
@@ -134,6 +140,8 @@ fun main() = application {
                                 OceanWaterInfoDataGrid()
 
                               //  OceanWaterInfoGeoChart()
+
+                                WindPolarChart()
 
                             }
                         }
@@ -240,10 +248,6 @@ fun main() = application {
 
 
 
-
-
-
-
             }
         }
     }
@@ -254,6 +258,8 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
+
+
 
 }
 

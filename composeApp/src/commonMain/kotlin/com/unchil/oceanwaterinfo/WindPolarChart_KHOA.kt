@@ -49,6 +49,8 @@ import io.github.koalaplot.core.util.deg
 import io.github.koalaplot.core.util.toDegrees
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalKoalaPlotApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -77,8 +79,9 @@ fun WindPolarChart(){
 
 
     val chartLayout = remember { mutableStateOf(LayoutData() )}
-    val chartHeight = remember {600.dp}
-    val chartTitle = remember { mutableStateOf("실시간 풍향/풍속 현황")}
+    val chartHeight = remember {500.dp}
+    val chartTitle = remember { mutableStateOf("")}
+    val maxCrSp = remember { mutableStateOf(0f)}
 
     val chartCaption = remember {"from https://www.data.go.kr/data/15155516/openapi.do (행정안전부 공공데이터포털)"}
 
@@ -93,16 +96,25 @@ fun WindPolarChart(){
     }
 
     LaunchedEffect(windInfo.value){
+
+        val maxDate = windInfo.value.maxOfOrNull { it.obsrvnDt }
+
+
+        chartTitle.value = (maxDate ?: "" ) + " 실시간 유향/유속 현황 (cm/s)"
+
         val filteredList = windInfo.value.filter{ it ->
-            !it.wspd.isNullOrEmpty() && !it.wndrct.isNullOrEmpty()
+            it.obsrvnDt.equals(maxDate)
         }
+
+        maxCrSp.value =  filteredList.maxOfOrNull { it.crsp?.toFloat() ?: 0f} ?: 0f
+
 
         if(filteredList.isNotEmpty()){
             data.value = filteredList.map {
                 Triple(
                     it.obsvtrNm,
                     Point(it.lat, it.lot),
-                listOf(DefaultPolarPoint(it.wspd?.toFloat() ?: 0f, it.wndrct?.toDouble()?.deg ?: 0.deg)   )
+                listOf(DefaultPolarPoint(it.crsp?.toFloat() ?: 0f, it.crdir?.toDouble()?.deg ?: 0.deg)   )
                 )
             }
         }else{
@@ -116,8 +128,8 @@ fun WindPolarChart(){
             data.value.isNotEmpty() -> {
                 chartLayout.value = LayoutData(
                     type = ChartType.VerticalBar,
-                    layout = TitleConfig(true, chartTitle.value),
-                    legend = LegendConfig(isLegend, true, "observatory"),
+                    layout = TitleConfig(true,  chartTitle.value),
+                    legend = LegendConfig(isLegend, true, "관측소"),
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  ),
                 )
@@ -184,13 +196,14 @@ fun WindPolarChart(){
                             LineStyle(SolidColor(Color.LightGray), strokeWidth = 1.dp)
 
                         PolarGraph(
-                            radialAxisModel = rememberFloatRadialAxisModel(listOf(0f, 5f, 10f)),
+                            radialAxisModel = rememberFloatRadialAxisModel( List(5) { i -> round((maxCrSp.value / 3) * i  ) }
+                            ),
                             angularAxisModel = rememberAngularValueAxisModel(
                                 angleDirection = AngularAxisModel.AngleDirection.CLOCKWISE ,
                                 angleZero = AngularAxisModel.AngleZero.TWELVE_OCLOCK
                             ),
                             radialAxisLabels = {
-                                Text("${it} (m/s)" )
+                                Text("${it}" )
                             },
                             angularAxisLabels = {
                                 Text("${it.toDegrees().value}\u00B0")
@@ -226,7 +239,7 @@ fun WindPolarChart(){
                                                         Column() {
                                                             Text( text = data[index].first)
                                                             Text( text =  "latitude:${data[index].second.y}, longitude:${data[index].second.x}")
-                                                            Text( text = "${data[index].third[0].r} m/s")
+                                                            Text( text = "${data[index].third[0].r} 유속(cm/s)")
                                                             Text( text = "${data[index].third[0].theta.toDegrees()} deg")
                                                         }
 
