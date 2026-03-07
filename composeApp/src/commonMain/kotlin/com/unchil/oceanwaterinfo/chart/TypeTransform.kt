@@ -218,7 +218,7 @@ fun List<KhoaObservation>.toLineTripleList3(): List<Triple< String, List<Point<D
             xValues.map {  time ->
                 // 1. 현재 시간에 데이터가 있으면 사용
                 // 2. 없으면 timeValuePairs(리스트)에서 현재 time보다 이전인 것 중 가장 늦은 시간의 값을 가져옴
-                timeMap[time] ?: timeValuePairs.filter { it.first < time }.maxByOrNull { it.first }?.second ?: 0f // 이전 데이터도 전혀 없으면 0f
+                timeMap[time] ?: timeValuePairs.filter { it.first < time }.maxByOrNull { it.first }?.second ?: Pair(0f,0f) // 이전 데이터도 전혀 없으면 0f
             }
         }
 
@@ -226,16 +226,21 @@ fun List<KhoaObservation>.toLineTripleList3(): List<Triple< String, List<Point<D
 
         val pointList = entry.value.mapIndexed { index, value ->
 
-            Point(xValues[index], (value as Pair<Float,Float>).first )
+            val crsp = (value as Pair<Float,Float>).first
+
+            Point(xValues[index], crsp )
         }
 
         val degList = entry.value.mapIndexed { index, value ->
+            val crdir = (value as Pair<Float,Float>).second
 
-            Point(xValues[index], (value as Pair<Float,Float>).second )
+            Point(xValues[index], crdir )
         }
 
 
         Triple(entry.key, pointList,  mapOf("crdir" to degList) )
+
+
     }
 
 

@@ -119,7 +119,7 @@ fun WaterDegLineChart_KHOA(){
                 val yMax = allPoints.maxOf { it.y }
                 val yMin = allPoints.minOf { it.y }
 
-                val xRange = xMin-1800 * 1000..xMax+ 1800*1000
+                val xRange = xMin-300 * 1000..xMax+ 300*1000
                 val yRange = yMin-1.0f..yMax+1.0f
 
                 chartLayout.value = LayoutData(
