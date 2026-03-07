@@ -1,6 +1,5 @@
 package com.unchil.oceanwaterinfo
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.chart.DegLineChart
 import io.github.koalaplot.core.ChartLayout
 import io.github.koalaplot.core.style.KoalaPlotTheme
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
@@ -45,7 +44,7 @@ fun ComposeXYPlot(
     val colors = getColors(entries)
 
     val modifier = when(layout.type){
-        ChartType.XYGraph, ChartType.Line, ChartType.VerticalBar, ChartType.GroupVerticalBar, ChartType.BoxPlot -> {
+        ChartType.XYGraph, ChartType.Line, ChartType.DegLine, ChartType.VerticalBar, ChartType.GroupVerticalBar, ChartType.BoxPlot -> {
             Modifier
                 .fillMaxWidth()
                 .height(layout.size.height)
@@ -89,13 +88,13 @@ fun ComposeXYPlot(
 
                 XYGraph(
                     xAxisModel = when (layout.type) {
-                        ChartType.Line, ChartType.Geo -> layout.xAxis.model as DoubleLinearAxisModel
+                        ChartType.Line, ChartType.DegLine, ChartType.Geo -> layout.xAxis.model as DoubleLinearAxisModel
                         ChartType.VerticalBar, ChartType.BoxPlot, ChartType.GroupVerticalBar, ChartType.XYGraph -> {
                             layout.xAxis.model as CategoryAxisModel<Any>
                         }
                     },
                     yAxisModel = when (layout.type) {
-                        ChartType.XYGraph, ChartType.VerticalBar, ChartType.BoxPlot,ChartType.GroupVerticalBar, ChartType.Line -> {
+                        ChartType.XYGraph, ChartType.VerticalBar, ChartType.BoxPlot,ChartType.GroupVerticalBar, ChartType.Line, ChartType.DegLine -> {
                             layout.yAxis.model as FloatLinearAxisModel
                         }
                         ChartType.Geo -> layout.yAxis.model as DoubleLinearAxisModel
@@ -107,7 +106,7 @@ fun ComposeXYPlot(
                                     ChartType.XYGraph, ChartType.VerticalBar, ChartType.GroupVerticalBar, ChartType.BoxPlot -> {
                                         AxisLabel(it.toString(), Modifier.padding(top = 2.dp))
                                     }
-                                    ChartType.Line -> {
+                                    ChartType.Line, ChartType.DegLine -> {
                                         AxisLabel(formatLongToDateTime(it), Modifier.padding(top = 2.dp))
                                     }
                                     ChartType.Geo ->{
@@ -183,10 +182,16 @@ fun ComposeXYPlot(
 
                     when (layout.type) {
                         ChartType.Line -> {
+
                             val scope = this as XYGraphScope<Double, Float>
                             scope.LineChart(data, layout.tooltips.isTooltips, layout.tooltips.isSymbol)
-
                         }
+
+                        ChartType.DegLine -> {
+                            val scope = this as XYGraphScope<Double, Float>
+                            scope.DegLineChart(data, layout.tooltips.isTooltips, layout.tooltips.isSymbol)
+                        }
+
                         ChartType.VerticalBar -> {
                             val scope = this as XYGraphScope<String, Float>
                             scope.VerticalBarChart(data, layout.tooltips.isTooltips,layout.barConf.widthWeight  )

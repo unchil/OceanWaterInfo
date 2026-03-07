@@ -50,7 +50,6 @@ fun main() = application {
     var download by remember { mutableStateOf(-1) }
     var errorMessage by remember {mutableStateOf("")}
 
-
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             KCEF.init(
@@ -71,9 +70,6 @@ fun main() = application {
             )
         }
     }
-
-
-
 
     val state = WindowState(
         size = DpSize(1400.dp, 1000.dp),
@@ -97,11 +93,7 @@ fun main() = application {
         ) {
             CompositionLocalProvider(  LocalPlatform provides getPlatform() ) {
 
-              //  WindPolarChart()
-
                 var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
-
-
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val totalHeight = constraints.maxHeight.toFloat()
 
@@ -126,6 +118,7 @@ fun main() = application {
                                     .safeContentPadding(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
+                                WaterDegLineChart_KHOA()
 
                                 WaterTempLineChart_KHOA()
 
@@ -246,8 +239,6 @@ fun main() = application {
 
                 }
 
-
-
             }
         }
     }
@@ -258,7 +249,6 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
-
 
 
 }
