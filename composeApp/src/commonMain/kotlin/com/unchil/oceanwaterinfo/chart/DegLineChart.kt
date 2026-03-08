@@ -106,7 +106,7 @@ fun XYGraphScope<Double, Float>.DegLineChart(
                 // [선 길이, 공백 길이] 순서로 입력 (단위: 픽셀)
                 pathEffect = PathEffect.dashPathEffect(
                     intervals = floatArrayOf(10f, 10f), // 10px 그리고 10px 띔
-                    phase = -phase
+                    phase = phase
                 ),
                 alpha = 1.0f,
             ),
