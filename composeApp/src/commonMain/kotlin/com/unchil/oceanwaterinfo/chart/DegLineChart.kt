@@ -152,8 +152,8 @@ fun XYGraphScope<Double, Float>.DegLineChart(
                                     Text(text = "deg : ${(triple.third["crdir"] as List<Point<Double,Float>>).first { pair ->
                                         pair.x == point.x
                                     }.y}")
-                                    Text(text = "12-hour min : ${triple.second.minOf { point -> point.y }}")
-                                    Text(text = "12-hour max : ${triple.second.maxOf { point -> point.y }}")
+                                    Text(text = "6-hour min : ${triple.second.minOf { point -> point.y }}")
+                                    Text(text = "6-hour max : ${triple.second.maxOf { point -> point.y }}")
 
                                 }
 
