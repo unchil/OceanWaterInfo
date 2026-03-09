@@ -118,9 +118,9 @@ fun XYGraphScope<Double, Float>.DegLineChart(
 
                 // 2. 상태에 따른 크기와 투명도 결정
                 val symbolSize = when {
-                    isPressed -> 20.dp
-                    isHovered -> 16.dp
-                    isUsableSymbolTooltips -> 16.dp
+                    isPressed -> 24.dp
+                    isHovered -> 20.dp
+                    isUsableSymbolTooltips -> 20.dp
                     triple.second.indexOf(point) == 0 -> 16.dp
                     triple.second.indexOf(point) == triple.second.lastIndex ->16.dp
                     usableSymbol -> 16.dp

@@ -27,6 +27,18 @@ fun Application.configureSerialization(repository: Repository) {
             call.respondText("Beautiful World!")
         }
         route("/khoa"){
+            get("/observationinfo_current"){
+                try {
+                    val result = repository.khoaObservationInfoCurrent()
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
             get("/observationinfo"){
                 try {
                     val result = repository.khoaObservationInfo()

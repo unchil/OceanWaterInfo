@@ -32,12 +32,27 @@ class OceanWaterRepository {
     val _khoaObservationInfo: MutableStateFlow<List<KhoaObservation>>
         = MutableStateFlow(emptyList())
 
+    val _khoaObservationInfoCurrent: MutableStateFlow<List<KhoaObservation>>
+            = MutableStateFlow(emptyList())
+
+
 
     suspend fun getKhoaObservationInfo(){
         try {
             oceanWaterApi.getKhoaObservationInfo().let {
                 _khoaObservationInfo.value = it
                 LOGGER.debug("getKhoaObservationInfo() called[${it.count()}]")
+            }
+        }catch (e:Exception){
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
+
+    suspend fun getKhoaObservationInfoCurrent(){
+        try {
+            oceanWaterApi.getKhoaObservationInfoCurrent().let {
+                _khoaObservationInfoCurrent.value = it
+                LOGGER.debug("getKhoaObservationInfoCurrent() called[${it.count()}]")
             }
         }catch (e:Exception){
             LOGGER.error(e.message ?: "Error ")

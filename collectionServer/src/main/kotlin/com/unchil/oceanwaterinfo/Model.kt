@@ -89,7 +89,7 @@ data class KhoaObservationResponse(
 // wndrct(Wind direction), wspd(Wind speed), maxMmntWspd(Maximum moment wind speed),
 // artmp(Air temperature), atmpr(Atmospheric pressure),
 // wvhgt(Wave height), wvpd(Wave  ),
-// crdir( (Capsule radiation) Direction of sea water ), crsp( (Capsule radiation) Speed of sea water),
+// crdir( (Capsule radiation) Direction of  ocean current ), crsp( (Capsule radiation) Speed of  ocean current),
 // wtem(Water temperature),
 // slnty(Salinity)
 // ]

@@ -56,9 +56,9 @@ fun WaterDegLineChart_KHOA(){
     val data: MutableState< List<Triple< String, List<Point<Double, Float>>, Map<String, Any>  >>> = remember { mutableStateOf(emptyList() ) }
     val chartLayout = remember { mutableStateOf(LayoutData() )}
     val chartHeight = remember {400.dp}
-    val chartTitle = remember {"6-hour 바닷물 유향/유속"}
+    val chartTitle = remember {"6-hour Direction/Speed of ocean current"}
     val chartXTitle = remember { "DateTime"}
-    val chartYTitle = remember { "유속(cm/s)"}
+    val chartYTitle = remember { "Speed(cm/sec)"}
     val chartCaption = remember {"from https://www.data.go.kr/data/15155516/openapi.do (행정안전부 공공데이터포털)"}
 
     var isTooltips by remember { mutableStateOf(true) }

@@ -23,6 +23,7 @@ import org.jetbrains.exposed.v1.core.castTo
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.substring
@@ -44,6 +45,8 @@ private val cacheStorage_SeaWaterInfoBoxPlot = ConcurrentHashMap<String, Pair<Li
 
 private val cacheStorage_KhoaObservationInfo = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
 
+private val cacheStorage_KhoaObservationInfoCurrent = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
+
 private val cacheStorage_KhoaObservatoryInfo = ConcurrentHashMap<String, Pair<List<KhonObservatory>, Long>>()
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
@@ -56,6 +59,24 @@ class Repository:RepositoryInterface {
         newSuspendedTransaction(Dispatchers.IO, statement = block)
 
 
+    suspend fun khoaObservationInfoCurrent(): List<KhoaObservation> {
+        val key = "cache_khoa_current"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KhoaObservationInfoCurrent[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID: khoa_current")
+                return cachedData.first
+            }
+        }
+        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        val resultFromDb = fetchKhoaObservationCurrentFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KhoaObservationInfoCurrent[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+    }
 
     suspend fun khoaObservationInfo(): List<KhoaObservation> {
         val key = "cache_khoa"
@@ -473,7 +494,8 @@ class Repository:RepositoryInterface {
                 ObservatoryKHOA.obsvtrNm,
                 ObservatoryKHOA.latitude,
                 ObservatoryKHOA.longitude
-        ).map {
+        ).where { ObservatoryKHOA.obsCode like("HB%")}
+        .map {
             KhonObservatory(
                 it[ObservatoryKHOA.obsCode],
                 it[ObservatoryKHOA.obsvtrNm],
@@ -483,6 +505,71 @@ class Repository:RepositoryInterface {
         }
         return@suspendTransaction result
     }
+
+
+
+    @OptIn(FormatStringsInDatetimeFormats::class)
+    suspend fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation> = suspendTransaction {
+        LOGGER.info("Serving from DB for : fetchKhoaObservationCurrentFromDb")
+
+
+        val maxDt = ObservationKHOA
+            .selectAll()
+            .orderBy(ObservationKHOA.obsrvnDt to SortOrder.DESC) // 날짜 내림차순 정렬
+            .limit(1)                                            // 제일 위 하나만
+            .singleOrNull()
+            ?.get(ObservationKHOA.obsrvnDt) ?: ""                   // 해당 날짜 추출
+
+        val result = ObservationKHOA
+            .join(
+                ObservatoryKHOA,
+                JoinType.INNER,
+                onColumn = ObservationKHOA.obsCode,
+                ObservatoryKHOA.obsCode
+            ).select(
+                ObservatoryKHOA.obsCode,
+                ObservatoryKHOA.obsvtrNm,
+                ObservatoryKHOA.latitude,
+                ObservatoryKHOA.longitude,
+                ObservationKHOA.obsrvnDt,
+                ObservationKHOA.wndrct,
+                ObservationKHOA.wspd,
+                ObservationKHOA.maxMmntWspd,
+                ObservationKHOA.artmp,
+                ObservationKHOA.atmpr,
+                ObservationKHOA.wvhgt,
+                ObservationKHOA.wvpd,
+                ObservationKHOA.crdir,
+                ObservationKHOA.crsp,
+                ObservationKHOA.wtem,
+                ObservationKHOA.slnty
+            ).where{
+                 ObservationKHOA.obsrvnDt eq maxDt
+            }.map{
+                KhoaObservation(
+                    it[ObservatoryKHOA.obsCode],
+                    it[ObservatoryKHOA.obsvtrNm],
+                    it[ObservatoryKHOA.longitude],
+                    it[ObservatoryKHOA.latitude],
+                    it[ObservationKHOA.obsrvnDt],
+                    it[ObservationKHOA.wndrct],
+                    it[ObservationKHOA.wspd],
+                    it[ObservationKHOA.maxMmntWspd],
+                    it[ObservationKHOA.artmp],
+                    it[ObservationKHOA.atmpr],
+                    it[ObservationKHOA.wvhgt],
+                    it[ObservationKHOA.wvpd],
+                    it[ObservationKHOA.crdir],
+                    it[ObservationKHOA.crsp],
+                    it[ObservationKHOA.wtem],
+                    it[ObservationKHOA.slnty]
+                )
+            }
+
+        return@suspendTransaction result
+    }
+
+
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {

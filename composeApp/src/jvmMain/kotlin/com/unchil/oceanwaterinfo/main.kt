@@ -132,8 +132,6 @@ fun main() = application {
 
                                 OceanWaterInfoDataGrid()
 
-                              //  OceanWaterInfoGeoChart()
-
                                 WindPolarChart()
 
                             }
@@ -158,7 +156,7 @@ fun main() = application {
                             Row(
                                 modifier = Modifier.fillMaxSize(),
                             ) {
-                                // 2. 왼쪽 영역
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxHeight()
@@ -170,9 +168,11 @@ fun main() = application {
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
 
-                                        OceanWaterInfoGeoChart(onClickPoint)
+                                        WaterInfoGeoChart_KHOA(onClickPoint)
                                     }
                                 }
+
+
 
 
                                 // --- 첫 번째 구분선 (Box 1과 Box 2 사이 조절) ---
@@ -202,6 +202,8 @@ fun main() = application {
                                 }
 
 
+
+
                                 // --- 두 번째 구분선 (Box 2와 Box 3 사이 조절) ---
                                 DraggableVerticalDivider(
                                     onDrag = { deltaPx ->
@@ -225,7 +227,7 @@ fun main() = application {
 
                                     ) {
                                         CompositionLocalProvider( LocalPoint provides clickPoint.value){
-                                            SimpleMapScreen(initialized, download, errorMessage)
+                                            SimpleMapScreen2(initialized, download, errorMessage)
                                         }
 
                                     }

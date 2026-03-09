@@ -61,6 +61,10 @@ class OceanWaterApi {
         return httpClient.get(url).body<List<SeaWaterInformation>>()
     }
 
+    suspend fun getKhoaObservationInfoCurrent(): List<KhoaObservation>{
+        val url = "${endPoint}/khoa/observationinfo_current"
+        return httpClient.get(url).body<List<KhoaObservation>>()
+    }
     suspend fun getKhoaObservationInfo(): List<KhoaObservation>{
         val url = "${endPoint}/khoa/observationinfo"
         return httpClient.get(url).body<List<KhoaObservation>>()
