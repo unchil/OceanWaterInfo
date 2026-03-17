@@ -17,9 +17,12 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.replace
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.count
 import org.jetbrains.kotlinx.dataframe.api.forEach
@@ -78,7 +81,7 @@ class Repository {
                         SchemaUtils.create(TidalCurrentInfoKHOA)
                         response.result.data.forEach { item ->
                             try {
-                                TidalCurrentInfoKHOA.insert { it ->
+                                TidalCurrentInfoKHOA.upsert { it ->
                                     it[TidalCurrentInfoKHOA.sch_time] = response.result.meta.sch_time
                                     it[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
                                     it[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
@@ -152,7 +155,7 @@ class Repository {
 
                                      recvData.body.items.item.forEach { item ->
                                          try {
-                                             ObservationKHOA.insert { it ->
+                                             ObservationKHOA.insertIgnore { it ->
                                                  it[ObservationKHOA.obsCode] = obsCode
                                                  it[ObservationKHOA.obsrvnDt] = item.obsrvnDt
                                                  it[ObservationKHOA.wndrct] = item.wndrct?.toString()
@@ -233,7 +236,7 @@ class Repository {
                             SchemaUtils.create( OWQInformationTable)
                             result.forEach {  item  ->
                                 try{
-                                    OWQInformationTable.insert { it ->
+                                    OWQInformationTable.insertIgnore { it ->
 
                                         it[rtmWqWtchDtlDt] = item["rtmWqWtchDtlDt"].toString().substringBefore('.')
                                         it[rtmWqWtchStaCd] = item["rtmWqWtchStaCd"].toString()
@@ -284,7 +287,7 @@ class Repository {
                             try{
 
                                 if(!item.wtr_tmp.isNullOrBlank()) {
-                                    ObservationTable.insert { it ->
+                                    ObservationTable.insertIgnore { it ->
                                         it[sta_cde] = item.sta_cde
                                         it[sta_nam_kor] = item.sta_nam_kor
                                         it[obs_dat] = item.obs_dat
@@ -330,7 +333,7 @@ class Repository {
                         SchemaUtils.create( ObservatoryTable)
                         recvData.body.item.forEach { item ->
                             try {
-                                ObservatoryTable.insert { it ->
+                                ObservatoryTable.insertIgnore { it ->
                                     it[sta_cde] = item.sta_cde
                                     it[sta_nam_kor] = item.sta_nam_kor
                                     it[bld_dat] = item.bld_dat
