@@ -41,8 +41,8 @@ class Repository {
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun getKhoaTidalCurrent(){
         var now = Clock.System.now()
-        val interval = 5
-        val predictedTotalMinute = 60
+        val interval = configData.KHOA_TIDALCURRENT_API?.interval ?: 5
+        val predictedTotalMinute = configData.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
         val windowSize = predictedTotalMinute / interval
 
         repeat(windowSize){
