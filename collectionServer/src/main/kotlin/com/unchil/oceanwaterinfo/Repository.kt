@@ -3,11 +3,13 @@ package com.unchil.oceanwaterinfo
 import com.unchil.oceanwaterinfo.Config.Companion.configData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
@@ -23,6 +25,9 @@ import org.jetbrains.kotlinx.dataframe.api.count
 import org.jetbrains.kotlinx.dataframe.api.forEach
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.json.XML
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.time.Clock
 
 class Repository {
     internal val LOGGER = KtorSimpleLogger( Repository::class.java.name )
@@ -32,6 +37,75 @@ class Repository {
             addLogger(StdOutSqlLogger)
         }
     }
+
+    @OptIn(FormatStringsInDatetimeFormats::class)
+    suspend fun getKhoaTidalCurrent(){
+        var now = Clock.System.now()
+        val interval = 5
+        val predictedTotalMinute = 60
+        val windowSize = predictedTotalMinute / interval
+
+        repeat(windowSize){
+
+            var localDateTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            localDateTime =  LocalDateTime(
+                localDateTime.year,
+                localDateTime.month,
+                localDateTime.day,
+                localDateTime.hour,
+                (localDateTime.minute / interval) * interval
+            )
+
+            now = now.plus(interval, DateTimeUnit.MINUTE)
+
+            val datetime = localDateTime
+                .format(LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") })
+
+            val date = datetime.substring(0,8)
+            val hour = datetime.substring(8,10)
+            val minute = datetime.substring(10,12)
+
+            val url = "${configData.KHOA_TIDALCURRENT_API?.endPoint}/${configData.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${configData.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${configData.KHOA_TIDALCURRENT_API?.type}${configData.KHOA_TIDALCURRENT_API?.boundBox}&Date=${date}&Hour=${hour}&Minute=${minute}"
+
+            try {
+                RestApi.callKhoaAPI_json(url).let {
+
+                    val response = Json.decodeFromString<KhonTidalCurrentInfoResponse>(it)
+
+                    LOGGER.info("${::getKhoaTidalCurrent.name} [receive count[${response.result.meta.sch_time}]]")
+
+                    transaction(Config.conn) {
+                        SchemaUtils.create(TidalCurrentInfoKHOA)
+                        response.result.data.forEach { item ->
+                            try {
+                                TidalCurrentInfoKHOA.insert { it ->
+                                    it[TidalCurrentInfoKHOA.sch_time] = response.result.meta.sch_time
+                                    it[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
+                                    it[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
+                                    it[TidalCurrentInfoKHOA.current_dir] = item.current_dir.toDouble()
+                                    it[TidalCurrentInfoKHOA.current_speed] = item.current_speed.toDouble()
+                                    it[TidalCurrentInfoKHOA.u] = item.current_speed.toDouble() * cos(Math.toRadians(90.0 - item.current_dir.toDouble()))
+                                    it[TidalCurrentInfoKHOA.v] = item.current_speed.toDouble() * sin(Math.toRadians(90.0 - item.current_dir.toDouble() ))
+
+                                }
+                            } catch (e: Exception) {
+                                e.localizedMessage?.let { msg ->
+                                    LOGGER.debug(msg)
+                                }
+                            }
+
+                        }
+                    }
+
+                }
+            }catch (e: Exception){
+                val msg = e.localizedMessage
+            }
+
+        }
+    }
+
+
 
      @OptIn(FormatStringsInDatetimeFormats::class)
      suspend fun getKhoaObservation()  {

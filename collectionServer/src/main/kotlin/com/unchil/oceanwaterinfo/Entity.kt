@@ -85,3 +85,26 @@ object ObservatoryKHOA: Table("ObservatoryKHOA"){
 
     override val primaryKey = PrimaryKey(obsCode, name = "primaryKey")
 }
+
+/*
+물리학과 기상학, 해양학에서 유체의 흐름을 나타낼 때 사용하는 u와 v는 특정 단어의 직접적인 약자라기보다는,
+데카르트 좌표계(Cartesian coordinate system)의 관습적인 표현에서 유래되었습니다.
+결론부터 말씀드리면 다음과 같습니다.
+
+    1. 관습적인 알파벳 순서 (u, v, w)수학이나 물리학에서는 좌표축 x, y, z에 대응하는 속도 성분을 알파벳 순서에 따라 u, v, w로 할당합니다.
+        u: x축(동서 방향)의 속도 성분
+        v: y축(남북 방향)의 속도 성분
+        w: z축(수직 방향)의 속도 성분
+*/
+
+object TidalCurrentInfoKHOA: Table("TidalCurrentInfoKHOA"){
+    val sch_time = varchar("sch_time", length=20)
+    val pre_lon = double("pre_lon")
+    val pre_lat =  double("latitude")
+    val current_dir = double("current_dir")
+    val current_speed = double("current_speed")
+    val u = double("u")
+    val v =  double("v")
+
+    override val primaryKey = PrimaryKey(sch_time, pre_lon, pre_lat, name = "primaryKey")
+}

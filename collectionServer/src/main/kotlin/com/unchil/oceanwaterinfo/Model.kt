@@ -79,6 +79,43 @@ data class  ObservatoryBody(
 
 
 @Serializable
+data class KhonTidalCurrentInfo(
+    val current_speed: String,
+    val pre_lon: String,
+    val current_dir: String,
+    val pre_lat: String
+)
+
+
+
+@Serializable
+@SerialName("meta")
+data class KhonTidalCurrentInfoMeta(
+    val obs_last_req_cnt: String,
+    val sch_minX:String,
+    val sch_maxY:String,
+    val sch_minY:String,
+    val sch_time:String,
+    val sch_maxX:String
+)
+
+@Serializable
+@SerialName("result")
+data class KhonTidalCurrentInfoResult(
+    @SerialName("data")
+    val data: List<KhonTidalCurrentInfo>,
+    val meta: KhonTidalCurrentInfoMeta
+)
+
+
+@Serializable
+data class KhonTidalCurrentInfoResponse(
+    val result: KhonTidalCurrentInfoResult
+)
+
+
+
+@Serializable
 data class KhoaObservationResponse(
     val header: Header,
     val body: KhoaObservationBody
@@ -157,8 +194,18 @@ data class ConfigData(
     val NIFS_API: NifsApiConfig? = null,
     val MOF_API: MofApiConfig? = null,
     val KHOA_API: KhoaApiConfig? = null,
+    val KHOA_TIDALCURRENT_API: KhoaTidalCurrentApiConfig? = null,
     val SQLITE_DB: DatabaseConfig? = null,
     val COLLECTION_TYPE: CollectionConfig? = null
+)
+
+@Serializable
+data class KhoaTidalCurrentApiConfig(
+    val endPoint: String,
+    val apikey: String,
+    val subPath: String,
+    val type: String,
+    val boundBox: String,
 )
 
 @Serializable
