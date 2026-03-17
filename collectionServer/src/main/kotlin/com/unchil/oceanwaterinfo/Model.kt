@@ -206,6 +206,8 @@ data class KhoaTidalCurrentApiConfig(
     val subPath: String,
     val type: String,
     val boundBox: String,
+    val interval: Int,
+    val predictedTotalMinute: Int
 )
 
 @Serializable
