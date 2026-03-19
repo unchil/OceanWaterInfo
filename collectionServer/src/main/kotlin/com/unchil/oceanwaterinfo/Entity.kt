@@ -103,8 +103,6 @@ object TidalCurrentInfoKHOA: Table("TidalCurrentInfoKHOA"){
     val pre_lat =  double("pre_lat")
     val current_dir = double("current_dir")
     val current_speed = double("current_speed")
-    val u = double("u")
-    val v =  double("v")
 
     override val primaryKey = PrimaryKey(sch_time, pre_lon, pre_lat, name = "primaryKey")
 }

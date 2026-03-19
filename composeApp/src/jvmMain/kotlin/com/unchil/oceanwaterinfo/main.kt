@@ -50,6 +50,7 @@ fun main() = application {
     var download by remember { mutableStateOf(-1) }
     var errorMessage by remember {mutableStateOf("")}
 
+
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             KCEF.init(
@@ -70,6 +71,8 @@ fun main() = application {
             )
         }
     }
+
+
 
     val state = WindowState(
         size = DpSize(1400.dp, 1000.dp),
@@ -93,6 +96,10 @@ fun main() = application {
         ) {
             CompositionLocalProvider(  LocalPlatform provides getPlatform() ) {
 
+                CompositionLocalProvider( LocalPoint provides clickPoint.value){
+                    SeaFlowMap(initialized, download, errorMessage)
+                }
+/*
                 var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val totalHeight = constraints.maxHeight.toFloat()
@@ -128,11 +135,11 @@ fun main() = application {
 
                                 OceanWaterInfoBarChart()
 
-                            //    OceanWaterInfoLineChart_MOF()
+                                OceanWaterInfoLineChart_MOF()
 
                                 OceanWaterInfoDataGrid()
 
-                                WindPolarChart()
+
 
                             }
                         }
@@ -241,6 +248,10 @@ fun main() = application {
 
                 }
 
+*/
+
+
+
             }
         }
     }
@@ -251,6 +262,10 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
+
+
+
+
 
 
 }
