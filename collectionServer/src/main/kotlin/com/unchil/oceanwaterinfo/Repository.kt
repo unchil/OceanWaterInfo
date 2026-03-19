@@ -87,9 +87,6 @@ class Repository {
                                     it[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
                                     it[TidalCurrentInfoKHOA.current_dir] = item.current_dir.toDouble()
                                     it[TidalCurrentInfoKHOA.current_speed] = item.current_speed.toDouble()
-                                    it[TidalCurrentInfoKHOA.u] = item.current_speed.toDouble() * cos(Math.toRadians(90.0 - item.current_dir.toDouble()))
-                                    it[TidalCurrentInfoKHOA.v] = item.current_speed.toDouble() * sin(Math.toRadians(90.0 - item.current_dir.toDouble() ))
-
                                 }
                             } catch (e: Exception) {
                                 e.localizedMessage?.let { msg ->
