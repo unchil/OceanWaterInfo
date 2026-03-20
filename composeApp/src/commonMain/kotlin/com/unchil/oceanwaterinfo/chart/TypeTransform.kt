@@ -11,7 +11,48 @@ import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.collections.mapIndexed
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.PI
 
+
+fun Double.round(decimals: Int): Double {
+    var multiplier = 1.0
+    repeat(decimals) { multiplier *= 10 }
+    return kotlin.math.round(this * multiplier) / multiplier
+}
+
+// 또는 확장 프로퍼티로 만들어 사용하면 편리합니다.
+// 공식: radian = degree * (PI / 180)
+val Double.toRadians get() = this * (PI / 180.0)
+val Double.toDegrees get() = this * (180.0 / PI)
+
+
+fun List<TidalCurrentInfo>.toTidalCurrentDataMap():Map<Pair<Double, Double>, List<TidalCurrentData>>{
+
+    return this.groupBy(
+        // Key: 위경도 쌍 (pre_lon, pre_lat)
+        keySelector = { it.pre_lon to it.pre_lat },
+        // Value 변환: 각 항목에서 필요한 값 추출 및 U, V 계산
+        valueTransform = { item ->
+
+            // 유향(Degree)을 라디안으로 변환하여 U(동서), V(남북) 계산
+            // 공식: u = speed * sin(radian), v = speed * cos(radian)
+
+            val radian = item.current_dir.toRadians
+            val u = (item.current_speed * sin(radian)).round(3)
+            val v = (item.current_speed * cos(radian)).round(3)
+
+            TidalCurrentData(
+                schTime = item.sch_time,
+                currentDir = item.current_dir,
+                currentSpeed = item.current_speed,
+                u = u,
+                v = v
+            )
+        }
+    )
+}
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun formatLongToDateTime(millis: Any): String {
