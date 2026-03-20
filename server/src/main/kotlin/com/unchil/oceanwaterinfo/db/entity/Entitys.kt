@@ -152,3 +152,21 @@ object ObservatoryKHOA: Table("ObservatoryKHOA"){
 
     override val primaryKey = PrimaryKey(obsCode, name = "primaryKey")
 }
+
+object TidalCurrentInfoKHOA: Table("TidalCurrentInfoKHOA"){
+    val sch_time = varchar("sch_time", length=20)
+    val pre_lon = double("pre_lon")
+    val pre_lat =  double("pre_lat")
+    val current_dir = double("current_dir")
+    val current_speed = double("current_speed")
+
+    override val primaryKey = PrimaryKey(sch_time, pre_lon, pre_lat, name = "primaryKey")
+}
+
+fun toTidalCurrentInfo(it: ResultRow) = TidalCurrentInfo(
+    it[TidalCurrentInfoKHOA.sch_time],
+    it[TidalCurrentInfoKHOA.pre_lon],
+    it[TidalCurrentInfoKHOA.pre_lat],
+    it[TidalCurrentInfoKHOA.current_dir],
+    it[TidalCurrentInfoKHOA.current_speed],
+)

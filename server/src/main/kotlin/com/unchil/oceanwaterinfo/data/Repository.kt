@@ -1,8 +1,6 @@
 package com.unchil.oceanwaterinfo
 
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -10,18 +8,14 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.minus
-import kotlinx.datetime.toDeprecatedInstant
-import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.toStdlibInstant
 import org.jetbrains.exposed.v1.core.FloatColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.Transaction
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.avg
 import org.jetbrains.exposed.v1.core.castTo
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
@@ -29,10 +23,10 @@ import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.substring
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-
+import kotlin.time.ExperimentalTime
 
 
 // 캐시를 저장할 ConcurrentHashMap. 스레드 안전성을 보장합니다.
@@ -48,18 +42,38 @@ private val cacheStorage_KhoaObservationInfo = ConcurrentHashMap<String, Pair<Li
 private val cacheStorage_KhoaObservationInfoCurrent = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
 
 private val cacheStorage_KhoaObservatoryInfo = ConcurrentHashMap<String, Pair<List<KhonObservatory>, Long>>()
+
+private val cacheStorage_KhoaTidalCurrentInfo = ConcurrentHashMap<String, Pair<List<TidalCurrentInfo>, Long>>()
+
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 
-class Repository:RepositoryInterface {
+class Repository {
 
 
-    suspend fun <T> suspendTransaction(block: Transaction.() -> T): T =
-        newSuspendedTransaction(Dispatchers.IO, statement = block)
+    fun khoaTidalCurrentInfo():List<TidalCurrentInfo>{
+        val key = "cache_khoa_tidal"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KhoaTidalCurrentInfo[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID: khoa_tidal")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchKhoaTidalCurrentInfoFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KhoaTidalCurrentInfo[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
 
 
-    suspend fun khoaObservationInfoCurrent(): List<KhoaObservation> {
+    fun khoaObservationInfoCurrent(): List<KhoaObservation> {
         val key = "cache_khoa_current"
         val now = System.currentTimeMillis()
 
@@ -78,7 +92,7 @@ class Repository:RepositoryInterface {
         return resultFromDb
     }
 
-    suspend fun khoaObservationInfo(): List<KhoaObservation> {
+    fun khoaObservationInfo(): List<KhoaObservation> {
         val key = "cache_khoa"
         val now = System.currentTimeMillis()
 
@@ -97,7 +111,7 @@ class Repository:RepositoryInterface {
         return resultFromDb
     }
 
-    suspend fun khoaObservatoryInfo(): List<KhonObservatory> {
+    fun khoaObservatoryInfo(): List<KhonObservatory> {
         val key = "cache_khoa_observatory"
         val now = System.currentTimeMillis()
 
@@ -119,7 +133,7 @@ class Repository:RepositoryInterface {
 
 
     // 캐시 로직과 DB 조회 호출을 담당하는 메인 함수
-    suspend fun seaWaterInfo(division: String): List<SeawaterInformationByObservationPoint> {
+    fun seaWaterInfo(division: String): List<SeawaterInformationByObservationPoint> {
         val key = "cache_$division"
         val now = System.currentTimeMillis()
 
@@ -138,7 +152,7 @@ class Repository:RepositoryInterface {
         return resultFromDb
     }
 
-    suspend fun swi(division:String):List<SeaWaterInformation?>{
+    fun swi(division:String):List<SeaWaterInformation?>{
         val key = "cache_$division"
         val now = System.currentTimeMillis()
 
@@ -159,7 +173,7 @@ class Repository:RepositoryInterface {
     }
 
 
-    suspend fun seaWaterInfoOneDayBoxPlot(division:String):List<SeaWaterBoxPlotStat?>{
+    fun seaWaterInfoOneDayBoxPlot(division:String):List<SeaWaterBoxPlotStat?>{
         val key = "cache_$division"
         val now = System.currentTimeMillis()
 
@@ -181,12 +195,12 @@ class Repository:RepositoryInterface {
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchSeaWaterInfoFromDb_Mof(division: String): List<SeaWaterInformation>  = suspendTransaction {
+    fun fetchSeaWaterInfoFromDb_Mof(division: String): List<SeaWaterInformation>  = transaction {
         LOGGER.info("Serving from DB for ID: $division")
 
         val result = when(division) {
             "mof_oneday" -> {
-                val previous24Hour = Clock.System.now()
+                val previous24Hour = kotlin.time.Clock.System.now()
                     .minus(24, DateTimeUnit.HOUR)
                     .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                     .format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm:ss") })
@@ -224,15 +238,15 @@ class Repository:RepositoryInterface {
         }
 
 
-        return@suspendTransaction result
+        return@transaction result
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    override suspend fun fetchSeaWaterInfoFromDb(division: String): List<SeawaterInformationByObservationPoint>  = suspendTransaction {
+    fun fetchSeaWaterInfoFromDb(division: String): List<SeawaterInformationByObservationPoint>  = transaction {
         LOGGER.info("Serving from DB for ID: $division")
         val result = when(division) {
             "oneday" -> {
-                val previous24Hour = Clock.System.now()
+                val previous24Hour = kotlin.time.Clock.System.now()
                     .minus(24, DateTimeUnit.HOUR)
                     .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                     .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm:ss")})
@@ -266,7 +280,7 @@ class Repository:RepositoryInterface {
             }
 
             "grid" -> {
-                val previous24Hour = Clock.System.now()
+                val previous24Hour = kotlin.time.Clock.System.now()
                     .minus(24, DateTimeUnit.HOUR)
                     .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                     .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm:ss")})
@@ -335,12 +349,12 @@ class Repository:RepositoryInterface {
 
             else -> {emptyList()}
         }
-        return@suspendTransaction result
+        return@transaction result
     }
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchSeaWaterInfoOneDayBoxPlotFromDb(): List<SeaWaterBoxPlotStat>  = suspendTransaction {
+    fun fetchSeaWaterInfoOneDayBoxPlotFromDb(): List<SeaWaterBoxPlotStat>  = transaction {
 
         val previous24Hour =
             kotlin.time.Clock.System.now()
@@ -416,11 +430,11 @@ class Repository:RepositoryInterface {
                 )
             }
 
-        return@suspendTransaction result
+        return@transaction result
 
     }
 
-    suspend fun seaWaterInfoStatistics(): List<SeaWaterInfoByOneHourStat>{
+    fun seaWaterInfoStatistics(): List<SeaWaterInfoByOneHourStat>{
         val key = "cache_stat"
         val now = System.currentTimeMillis()
         cacheStorage_SeaWaterInfoStatistics[key]?.let { it ->
@@ -440,10 +454,10 @@ class Repository:RepositoryInterface {
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    override suspend fun fetchSeaWaterInfoStatisticsFromDb(): List<SeaWaterInfoByOneHourStat>  = suspendTransaction {
+    fun fetchSeaWaterInfoStatisticsFromDb(): List<SeaWaterInfoByOneHourStat>  = transaction {
 
         LOGGER.info("Serving from DB for ID: stat")
-        val previous24Hour = Clock.System.now()
+        val previous24Hour = kotlin.time.Clock.System.now()
             .minus(24, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm:ss")})
@@ -478,16 +492,16 @@ class Repository:RepositoryInterface {
                     it[ObservatoryTable.gru_nam],
                     it[ObservationTable.sta_cde],
                     it[ObservationTable.sta_nam_kor],
-                    it[datetime].toString(),
+                    it[datetime],
                     it[tmp_min].toString(),
                     it[tmp_max].toString(),
                     it[tmp_avg].toString()
                 )
             }
-        return@suspendTransaction result
+        return@transaction result
     }
 
-    suspend fun fetchKhoaObservatoryFromDb():List<KhonObservatory> = suspendTransaction {
+    fun fetchKhoaObservatoryFromDb():List<KhonObservatory> = transaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservatoryFromDb")
         val result = ObservatoryKHOA.select(
                 ObservatoryKHOA.obsCode,
@@ -503,13 +517,31 @@ class Repository:RepositoryInterface {
                 it[ObservatoryKHOA.latitude],
             )
         }
-        return@suspendTransaction result
+        return@transaction result
+    }
+
+    @OptIn(ExperimentalTime::class, FormatStringsInDatetimeFormats::class)
+    fun fetchKhoaTidalCurrentInfoFromDb():List<TidalCurrentInfo> = transaction  {
+        LOGGER.info("Serving from DB for : fetchKhoaTidalCurrentInfoFromDb")
+
+        val now = kotlin.time.Clock.System.now()
+
+        val preTime = now.minus(5, DateTimeUnit.MINUTE)
+            .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
+
+        val result = TidalCurrentInfoKHOA.selectAll().where{
+            TidalCurrentInfoKHOA.sch_time greaterEq  preTime
+        }.orderBy(TidalCurrentInfoKHOA.sch_time, SortOrder.ASC).map {
+            toTidalCurrentInfo(it)
+        }
+
+        return@transaction result
     }
 
 
-
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation> = suspendTransaction {
+    fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation> = transaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservationCurrentFromDb")
 
 
@@ -566,17 +598,17 @@ class Repository:RepositoryInterface {
                 )
             }
 
-        return@suspendTransaction result
+        return@transaction result
     }
 
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {
+    fun fetchKhoaObservationFromDb():List<KhoaObservation> = transaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservationFromDb")
 
         //2026-03-06 13:59
-        val previous24Hour = Clock.System.now()
+        val previous24Hour = kotlin.time.Clock.System.now()
             .minus(24, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
@@ -636,12 +668,12 @@ class Repository:RepositoryInterface {
                 )
             }
 
-        return@suspendTransaction result
+        return@transaction result
     }
 
 
 
-    override suspend fun observatoryInfo(): List<Observatory> = suspendTransaction {
+    fun observatoryInfo(): List<Observatory> = transaction {
         ObservatoryTable.selectAll()
             .map {
                 toObservatory(it)

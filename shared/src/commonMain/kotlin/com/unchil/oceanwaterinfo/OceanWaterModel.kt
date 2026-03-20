@@ -135,3 +135,12 @@ data class KhonObservatory(
     val lot: Double,
     val lat: Double,
 )
+
+@Serializable
+data class TidalCurrentInfo(
+    val sch_time :String,
+    val pre_lon:Double,
+    val pre_lat:Double,
+    val current_dir:Double,
+    val current_speed :Double
+)

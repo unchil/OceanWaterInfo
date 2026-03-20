@@ -70,4 +70,9 @@ class OceanWaterApi {
         return httpClient.get(url).body<List<KhoaObservation>>()
     }
 
+    suspend fun getKhoaTidalCurrentInfo(): List<TidalCurrentInfo>{
+        val url = "${endPoint}/khoa/tidal_current_info"
+        return httpClient.get(url).body<List<TidalCurrentInfo>>()
+    }
+
 }
