@@ -144,3 +144,12 @@ data class TidalCurrentInfo(
     val current_dir:Double,
     val current_speed :Double
 )
+
+@Serializable
+data class TidalCurrentData(
+    val schTime: String,
+    val currentDir: Double,
+    val currentSpeed: Double,
+    val u: Double,
+    val v: Double
+)
