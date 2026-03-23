@@ -14,6 +14,8 @@ import kotlin.collections.mapIndexed
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
+import kotlin.math.asin
+import kotlin.math.atan2
 
 
 fun Double.round(decimals: Int): Double {
@@ -32,27 +34,62 @@ fun List<TidalCurrentInfo>.toTidalCurrentDataMap():Map<Pair<Double, Double>, Lis
 
     return this.groupBy(
         // Key: 위경도 쌍 (pre_lon, pre_lat)
-        keySelector = { it.pre_lon to it.pre_lat },
-        // Value 변환: 각 항목에서 필요한 값 추출 및 U, V 계산
+        keySelector = {  it.pre_lat to it.pre_lon},
+
         valueTransform = { item ->
-
-            // 유향(Degree)을 라디안으로 변환하여 U(동서), V(남북) 계산
-            // 공식: u = speed * sin(radian), v = speed * cos(radian)
-
-            val radian = item.current_dir.toRadians
-            val u = (item.current_speed * sin(radian)).round(3)
-            val v = (item.current_speed * cos(radian)).round(3)
 
             TidalCurrentData(
                 schTime = item.sch_time,
                 currentDir = item.current_dir,
                 currentSpeed = item.current_speed,
-                u = u,
-                v = v
+                prev_lat = item.pre_lat,
+                prev_lon = item.pre_lon
             )
         }
     )
 }
+
+fun updatePrevCoordinates(
+    result: Map<Pair<Double, Double>, List<TidalCurrentData>>,
+    timeIntervalSeconds: Double = 300.0 // 5분 간격 기준
+) {
+    val earthRadius = 6371000.0 // m
+
+    result.forEach { (coords, dataList) ->
+
+        dataList.forEachIndexed { index, data ->
+
+            if(index > 0 ){
+                // 유속 단위를 m/s로 변환 (cm/s인 경우 0.01, knots인 경우 0.51444)
+                val speedMps = dataList[index-1].currentSpeed * 0.01 // KHOA cm/s 기준 가정
+                val distance = speedMps * timeIntervalSeconds * index
+
+                val lat1 = dataList[index-1].prev_lat.toRadians
+                val lon1 = dataList[index-1].prev_lon.toRadians
+                val brng = dataList[index-1].currentDir.toRadians
+
+
+                val lat2 = asin(
+                    sin(lat1) * cos(distance / earthRadius) +
+                            cos(lat1) * sin(distance / earthRadius) * cos(brng)
+                )
+
+                val lon2 = lon1 + atan2(
+                    sin(brng) * sin(distance / earthRadius) * cos(lat1),
+                    cos(distance / earthRadius) - sin(lat1) * sin(lat2)
+                )
+
+                //  결과 세팅 (소수점 6자리까지 반올림 - 위경도는 정밀도가 중요하므로 6자리 권장)
+                data.prev_lat = (lat2.toDegrees * 1000000.0).round(6) / 1000000.0
+                data.prev_lon = (lon2.toDegrees * 1000000.0).round(6) / 1000000.0
+
+
+            }
+
+        }
+    }
+}
+
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun formatLongToDateTime(millis: Any): String {

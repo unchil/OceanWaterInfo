@@ -1,5 +1,5 @@
-import {keys } from './keys.js';
-import {values } from './values.js';
+//import {keys } from './keys.js';
+//import {values } from './values.js';
 
 
 let map;
@@ -8,7 +8,7 @@ let infoWindow;
 let toggleBtn = false;
 let observatoryDesc;
 
-
+let step = 0; // 애니메이션 진행 상태를 추적할 변수
 let center = { lat: 37.385852, lng: 126.934515 };
 
 let screenPoints = [];
@@ -70,12 +70,12 @@ async function initMap() {
 
 
  //  addMarkerClusterer(keys, [], [])
-    initMapWithData()
+  //  initMapWithData(keys, values)
 
 }
 
 
-function updateAndDraw(){
+function updateAndDraw(keys, values){
 
     screenPoints = [];
 
@@ -103,6 +103,7 @@ function updateAndDraw(){
         particles.push({x:x, y:y, speed:0.0});
 
         values[index].forEach( (particle) => {
+
             const worldPoint = projection.fromLatLngToPoint(new google.maps.LatLng(particle.lat, particle.lng));
             let x = (worldPoint.x - centerWorld.x) * scale + (canvas.width / 2);
             let y = (worldPoint.y - centerWorld.y) * scale + (canvas.height / 2);
@@ -121,35 +122,29 @@ function updateAndDraw(){
 
 
 
-function initMapWithData() {
+window.initMapWithData = function(keys, values) {
+
     // 지도가 준비되었는지 확인하는 이벤트 리스너 등록
     google.maps.event.addListenerOnce(map, 'idle', function() {
-        updateAndDraw();
+        updateAndDraw(keys, values);
     });
-
 
     map.addListener("zoom_changed", () => {
         canvas.width = mapDiv.offsetWidth;
         canvas.height = mapDiv.offsetHeight;
-        updateAndDraw();
+        updateAndDraw(keys, values);
     });
 
       // 3. 지도를 드래그해서 옮길 때도 좌표를 맞춰야 한다면 'dragend' 추가
       map.addListener("dragend", () => {
-          updateAndDraw();
+          updateAndDraw(keys, values);
       });
-
-
-
-
 }
 
 
-let step = 0; // 애니메이션 진행 상태를 추적할 변수
+
 
 function startAnimation() {
-
-
 
     const ctx = canvas.getContext('2d');
 
@@ -164,15 +159,14 @@ function startAnimation() {
 
 
         // 2. 그리기 설정
-        ctx.strokeStyle = 'cyan';
-        ctx.lineWidth = 2.0; // 10.0은 너무 두껍습니다.
+        ctx.lineWidth = 1.0; // 10.0은 너무 두껍습니다.
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
 
 
         // 3. 애니메이션 속도 제어 (숫자가 클수록 빠름)
-        step += 0.02;
-        if (step > 200) step = 0; // 0~100 사이 반복
+        step += 0.005;
+        if (step > 100) step = 0; // 0~100 사이 반복
 
 
         screenPoints.forEach( (particles, index) => {
@@ -181,18 +175,25 @@ function startAnimation() {
 
             // --- [핵심] 입자가 이동하는 효과를 위한 점선 설정 ---
             // 20px의 선을 그리고 40px을 띄웁니다.
-            ctx.setLineDash([10, 10]);
+            ctx.setLineDash([6, 6]);
             // step 값에 따라 점선의 시작 위치를 밀어내어 움직이는 효과를 줌
             ctx.lineDashOffset = -step;
 
-
+/*
             ctx.beginPath();
             ctx.moveTo(particles[0].x, particles[0].y);
+      */
 
             for (let i = 1; i < particles.length; i++) {
 
-              //  ctx.beginPath();
-            //    ctx.moveTo(particles[i-1].x, particles[i-1].y);
+
+                ctx.beginPath();
+                ctx.moveTo(particles[i-1].x, particles[i-1].y);
+
+                      // [핵심] 인덱스에 따라 두께를 0.2씩 증가시킴 (기본 두께 1.0부터 시작한다고 가정)
+                        ctx.lineWidth = 1.0 + (i * 0.15);
+
+
                 if (particles[i].speed > 100.0) {
                     ctx.strokeStyle = 'red';
                 } else if (particles[i].speed > 30.0) {
@@ -202,14 +203,15 @@ function startAnimation() {
                 };
 
 
-                 ctx.lineTo(particles[i].x, particles[i].y);
-                //ctx.stroke(); // 즉시 그리기
-            }
-            ctx.stroke();
-          // --- [화살표 머리] ---
-            // 화살표는 점선 영향을 받지 않도록 점선 설정 초기화
 
-ctx.setLineDash([]);
+                 ctx.lineTo(particles[i].x, particles[i].y);
+                ctx.stroke(); // 즉시 그리기
+            }
+         //   ctx.stroke();
+     // 2. 화살표 머리 그리기
+     // 화살표는 점선과 가변 두께의 영향을 받지 않도록 초기화
+     ctx.setLineDash([]);
+     ctx.lineWidth = 2; // 화살표 촉의 일정한 두께
 
             // 2. 화살표 머리 그리기 (마지막 지점)
             const lastPoint = particles[particles.length - 1];
@@ -239,7 +241,7 @@ ctx.setLineDash([]);
 
             ctx.stroke();
 
-
+//ctx.setLineDash([]);
 
 
         });
@@ -306,6 +308,8 @@ window.addMarkerClusterer =  function(locations, labels, contents) {
     new markerClusterer.MarkerClusterer({ map, markers });
 
 }
+
+
 initMap();
 
 

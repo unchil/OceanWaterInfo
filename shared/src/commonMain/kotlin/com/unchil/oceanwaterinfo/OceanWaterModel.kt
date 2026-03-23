@@ -150,6 +150,6 @@ data class TidalCurrentData(
     val schTime: String,
     val currentDir: Double,
     val currentSpeed: Double,
-    val u: Double,
-    val v: Double
+    var prev_lon:Double,
+    var prev_lat:Double,
 )

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.rememberScrollState
@@ -96,10 +97,6 @@ fun main() = application {
         ) {
             CompositionLocalProvider(  LocalPlatform provides getPlatform() ) {
 
-                CompositionLocalProvider( LocalPoint provides clickPoint.value){
-                    SeaFlowMap(initialized, download, errorMessage)
-                }
-/*
                 var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val totalHeight = constraints.maxHeight.toFloat()
@@ -125,6 +122,16 @@ fun main() = application {
                                     .safeContentPadding(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
+                                Box(
+                                    modifier = Modifier.height(700.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+
+                                    CompositionLocalProvider(LocalPoint provides clickPoint.value) {
+                                        SeaFlowMap(initialized, download, errorMessage)
+                                    }
+                                }
+
                                 WaterDegLineChart_KHOA()
 
                                 WaterTempLineChart_KHOA()
@@ -138,8 +145,6 @@ fun main() = application {
                                 OceanWaterInfoLineChart_MOF()
 
                                 OceanWaterInfoDataGrid()
-
-
 
                             }
                         }
@@ -248,7 +253,7 @@ fun main() = application {
 
                 }
 
-*/
+
 
 
 
