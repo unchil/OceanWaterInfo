@@ -45,7 +45,7 @@ fun SeaFlowMap(
     val host = "http://localhost:63342/OceanWaterInfo"
     val servicePage = "seaFlowMap.html"
 
-    val _ijt = "hgfdkjuosq43m3do736s9vn760"
+    val _ijt = "a9n0phtkhc0vegls8297uuhccd"
 
     val localUrl = "${host}/${servicePage}?_ijt=${_ijt}"
     val remoteUrl = "https://www.google.com/maps/"
@@ -124,7 +124,7 @@ fun SeaFlowMap(
                 ) {
 
                     Text(
-                        "Prediction one hour from the current time Tidal Current Map",
+                        "Prediction 3 hour from the current time Tidal Current Map",
                         modifier = Modifier.padding(vertical = 6.dp),
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 20.sp,
