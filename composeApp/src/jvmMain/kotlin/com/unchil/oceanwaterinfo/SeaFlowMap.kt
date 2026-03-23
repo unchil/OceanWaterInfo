@@ -26,6 +26,7 @@ import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun SeaFlowMap(
@@ -53,9 +54,17 @@ fun SeaFlowMap(
     val navigator = rememberWebViewNavigator()
 
 
+
     LaunchedEffect(key1 = viewModel){
-        viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
+            }
+        }
     }
+
+
+
     val tidalCurrentInfo = viewModel._tidalCurrentStateFlow.collectAsState()
     val keys = remember{ mutableStateOf("" )}
     val values = remember{ mutableStateOf("" )}
