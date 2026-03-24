@@ -57,7 +57,7 @@ async function initMap() {
 
 
  //  addMarkerClusterer(keys, [], [])
- //   initMapWithData(keys, values)
+  //  initMapWithData(keys, values)
 
 }
 
@@ -152,6 +152,16 @@ function startAnimation() {
         screenPoints.forEach( (particles, index) => {
 
             if (particles.length < 2) return;
+
+            // --- 최적화 포인트 1: 화면 밖에 있는 데이터 그리기 스킵 (Culling) ---
+            const last = particles[particles.length - 1];
+
+            if ( last.x < -50 || last.x > canvas.width + 50 ||
+                last.y < -50 || last.y > canvas.height + 50 ){
+
+                return;
+            }
+
 
 
             // --- 최적화 포인트 2: 점선 설정은 루프 밖에서 한 번만 ---
