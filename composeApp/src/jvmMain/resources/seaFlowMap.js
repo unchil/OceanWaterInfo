@@ -153,6 +153,7 @@ function startAnimation() {
 
             if (particles.length < 2) return;
 
+
             // --- 최적화 포인트 2: 점선 설정은 루프 밖에서 한 번만 ---
             ctx.setLineDash([6, 6]); // 간격을 조금 더 넓혀 가시성 확보
             // step 값에 따라 점선의 시작 위치를 밀어내어 움직이는 효과를 줌
@@ -162,19 +163,24 @@ function startAnimation() {
             // --- 최적화 포인트 3: 두께가 동일한 구간은 묶어서 stroke() ---
             // 하지만 지금처럼 인덱스마다 두께가 달라야 한다면 최소한의 상태 변화만 사용
             for (let i = 1; i < particles.length; i++) {
-                ctx.beginPath();
-                ctx.lineWidth = 1.0 + (i * 0.05);
-                if (particles[i].speed > 100.0) {
-                    ctx.strokeStyle = 'red';
-                } else if (particles[ i].speed > 30.0) {
-                    ctx.strokeStyle = 'orange';
-                } else {
-                    ctx.strokeStyle = 'cyan';
-                };
-                ctx.moveTo(particles[i-1].x, particles[i-1].y);
-                ctx.lineTo(particles[i].x, particles[i].y);
-                ctx.stroke();
+                if (i % 2 === 1){
+                    const p1 = particles[i - 1];
+                    const p2 = particles[i];
+                    ctx.beginPath();
+                    ctx.lineWidth = 1.0 + (i * 0.05);
+                    if (particles[i].speed > 100.0) {
+                        ctx.strokeStyle = 'red';
+                    } else if (particles[ i].speed > 30.0) {
+                        ctx.strokeStyle = 'orange';
+                    } else {
+                        ctx.strokeStyle = 'cyan';
+                    };
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
             }
+
 
             // --- 최적화 포인트 4: 화살표 머리는 하나로 묶어서 그리기 ---
             ctx.setLineDash([]); // 점선 해제
