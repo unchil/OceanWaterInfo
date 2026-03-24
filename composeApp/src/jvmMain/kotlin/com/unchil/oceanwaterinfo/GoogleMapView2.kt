@@ -108,11 +108,16 @@ fun SimpleMapScreen2(
     }
 
 
-
     val center = LocalPoint.current
+    val host = "http://localhost:63342/OceanWaterInfo"
+    val servicePage = "googleMapView.html"
 
 
-    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=lvp4snl4braa8ljggsi38l7o0p&_ij_reload=RELOAD_ON_SAVE"
+    val _ijt = "o7nfqoq94pcbtil2qn1lo7coba"
+
+
+
+    val localUrl = "${host}/${servicePage}?_ijt=${_ijt}"
     val remoteUrl = "https://www.google.com/maps/"
 
     val webViewState = rememberWebViewState(localUrl)

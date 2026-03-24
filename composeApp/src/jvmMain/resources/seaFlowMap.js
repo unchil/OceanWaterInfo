@@ -1,19 +1,15 @@
 //import {keys } from './keys.js';
 //import {values } from './values.js';
 
-
 let map;
-let zoomLevel = 6
+let zoomLevel = 10
 let infoWindow;
 let toggleBtn = false;
 let observatoryDesc;
-
-let step = 0; // 애니메이션 진행 상태를 추적할 변수
+let step = 0; // 애니메이션 진행 상태를 추적할 변수//
 let center = { lat: 37.385852, lng: 126.934515 };
-
 let screenPoints = [];
 let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
-
 
 const canvas = document.getElementById('animation-overlay');
 const mapDiv = document.getElementById('un7map');
@@ -26,7 +22,6 @@ async function initMap() {
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
-
     map  = new Map(document.getElementById('un7map'), {
         mapId: "YOUR MAP ID",
         center: center,
@@ -35,8 +30,6 @@ async function initMap() {
 
     });
 
-
-
     // Set map options.
     map.setOptions({
         scaleControl: true,
@@ -44,23 +37,18 @@ async function initMap() {
 
     });
 
+    infoWindow = new google.maps.InfoWindow({
+      content: "",
+      disableAutoPan: true,
+      headerDisabled: true
+    });
 
-
-      infoWindow = new google.maps.InfoWindow({
-          content: "",
-          disableAutoPan: true,
-          headerDisabled: true
-      });
-
-      google.maps.event.addListener(map, "click", (event) => {
-          if(infoWindow != null){
-              toggleBtn = false
-              infoWindow.close()
-          }
-      });
-
-
-
+    google.maps.event.addListener(map, "click", (event) => {
+      if(infoWindow != null){
+          toggleBtn = false
+          infoWindow.close()
+      }
+    });
 
     const marker =new google.maps.Marker({
         position: center,
@@ -68,62 +56,49 @@ async function initMap() {
     });
 
 
-
  //  addMarkerClusterer(keys, [], [])
-  //  initMapWithData(keys, values)
+ //   initMapWithData(keys, values)
 
 }
 
 
 function updateAndDraw(keys, values){
-
     screenPoints = [];
-
-     const projection = map.getProjection();
-
+    const projection = map.getProjection();
     if (!projection) {
         console.error("프로젝션을 가져올 수 없습니다.");
         return;
     }
-
     console.log("프로젝션 준비 완료");
 
-
-   // 현재 지도의 줌과 중심점을 고려한 픽셀 변환 공식
-   const scale = Math.pow(2, map.getZoom());
-   const centerWorld = projection.fromLatLngToPoint(map.getCenter());
+    // 현재 지도의 줌과 중심점을 고려한 픽셀 변환 공식
+    const scale = Math.pow(2, map.getZoom());
+    const centerWorld = projection.fromLatLngToPoint(map.getCenter());
 
     keys.forEach((coord, index) => {
-
         let particles = [];
         const worldPoint = projection.fromLatLngToPoint(new google.maps.LatLng(coord.lat, coord.lng));
         let x = (worldPoint.x - centerWorld.x) * scale + (canvas.width / 2);
         let y = (worldPoint.y - centerWorld.y) * scale + (canvas.height / 2);
-
         particles.push({x:x, y:y, speed:0.0});
 
         values[index].forEach( (particle) => {
-
             const worldPoint = projection.fromLatLngToPoint(new google.maps.LatLng(particle.lat, particle.lng));
             let x = (worldPoint.x - centerWorld.x) * scale + (canvas.width / 2);
             let y = (worldPoint.y - centerWorld.y) * scale + (canvas.height / 2);
-
             particles.push({x:x, y:y, speed: particle.speed});
         });
 
         screenPoints.push(particles);
-
     });
 
     console.log("입자 초기화 완료:", screenPoints.length);
     startAnimation();
-
 }
 
 
 
 window.initMapWithData = function(keys, values) {
-
     // 지도가 준비되었는지 확인하는 이벤트 리스너 등록
     google.maps.event.addListenerOnce(map, 'idle', function() {
         updateAndDraw(keys, values);
@@ -135,16 +110,22 @@ window.initMapWithData = function(keys, values) {
         updateAndDraw(keys, values);
     });
 
-      // 3. 지도를 드래그해서 옮길 때도 좌표를 맞춰야 한다면 'dragend' 추가
-      map.addListener("dragend", () => {
-          updateAndDraw(keys, values);
-      });
+    // 3. 지도를 드래그해서 옮길 때도 좌표를 맞춰야 한다면 'dragend' 추가
+    map.addListener("dragend", () => {
+      updateAndDraw(keys, values);
+    });
 }
 
 
 
 
 function startAnimation() {
+    // 루프 관리를 위한 ID 초기화
+
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+    }
+
 
     const ctx = canvas.getContext('2d');
 
@@ -157,15 +138,14 @@ function startAnimation() {
         // 로직을 '부분 그리기'로 바꿔야 합니다. 여기서는 '흐르는 효과'를 위해 clear를 유지합니다.
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-
         // 2. 그리기 설정
         ctx.lineWidth = 1.0; // 10.0은 너무 두껍습니다.
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
 
 
-        // 3. 애니메이션 속도 제어 (숫자가 클수록 빠름)
-        step += 0.005;
+        // 애니메이션 속도 제어 (숫자가 클수록 빠름)
+        step += 0.05;
         if (step > 100) step = 0; // 0~100 사이 반복
 
 
@@ -173,94 +153,61 @@ function startAnimation() {
 
             if (particles.length < 2) return;
 
-            // --- [핵심] 입자가 이동하는 효과를 위한 점선 설정 ---
-            // 20px의 선을 그리고 40px을 띄웁니다.
-            ctx.setLineDash([6, 6]);
+            // --- 최적화 포인트 2: 점선 설정은 루프 밖에서 한 번만 ---
+            ctx.setLineDash([6, 6]); // 간격을 조금 더 넓혀 가시성 확보
             // step 값에 따라 점선의 시작 위치를 밀어내어 움직이는 효과를 줌
             ctx.lineDashOffset = -step;
 
-/*
-            ctx.beginPath();
-            ctx.moveTo(particles[0].x, particles[0].y);
-      */
 
+            // --- 최적화 포인트 3: 두께가 동일한 구간은 묶어서 stroke() ---
+            // 하지만 지금처럼 인덱스마다 두께가 달라야 한다면 최소한의 상태 변화만 사용
             for (let i = 1; i < particles.length; i++) {
-
-
                 ctx.beginPath();
-                ctx.moveTo(particles[i-1].x, particles[i-1].y);
-
-                      // [핵심] 인덱스에 따라 두께를 0.2씩 증가시킴 (기본 두께 1.0부터 시작한다고 가정)
-                        ctx.lineWidth = 1.0 + (i * 0.15);
-
-
+                ctx.lineWidth = 1.0 + (i * 0.05);
                 if (particles[i].speed > 100.0) {
                     ctx.strokeStyle = 'red';
-                } else if (particles[i].speed > 30.0) {
-                    ctx.strokeStyle = 'yellow';
+                } else if (particles[ i].speed > 30.0) {
+                    ctx.strokeStyle = 'orange';
                 } else {
                     ctx.strokeStyle = 'cyan';
                 };
-
-
-
-                 ctx.lineTo(particles[i].x, particles[i].y);
-                ctx.stroke(); // 즉시 그리기
+                ctx.moveTo(particles[i-1].x, particles[i-1].y);
+                ctx.lineTo(particles[i].x, particles[i].y);
+                ctx.stroke();
             }
-         //   ctx.stroke();
-     // 2. 화살표 머리 그리기
-     // 화살표는 점선과 가변 두께의 영향을 받지 않도록 초기화
-     ctx.setLineDash([]);
-     ctx.lineWidth = 2; // 화살표 촉의 일정한 두께
 
-            // 2. 화살표 머리 그리기 (마지막 지점)
+            // --- 최적화 포인트 4: 화살표 머리는 하나로 묶어서 그리기 ---
+            ctx.setLineDash([]); // 점선 해제
+            ctx.lineWidth = 1.5;
+
+            // 화살표 머리 그리기 (마지막 지점)
             const lastPoint = particles[particles.length - 1];
             const prevPoint = particles[particles.length - 2];
-
             // 두 점 사이의 각도 계산 (라디안)
             const angle = Math.atan2(lastPoint.y - prevPoint.y, lastPoint.x - prevPoint.x);
-
             const headLength =  map.getZoom() * 0.5;
             const headAngle = Math.PI / 6; // 화살표 날개의 각도 (30도)
-
-            // 화살표 날개 1
-
+            // 화살표 날개
             ctx.beginPath();
             ctx.moveTo(lastPoint.x, lastPoint.y);
             ctx.lineTo(
                 lastPoint.x - headLength * Math.cos(angle - headAngle),
                 lastPoint.y - headLength * Math.sin(angle - headAngle)
             );
-
-            // 화살표 날개 2
+            // 화살표 날개
             ctx.moveTo(lastPoint.x, lastPoint.y);
             ctx.lineTo(
                 lastPoint.x - headLength * Math.cos(angle + headAngle),
                 lastPoint.y - headLength * Math.sin(angle + headAngle)
             );
-
             ctx.stroke();
-
-//ctx.setLineDash([]);
-
 
         });
 
-
-requestAnimationFrame(frame);
-
-   //     animationId =  requestAnimationFrame(frame);
-    // [추가] 기존에 실행 중인 애니메이션이 있다면 중단시킴
-    if (animationId) {
-     //   cancelAnimationFrame(animationId);
-    }else{
-
+        animationId =  requestAnimationFrame(frame);
     }
 
-
-    }
-
-    frame();
+    animationId =  requestAnimationFrame(frame);
 }
 
 
@@ -294,18 +241,15 @@ window.smoothFlyTo = function(target) {
 
 
 window.addMarkerClusterer =  function(locations, labels, contents) {
-
-    const markers = locations.map((position, i) => {
-        const marker =new google.maps.Marker({
-          position,
-          map: map
-        });
-
-        return marker;
-
+const markers = locations.map((position, i) => {
+    const marker = new google.maps.Marker({
+      position,
+      map: map
     });
+    return marker;
+});
 
-    new markerClusterer.MarkerClusterer({ map, markers });
+new markerClusterer.MarkerClusterer({ map, markers });
 
 }
 
