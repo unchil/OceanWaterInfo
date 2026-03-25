@@ -92,20 +92,20 @@ fun main() = application {
         title = "OceanWaterInformation",
         state = state,
     ) {
-        MaterialTheme(
-            colorScheme = getColorScheme(false)
-        ) {
+        MaterialTheme(colorScheme = getColorScheme(false)) {
 
-            CompositionLocalProvider(  LocalPlatform provides getPlatform() ) {
+            CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
                 Column(
-                    modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.surface) ) {
+                    modifier = Modifier.fillMaxSize()
+                        .background(color = MaterialTheme.colorScheme.surface)
+                ) {
 
                     Text(
                         "Korea Ocean Water Information",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
@@ -129,44 +129,73 @@ fun main() = application {
                             DraggableVerticalDivider(
                                 onDrag = { deltaPx ->
                                     val deltaWeight = deltaPx / totalWidth
-                                    splitFractionVertical = (splitFractionVertical + deltaWeight).coerceIn(0.1f, 0.9f)
+                                    splitFractionVertical =
+                                        (splitFractionVertical + deltaWeight).coerceIn(0.1f, 0.9f)
                                 }
                             )
 
+                            var splitFractionVertical2 by remember { mutableStateOf(0.5f) }
+                            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                                //totalWidth2는 BoxWithConstraints 바로 아래에서 계산하는 것이 맞지만, Row가 Column에 의해 좌우 패딩을 받는다면 그 값만큼 보정해야 정확한 드래그가 가능합니다.
+                                val totalWidth2 = with(LocalDensity.current) { maxWidth.toPx() }
 
-                            Column(
-                                modifier = paddingMod.fillMaxSize()
-                                       .verticalScroll(rememberScrollState())
-                                    .safeContentPadding(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize()
+                                        .verticalScroll(rememberScrollState()),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
 
-                                WaterDegLineChart_KHOA()
-                                WaterTempLineChart_KHOA()
-                                OceanWaterInfoBoxPlotChart()
-                                OceanWaterInfoLineChart()
-                                OceanWaterInfoBarChart()
-                                OceanWaterInfoLineChart_MOF()
-                                WaterInfoGeoChart_KHOA(onClickPoint)
-                                Box( modifier = Modifier.height(600.dp)  ) {
-                                    CompositionLocalProvider( LocalPoint provides clickPoint.value){
-                                        SimpleMapScreen2(initialized, download, errorMessage)
+                                    WaterDegLineChart_KHOA()
+                                    WaterTempLineChart_KHOA()
+                                    OceanWaterInfoBoxPlotChart()
+                                    OceanWaterInfoLineChart()
+                                    OceanWaterInfoBarChart()
+                                    OceanWaterInfoLineChart_MOF()
+
+
+                                    //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
+                                    Row(modifier = Modifier.fillMaxWidth().height(700.dp)) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth(splitFractionVertical2)
+                                                .fillMaxHeight()
+                                        ) {
+                                            WaterInfoGeoChart_KHOA(onClickPoint)
+                                        }
+
+                                        DraggableVerticalDivider(
+                                            onDrag = { deltaPx ->
+                                                val deltaWeight2 = deltaPx / totalWidth2
+                                                splitFractionVertical2 =
+                                                    (splitFractionVertical2 + deltaWeight2).coerceIn(
+                                                        0.1f,
+                                                        0.9f
+                                                    )
+                                            }
+                                        )
+
+                                        CompositionLocalProvider(LocalPoint provides clickPoint.value) {
+                                            SimpleMapScreen2(
+                                                initialized,
+                                                download,
+                                                errorMessage
+                                            )
+                                        }
+
                                     }
+
+                                    OceanWaterInfoDataGrid()
                                 }
 
-                                OceanWaterInfoDataGrid()
                             }
-
-
                         }
+
                     }
 
                 }
-
             }
         }
     }
-
 
     DisposableEffect(Unit) {
         onDispose {
