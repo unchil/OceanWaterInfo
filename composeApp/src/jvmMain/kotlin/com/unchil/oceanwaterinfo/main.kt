@@ -147,44 +147,14 @@ fun main() = application {
                                 OceanWaterInfoLineChart()
                                 OceanWaterInfoBarChart()
                                 OceanWaterInfoLineChart_MOF()
-
-                                var splitFractionVertical2 by remember { mutableStateOf(0.5f) }
-                                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
-                                   val totalWidth = constraints.maxWidth.toFloat()
-
-                                   Row(modifier = Modifier.fillMaxSize()) {
-
-                                       Box(
-                                           modifier = Modifier.fillMaxWidth(splitFractionVertical2),
-                                           contentAlignment = Alignment.Center,
-                                       ) {
-                                           WaterInfoGeoChart_KHOA(onClickPoint)
-                                       }
-
-                                       DraggableVerticalDivider(
-                                           onDrag = { deltaPx ->
-                                               val deltaWeight = deltaPx / totalWidth
-                                               splitFractionVertical2 = (splitFractionVertical2 + deltaWeight).coerceIn(0.1f, 0.9f)
-                                           }
-                                       )
-
-                                       Surface(
-                                           shadowElevation = 2.dp,
-                                           modifier = Modifier.height(600.dp).padding(10.dp),
-                                           shape = RoundedCornerShape(6.dp)
-
-                                       ) {
-                                           CompositionLocalProvider( LocalPoint provides clickPoint.value){
-                                               SimpleMapScreen2(initialized, download, errorMessage)
-                                           }
-                                       }
-                                   }
-
+                                WaterInfoGeoChart_KHOA(onClickPoint)
+                                Box( modifier = Modifier.height(600.dp)  ) {
+                                    CompositionLocalProvider( LocalPoint provides clickPoint.value){
+                                        SimpleMapScreen2(initialized, download, errorMessage)
+                                    }
                                 }
 
                                 OceanWaterInfoDataGrid()
-
                             }
 
 
