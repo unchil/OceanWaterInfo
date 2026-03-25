@@ -45,7 +45,10 @@ fun SeaFlowMap(
     val host = "http://localhost:63342/OceanWaterInfo"
     val servicePage = "seaFlowMap.html"
 
-    val _ijt = "a9n0phtkhc0vegls8297uuhccd"
+
+    val _ijt = "9tvkrcfs9c3rfpqqsgbbi43um1"
+
+
 
     val localUrl = "${host}/${servicePage}?_ijt=${_ijt}"
     val remoteUrl = "https://www.google.com/maps/"
@@ -123,20 +126,15 @@ fun SeaFlowMap(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    Text(
-                        "Prediction 3 hour from the current time Tidal Current Map",
-                        modifier = Modifier.padding(vertical = 6.dp),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Normal,
+                    ChartTitle(
+                        "Prediction 3 hour from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }} Tidal Current Map",
+                        modifier = Modifier,
                     )
 
-                    Text(
-                        "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (KOREA HYDROGRAPHIC AND OCEANOGRAPHIC AGENCY)",
-                        modifier = Modifier.fillMaxWidth().padding(end = 40.dp),
-                        fontSize = 10.sp,
-                        fontStyle = FontStyle.Italic,
-                        textAlign = TextAlign.Right
+                    CaptionText(
+                        "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                        textAlign = TextAlign.End
                     )
 
                     WebView(
