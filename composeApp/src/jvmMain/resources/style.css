@@ -1,39 +1,24 @@
 
 <style>
+    #un7map {
+        position: relative; /* 중요: 내부 canvas가 이 위로 겹쳐지도록 함 */
+        width: 100vw;
+        height: 100vh;
+        display: block; /* Flex 영향을 받지 않도록 함 */
+    }
 
-        /* 지도가 표시될 영역 설정 */
-        #un7map {
-            width: 100%;
-            height: 500px;
-            background-color: #eee;
-        }
-        .controls {
-            margin: 20px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16.dp;
-            cursor: pointer;
-        }
+    /* deck.gl이 생성하는 canvas가 지도를 밀어내지 않도록 방지 */
+    #un7map canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
 
-        gmp-map-3d {
-            height: 100vh;
-            width: 100vw;
-        }
-
-      gmp-map {
-        height: 100%;
-      }
-
-
-
-      html,
-      body {
+    html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-      }
-
-
+        overflow: hidden;
+    }
 </style>
 

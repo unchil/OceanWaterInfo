@@ -43,10 +43,10 @@ fun SeaFlowMap(
 
     val center = LocalPoint.current
     val host = "http://localhost:63342/OceanWaterInfo"
-    val servicePage = "seaFlowMap.html"
+    val servicePage = "seaFlowMapDeck.html"
 
 
-    val _ijt = "9tvkrcfs9c3rfpqqsgbbi43um1"
+    val _ijt = "ncevkcfis04c3vfqjtbkcgvboo"
 
 
 
@@ -78,14 +78,6 @@ fun SeaFlowMap(
             val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
             updatePrevCoordinates(tidalCurrentData)
 
-            keys.value = tidalCurrentData.map{it}.joinToString(
-                separator = ",",
-                prefix = "[",
-                postfix = "]"
-            ) { it ->
-                "{ lat: ${it.key.first}, lng: ${it.key.second} }"
-            }
-
             values.value = tidalCurrentData.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
@@ -105,10 +97,10 @@ fun SeaFlowMap(
         }
     }
 
-    LaunchedEffect(keys.value, values.value, webViewState.loadingState){
-        if(keys.value.isNotEmpty() && values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished){
+    LaunchedEffect( values.value, webViewState.loadingState){
+        if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished){
       //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
-            navigator.evaluateJavaScript("initMapWithData(${keys.value}, ${values.value})")
+            navigator.evaluateJavaScript("initMapWithData( ${values.value})")
         }
     }
 

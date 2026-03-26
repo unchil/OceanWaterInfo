@@ -61,7 +61,7 @@ fun updatePrevCoordinates(
 
             if(index > 0 ){
                 // 유속 단위를 m/s로 변환 (cm/s인 경우 0.01, knots인 경우 0.51444)
-                val speedMps = dataList[index-1].currentSpeed * 0.01 // KHOA cm/s 기준 가정
+                val speedMps = dataList[index-1].currentSpeed * 0.01 // KHOA cm/s 기준
            //     val distance = speedMps * timeIntervalSeconds * index
                 val distance = speedMps * timeIntervalSeconds
                 val lat1 = dataList[index-1].prev_lat.toRadians
