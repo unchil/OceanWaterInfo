@@ -2,13 +2,9 @@ import {values } from './values.js';
 const GoogleMapsOverlay = deck.GoogleMapsOverlay;
 const TripsLayer = deck.TripsLayer;
 
-
 let map;
 let overlay;
 let zoomLevel = 9
-let infoWindow;
-let toggleBtn = false;
-let observatoryDesc;
 let currentTime = 0; // 애니메이션 진행 상태를 추적할 변수//
 let center = { lat: 37.385852, lng: 126.934515 };
 let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
