@@ -1,11 +1,11 @@
-//import {values } from './values.js';
+import {values } from './values.js';
 const GoogleMapsOverlay = deck.GoogleMapsOverlay;
 const TripsLayer = deck.TripsLayer;
 
 
 let map;
 let overlay;
-let zoomLevel = 6
+let zoomLevel = 9
 let infoWindow;
 let toggleBtn = false;
 let observatoryDesc;
@@ -13,7 +13,7 @@ let currentTime = 0; // 애니메이션 진행 상태를 추적할 변수//
 let center = { lat: 37.385852, lng: 126.934515 };
 let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
 let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
-
+let props;
 
 
 async function initMap() {
@@ -22,7 +22,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "",
+      mapId: "YOUR_MAP_ID",
       center:{ lat: 37.385852, lng: 126.934515 },
        zoom: zoomLevel,
        tilt: 45,
@@ -37,17 +37,11 @@ async function initMap() {
 
     });
 
-    const marker =new google.maps.Marker({
-        position: center,
-        map: map,
-    });
-
-
-    overlay = new GoogleMapsOverlay({layers: []});
+    overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
 
-  //  initMapWithData(values)
+    initMapWithData(values)
 
 }
 
@@ -65,16 +59,30 @@ window.initMapWithData = function( values) {
         };
     });
 
+    props = {
+      id: 'trips-layer',
+      data: deckData,
+      getPath: d => d.path,
+      getTimestamps: d => d.timestamps,
+      getColor: d => {
+          if (d.speed > 100) return [255, 0, 0];      // Red
+          if (d.speed > 30) return [255, 165, 0];    // Orange
+          return [0, 255, 255];                      // Cyan
+      },
+      opacity: 0.5,
+      widthMinPixels: 3,   // 최소 선 두께
+      trailLength: 300,     // 입자 꼬리의 길이
+      currentTime: currentTime,   // 현재 애니메이션 시간
+      shadowEnabled: true
+  }
+
      console.log("deckData 초기화 완료:", deckData.length);
 
     google.maps.event.addListenerOnce(map, 'idle', function() {
        startAnimation();
     });
 
-
 }
-
-
 
 
 function startAnimation() {
@@ -92,26 +100,13 @@ function startAnimation() {
 
     function animate() {
 
-        currentTime += 1.0; // 애니메이션 속도 조절
+        currentTime += 3.0; // 애니메이션 속도 조절
         if (currentTime > maxTime) currentTime = 0;
 
         const tripsLayer = new TripsLayer({
-            id: 'trips-layer',
-            data: deckData,
-            getPath: d => d.path,
-            getTimestamps: d => d.timestamps,
-            getColor: d => {
-                if (d.speed > 100) return [255, 0, 0];      // Red
-                if (d.speed > 30) return [255, 165, 0];    // Orange
-                return [0, 255, 255];                      // Cyan
-            },
-            opacity: 0.5,
-            widthMinPixels: 2,   // 최소 선 두께
-            trailLength: 300,     // 입자 꼬리의 길이
-            currentTime: currentTime,   // 현재 애니메이션 시간
-            shadowEnabled: false
+            ...props,
+            currentTime
         });
-
 
         overlay.setProps({
           layers: [tripsLayer],
@@ -143,7 +138,6 @@ window.smoothFlyTo = function(target) {
     if (!map) {
         return;
     }
-
     smoothZoom(10, map.getZoom())
 
     setTimeout(() => {
@@ -155,16 +149,14 @@ window.smoothFlyTo = function(target) {
 };
 
 window.addMarkerClusterer =  function(locations, labels, contents) {
-const markers = locations.map((position, i) => {
-    const marker = new google.maps.Marker({
-      position,
-      map: map
+    const markers = locations.map((position, i) => {
+        const marker = new google.maps.Marker({
+          position,
+          map: map
+        });
+        return marker;
     });
-    return marker;
-});
-
-new markerClusterer.MarkerClusterer({ map, markers });
-
+    new markerClusterer.MarkerClusterer({ map, markers });
 }
 
 
