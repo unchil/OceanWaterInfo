@@ -10,13 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -109,22 +105,58 @@ fun main() = application {
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
+/*
+                    CompositionLocalProvider(LocalPoint provides clickPoint.value) {
+                        SeaFlowMapHexagonLayer(initialized, download, errorMessage)
+                    }
+
+ */
+
 
                     var splitFractionVertical by remember { mutableStateOf(0.5f) }
                     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                         val totalWidth = constraints.maxWidth.toFloat()
-
                         Row(modifier = Modifier.fillMaxSize()) {
 
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(splitFractionVertical)
-                                    .fillMaxHeight()
-                            ) {
+
+                            var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
+                            BoxWithConstraints(modifier = Modifier.fillMaxWidth(splitFractionVertical).fillMaxHeight()) {
+                                val totalHeight = this.maxHeight.value
+
                                 CompositionLocalProvider(LocalPoint provides clickPoint.value) {
-                                    SeaFlowMap(initialized, download, errorMessage)
+                                    Column {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(splitFractionHorizontal)
+                                        ) {
+                                            SeaFlowMapTripsLayer(initialized, download, errorMessage)
+                                        }
+
+                                        DraggableHorizontalDivider(
+                                            onDrag = { deltaPx ->
+                                                val deltaWeight = deltaPx / totalHeight
+                                                splitFractionHorizontal =
+                                                    (splitFractionHorizontal + deltaWeight).coerceIn(
+                                                        0.1f,
+                                                        0.9f
+                                                    )
+                                            }
+                                        )
+
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight()
+                                        ) {
+                                            SeaFlowMapHexagonLayer(initialized, download, errorMessage)
+                                        }
+                                    }
                                 }
+
                             }
+
 
                             DraggableVerticalDivider(
                                 onDrag = { deltaPx ->
@@ -191,6 +223,9 @@ fun main() = application {
                         }
 
                     }
+
+
+
 
                 }
             }
