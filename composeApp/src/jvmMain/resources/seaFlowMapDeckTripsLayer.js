@@ -1,10 +1,10 @@
 import {values } from './values.js';
-const GoogleMapsOverlay = deck.GoogleMapsOverlay;
-const TripsLayer = deck.TripsLayer;
+
+const {GoogleMapsOverlay, TripsLayer} = deck;
 
 let map;
 let overlay;
-let zoomLevel = 9
+let zoomLevel = 8
 let currentTime = 0; // 애니메이션 진행 상태를 추적할 변수//
 let center = { lat: 37.385852, lng: 126.934515 };
 let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
@@ -18,7 +18,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "YOUR_MAP_ID",
+      mapId: "",
       center:{ lat: 37.385852, lng: 126.934515 },
        zoom: zoomLevel,
        tilt: 45,
@@ -35,11 +35,9 @@ async function initMap() {
 
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
+  //  initMapWithData(values)
 
-
-    initMapWithData(values)
-
-}
+};
 
 
 window.initMapWithData = function( values) {
@@ -65,9 +63,9 @@ window.initMapWithData = function( values) {
           if (d.speed > 30) return [255, 165, 0];    // Orange
           return [0, 255, 255];                      // Cyan
       },
-      opacity: 0.5,
+      opacity: 1.0,
       widthMinPixels: 3,   // 최소 선 두께
-      trailLength: 300,     // 입자 꼬리의 길이
+      trailLength: 360,     // 입자 꼬리의 길이
       currentTime: currentTime,   // 현재 애니메이션 시간
       shadowEnabled: true
   }
@@ -153,7 +151,7 @@ window.addMarkerClusterer =  function(locations, labels, contents) {
         return marker;
     });
     new markerClusterer.MarkerClusterer({ map, markers });
-}
+};
 
 
 initMap();

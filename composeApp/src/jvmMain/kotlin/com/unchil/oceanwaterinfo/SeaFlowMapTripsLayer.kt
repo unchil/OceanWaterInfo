@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,11 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
@@ -29,7 +25,7 @@ import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun SeaFlowMap(
+fun SeaFlowMapTripsLayer(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
@@ -43,10 +39,10 @@ fun SeaFlowMap(
 
     val center = LocalPoint.current
     val host = "http://localhost:63342/OceanWaterInfo"
-    val servicePage = "seaFlowMapDeck.html"
+    val servicePage = "seaFlowMapDeckTripsLayer.html"
 
 
-    val _ijt = "ncevkcfis04c3vfqjtbkcgvboo"
+    val _ijt = "fjbsp9hafnm047cvu9fphpq54b"
 
 
 
