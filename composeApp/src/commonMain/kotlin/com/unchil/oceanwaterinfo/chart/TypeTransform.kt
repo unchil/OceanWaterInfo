@@ -49,6 +49,28 @@ fun List<TidalCurrentInfo>.toTidalCurrentDataMap():Map<Pair<Double, Double>, Lis
     )
 }
 
+/**
+ * TidalCurrentData Map을 Deck.gl HexagonLayer용 리스트로 변환
+ * 각 좌표별로 가장 이른 시간(schTime 최소값)의 데이터만 포함
+ */
+fun transformToHexagonData(
+    tidalCurrentData: Map<Pair<Double, Double>, List<TidalCurrentData>>
+): List<Triple<Double, Double, Double>> {
+    return tidalCurrentData.mapNotNull { (coords, dataList) ->
+        // 1. 리스트 내에서 schTime이 가장 빠른 항목을 찾음
+        val firstEntry = dataList.minByOrNull { it.schTime }
+
+        // 2. 항목이 존재할 경우 Map 형태로 변환 (JS/JSON 전달용)
+        firstEntry?.let {
+            Triple(
+                 coords.first,    // Pair의 첫 번째 값 (lat)
+                 coords.second,   // Pair의 두 번째 값 (lon)
+                 it.currentSpeed
+            )
+        }
+    }
+}
+
 fun updatePrevCoordinates(
     result: Map<Pair<Double, Double>, List<TidalCurrentData>>,
     timeIntervalSeconds: Double = 300.0 // 5분 간격 기준
