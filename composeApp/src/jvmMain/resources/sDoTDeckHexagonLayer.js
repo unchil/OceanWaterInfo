@@ -59,20 +59,50 @@ window.initMapWithData = function( values) {
     props = {
       id: 'hexagon-layer',
       data: values,
+      elevationRange: [0, 100],
       gpuAggregation: true,
       colorRange,
       extruded: true,
       getPosition: d => [d.lng, d.lat],
       getColorWeight: d => d.value,
       getElevationWeight: d => d.value,
-      elevationScale: elevationBase,
-      radius: 150,
-      pickable: true
+      elevationScale: 0,
+      radius: 30,
+      pickable: true,
+
+       // --- 툴팁 로직 추가 ---
+      onHover: info => {
+          const tooltip = document.getElementById('tooltip');
+          if (info.object) {
+              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
+              const count = info.object.points.length;
+
+              // 해당 격자에 포함된 데이터들의 value 합계 계산
+              const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
+              const avgValue = (totalValue / count).toFixed(2);
+
+              tooltip.innerHTML = `
+                  <div style="font-weight:bold; margin-bottom:5px;">상세 정보</div>
+                  <div>측정 지점 수: ${count}개</div>
+                  <div>평균 수치: ${avgValue}</div>
+              `;
+              tooltip.style.display = 'block';
+              tooltip.style.left = `${info.x + 15}px`;
+              tooltip.style.top = `${info.y + 15}px`;
+          } else {
+              tooltip.style.display = 'none';
+          }
+       },
+
+
 
   }
+
+
       // [개선] 지도가 완전히 로드된 후 데이터를 주입합니다.
       google.maps.event.addListenerOnce(map, 'idle', () => {
         startHexagonAnimation();
+
       });
 }
 
@@ -80,19 +110,39 @@ window.initMapWithData = function( values) {
  * Hexagon의 높이를 실시간으로 변화시키는 애니메이션 루프
  */
 function startHexagonAnimation() {
+
     if (animationId) {
         cancelAnimationFrame(animationId);
     }
 
     function animate() {
         // currentTime을 이용하여 사인(Sine) 곡선 생성 (0.02는 속도 조절)
-        currentTime += 0.02;
-
-        if(currentTime > 1.5) return;
+        currentTime += 0.06;
 
         // [핵심 수정] 매 프레임마다 높이와 투명도를 새로 계산합니다.
-        const animatedScale =  ((Math.sin(currentTime) + 1) * 3);
-        const currentOpacity = ((Math.sin(currentTime) + 1) * 0.5);
+        const animatedScale =  currentTime  * 6;
+        const currentOpacity = currentTime * 0.5;
+
+        if (currentTime >= 10) {
+            // 정점에서 멈출 때 마지막으로 레이어를 깨끗하게(정확히 20으로) 업데이트
+            const finalLayer = new HexagonLayer({
+                ...props,
+                elevationScale: animatedScale, // 최고점 값 고정
+                opacity: 1.0        // 최고점 투명도 고정
+            });
+
+            if (overlay) {
+                overlay.setProps({
+                    layers: [finalLayer],
+                });
+            }
+
+            // 애니메이션 루프 중단
+            cancelAnimationFrame(animationId);
+            console.log("최고점에 도달하여 애니메이션을 중단합니다.");
+            return;
+        }
+
 
         const hexagonLayer = new HexagonLayer({
             ...props,
@@ -107,10 +157,19 @@ function startHexagonAnimation() {
         }
 
         animationId = requestAnimationFrame(animate);
+
+
+
+
+
+
+
     }
 
     animationId = requestAnimationFrame(animate);
 }
+
+
 
 
 function smoothZoom ( targetZoom, currentZoom) {
