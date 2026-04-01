@@ -1,4 +1,4 @@
-import {valuesHexagon } from './output.js';
+import {valuesHexagon } from './output2.js';
 
 const {GoogleMapsOverlay, HexagonLayer} = deck;
 
@@ -76,13 +76,16 @@ window.initMapWithData = function( values) {
           if (info.object) {
               // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
               const count = info.object.points.length;
+              const source = info.object.points[0].source;
 
               // 해당 격자에 포함된 데이터들의 value 합계 계산
               const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
               const avgValue = (totalValue / count).toFixed(2);
 
               tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">상세 정보</div>
+                  <div>SerialID: ${source.serial}</div>
+                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
+                  <div>측정 값: ${source.value}</div>
                   <div>측정 지점 수: ${count}개</div>
                   <div>평균 수치: ${avgValue}</div>
               `;
