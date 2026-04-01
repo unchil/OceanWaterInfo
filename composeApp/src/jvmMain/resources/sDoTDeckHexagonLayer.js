@@ -42,7 +42,7 @@ async function initMap() {
     map.setOptions({
       scaleControl: true,
 
-   //   mapTypeId: google.maps.MapTypeId.SATELLITE,
+     mapTypeId: google.maps.MapTypeId.Terrain,
 
     });
 
@@ -67,7 +67,7 @@ window.initMapWithData = function( values) {
       getColorWeight: d => d.value,
       getElevationWeight: d => d.value,
       elevationScale: elevationBase,
-      radius: 30,
+      radius: 90,
       pickable: true,
 
        // --- 툴팁 로직 추가 ---
@@ -83,8 +83,8 @@ window.initMapWithData = function( values) {
               const avgValue = (totalValue / count).toFixed(2);
 
               tooltip.innerHTML = `
-                  <div>SerialID: ${source.serial}</div>
                   <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
+                  <div>SerialID: ${source.serial}</div>
                   <div>측정 값: ${source.value}</div>
                   <div>측정 지점 수: ${count}개</div>
                   <div>평균 수치: ${avgValue}</div>
@@ -123,8 +123,8 @@ function startHexagonAnimation() {
         currentTime += 0.06;
 
         // [핵심 수정] 매 프레임마다 높이와 투명도를 새로 계산합니다.
-        const animatedScale =  currentTime  * 3;
-        const currentOpacity = currentTime * 0.5;
+        const animatedScale =  currentTime  * 1.5;
+        const currentOpacity = currentTime * 0.1;
 
         if (currentTime >= 10) {
             // 정점에서 멈출 때 마지막으로 레이어를 깨끗하게(정확히 20으로) 업데이트
