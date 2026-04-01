@@ -20,7 +20,7 @@ let colorRange = [
 ];
 
 let elevationBase = 0; // 기본 높이 배율
-const animatedOpacity = 0.5 + ((Math.sin(currentTime) + 1) *0.25); // 0.5 ~ 1.0 사이 왕복
+const animatedOpacity = 1.0 ;
 
 
 async function initMap() {
@@ -66,7 +66,7 @@ window.initMapWithData = function( values) {
       getPosition: d => [d.lng, d.lat],
       getColorWeight: d => d.value,
       getElevationWeight: d => d.value,
-      elevationScale: 0,
+      elevationScale: elevationBase,
       radius: 30,
       pickable: true,
 
@@ -120,7 +120,7 @@ function startHexagonAnimation() {
         currentTime += 0.06;
 
         // [핵심 수정] 매 프레임마다 높이와 투명도를 새로 계산합니다.
-        const animatedScale =  currentTime  * 6;
+        const animatedScale =  currentTime  * 3;
         const currentOpacity = currentTime * 0.5;
 
         if (currentTime >= 10) {
@@ -128,7 +128,7 @@ function startHexagonAnimation() {
             const finalLayer = new HexagonLayer({
                 ...props,
                 elevationScale: animatedScale, // 최고점 값 고정
-                opacity: 1.0        // 최고점 투명도 고정
+                opacity: animatedOpacity      // 최고점 투명도 고정
             });
 
             if (overlay) {
@@ -147,7 +147,7 @@ function startHexagonAnimation() {
         const hexagonLayer = new HexagonLayer({
             ...props,
             elevationScale: animatedScale,
-            opacity: animatedOpacity
+            opacity: currentOpacity
         });
 
         if (overlay) {
