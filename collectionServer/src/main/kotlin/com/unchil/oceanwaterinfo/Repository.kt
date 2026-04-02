@@ -41,6 +41,122 @@ class Repository {
         }
     }
 
+
+    suspend fun getSDoTEnvInfo(){
+
+        //http://openapi.seoul.go.kr:8088/6e4a49477579656f393876794a6a63/json/sDoTEnv/1001/1200/
+        // 1. 현재 S-DoT 장비의 unique count 값이 1170.
+        // 2. 최초 1000 건을 수집하되 SENSING_TIME 이 unique 하면 200 건을 더 수집.
+        // 3. 수집된 데이터중 SENSING_TIME 이 MAX(SENSING_TIME) 인 값만 filtering.
+
+        val url = "${configData.SDOT_API?.endPoint}/${configData.SDOT_API?.apikey}/" +
+                "${configData.SDOT_API?.type}/" +
+                "${configData.SDOT_API?.subPath}/"
+        try {
+
+            var uniqueSensingTimeCount = 0
+            var receiveData: MutableList<SDoTEnvInformation> = mutableListOf()
+
+            RestApi.callSDoT_EnvInfo_json(url+"1/1000/").let{
+                val response = Json.decodeFromString<SDoTEnvResponse>(it)
+                LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
+                receiveData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
+                uniqueSensingTimeCount = receiveData.map { it.SENSING_TIME }.distinct().size
+            }
+
+            if(uniqueSensingTimeCount == 1){
+                RestApi.callSDoT_EnvInfo_json(url+"1001/1200/").let{
+                    val response = Json.decodeFromString<SDoTEnvResponse>(it)
+                    LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
+                    receiveData.addAll(response.sDoTEnv.row as MutableList<SDoTEnvInformation>)
+                }
+            }
+
+            if(receiveData.isNotEmpty()){
+                val maxSensingTime = receiveData.maxOfOrNull { it.SENSING_TIME }
+                val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
+                transaction(Config.conn) {
+                    SchemaUtils.create(SDoT_EnvInfo)
+                    finalData.forEach { item ->
+                        try {
+                            SDoT_EnvInfo.upsert { it ->
+                                it[SDoT_EnvInfo.modelname] = item.MODELNAME
+                                it[SDoT_EnvInfo.serial] = item.SERIAL
+                                it[SDoT_EnvInfo.sensing_time] = item.SENSING_TIME
+                                it[SDoT_EnvInfo.region] = item.REGION
+                                it[SDoT_EnvInfo.autonomous_district] = item.AUTONOMOUS_DISTRICT
+                                it[SDoT_EnvInfo.administrative_district] = item.ADMINISTRATIVE_DISTRICT
+                                it[SDoT_EnvInfo.max_temp] = item.MAX_TEMP
+                                it[SDoT_EnvInfo.avg_temp] = item.AVG_TEMP
+                                it[SDoT_EnvInfo.min_temp] = item.MIN_TEMP
+                                it[SDoT_EnvInfo.max_humi] = item.MAX_HUMI
+                                it[SDoT_EnvInfo.avg_humi] = item.AVG_HUMI
+                                it[SDoT_EnvInfo.min_humi] = item.MIN_HUMI
+                                it[SDoT_EnvInfo.max_wind_speed] = item.MAX_WIND_SPEED
+                                it[SDoT_EnvInfo.avg_wind_speed] = item.AVG_WIND_SPEED
+                                it[SDoT_EnvInfo.min_wind_speed] = item.MIN_WIND_SPEED
+                                it[SDoT_EnvInfo.max_wind_dire] = item.MAX_WIND_DIRE
+                                it[SDoT_EnvInfo.avg_wind_dire] = item.AVG_WIND_DIRE
+                                it[SDoT_EnvInfo.min_wind_dire] = item.MIN_WIND_DIRE
+                                it[SDoT_EnvInfo.max_inte_illu] = item.MAX_INTE_ILLU
+                                it[SDoT_EnvInfo.avg_inte_illu] = item.AVG_INTE_ILLU
+                                it[SDoT_EnvInfo.min_inte_illu] = item.MIN_INTE_ILLU
+                                it[SDoT_EnvInfo.max_ultra_rays] = item.MAX_ULTRA_RAYS
+                                it[SDoT_EnvInfo.avg_ultra_rays] = item.AVG_ULTRA_RAYS
+                                it[SDoT_EnvInfo.min_ultra_rays] = item.MIN_ULTRA_RAYS
+                                it[SDoT_EnvInfo.max_noise] = item.MAX_NOISE
+                                it[SDoT_EnvInfo.avg_noise] = item.AVG_NOISE
+                                it[SDoT_EnvInfo.min_noise] = item.MIN_NOISE
+                                it[SDoT_EnvInfo.max_vibr_x] = item.MAX_VIBR_X
+                                it[SDoT_EnvInfo.avg_vibr_x] = item.AVG_VIBR_X
+                                it[SDoT_EnvInfo.min_vibr_x] = item.MIN_VIBR_X
+                                it[SDoT_EnvInfo.max_vibr_y] = item.MAX_VIBR_Y
+                                it[SDoT_EnvInfo.avg_vibr_y] = item.AVG_VIBR_Y
+                                it[SDoT_EnvInfo.min_vibr_y] = item.MIN_VIBR_Y
+                                it[SDoT_EnvInfo.max_vibr_z] = item.MAX_VIBR_Z
+                                it[SDoT_EnvInfo.avg_vibr_z] = item.AVG_VIBR_Z
+                                it[SDoT_EnvInfo.min_vibr_z] = item.MIN_VIBR_Z
+                                it[SDoT_EnvInfo.max_effe_temp] = item.MAX_EFFE_TEMP
+                                it[SDoT_EnvInfo.avg_effe_temp] = item.AVG_EFFE_TEMP
+                                it[SDoT_EnvInfo.min_effe_temp] = item.MIN_EFFE_TEMP
+                                it[SDoT_EnvInfo.max_no2] = item.MAX_NO2
+                                it[SDoT_EnvInfo.avg_no2] = item.AVG_NO2
+                                it[SDoT_EnvInfo.min_no2] = item.MIN_NO2
+                                it[SDoT_EnvInfo.max_co] = item.MAX_CO
+                                it[SDoT_EnvInfo.avg_co] = item.AVG_CO
+                                it[SDoT_EnvInfo.min_co] = item.MIN_CO
+                                it[SDoT_EnvInfo.max_so2] = item.MAX_SO2
+                                it[SDoT_EnvInfo.avg_so2] = item.AVG_SO2
+                                it[SDoT_EnvInfo.min_so2] = item.MIN_SO2
+                                it[SDoT_EnvInfo.max_nh3] = item.MAX_NH3
+                                it[SDoT_EnvInfo.avg_nh3] = item.AVG_NH3
+                                it[SDoT_EnvInfo.min_nh3] = item.MIN_NH3
+                                it[SDoT_EnvInfo.max_h2s] = item.MAX_H2S
+                                it[SDoT_EnvInfo.avg_h2s] = item.AVG_H2S
+                                it[SDoT_EnvInfo.min_h2s] = item.MIN_H2S
+                                it[SDoT_EnvInfo.max_o3] = item.MAX_O3
+                                it[SDoT_EnvInfo.avg_o3] = item.AVG_O3
+                                it[SDoT_EnvInfo.min_o3] = item.MIN_O3
+                                it[SDoT_EnvInfo.date] = item.DATE
+                                it[SDoT_EnvInfo.data_no] = item.DATA_NO
+
+                            }
+                        } catch (e: Exception) {
+                            e.localizedMessage?.let { msg ->
+                                LOGGER.debug(msg)
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
+        } catch (e: Exception){
+            val msg = e.localizedMessage
+        }
+    }
+
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun getKhoaTidalCurrent(){
         var now = Clock.System.now()

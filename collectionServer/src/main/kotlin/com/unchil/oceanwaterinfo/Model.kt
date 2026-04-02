@@ -114,6 +114,91 @@ data class KhonTidalCurrentInfoResponse(
 )
 
 
+@Serializable
+@SerialName("RESULT")
+data class RESULT(
+        val CODE:String,
+        val MESSAGE:String
+){
+
+}
+
+@Serializable
+data class SDoTEnvInformation(
+    val MODELNAME: String,
+    val SERIAL: String,
+    val SENSING_TIME: String,
+    val REGION: String,
+    val AUTONOMOUS_DISTRICT: String,
+    val ADMINISTRATIVE_DISTRICT: String,
+    val MAX_TEMP: String,
+    val AVG_TEMP: String,
+    val MIN_TEMP: String,
+    val MAX_HUMI: String,
+    val AVG_HUMI: String,
+    val MIN_HUMI: String,
+    val MAX_WIND_SPEED: String,
+    val AVG_WIND_SPEED: String,
+    val MIN_WIND_SPEED: String,
+    val MAX_WIND_DIRE: String,
+    val AVG_WIND_DIRE: String,
+    val MIN_WIND_DIRE: String,
+    val MAX_INTE_ILLU: String,
+    val AVG_INTE_ILLU: String,
+    val MIN_INTE_ILLU: String,
+    val MAX_ULTRA_RAYS: String,
+    val AVG_ULTRA_RAYS: String,
+    val MIN_ULTRA_RAYS: String,
+    val MAX_NOISE: String,
+    val AVG_NOISE: String,
+    val MIN_NOISE: String,
+    val MAX_VIBR_X: String,
+    val AVG_VIBR_X: String,
+    val MIN_VIBR_X: String,
+    val MAX_VIBR_Y: String,
+    val AVG_VIBR_Y: String,
+    val MIN_VIBR_Y: String,
+    val MAX_VIBR_Z: String,
+    val AVG_VIBR_Z: String,
+    val MIN_VIBR_Z: String,
+    val MAX_EFFE_TEMP: String,
+    val AVG_EFFE_TEMP: String,
+    val MIN_EFFE_TEMP: String,
+    val MAX_NO2: String,
+    val AVG_NO2: String,
+    val MIN_NO2: String,
+    val MAX_CO: String,
+    val AVG_CO: String,
+    val MIN_CO: String,
+    val MAX_SO2: String,
+    val AVG_SO2: String,
+    val MIN_SO2: String,
+    val MAX_NH3: String,
+    val AVG_NH3: String,
+    val MIN_NH3: String,
+    val MAX_H2S: String,
+    val AVG_H2S: String,
+    val MIN_H2S: String,
+    val MAX_O3: String,
+    val AVG_O3: String,
+    val MIN_O3: String,
+    val DATE: String,
+    val DATA_NO: String
+)
+
+
+@Serializable
+@SerialName("sDoTEnv")
+data class SDoTEnv(
+    val list_total_count:Int,
+    val RESULT:RESULT,
+    val row: List<SDoTEnvInformation>
+)
+
+@Serializable
+data class SDoTEnvResponse(
+    val sDoTEnv:SDoTEnv
+)
 
 @Serializable
 data class KhoaObservationResponse(
@@ -195,6 +280,7 @@ data class ConfigData(
     val MOF_API: MofApiConfig? = null,
     val KHOA_API: KhoaApiConfig? = null,
     val KHOA_TIDALCURRENT_API: KhoaTidalCurrentApiConfig? = null,
+    val SDOT_API: SDoTApiConfig? = null,
     val SQLITE_DB: DatabaseConfig? = null,
     val COLLECTION_TYPE: CollectionConfig? = null
 )
@@ -240,6 +326,16 @@ data class  KhoaApiConfig(
     val min: String,
     val numOfRows: String
 )
+
+@Serializable
+data class  SDoTApiConfig(
+    val endPoint: String,
+    val apikey: String,
+    val subPath: String,
+    val type: String
+)
+
+
 
 
 @Serializable

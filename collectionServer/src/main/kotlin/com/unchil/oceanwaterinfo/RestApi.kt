@@ -31,6 +31,11 @@ class RestApi {
 
     companion object {
 
+        suspend fun callSDoT_EnvInfo_json(url:String): String{
+            client.get(url).let {
+                return it.bodyAsText(java.nio.charset.Charset.forName("EUC-KR"))
+            }
+        }
 
         suspend fun callKhoaAPI_json(url:String): String{
             client.get(url).let {
