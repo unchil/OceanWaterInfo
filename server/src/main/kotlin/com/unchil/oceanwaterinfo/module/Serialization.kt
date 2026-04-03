@@ -26,6 +26,22 @@ fun Application.configureSerialization(repository: Repository) {
         get("/") {
             call.respondText("Beautiful World!")
         }
+
+        route("/seoul"){
+            get("/sdot_env_info"){
+                try {
+                    val result = repository.sDoTEnvInfo()
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+        }
+
         route("/khoa"){
 
             get("/tidal_current_info"){

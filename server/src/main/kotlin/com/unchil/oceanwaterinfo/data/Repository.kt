@@ -45,11 +45,33 @@ private val cacheStorage_KhoaObservatoryInfo = ConcurrentHashMap<String, Pair<Li
 
 private val cacheStorage_KhoaTidalCurrentInfo = ConcurrentHashMap<String, Pair<List<TidalCurrentInfo>, Long>>()
 
+private val cacheStorage_SDoTEnvInfo = ConcurrentHashMap<String, Pair<List<SDoTEnvInformation>, Long>>()
+
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 
 class Repository {
+
+    fun sDoTEnvInfo():List<SDoTEnvInformation> {
+        val key = "cache_sdot_envinfo"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_SDoTEnvInfo[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchSDoTEnvInfoFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_SDoTEnvInfo[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
 
 
     fun khoaTidalCurrentInfo():List<TidalCurrentInfo>{
@@ -192,6 +214,51 @@ class Repository {
         }
         return resultFromDb
     }
+
+
+    fun fetchSDoTEnvInfoFromDb():List<SDoTEnvInformation> = transaction {
+        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoFromDb")
+
+        val lastTimeExpression = SDoT_EnvInfo.sensing_time.max()
+
+        val maxSensingTime = SDoT_EnvInfo.select(lastTimeExpression).limit(1).map {
+            it[lastTimeExpression]
+        }.firstOrNull()
+
+        println("가장 최근 sensing_time: $maxSensingTime")
+
+        val result = SDoT_EnvInfo.join(
+            SDoT_Location,
+            JoinType.INNER,
+            onColumn = SDoT_EnvInfo.serial,
+            otherColumn = SDoT_Location.serial
+        ).select(
+            SDoT_EnvInfo.sensing_time,
+            SDoT_EnvInfo.serial, SDoT_EnvInfo.region,
+            SDoT_EnvInfo.autonomous_district, SDoT_EnvInfo.administrative_district,
+            SDoT_Location.addr, SDoT_Location.lat, SDoT_Location.lng,
+            SDoT_EnvInfo.max_temp, SDoT_EnvInfo.min_temp, SDoT_EnvInfo.avg_temp,
+            SDoT_EnvInfo.max_humi, SDoT_EnvInfo.min_humi, SDoT_EnvInfo.avg_humi,
+            SDoT_EnvInfo.max_ultra_rays, SDoT_EnvInfo.min_ultra_rays, SDoT_EnvInfo.avg_ultra_rays,
+            SDoT_EnvInfo.max_noise, SDoT_EnvInfo.min_noise, SDoT_EnvInfo.avg_noise,
+            SDoT_EnvInfo.max_vibr_x, SDoT_EnvInfo.min_vibr_x, SDoT_EnvInfo.avg_vibr_x,
+            SDoT_EnvInfo.max_vibr_y, SDoT_EnvInfo.min_vibr_y, SDoT_EnvInfo.avg_vibr_y,
+            SDoT_EnvInfo.max_vibr_z, SDoT_EnvInfo.min_vibr_z, SDoT_EnvInfo.avg_vibr_z,
+            SDoT_EnvInfo.max_no2, SDoT_EnvInfo.min_no2, SDoT_EnvInfo.avg_no2,
+            SDoT_EnvInfo.max_co, SDoT_EnvInfo.min_co, SDoT_EnvInfo.avg_co,
+            SDoT_EnvInfo.max_so2, SDoT_EnvInfo.min_so2, SDoT_EnvInfo.avg_so2,
+            SDoT_EnvInfo.max_nh3, SDoT_EnvInfo.min_nh3, SDoT_EnvInfo.avg_nh3,
+            SDoT_EnvInfo.max_h2s, SDoT_EnvInfo.min_h2s, SDoT_EnvInfo.avg_h2s,
+            SDoT_EnvInfo.max_o3, SDoT_EnvInfo.min_o3, SDoT_EnvInfo.avg_o3
+        ).where{
+            SDoT_EnvInfo.sensing_time.eq(maxSensingTime ?: "")
+        }.map { resultRow ->
+            toSDoTEnvInformation(resultRow)
+        }
+
+        return@transaction result
+    }
+
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)

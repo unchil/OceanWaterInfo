@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo.sensing_time
 import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.pre_lat
 import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.pre_lon
 import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.sch_time
@@ -108,6 +109,15 @@ object TidalCurrentInfoKHOA: Table("TidalCurrentInfoKHOA"){
     val current_speed = double("current_speed")
 
     override val primaryKey = PrimaryKey(sch_time, pre_lon, pre_lat, name = "primaryKey")
+}
+
+object SDoT_Location: Table("SDoT_Location"){
+    val serial = varchar("serial", length=30)
+    val addr = varchar("addr", length=30)
+    val lat = varchar("lat", length=30)
+    val lng = varchar("lng", length=30)
+
+    override val primaryKey = PrimaryKey(serial, name = "primaryKey")
 }
 
 object SDoT_EnvInfo: Table("SDoT_EnvInfo"){

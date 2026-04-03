@@ -170,3 +170,101 @@ fun toTidalCurrentInfo(it: ResultRow) = TidalCurrentInfo(
     it[TidalCurrentInfoKHOA.current_dir],
     it[TidalCurrentInfoKHOA.current_speed],
 )
+
+object SDoT_Location: Table("SDoT_Location"){
+    val serial = varchar("serial", length=30)
+    val addr = varchar("addr", length=30)
+    val lat = varchar("lat", length=30)
+    val lng = varchar("lng", length=30)
+
+    override val primaryKey = PrimaryKey(serial, name = "primaryKey")
+}
+
+fun toSDoTEnvInformation(it: ResultRow) = SDoTEnvInformation(
+    it[SDoT_EnvInfo.sensing_time],
+    it[SDoT_EnvInfo.serial],
+    it[SDoT_EnvInfo.region],
+    it[SDoT_EnvInfo.autonomous_district],
+    it[SDoT_EnvInfo.administrative_district],
+    it[SDoT_Location.addr],
+    it[SDoT_Location.lat],
+    it[SDoT_Location.lng],
+    it[SDoT_EnvInfo.max_temp], it[SDoT_EnvInfo.min_temp], it[SDoT_EnvInfo.avg_temp],
+    it[SDoT_EnvInfo.max_humi], it[SDoT_EnvInfo.min_humi], it[SDoT_EnvInfo.avg_humi],
+    it[SDoT_EnvInfo.max_ultra_rays], it[SDoT_EnvInfo.min_ultra_rays], it[SDoT_EnvInfo.avg_ultra_rays],
+    it[SDoT_EnvInfo.max_noise], it[SDoT_EnvInfo.min_noise], it[SDoT_EnvInfo.avg_noise],
+    it[SDoT_EnvInfo.max_vibr_x], it[SDoT_EnvInfo.min_vibr_x], it[SDoT_EnvInfo.avg_vibr_x],
+    it[SDoT_EnvInfo.max_vibr_y], it[SDoT_EnvInfo.min_vibr_y], it[SDoT_EnvInfo.avg_vibr_y],
+    it[SDoT_EnvInfo.max_vibr_z], it[SDoT_EnvInfo.min_vibr_z], it[SDoT_EnvInfo.avg_vibr_z],
+    it[SDoT_EnvInfo.max_no2], it[SDoT_EnvInfo.min_no2], it[SDoT_EnvInfo.avg_no2],
+    it[SDoT_EnvInfo.max_co], it[SDoT_EnvInfo.min_co], it[SDoT_EnvInfo.avg_co],
+    it[SDoT_EnvInfo.max_so2], it[SDoT_EnvInfo.min_so2], it[SDoT_EnvInfo.avg_so2],
+    it[SDoT_EnvInfo.max_nh3], it[SDoT_EnvInfo.min_nh3], it[SDoT_EnvInfo.avg_nh3],
+    it[SDoT_EnvInfo.max_h2s], it[SDoT_EnvInfo.min_h2s], it[SDoT_EnvInfo.avg_h2s],
+    it[SDoT_EnvInfo.max_o3], it[SDoT_EnvInfo.min_o3], it[SDoT_EnvInfo.avg_o3]
+)
+
+
+object SDoT_EnvInfo: Table("SDoT_EnvInfo"){
+    val modelname = varchar("modelname", length=30)
+    val serial = varchar("serial", length=30)
+    val sensing_time = varchar("sensing_time", length=30)
+    val region = varchar("region", length=30)
+    val autonomous_district = varchar("autonomous_district", length=30)
+    val administrative_district = varchar("administrative_district", length=30)
+    val max_temp = varchar("max_temp", length=30)
+    val avg_temp = varchar("avg_temp", length=30)
+    val min_temp = varchar("min_temp", length=30)
+    val max_humi = varchar("max_humi", length=30)
+    val avg_humi = varchar("avg_humi", length=30)
+    val min_humi = varchar("min_humi", length=30)
+    val max_wind_speed = varchar("max_wind_speed", length=30)
+    val avg_wind_speed = varchar("avg_wind_speed", length=30)
+    val min_wind_speed = varchar("min_wind_speed", length=30)
+    val max_wind_dire = varchar("max_wind_dire", length=30)
+    val avg_wind_dire = varchar("avg_wind_dire", length=30)
+    val min_wind_dire = varchar("min_wind_dire", length=30)
+    val max_inte_illu = varchar("max_inte_illu", length=30)
+    val avg_inte_illu = varchar("avg_inte_illu", length=30)
+    val min_inte_illu = varchar("min_inte_illu", length=30)
+    val max_ultra_rays = varchar("max_ultra_rays", length=30)
+    val avg_ultra_rays = varchar("avg_ultra_rays", length=30)
+    val min_ultra_rays = varchar("min_ultra_rays", length=30)
+    val max_noise = varchar("max_noise", length=30)
+    val avg_noise = varchar("avg_noise", length=30)
+    val min_noise = varchar("min_noise", length=30)
+    val max_vibr_x = varchar("max_vibr_x", length=30)
+    val avg_vibr_x = varchar("avg_vibr_x", length=30)
+    val min_vibr_x = varchar("min_vibr_x", length=30)
+    val max_vibr_y = varchar("max_vibr_y", length=30)
+    val avg_vibr_y = varchar("avg_vibr_y", length=30)
+    val min_vibr_y = varchar("min_vibr_y", length=30)
+    val max_vibr_z = varchar("max_vibr_z", length=30)
+    val avg_vibr_z = varchar("avg_vibr_z", length=30)
+    val min_vibr_z = varchar("min_vibr_z", length=30)
+    val max_effe_temp = varchar("max_effe_temp", length=30)
+    val avg_effe_temp = varchar("avg_effe_temp", length=30)
+    val min_effe_temp = varchar("min_effe_temp", length=30)
+    val max_no2 = varchar("max_no2", length=30)
+    val avg_no2 = varchar("avg_no2", length=30)
+    val min_no2 = varchar("min_no2", length=30)
+    val max_co = varchar("max_co", length=30)
+    val avg_co = varchar("avg_co", length=30)
+    val min_co = varchar("min_co", length=30)
+    val max_so2 = varchar("max_so2", length=30)
+    val avg_so2 = varchar("avg_so2", length=30)
+    val min_so2 = varchar("min_so2", length=30)
+    val max_nh3 = varchar("max_nh3", length=30)
+    val avg_nh3 = varchar("avg_nh3", length=30)
+    val min_nh3 = varchar("min_nh3", length=30)
+    val max_h2s = varchar("max_h2s", length=30)
+    val avg_h2s = varchar("avg_h2s", length=30)
+    val min_h2s = varchar("min_h2s", length=30)
+    val max_o3 = varchar("max_o3", length=30)
+    val avg_o3 = varchar("avg_o3", length=30)
+    val min_o3 = varchar("min_o3", length=30)
+    val date = varchar("date", length=30)
+    val data_no = varchar("data_no", length=30)
+
+    override val primaryKey = PrimaryKey(serial, sensing_time, name = "primaryKey")
+}
