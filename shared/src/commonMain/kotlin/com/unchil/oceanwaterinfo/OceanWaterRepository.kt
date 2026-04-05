@@ -38,6 +38,21 @@ class OceanWaterRepository {
     val _khoaTidalCurrentInfo: MutableStateFlow<List<TidalCurrentInfo>>
             = MutableStateFlow(emptyList())
 
+    val _sDoTEnvInfo: MutableStateFlow<List<SDoTEnvInformation>>
+            = MutableStateFlow(emptyList())
+
+
+    suspend fun getSDoTEnvInfo(){
+        try {
+            oceanWaterApi.getSDoTEnvInfo().let {
+                _sDoTEnvInfo.value = it
+                LOGGER.debug("getSDoTEnvInfo() called[${it.count()}]")
+            }
+        }catch (e:Exception){
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
+
     suspend fun getKhoaObservationInfo(){
         try {
             oceanWaterApi.getKhoaObservationInfo().let {

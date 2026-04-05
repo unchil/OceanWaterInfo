@@ -34,6 +34,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.unchil.sdotenvinfo.SDoTEnvInfoMapHexagonLayer
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.Dispatchers
@@ -97,6 +98,25 @@ fun main() = application {
                         .background(color = MaterialTheme.colorScheme.surface)
                 ) {
 
+
+
+                    Text(
+                        "SEOUL SDoT Environmental Observation Information",
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+
+
+                    CompositionLocalProvider(LocalPoint provides clickPoint.value) {
+                        SDoTEnvInfoMapHexagonLayer(initialized, download, errorMessage)
+                    }
+
+
+
+ /*
                     Text(
                         "Korea Ocean Water Information",
                         modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
@@ -105,13 +125,6 @@ fun main() = application {
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
-/*
-                    CompositionLocalProvider(LocalPoint provides clickPoint.value) {
-                        SeaFlowMapHexagonLayer(initialized, download, errorMessage)
-                    }
-
- */
-
 
                     var splitFractionVertical by remember { mutableStateOf(0.5f) }
                     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -224,7 +237,7 @@ fun main() = application {
 
                     }
 
-
+*/
 
 
                 }

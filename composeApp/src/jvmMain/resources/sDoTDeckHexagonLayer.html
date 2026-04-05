@@ -14,11 +14,17 @@
           // Add other bootstrap parameters as needed, using camel case.
         });
     </script>
-    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+
 
     <script src="https://unpkg.com/deck.gl@8.9.22/dist.min.js"></script>
     <script src="https://unpkg.com/@deck.gl/google-maps@8.9.22/dist.min.js"></script>
 
+    <!--loaders.gl 이  deck.gl/google-maps 다음에 import 되어야 GoogleMapsOverlay 가 로드됨-->
+    <script src="https://unpkg.com/@loaders.gl/core@latest/dist/dist.min.js"></script>
+    <script src="https://unpkg.com/@loaders.gl/json@latest/dist/dist.min.js"></script>
+
+
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
     <script type="module" src="sDoTDeckHexagonLayer.js" defer></script>
 </head>
 
@@ -29,6 +35,20 @@
 
 <div id="un7map" style="height:100%"></div>
 
-
+<script>
+// 자바스크립트 상단에 추가하여 툴팁 엘리먼트 생성
+const tooltip = document.createElement('div');
+tooltip.id = 'tooltip';
+tooltip.style.position = 'absolute';
+tooltip.style.zIndex = '1000';
+tooltip.style.pointerEvents = 'none';
+tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+tooltip.style.color = '#fff';
+tooltip.style.padding = '8px';
+tooltip.style.borderRadius = '4px';
+tooltip.style.display = 'none';
+tooltip.style.fontSize = '12px';
+document.body.appendChild(tooltip);
+</script>
 </body>
 </html>

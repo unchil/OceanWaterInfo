@@ -75,4 +75,10 @@ class OceanWaterApi {
         return httpClient.get(url).body<List<TidalCurrentInfo>>()
     }
 
+
+    suspend fun getSDoTEnvInfo(): List<SDoTEnvInformation>{
+        val url = "${endPoint}/seoul/sdot_env_info"
+        return httpClient.get(url).body<List<SDoTEnvInformation>>()
+    }
+
 }

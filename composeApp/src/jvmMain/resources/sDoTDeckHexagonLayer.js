@@ -1,6 +1,8 @@
-import {valuesHexagon } from './output2.js';
+//import {valuesHexagon } from './valuesHexagonLayer.js';
 
-const {GoogleMapsOverlay, HexagonLayer} = deck;
+const {GoogleMapsOverlay, HexagonLayer } = deck;
+const { load, JSONLoader } = loaders;
+const DATA_URL = 'http://192.168.35.107:7788/seoul/sdot_env_info';
 
 let map;
 let overlay;
@@ -20,6 +22,7 @@ let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
 
 
+
 async function initMap() {
 
     const { Map } = await google.maps.importLibrary("maps");
@@ -31,7 +34,7 @@ async function initMap() {
        zoom: zoomLevel,
        tilt: 45,
        renderingType: google.maps.RenderingType.VECTOR,
-       colorScheme: google.maps.ColorScheme.DARK
+    //   colorScheme: google.maps.ColorScheme.DARK
 
     });
 
@@ -46,16 +49,33 @@ async function initMap() {
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
-    initMapWithData(valuesHexagon)
+  //  initMapWithData(valuesHexagon);
 
 };
 
-
-window.initMapWithData = function( values) {
+window.initMapWithData =  function( values) {
 
     props = {
       id: 'hexagon-layer',
       data: values,
+
+  // 데스트시 loaders 를 이용한 데이터 셑팅
+/*
+       data: DATA_URL,
+       loaders: [JSONLoader],
+         //  [중요] 모든 데이터(...d)를 유지해야 툴팁에서 addr, serial을 쓸 수 있음
+       dataTransform: (rawData) => {
+          // SDoT API 특유의 계층 구조 대응
+           const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
+           return rows.map(d => ({
+             ...d,
+                lng: Number(d.lng),
+                lat: Number(d.lat),
+                max_no2: Number(d.max_no2 || 0)
+           }));
+       },
+*/
+
       elevationRange: [0, 100],
       gpuAggregation: true,
       colorRange,
@@ -81,6 +101,7 @@ window.initMapWithData = function( values) {
 
               tooltip.innerHTML = `
                   <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
+                  <div>${source.sensing_time}</div>
                   <div>SerialID: ${source.serial}</div>
                   <div>측정 값: ${source.value}</div>
                   <div>측정 지점 수: ${count}개</div>
@@ -120,7 +141,7 @@ function startHexagonAnimation() {
         currentTime += 0.06;
 
         // [핵심 수정] 매 프레임마다 높이와 투명도를 새로 계산합니다.
-        const animatedScale =  currentTime  * 1.5;
+        const animatedScale =  currentTime  * 3;
         const currentOpacity = currentTime * 0.1;
 
         if (currentTime >= 10) {
@@ -185,7 +206,7 @@ function smoothZoom ( targetZoom, currentZoom) {
     map.setZoom(nextZoom);
     // 재귀적으로 호출하여 애니메이션 효과 생성
     setTimeout(function() {
-        smoothZoom(map, targetZoom, nextZoom);
+        smoothZoom( targetZoom, nextZoom);
     }, 300);
 }
 
