@@ -258,7 +258,7 @@ fun main() = application {
                                                     OceanWaterInfoBoxPlotChart()
                                                     OceanWaterInfoLineChart()
                                                     OceanWaterInfoBarChart()
-                                                    OceanWaterInfoLineChart_MOF()
+                                            //        OceanWaterInfoLineChart_MOF()
 
 
                                                     //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.

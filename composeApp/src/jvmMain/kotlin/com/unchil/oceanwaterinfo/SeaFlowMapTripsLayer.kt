@@ -38,15 +38,11 @@ fun SeaFlowMapTripsLayer(
 
 
     val center = LocalPoint.current
-    val host = "http://localhost:63342/OceanWaterInfo"
+    val host = "http://localhost"
     val servicePage = "seaFlowMapDeckTripsLayer.html"
 
 
-    val _ijt = "fjbsp9hafnm047cvu9fphpq54b"
-
-
-
-    val localUrl = "${host}/${servicePage}?_ijt=${_ijt}"
+    val localUrl = "${host}/${servicePage}"
     val remoteUrl = "https://www.google.com/maps/"
 
     val webViewState = rememberWebViewState(localUrl)

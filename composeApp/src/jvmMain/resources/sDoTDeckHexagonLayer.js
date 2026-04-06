@@ -7,7 +7,7 @@ const DATA_URL = 'http://192.168.35.107:7788/seoul/sdot_env_info';
 let map;
 let overlay;
 let zoomLevel = 12
-let currentTime = 0; // 애니메이션 진행 상태를 추적할 변수//
+
 let center = { lat: 37.385852, lng: 126.934515 };
 let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
 let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
@@ -49,7 +49,14 @@ async function initMap() {
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
-  //  initMapWithData(valuesHexagon);
+
+      // [개선] 지도가 완전히 로드된 후 데이터를 주입합니다.
+      /*
+      google.maps.event.addListenerOnce(map, 'idle', () => {
+        initMapWithData(valuesHexagon);
+      });
+      */
+
 
 };
 
@@ -103,7 +110,7 @@ window.initMapWithData =  function( values) {
                   <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
                   <div>${source.sensing_time}</div>
                   <div>SerialID: ${source.serial}</div>
-                  <div>측정 값: ${source.value}</div>
+                  <div>${source.title}:${source.value}</div>
                   <div>측정 지점 수: ${count}개</div>
                   <div>평균 수치: ${avgValue}</div>
               `;
@@ -119,18 +126,15 @@ window.initMapWithData =  function( values) {
 
   }
 
+    startHexagonAnimation();
 
-      // [개선] 지도가 완전히 로드된 후 데이터를 주입합니다.
-      google.maps.event.addListenerOnce(map, 'idle', () => {
-        startHexagonAnimation();
-
-      });
 }
 
 /**
  * Hexagon의 높이를 실시간으로 변화시키는 애니메이션 루프
  */
 function startHexagonAnimation() {
+    let currentTime = 0
 
     if (animationId) {
         cancelAnimationFrame(animationId);
