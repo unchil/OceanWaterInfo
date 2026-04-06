@@ -98,7 +98,7 @@ fun SDoTEnvInfoMapHexagonLayer(
     val sDoTEnvInfo = viewModel._sDoTEnvInfotateFlow.collectAsState()
     val keys = remember{ mutableStateOf("" )}
     val values = remember{ mutableStateOf("" )}
-
+    val colorRange  = remember{ mutableStateOf("" )}
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
@@ -120,6 +120,7 @@ fun SDoTEnvInfoMapHexagonLayer(
                 }
                 "{ sensing_time:\"${it.sensing_time}\", serial:\"${it.serial}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${maxValue}, title:\"${selectedOption.name()}\" }"
             }
+
             title = selectedOption.name()
         }
     }
@@ -127,7 +128,16 @@ fun SDoTEnvInfoMapHexagonLayer(
     LaunchedEffect( values.value, webViewState.loadingState, key3 = selectedOption){
         if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
             //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
-            navigator.evaluateJavaScript("initMapWithData( ${values.value})")
+
+            when(selectedOption){
+                AIR_QUAlITY.QualityType.max_o3 -> navigator.evaluateJavaScript("initMapWithO3Data( ${values.value})")
+                AIR_QUAlITY.QualityType.max_no2 -> navigator.evaluateJavaScript("initMapWithNO2Data( ${values.value})")
+                AIR_QUAlITY.QualityType.max_co -> navigator.evaluateJavaScript("initMapWithCOData( ${values.value})")
+                AIR_QUAlITY.QualityType.max_so2 -> navigator.evaluateJavaScript("initMapWithSO2Data( ${values.value})")
+                AIR_QUAlITY.QualityType.max_nh3 -> navigator.evaluateJavaScript("initMapWithNH3Data( ${values.value})")
+                AIR_QUAlITY.QualityType.max_h2s -> navigator.evaluateJavaScript("initMapWithH2SData( ${values.value})")
+            }
+
         }
     }
 
@@ -166,7 +176,7 @@ fun SDoTEnvInfoMapHexagonLayer(
 
 
         Text(
-            modifier = Modifier.fillMaxWidth().padding(6.dp),
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
             text =  selectedOption.desc(),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Start
