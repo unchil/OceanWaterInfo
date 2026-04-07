@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -155,8 +158,6 @@ fun SDoTEnvInfoMapHexagonLayer(
             contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
         ) {
             AIR_QUAlITY.QualityType.entries.forEachIndexed { index, entrie ->
-
-
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = {
@@ -170,17 +171,23 @@ fun SDoTEnvInfoMapHexagonLayer(
                         )
                     }
                 )
-
             }
         }
-
-
-        Text(
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
-            text =  selectedOption.desc(),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Start
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+              //  .height(120.dp)
+              //  .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text =  selectedOption.desc(),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Start
+            )
+        }
 
         when {
             initialized -> {
