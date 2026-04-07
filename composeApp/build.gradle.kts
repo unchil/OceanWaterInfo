@@ -63,7 +63,7 @@ kotlin {
             implementation(libs.koalaplot.core)
             implementation(libs.geojson)
 
-
+            implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
 
             implementation(projects.shared)
         }
