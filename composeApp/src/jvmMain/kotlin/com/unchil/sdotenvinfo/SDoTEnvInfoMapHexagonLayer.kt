@@ -1,18 +1,28 @@
 package com.unchil.sdotenvinfo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SecondaryTabRow
@@ -34,9 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.BlendMode.Companion.Color
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.multiplatform.webview.web.LoadingState
@@ -58,6 +72,9 @@ import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
+import oceanwaterinfo.composeapp.generated.resources.Res
+import oceanwaterinfo.composeapp.generated.resources.arrow_downward_alt_24px
+import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalComposeUiApi::class
@@ -79,7 +96,7 @@ fun SDoTEnvInfoMapHexagonLayer(
     val servicePage = "sDoTDeckHexagonLayer.html"
 
 
-    var title by remember { mutableStateOf(AIR_QUAlITY.QualityType.entries[0].name()) }
+    var descriptionBox by remember { mutableStateOf(false) }
 
     val localUrl = "${host}/${servicePage}"
     val remoteUrl = "https://www.google.com/maps/"
@@ -124,7 +141,7 @@ fun SDoTEnvInfoMapHexagonLayer(
                 "{ sensing_time:\"${it.sensing_time}\", serial:\"${it.serial}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${maxValue}, title:\"${selectedOption.name()}\" }"
             }
 
-            title = selectedOption.name()
+
         }
     }
 
@@ -173,20 +190,45 @@ fun SDoTEnvInfoMapHexagonLayer(
                 )
             }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-              //  .height(120.dp)
-              //  .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+
+        AnimatedVisibility(descriptionBox){
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text =  selectedOption.desc(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start
+                )
+            }
+        }
+
+        Box( modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
-        ) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text =  selectedOption.desc(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Start
-            )
+        ){
+            val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+
+            IconButton(
+                onClick = { descriptionBox = !descriptionBox },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ){
+                    Icon(
+                        imageVector = Icons.Default.ArrowCircleDown,
+                        contentDescription = "Toggle Description",
+                        modifier = Modifier.rotate(rotation) // 회전 애니메이션 적용
+                    )
+                    Spacer(Modifier.padding(2.dp))
+                    Text("Description", fontWeight = FontWeight.Bold)
+                }
+            }
         }
 
         when {
