@@ -14,6 +14,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,21 +27,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    ComposeViewport {
+
+    ComposeViewport(viewportContainerId = "webmain") {
+
         CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
             MaterialTheme(
                 typography = getTypography(),
                 colorScheme = getColorScheme(false)
             ) {
-
-                var splitFractionHorizontal by remember { mutableStateOf(0.5f) }
-
-                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val totalHeight = constraints.maxHeight.toFloat()
 
 
                     Column(modifier = Modifier.fillMaxSize()
@@ -56,45 +56,26 @@ fun main() {
                             textAlign = TextAlign.Center
                         )
 
-                        Box(modifier = Modifier.fillMaxHeight(splitFractionHorizontal)) {
+                        Box(modifier = Modifier.fillMaxHeight()) {
                             Column(
                                 modifier = Modifier.verticalScroll(rememberScrollState()),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ){
 
-                         //       WindPolarChart()
-
                                 OceanWaterInfoBoxPlotChart()
-
                                 OceanWaterInfoBarChart()
-
                                 OceanWaterInfoLineChart()
-
-                                OceanWaterInfoLineChart_MOF()
+                                OceanWaterInfoDataGrid()
                             }
 
                         }
 
-                        DraggableHorizontalDivider(
-                            onDrag = { deltaPx ->
-                                val deltaWeight = deltaPx / totalHeight
-                                // 박스 2의 크기를 조절
-                                splitFractionHorizontal = (splitFractionHorizontal + deltaWeight).coerceIn(0.1f, 0.9f)
-                            }
-                        )
 
-                        Box(
-                            modifier=paddingMod,
-                            contentAlignment = Alignment.Center
-                        ){
-
-                            OceanWaterInfoDataGrid()
-                        }
 
                     }
 
 
-                }
+
 
             }
 

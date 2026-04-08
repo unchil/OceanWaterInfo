@@ -109,7 +109,7 @@ fun SimpleMapScreen2(
 
 
     val center = LocalPoint.current
-    val host = "http://localhost"
+    val host = "http://192.168.35.107:7777"
     val servicePage = "googleMapView.html"
 
 
