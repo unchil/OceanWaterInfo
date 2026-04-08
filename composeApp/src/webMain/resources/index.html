@@ -65,17 +65,15 @@
     // 3. iframe의 ID를 가져와서 src 변경
     const iframe = document.getElementById('map-iframe');
 
-// src를 바꾸는 대신 메시지를 보냄
-//    iframe.contentWindow.postMessage({ action: 'CHANGE_TYPE', type: type }, '*');
+    //페이지 새로고침 없이 함수만 호출하고 싶을 때
+    //src를 바꾸는 대신 메시지를 보냄
+    iframe.contentWindow.postMessage({ action: 'CHANGE_TYPE', type: type }, '*');
 
-    // 각 타입에 맞는 HTML 파일명을 설정하세요
 
     const baseUrl = "http://localhost:7777/sDoTDeckHexagonLayer2";
-    iframe.src = `${baseUrl}.html?type=${type}`;
+   // iframe.src = `${baseUrl}.html?type=${type}`;
 
-    console.log("탭 변경:", type, "->", iframe.src);
-
-
+   // console.log("탭 변경:", type, "->", iframe.src);
 }
 </script>
 </body>
