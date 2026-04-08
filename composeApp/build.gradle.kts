@@ -48,6 +48,7 @@ kotlin {
 
         }
         commonMain.dependencies {
+            implementation(projects.shared)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -65,7 +66,7 @@ kotlin {
 
             implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
 
-            implementation(projects.shared)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
