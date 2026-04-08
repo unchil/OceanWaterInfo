@@ -11,30 +11,8 @@ let zoomLevel = 12
 let center = { lat: 37.385852, lng: 126.934515 };
 let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
 let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
-let props;
-let title;
-let colorRange = [
-    [0, 200, 255],   // 좋음 (파랑)
-    [0, 255, 100],   // 보통 (초록)
-    [255, 200, 0],   // 나쁨 (노랑)
-    [255, 0, 0]      // 매우 나쁨 (빨강)
-];
 
-
-const getColorByPPM = (points) => {
-  // 1. 해당 육각형 내 데이터 중 최대값 추출
- // const maxPPM = Math.max( points.map(p => p.source.value));
-  // reduce를 사용하여 최대값 비교
-  const maxPPM = points.reduce((max, p) => (p.source.value > max ? p.source.value : max), -Infinity);
-  // 2. 최대값(Max) 기준 색상 분기
-  if (maxPPM <= 0.01) return [0, 200, 255];   // 좋음
-  if (maxPPM <= 0.03) return [0, 255, 100];    // 보통
-  if (maxPPM <= 0.09) return [255, 200, 0];   // 나쁨
-  return [255, 0, 0];                         // 매우 나쁨
-};
-
-
-
+let colorRange = [[255, 255, 255],[0, 200, 255],[0, 255, 100],[0, 255, 100],[255, 116, 0], [255, 0, 0]];
 
 
 let elevationBase = 0; // 기본 높이 배율
@@ -52,67 +30,100 @@ async function initMap() {
        tilt: 45,
        renderingType: google.maps.RenderingType.VECTOR,
     //   colorScheme: google.maps.ColorScheme.DARK
-
     });
 
     // Set map options.
     map.setOptions({
       scaleControl: true,
-
-     mapTypeId: google.maps.MapTypeId.Terrain,
-
+      mapTypeId: google.maps.MapTypeId.Terrain,
     });
 
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
-
-      // [개선] 지도가 완전히 로드된 후 데이터를 주입합니다.
 /*
-      google.maps.event.addListenerOnce(map, 'idle', () => {
-        initMapWithData(valuesHexagon);
-      });
-      */
-
-
+    google.maps.event.addListenerOnce(map, 'idle', () => {
+        initMapWithData2(valuesHexagon, "max_o3");
+    });
+*/
 
 };
 
-window.initMapWithData =  function( values) {
 
-    props = {
+
+
+window.initMapWithData =  function( values, type) {
+  let title;
+    let maxDomain;
+
+    // 1. 타입에 따른 타이틀 및 도메인 범위 설정
+    switch(type) {
+        case 'max_o3':
+            title = "Ozone(O3)";
+            maxDomain = 0.15;
+            break;
+        case 'max_no2':
+            title = "Nitrogen dioxide(NO2)";
+            maxDomain = 0.2;
+            break;
+        case 'max_co':
+            title = "Carbon monoxide(CO)";
+            maxDomain = 50;
+            break;
+        case 'max_so2':
+            title = "Sulfur dioxide(SO2)";
+            maxDomain = 0.15;
+            break;
+        case 'max_nh3':
+            title = "Ammonia(NH3)";
+            maxDomain = 0.15;
+            break;
+        case 'max_h2s':
+            title = "Hydrogen sulfide(H2S)";
+            maxDomain = 0.3;
+            break;
+        default:
+            title = "Ozone(O3)";
+            type = 'max_o3';
+            maxDomain = 0.15;
+    }
+
+
+    let props = {
       id: 'hexagon-layer',
       data: values,
-      elevationRange: [0, 100],
+
+
       gpuAggregation: true,
-      colorRange,
       extruded: true,
       getPosition: d => [d.lng, d.lat],
-      getColorWeight: d => d.value,
-      getElevationWeight: d => d.value,
-      colorAggregation: 'MAX',
-      elevationScale: 100,
+
+
+
+        colorRange:colorRange,
+        colorDomain: [0, maxDomain],
+        getColorWeight: d => Math.min(d.value, maxDomain),
+        colorAggregation: 'MAX',
+
+        elevationRange: [0, 100],
+        elevationDomain: [0, maxDomain],
+        getElevationWeight: d => Math.min(d.value, maxDomain),
+        elevationAggregation: 'MAX',
+
       radius: 90,
       pickable: true,
-
-       // --- 툴팁 로직 추가 ---
       onHover: info => {
           const tooltip = document.getElementById('tooltip');
           if (info.object) {
-              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
               const count = info.object.points.length;
               const source = info.object.points[0].source;
-
-              // 해당 격자에 포함된 데이터들의 value 합계 계산
-           //   const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
-           //   const avgValue = (totalValue / count).toFixed(2);
               const maxValue = Math.max(...info.object.points.map(p => p.source.value));
 
               tooltip.innerHTML = `
                   <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
                   <div>${source.sensing_time}</div>
                   <div>SerialID: ${source.serial}</div>
-                  <div>${source.title}:${source.value}</div>
+                  <div>${title}:${source.value}</div>
                   <div>측정 지점 수: ${count}개</div>
                   <div>최대값: ${maxValue}</div>
               `;
@@ -124,332 +135,10 @@ window.initMapWithData =  function( values) {
           }
        },
   }
-
-    startHexagonAnimation();
+    startHexagonAnimation(props);
 }
 
-
-window.initMapWithH2SData =  function( values) {
-    props = {
-      id: 'hexagon-layer',
-      data: values,
-      elevationRange: [0, 100],
-      gpuAggregation: true,
-      colorRange,
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
-      getColorWeight: d => d.value,
-      getElevationWeight: d => d.value,
-      colorAggregation: 'MAX',
-      elevationScale: 100,
-      radius: 90,
-      pickable: true,
-
-       // --- 툴팁 로직 추가 ---
-      onHover: info => {
-          const tooltip = document.getElementById('tooltip');
-          if (info.object) {
-              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
-              const count = info.object.points.length;
-              const source = info.object.points[0].source;
-
-              // 해당 격자에 포함된 데이터들의 value 합계 계산
-           //   const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
-           //   const avgValue = (totalValue / count).toFixed(2);
-              const maxValue = Math.max(...info.object.points.map(p => p.source.value));
-
-              tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
-                  <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.serial}</div>
-                  <div>${source.title}:${source.value}</div>
-                  <div>측정 지점 수: ${count}개</div>
-                  <div>최대값: ${maxValue}</div>
-              `;
-              tooltip.style.display = 'block';
-              tooltip.style.left = `${info.x + 15}px`;
-              tooltip.style.top = `${info.y + 15}px`;
-          } else {
-              tooltip.style.display = 'none';
-          }
-       },
-  }
-
-    startHexagonAnimation();
-}
-
-window.initMapWithNH3Data =  function( values) {
-    props = {
-      id: 'hexagon-layer',
-      data: values,
-      elevationRange: [0, 100],
-      gpuAggregation: true,
-      colorRange,
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
-      getColorWeight: d => d.value,
-      getElevationWeight: d => d.value,
-      colorAggregation: 'MAX',
-      elevationScale: 100,
-      radius: 90,
-      pickable: true,
-
-       // --- 툴팁 로직 추가 ---
-      onHover: info => {
-          const tooltip = document.getElementById('tooltip');
-          if (info.object) {
-              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
-              const count = info.object.points.length;
-              const source = info.object.points[0].source;
-
-              // 해당 격자에 포함된 데이터들의 value 합계 계산
-           //   const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
-           //   const avgValue = (totalValue / count).toFixed(2);
-              const maxValue = Math.max(...info.object.points.map(p => p.source.value));
-
-              tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
-                  <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.serial}</div>
-                  <div>${source.title}:${source.value}</div>
-                  <div>측정 지점 수: ${count}개</div>
-                  <div>최대값: ${maxValue}</div>
-              `;
-              tooltip.style.display = 'block';
-              tooltip.style.left = `${info.x + 15}px`;
-              tooltip.style.top = `${info.y + 15}px`;
-          } else {
-              tooltip.style.display = 'none';
-          }
-       },
-  }
-
-    startHexagonAnimation();
-}
-
-window.initMapWithSO2Data =  function( values) {
-    props = {
-      id: 'hexagon-layer',
-      data: values,
-      elevationRange: [0, 100],
-      gpuAggregation: true,
-      colorRange,
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
-      getColorWeight: d => d.value,
-      getElevationWeight: d => d.value,
-      colorAggregation: 'MAX',
-      elevationScale: 100,
-      radius: 90,
-      pickable: true,
-
-       // --- 툴팁 로직 추가 ---
-      onHover: info => {
-          const tooltip = document.getElementById('tooltip');
-          if (info.object) {
-              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
-              const count = info.object.points.length;
-              const source = info.object.points[0].source;
-
-              // 해당 격자에 포함된 데이터들의 value 합계 계산
-           //   const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
-           //   const avgValue = (totalValue / count).toFixed(2);
-              const maxValue = Math.max(...info.object.points.map(p => p.source.value));
-
-              tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
-                  <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.serial}</div>
-                  <div>${source.title}:${source.value}</div>
-                  <div>측정 지점 수: ${count}개</div>
-                  <div>최대값: ${maxValue}</div>
-              `;
-              tooltip.style.display = 'block';
-              tooltip.style.left = `${info.x + 15}px`;
-              tooltip.style.top = `${info.y + 15}px`;
-          } else {
-              tooltip.style.display = 'none';
-          }
-       },
-  }
-
-    startHexagonAnimation();
-}
-
-window.initMapWithCOData =  function( values) {
-    props = {
-      id: 'hexagon-layer',
-      data: values,
-      elevationRange: [0, 100],
-      gpuAggregation: true,
-      colorRange,
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
-      getColorWeight: d => d.value,
-      getElevationWeight: d => d.value,
-      colorAggregation: 'MAX',
-      elevationScale: 100,
-      radius: 90,
-      pickable: true,
-
-       // --- 툴팁 로직 추가 ---
-      onHover: info => {
-          const tooltip = document.getElementById('tooltip');
-          if (info.object) {
-              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
-              const count = info.object.points.length;
-              const source = info.object.points[0].source;
-
-              // 해당 격자에 포함된 데이터들의 value 합계 계산
-           //   const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
-           //   const avgValue = (totalValue / count).toFixed(2);
-              const maxValue = Math.max(...info.object.points.map(p => p.source.value));
-
-              tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
-                  <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.serial}</div>
-                  <div>${source.title}:${source.value}</div>
-                  <div>측정 지점 수: ${count}개</div>
-                  <div>최대값: ${maxValue}</div>
-              `;
-              tooltip.style.display = 'block';
-              tooltip.style.left = `${info.x + 15}px`;
-              tooltip.style.top = `${info.y + 15}px`;
-          } else {
-              tooltip.style.display = 'none';
-          }
-       },
-  }
-
-    startHexagonAnimation();
-}
-
-
-window.initMapWithNO2Data =  function( values) {
-    props = {
-      id: 'hexagon-layer',
-      data: values,
-      elevationRange: [0, 100],
-      gpuAggregation: true,
-      colorRange,
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
-      getColorWeight: d => d.value,
-      getElevationWeight: d => d.value,
-      colorAggregation: 'MAX',
-      elevationScale: 100,
-      radius: 90,
-      pickable: true,
-
-       // --- 툴팁 로직 추가 ---
-      onHover: info => {
-          const tooltip = document.getElementById('tooltip');
-          if (info.object) {
-              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
-              const count = info.object.points.length;
-              const source = info.object.points[0].source;
-
-              // 해당 격자에 포함된 데이터들의 value 합계 계산
-           //   const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
-           //   const avgValue = (totalValue / count).toFixed(2);
-              const maxValue = Math.max(...info.object.points.map(p => p.source.value));
-
-              tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
-                  <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.serial}</div>
-                  <div>${source.title}:${source.value}</div>
-                  <div>측정 지점 수: ${count}개</div>
-                  <div>최대값: ${maxValue}</div>
-              `;
-              tooltip.style.display = 'block';
-              tooltip.style.left = `${info.x + 15}px`;
-              tooltip.style.top = `${info.y + 15}px`;
-          } else {
-              tooltip.style.display = 'none';
-          }
-       },
-  }
-
-    startHexagonAnimation();
-}
-
-window.initMapWithO3Data =  function( values) {
-    // O3 의 옵션 초기화
-    props = {
-      id: 'hexagon-layer',
-      data: values,
-      elevationRange: [0, 100],
-      gpuAggregation: true,
-      colorRange,
-      // 1. 도메인을 0에서 0.15로 고정
-      colorDomain: [0, 0.15],
-      elevationDomain: [0, 0.15],
-/*
-        getColorValue: points => {
-          // 1. 해당 육각형 내 데이터 중 최대값 추출
-          const maxPPM = Math.max( points.map(p => p.value));
-          if (maxPPM <= 0.01) return [0, 200, 255];   // 좋음
-          if (maxPPM <= 0.03) return [0, 255, 100];    // 보통
-          if (maxPPM <= 0.09) return [255, 200, 0];   // 나쁨
-          return [255, 0, 0];                         // 매우 나쁨
-
-        },
-        */
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
-    // 2. [핵심] 값을 0.15로 제한(Clamping)하여 2.0도 0.15로 취급되게 함
-      getColorWeight: d => Math.min(d.value, 0.15),
-    // 3. 높이 또한 0.15로 제한
-        getElevationWeight: d => Math.min(d.value, 0.15),
-      colorAggregation: 'MAX',
-
-      elevationScale: 100,
-      radius: 90,
-      pickable: true,
-
-       // --- 툴팁 로직 추가 ---
-      onHover: info => {
-          const tooltip = document.getElementById('tooltip');
-          if (info.object) {
-              // info.object.points에는 해당 격자에 포함된 원본 데이터 리스트가 들어있음
-              const count = info.object.points.length;
-              const source = info.object.points[0].source;
-
-              // 해당 격자에 포함된 데이터들의 value 합계 계산
-           //   const totalValue = info.object.points.reduce((sum, p) => sum + p.source.value, 0);
-           //   const avgValue = (totalValue / count).toFixed(2);
-              const maxValue = Math.max(...info.object.points.map(p => p.source.value));
-
-              tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
-                  <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.serial}</div>
-                  <div>${source.title}:${source.value}</div>
-                  <div>측정 지점 수: ${count}개</div>
-                  <div>최대값: ${maxValue}</div>
-              `;
-              tooltip.style.display = 'block';
-              tooltip.style.left = `${info.x + 15}px`;
-              tooltip.style.top = `${info.y + 15}px`;
-          } else {
-              tooltip.style.display = 'none';
-          }
-       },
-
-
-
-  }
-
-    startHexagonAnimation();
-
-}
-
-/**
- * Hexagon의 높이를 실시간으로 변화시키는 애니메이션 루프
- */
-function startHexagonAnimation() {
+function startHexagonAnimation(props) {
     let currentTime = 0
 
     if (animationId) {
@@ -499,19 +188,10 @@ function startHexagonAnimation() {
 
         animationId = requestAnimationFrame(animate);
 
-
-
-
-
-
-
     }
 
     animationId = requestAnimationFrame(animate);
 }
-
-
-
 
 function smoothZoom ( targetZoom, currentZoom) {
     if (currentZoom === targetZoom) return;
@@ -555,7 +235,6 @@ window.addMarkerClusterer =  function(locations, labels, contents) {
     });
     new markerClusterer.MarkerClusterer({ map, markers });
 };
-
 
 initMap();
 

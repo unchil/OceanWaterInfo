@@ -138,7 +138,7 @@ fun SDoTEnvInfoMapHexagonLayer(
                     AIR_QUAlITY.QualityType.max_nh3 -> it.max_nh3.ifEmpty { "0" }
                     AIR_QUAlITY.QualityType.max_h2s -> it.max_h2s.ifEmpty { "0" }
                 }
-                "{ sensing_time:\"${it.sensing_time}\", serial:\"${it.serial}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${maxValue}, title:\"${selectedOption.name()}\" }"
+                "{ sensing_time:\"${it.sensing_time}\", serial:\"${it.serial}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${maxValue} }"
             }
 
 
@@ -149,14 +149,7 @@ fun SDoTEnvInfoMapHexagonLayer(
         if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
             //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
 
-            when(selectedOption){
-                AIR_QUAlITY.QualityType.max_o3 -> navigator.evaluateJavaScript("initMapWithO3Data( ${values.value})")
-                AIR_QUAlITY.QualityType.max_no2 -> navigator.evaluateJavaScript("initMapWithNO2Data( ${values.value})")
-                AIR_QUAlITY.QualityType.max_co -> navigator.evaluateJavaScript("initMapWithCOData( ${values.value})")
-                AIR_QUAlITY.QualityType.max_so2 -> navigator.evaluateJavaScript("initMapWithSO2Data( ${values.value})")
-                AIR_QUAlITY.QualityType.max_nh3 -> navigator.evaluateJavaScript("initMapWithNH3Data( ${values.value})")
-                AIR_QUAlITY.QualityType.max_h2s -> navigator.evaluateJavaScript("initMapWithH2SData( ${values.value})")
-            }
+            navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
 
         }
     }
