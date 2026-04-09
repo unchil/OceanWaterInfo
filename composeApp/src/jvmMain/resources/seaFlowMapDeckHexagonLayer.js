@@ -1,4 +1,4 @@
-import {valuesHexagon } from './valuesHexagonLayer.js';
+//import {valuesHexagon } from './valuesHexagonLayer.js';
 
 const {GoogleMapsOverlay, HexagonLayer} = deck;
 
@@ -84,11 +84,11 @@ function startHexagonAnimation() {
 
     function animate() {
         // currentTime을 이용하여 사인(Sine) 곡선 생성 (0.02는 속도 조절)
-        currentTime += 0.03;
+        currentTime += 0.02;
 
         // [핵심 수정] 매 프레임마다 높이와 투명도를 새로 계산합니다.
-        const animatedScale = 50 + ((Math.sin(currentTime) + 1) * 75);
-        const currentOpacity = 0.5 + ((Math.sin(currentTime) + 1) * 0.25);
+        const animatedScale =  ((Math.sin(currentTime) + 1) * 30);
+        const currentOpacity = ((Math.sin(currentTime) + 1) * 0.5);
 
         const hexagonLayer = new HexagonLayer({
             ...props,
