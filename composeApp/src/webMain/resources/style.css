@@ -133,7 +133,6 @@ body {
     background-color: #fef7ff; /* Material 3 Surface Color */
     border-bottom: 1px solid #e6e1e5;
     width: 100vw;
-    margin-bottom: 10px;
 }
 
 
@@ -187,7 +186,7 @@ body {
 
 /* 설명 박스 컨테이너 */
 .description-container {
-    margin: 8px 16px;
+    margin: 0px 0px;
     background-color: #f7f2fa; /* Material 3 Surface Variant 느낌 */
     border-radius: 8px;    overflow: hidden;
     text-align: left;
@@ -195,7 +194,7 @@ body {
 
 /* 토글 클릭 영역 */
 .description-header {
-    padding: 12px 16px;
+    padding: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -216,7 +215,7 @@ body {
 .description-content.show {
     max-height: 500px; /* 열렸을 때 충분한 높이 */
     opacity: 1;
-    padding-bottom: 12px;
+    padding-bottom: 30px;
 }
 
 #description-text {
