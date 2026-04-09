@@ -34,6 +34,19 @@
         <button class="tab-item" onclick="changeTab(this, 'max_h2s')">Hydrogen sulfide(H2S)</button>
     </div>
 
+    <!-- 추가: 상세 설명 토글 버튼 및 박스 영역 -->
+    <div class="description-container">
+        <div class="description-header" onclick="toggleDescription()">
+            <span id="description-title">Information</span>
+            <span id="description-icon">▼</span> <!-- Compose의 Icon 역할 -->
+        </div>
+        <div id="description-box" class="description-content">
+            <p id="description-text">
+
+            </p>
+        </div>
+    </div>
+
     <!-- 기존 iframe에 id 추가 (JS 제어용) -->
     <iframe id="map-iframe"
             src="http://localhost:7878/sDoTDeckHexagonLayer2.html"
@@ -48,6 +61,7 @@
     <!-- 이 div가 남은 공간을 채우고 그 안의 webmain도 채우게 됨 -->
 
     <div id="webmain" >
+
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 50 50" role="presentation">
             <circle cx="25" cy="25" r="20" stroke="#ccc" stroke-width="4" fill="none"/>
             <circle cx="25" cy="25" r="20" stroke="#333" stroke-width="4" fill="none" stroke-linecap="round"
@@ -66,54 +80,163 @@
 <script>
 
     function switchMainTab(element, index) {
-    // 1. 모든 메인 탭 활성화 해제
-    const mainTabs = document.querySelectorAll('.main-tab');
-    mainTabs.forEach(tab => tab.classList.remove('active'));
+        // 1. 모든 메인 탭 활성화 해제
+        const mainTabs = document.querySelectorAll('.main-tab');
+        mainTabs.forEach(tab => tab.classList.remove('active'));
 
-    // 2. 클릭한 탭 활성화
-    element.classList.add('active');
+        // 2. 클릭한 탭 활성화
+        element.classList.add('active');
 
-    // 3. 섹션 전환
-    const sdotSection = document.getElementById('section-sdot');
-    const oceanSection = document.getElementById('section-ocean');
+        // 3. 섹션 전환
+        const sdotSection = document.getElementById('section-sdot');
+        const oceanSection = document.getElementById('section-ocean');
 
-    if (index === 0) {
+        if (index === 0) {
 
-        sdotSection.style.display = 'flex'; // block 대신 flex
-        oceanSection.style.display = 'none';
-    } else {
-        oceanSection.style.display = 'flex'; // block 대신 flex
-        sdotSection.style.display = 'none';
+            sdotSection.style.display = 'flex'; // block 대신 flex
+            oceanSection.style.display = 'none';
+        } else {
+            oceanSection.style.display = 'flex'; // block 대신 flex
+            sdotSection.style.display = 'none';
 
 
+        }
+
+        // 필요 시 Compose 측에 상태 변경을 알리는 로직을 추가할 수 있습니다.
+        console.log("Main Tab Switched to:", index);
     }
-
-    // 필요 시 Compose 측에 상태 변경을 알리는 로직을 추가할 수 있습니다.
-    console.log("Main Tab Switched to:", index);
-}
 
 
     function changeTab(element, type) {
-    // 1. 모든 탭에서 'active' 클래스 제거
-    const tabs = document.querySelectorAll('.tab-item');
-    tabs.forEach(tab => tab.classList.remove('active'));
+        // 1. 모든 탭에서 'active' 클래스 제거
+        const tabs = document.querySelectorAll('.tab-item');
+        tabs.forEach(tab => tab.classList.remove('active'));
 
-    // 2. 클릭된 탭에 'active' 클래스 추가
-    element.classList.add('active');
+        // 2. 클릭된 탭에 'active' 클래스 추가
+        element.classList.add('active');
 
-    // 3. iframe의 ID를 가져와서 src 변경
-    const iframe = document.getElementById('map-iframe');
+            // --- 추가: 설명 텍스트 업데이트 ---
+    const textElem = document.getElementById('description-text');
+    if (qualityDescriptions[type]) {
+        textElem.innerText = qualityDescriptions[type];
+    }
 
-    //페이지 새로고침 없이 함수만 호출하고 싶을 때
-    //src를 바꾸는 대신 메시지를 보냄
-    iframe.contentWindow.postMessage({ action: 'CHANGE_TYPE', type: type }, '*');
+
+        // 3. iframe의 ID를 가져와서 src 변경
+        const iframe = document.getElementById('map-iframe');
+
+        //페이지 새로고침 없이 함수만 호출하고 싶을 때
+        //src를 바꾸는 대신 메시지를 보냄
+        iframe.contentWindow.postMessage({ action: 'CHANGE_TYPE', type: type }, '*');
 
 
-  //  const baseUrl = "http://localhost:7878/sDoTDeckHexagonLayer2";
-   // iframe.src = `${baseUrl}.html?type=${type}`;
+        //  const baseUrl = "http://localhost:7878/sDoTDeckHexagonLayer2";
+        // iframe.src = `${baseUrl}.html?type=${type}`;
 
-   // console.log("탭 변경:", type, "->", iframe.src);
-}
+        // console.log("탭 변경:", type, "->", iframe.src);
+
+    }
+
+
+     // 1. 오염물질별 설명 데이터 정의 (Compose의 desc() 데이터와 동일하게 작성)
+    const qualityDescriptions = {
+        'max_o3': `오존(O3)은 강력한 산화력을 가진 기체로, 농도에 따라 호흡기 및 심혈관 계통에 상당한 자극을 줍니다. 특히 폐 기능이 이미 저하된 환자들에게는 낮은 농도에서도 치명적일 수 있습니다.
+                   냄새: 복사기/프린터 근처의 비릿한 냄새 또는 소나기 직후의 상쾌한 듯 비릿한 풀내음
+                   폐질환자(천식, COPD 등)에게 미치는 피해:
+                   폐 건강이 취약한 분들에게 오존은 단순한 자극을 넘어 **질환의 악화(Exacerbation)**를 유발하는 기폭제가 됩니다.
+                   천식 환자: 오존은 기도를 수축시키고 염증 반응을 일으킵니다. 일반인에게는 무해한 0.05ppm 수준에서도 천식 환자는 기침과 쌕쌕거림(천명)이 심해지며, 평소 복용하는 약물의 효과가 떨어질 수 있습니다.
+                   만성폐쇄성폐질환(COPD) 환자: 오존 노출 시 폐의 산소 교환 능력이 급격히 떨어집니다. 이는 호흡 곤란을 심화시켜 응급실 방문이나 입원 가능성을 크게 높입니다.
+                   영구적인 손상 위험: 반복적인 고농도 노출은 폐 조직의 섬유화(딱딱해짐)를 초래할 수 있는데, 기저 질환이 있는 경우 이러한 구조적 변화가 더 빠르게 진행될 수 있습니다.
+
+
+
+
+        `,
+        'max_no2':  `이산화질소(NO2)는 주로 자동차 배기가스나 화력 발전소 등 연소 과정에서 발생하는 적갈색의 독성 기체입니다. 오존과 마찬가지로 물에 잘 녹지 않아 폐 깊숙한 곳까지 침투하며, 농도에 따라 다음과 같은 영향을 미칩니다.
+                    냄새: 갓 뽑아낸 독한 매연 또는 찌릿한 염소(수영장)냄새
+                    폐질환자에게 미치는 영향:
+                    이산화질소는 산화 스트레스를 유발하여 기도 염증을 악화시키기 때문에 폐가 약한 분들에게는 훨씬 낮은 농도에서도 위험합니다.
+                    천식 환자: 기도의 과민성을 높입니다. 즉, 평소에는 괜찮았던 꽃가루나 먼지 같은 알레르기 유발 물질에 폐가 훨씬 더 격렬하게 반응하게 만듭니다. 0.2~0.3ppm 정도의 낮은 농도에서도 천식 발작 빈도가 높아질 수 있습니다.
+                    만성폐쇄성폐질환(COPD): 기도의 가래 배출 능력을 저하시키고 세균 감염에 대한 저항력을 약화시킵니다. 이는 감기나 폐렴 같은 2차 감염으로 이어져 병세가 급격히 악화되는 원인이 됩니다.
+                    어린이 및 영유아: 폐가 완전히 발달하지 않은 상태에서 이산화질소에 지속적으로 노출되면 성인이 된 후에도 폐 기능이 정상보다 낮아지는 '폐 성장 저해'가 발생할 수 있습니다.
+
+
+
+
+
+        `,
+        'max_co': `일산화탄소(CO)는 '소리 없는 살인자'라고 불릴 만큼 무색, 무취, 무미의 특성을 가집니다. 폐를 통해 혈액으로 들어간 CO는 산소를 운반하는 헤모글로빈(Hb)과 결합하여 **일산화탄소-헤모글로빈(COHb)**을 형성하는데, 그 결합력이 산소보다 약 200~250배 강해 체내 산소 공급을 차단합니다.
+                   냄새: 무색, 무취 (냄새가 전혀 없음)
+                   폐질환자 및 심혈관 질환자에게 미치는 피해:
+                   일산화탄소는 폐 자체를 파괴하기보다 '가스 교환'의 효율성을 무너뜨립니다. 이미 폐 기능이 떨어진 환자에게는 소량의 CO도 치명적입니다.
+                   산소 부족의 가속화: 만성폐쇄성폐질환(COPD)이나 폐기종 환자는 이미 혈중 산소 포화도가 낮습니다. 여기에 CO가 유입되면 남아있는 산소 운반 능력마저 마비되어 급성 호흡 부전이 올 수 있습니다.
+                   심장 과부하: 산소가 부족해지면 심장은 더 많은 혈액을 보내기 위해 과하게 뜁니다. 폐가 약해 심장에 무리가 가 있는 상태(폐성심 등)에서 CO에 노출되면 심근경색이나 부정맥이 발생할 위험이 매우 높습니다.
+                   낮은 농도에서의 민감성: 건강한 성인은 50ppm에서 큰 증상을 느끼지 못할 수 있지만, 폐 질환자는 같은 농도에서도 심한 가슴 통증이나 호흡 곤란을 겪을 수 있습니다.
+
+
+
+
+
+                    `,
+        'max_so2': `이산화황(SO2)은 물에 매우 잘 녹는 수용성 기체로, 흡입 시 상기도(코, 목)의 점막에 즉각적으로 흡수되어 황산을 형성하며 강한 자극을 일으킵니다. 특히 대기 중 미세먼지와 결합하여 폐 깊숙이 침투할 경우 그 피해가 더 커집니다.
+                    냄새: 금방 끈 성냥의 탄내 또는 화약 냄새
+                    폐질환자(천식, 만성기관지염 등)에게 미치는 피해:
+                    이산화황은 모든 가스 중 폐질환자에게 가장 즉각적이고 직접적인 고통을 주는 물질 중 하나입니다.
+                    기도 수축(Bronchoconstriction): 이산화황은 기도를 둘러싼 근육을 수축시킵니다. 천식 환자는 일반인보다 10~20배 더 민감하게 반응하며, 단 5~10분간의 짧은 노출(0.5ppm 수준)만으로도 심한 호흡 곤란을 겪을 수 있습니다.
+                    만성기관지염 환자: 점액(가래) 분비를 비정상적으로 증가시켜 기도를 폐쇄합니다. 이로 인해 기침이 멈추지 않고 산소 공급이 원활하지 않아 심부전으로 이어질 위험이 있습니다.
+                    상조 효과: 이산화황이 대기 중 수분과 만나 산성 안개(Acid Mist)나 초미세먼지(황산염) 형태로 변하면, 폐포 말단까지 도달하여 조직을 직접적으로 부식시키고 염증을 일으킵니다.
+
+
+
+
+
+        `,
+        'max_nh3': `암모니아(NH3)는 강한 알칼리성을 띠는 부식성 가스로, 물에 매우 잘 녹는 성질이 있습니다. 흡입 시 호흡기 점막의 수분과 결합하여 강염기인 수산화암모늄(NH4OH)을 형성하며 조직을 녹여내는 화학적 화상을 입힙니다.
+                    냄새: 오래 방치된 공중화장실 또는 삭힌 홍어 냄새
+                    폐질환자에게 미치는 피해:
+                    암모니아는 조직을 부식시키는 성질이 강해, 폐 기능이 이미 손상된 환자에게는 회복 불가능한 타격을 줄 수 있습니다.
+                    화학적 폐렴의 위험: 암모니아가 폐포까지 도달하면 상피 세포를 파괴하여 '화학적 폐렴'을 유발합니다. 폐기종이나 결핵 병력이 있는 환자는 조직 재생 능력이 떨어져 일반인보다 훨씬 심각한 염증 반응을 겪게 됩니다.
+                    급성 기도 폐쇄: 천식이나 COPD 환자는 암모니아 가스의 자극에 반응하여 기도가 급격히 부어오릅니다. 이는 공기 통로를 즉각적으로 차단하여 급성 호흡 부전을 일으키는 주요 원인이 됩니다.
+                    이차 감염 취약성: 암모니아 노출로 인해 기도의 점막과 섬모(먼지를 걸러내는 털)가 손상되면 외부 세균이나 바이러스에 대한 방어막이 사라집니다. 폐질환자는 이로 인해 치명적인 2차 세균성 폐렴으로 이어질 확률이 매우 높습니다.
+
+
+
+
+
+        `,
+        'max_h2s': `황화수소(H2S)는 달걀 썩는 냄새가 나는 무색의 독성 기체로, 화산 가스나 하수구, 폐수 처리장 등 유기물이 부패하는 곳에서 주로 발생합니다. 이 기체는 세포의 호흡 기전(세포 내 산소 이용)을 마비시키기 때문에 '화학적 질식제'로 분류됩니다. 저농도에서는 냄새로 감지되지만, 농도가 높아지면 후각 신경을 마비시켜 냄새를 맡지 못하게 하므로 매우 기만적이고 위험합니다.
+                    냄새: 상한 달걀(썩은 달걀) 냄새
+                    폐질환자에게 미치는 피해:
+                    황화수소는 폐포 상피 세포에 직접적인 손상을 주며, 체내 산소 대사를 방해하므로 폐 기능이 저하된 환자에게는 소량으로도 치명적입니다.
+                    급성 폐수종 유발: 황화수소는 폐혈관의 투과성을 높여 폐에 물이 차게 만듭니다. 만성폐쇄성폐질환(COPD)이나 심부전이 있는 환자는 혈액 내 산소가 이미 부족한 상태에서 폐수종이 겹치면 급격한 질식 상태에 빠집니다.
+                    기도 과민성 증폭: 천식 환자의 경우, 매우 낮은 농도(2~5ppm)에서도 기도가 경련을 일으키며 수축할 수 있습니다. 이는 일반적인 대기 오염 물질보다 훨씬 강력한 기폭제가 됩니다.
+                    조직 재생 저해: 황화수소의 독성은 폐 조직의 미토콘드리아 기능을 억제합니다. 이미 폐 섬유화가 진행 중이거나 조직이 약해진 환자는 노출 후 폐 기능 회복이 거의 불가능할 정도로 손상될 수 있습니다.
+
+
+
+
+
+
+                    `
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const textElem = document.getElementById('description-text');
+        if (qualityDescriptions['max_o3']) {
+            textElem.innerText = qualityDescriptions['max_o3'];
+        }
+    });
+
+    function toggleDescription() {
+        const box = document.getElementById('description-box');
+        const icon = document.getElementById('description-icon');
+
+        box.classList.toggle('show');
+        icon.classList.toggle('rotate');
+    }
+
+
+
 </script>
 </body>
 </html>
