@@ -92,7 +92,7 @@ fun SDoTEnvInfoMapHexagonLayer(
     }
 
     val center = LocalPoint.current
-    val host = "http://192.168.35.107:7777"
+    val host = "http://localhost:7878"
     val servicePage = "sDoTDeckHexagonLayer.html"
 
 
