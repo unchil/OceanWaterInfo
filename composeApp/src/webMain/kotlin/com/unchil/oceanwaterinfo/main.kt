@@ -47,15 +47,6 @@ fun main() {
                             .background(color = MaterialTheme.colorScheme.surface)
                     ) {
 
-                        Text(
-                            "Korea Ocean Water Information",
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-
                         Box(modifier = Modifier.fillMaxHeight()) {
                             Column(
                                 modifier = Modifier.verticalScroll(rememberScrollState()),

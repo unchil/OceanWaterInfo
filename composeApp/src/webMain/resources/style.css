@@ -1,0 +1,188 @@
+<style>
+
+/* 1. 기본 배경 및 전체 높이 설정 */
+html, body {
+      width: 100vw;
+   height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;/* 전체 페이지 스크롤 방지 */
+}
+
+body {
+    display: flex;
+    flex-direction: column; /* 세로로 배치 */
+    height: 100vh;
+}
+
+/* 2. 메인 탭 로우 높이 고정 */
+.main-tab-row {
+    display: flex;
+    justify-content: space-evenly;
+    background-color: #fef7ff; /* Material 3 Surface */
+    border-bottom: 1px solid #e6e1e5; /* HorizontalDivider */
+      width: 100vw;
+    flex-shrink: 0; /* 높이가 줄어들지 않도록 */
+}
+
+.main-tab {
+    flex: 1;
+    max-width: 300px;
+    padding: 14px 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px; /* 16.sp */
+    font-weight: 300; /* FontWeight.Light */
+    color: #49454f;
+    position: relative;
+    transition: all 0.2s;
+}
+
+/* 선택된 탭 스타일 */
+.main-tab.active {
+    color: #6750a4; /* Material 3 Primary */
+    font-weight: 700; /* FontWeight.Bold */
+}
+
+/* 하단 인디케이터 (SecondaryIndicator) */
+.main-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 20%; /* 인디케이터 너비 조절 */
+    right: 20%;
+    height: 3px;
+    background-color: #6750a4;
+    border-radius: 3px 3px 0 0;
+}
+
+.main-tab:hover {
+    background-color: rgba(103, 80, 164, 0.04);
+}
+
+/* 3. 각 섹션(SDoT, Ocean) 설정 */
+.tab-content {
+    flex-grow: 1; /* 남은 화면 전체를 차지 */
+    display: none; /* 기본은 숨김 */
+    flex-direction: column;
+     width: 100vw;
+    height: 100vh;
+}
+
+
+
+.compose-title, .tab-row {
+    flex-shrink: 0; /* 제목과 탭 메뉴는 자기 높이 유지 */
+}
+
+
+#map-iframe {
+    flex-grow: 1; /* 남은 공간을 iframe이 모두 차지 */
+    border: none;
+    width: 100vw;
+        height: 100vh;
+}
+
+
+#section-ocean > div {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#webmain {
+    flex-grow: 1; /* 부모 내에서 남은 모든 공간 차지 */
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    /* Compose가 렌더링될 때 캔버스 크기를 잡기 위해 필수 */
+}
+
+.compose-title {
+    /* fillMaxWidth & textAlign.Center */
+      width: 100vw;
+    text-align: center;
+
+    /* padding(vertical = 15.dp) */
+    margin: 0; /* 기본 마진 제거 */
+    padding-top: 15px;
+    padding-bottom: 15px;
+
+    /* fontSize = 20.sp & fontWeight.Bold */
+    font-size: 20px;
+    font-weight: bold;
+
+    /* color = MaterialTheme.colorScheme.onBackground */
+    /* 보통 onBackground는 아주 어두운 회색이나 검정색입니다. */
+
+
+    /* Compose 기본 폰트와 유사하게 설정 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* 박스 모델 설정 */
+    box-sizing: border-box;
+
+}
+
+
+/* TabRow 컨테이너 */
+.tab-row {
+    display: flex;
+    justify-content: center;
+    background-color: #fef7ff; /* Material 3 Surface Color */
+    border-bottom: 1px solid #e6e1e5;
+    width: 100vw;
+    margin-bottom: 10px;
+}
+
+
+/* 개별 탭 항목 */
+.tab-item {
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px; /* titleSmall */
+    font-weight: 500;
+    color: #49454f; /* onSurfaceVariant */
+    position: relative;
+    transition: color 0.3s;
+}
+
+/* 선택된 탭 스타일 (Primary Color) */
+.tab-item.active {
+    color: #6750a4; /* primary */
+    font-weight: bold;
+}
+
+/* 선택된 탭 하단 인디케이터 (SecondaryIndicator) */
+.tab-item.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #6750a4; /* primary */
+}
+
+.tab-item:hover {
+    background-color: rgba(103, 80, 164, 0.08);
+}
+
+#un7map {
+    position: relative; /* 중요: 내부 canvas가 이 위로 겹쳐지도록 함 */
+    width: 100vw;
+    height: 100vh;
+    display: block; /* Flex 영향을 받지 않도록 함 */
+}
+
+/* deck.gl이 생성하는 canvas가 지도를 밀어내지 않도록 방지 */
+#un7map canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+</style>
