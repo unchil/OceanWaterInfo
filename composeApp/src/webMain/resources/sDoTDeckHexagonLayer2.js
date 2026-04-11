@@ -107,9 +107,10 @@ window.initMapWithType =  function( type) {
             type = 'max_o3';
             maxDomain = 0.15;
     }
+    let id =  'hexagon-layer-' + type + '_' + Date.now()
 
     let props = {
-      id: 'hexagon-layer-' + type + Date.now(),
+      id: id,
       data: DATA_URL,
          loaders: [JSONLoader],
            //  [중요] 모든 데이터(...d)를 유지해야 툴팁에서 addr, serial을 쓸 수 있음
