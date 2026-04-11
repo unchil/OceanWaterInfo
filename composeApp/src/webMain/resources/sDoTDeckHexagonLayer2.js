@@ -59,8 +59,8 @@ async function initMap() {
         currentType = 'max_o3';
         initMapWithType('max_o3');
         // --- [추가] 30분 간격 자동 업데이트 로직 ---
-        //const THIRTY_MINUTES = 30 * 60 * 1000; // 1,800,000 ms
-        const THIRTY_MINUTES = 5 * 1000; //
+        const THIRTY_MINUTES = 30 * 60 * 1000; // 1,800,000 ms
+        //const THIRTY_MINUTES = 5 * 1000; //
         setInterval(() => {
             console.log(`[자동 갱신] ${new Date().toLocaleTimeString()} - ${currentType} 데이터를 새로 고침합니다.`);
             // 현재 선택된 타입을 기반으로 다시 호출 (DATA_URL에서 새 데이터를 가져옴)
