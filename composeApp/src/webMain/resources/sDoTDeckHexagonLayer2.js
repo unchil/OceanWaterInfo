@@ -18,6 +18,7 @@ let colorRange = [[255, 255, 255],[0, 200, 255],[0, 255, 100],[0, 255, 100],[255
 
 let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
+let currentType;
 
 //페이지 새로고침 없이 함수만 호출하고 싶을 때
 window.addEventListener("message", (event) => {
@@ -55,7 +56,17 @@ async function initMap() {
     overlay.setMap(map);
 
     google.maps.event.addListenerOnce(map, 'idle', () => {
+        currentType = 'max_o3';
         initMapWithType('max_o3');
+        // --- [추가] 30분 간격 자동 업데이트 로직 ---
+        //const THIRTY_MINUTES = 30 * 60 * 1000; // 1,800,000 ms
+        const THIRTY_MINUTES = 5 * 1000; //
+        setInterval(() => {
+            console.log(`[자동 갱신] ${new Date().toLocaleTimeString()} - ${currentType} 데이터를 새로 고침합니다.`);
+            // 현재 선택된 타입을 기반으로 다시 호출 (DATA_URL에서 새 데이터를 가져옴)
+            initMapWithType(currentType);
+        }, THIRTY_MINUTES);
+        // ------------------------------------------
     });
 
 };
@@ -63,6 +74,7 @@ async function initMap() {
 window.initMapWithType =  function( type) {
     let title;
     let maxDomain;
+    currentType = type
 
     // 1. 타입에 따른 타이틀 및 도메인 범위 설정
     switch(type) {
