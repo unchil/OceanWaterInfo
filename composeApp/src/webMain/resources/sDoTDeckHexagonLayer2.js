@@ -2,7 +2,7 @@
 
 const {GoogleMapsOverlay, HexagonLayer } = deck;
 const { load, JSONLoader } = loaders;
-const DATA_URL = 'http://localhost:7788/seoul/sdot_env_info';
+const DATA_URL = 'http://192.168.35.107:7788/seoul/sdot_env_info';
 
 let map;
 let overlay;
