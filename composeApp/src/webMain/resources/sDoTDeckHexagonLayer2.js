@@ -18,7 +18,7 @@ let colorRange = [[255, 255, 255],[0, 200, 255],[0, 255, 100],[0, 255, 100],[255
 
 let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
-let currentType;
+
 
 //페이지 새로고침 없이 함수만 호출하고 싶을 때
 window.addEventListener("message", (event) => {
@@ -56,25 +56,16 @@ async function initMap() {
     overlay.setMap(map);
 
     google.maps.event.addListenerOnce(map, 'idle', () => {
-        currentType = 'max_o3';
         initMapWithType('max_o3');
-        // --- [추가] 30분 간격 자동 업데이트 로직 ---
-        //const THIRTY_MINUTES = 30 * 60 * 1000; // 1,800,000 ms
-        const THIRTY_MINUTES = 30 * 60 * 1000; //
-        setInterval(() => {
-            console.log(`[자동 갱신] ${new Date().toLocaleTimeString()} - ${currentType} 데이터를 새로 고침합니다.`);
-            // 현재 선택된 타입을 기반으로 다시 호출 (DATA_URL에서 새 데이터를 가져옴)
-            initMapWithType(currentType );
-        }, THIRTY_MINUTES);
-        // ------------------------------------------
     });
+
 
 };
 
 window.initMapWithType =  function( type) {
     let title;
     let maxDomain;
-    currentType = type
+
 
     // 1. 타입에 따른 타이틀 및 도메인 범위 설정
     switch(type) {
@@ -107,29 +98,29 @@ window.initMapWithType =  function( type) {
             type = 'max_o3';
             maxDomain = 0.15;
     }
-    let id =  'hexagon-layer-' + type + '_' + Date.now()
+    let id =  'hexagon-layer-' + type + '_' + Date.now();
+    let dataUrl = DATA_URL + "?t=" + new Date().getTime();
+    console.log(`[자동 갱신] ${id} - ${dataUrl} 데이터를 새로 고침합니다.`);
 
     let props = {
-      id: id,
-      data: DATA_URL,
-         loaders: [JSONLoader],
-           //  [중요] 모든 데이터(...d)를 유지해야 툴팁에서 addr, serial을 쓸 수 있음
-         dataTransform: (rawData) => {
+        id: id,
+        data: dataUrl,
+        loaders: [JSONLoader],
+        //  [중요] 모든 데이터(...d)를 유지해야 툴팁에서 addr, serial을 쓸 수 있음
+        dataTransform: (rawData) => {
             // SDoT API 특유의 계층 구조 대응
-         const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
-         return rows.map(d => ({
-           ...d,
-              lng: Number(d.lng),
-              lat: Number(d.lat),
-         // d[type]을 통해 'max_o3', 'max_no2' 등의 필드값에 동적 접근
-                value: Number(d[type] || 0)
-         }));
-
-     },
-
-      gpuAggregation: true,
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
+            const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
+            return rows.map(d => ({
+                ...d,
+                  lng: Number(d.lng),
+                  lat: Number(d.lat),
+                // d[type]을 통해 'max_o3', 'max_no2' 등의 필드값에 동적 접근
+                    value: Number(d[type] || 0)
+            }));
+        },
+        gpuAggregation: true,
+        extruded: true,
+        getPosition: d => [d.lng, d.lat],
 
         colorRange:colorRange,
         colorDomain: [0, maxDomain],
@@ -140,19 +131,17 @@ window.initMapWithType =  function( type) {
         elevationDomain: [0, maxDomain],
         getElevationWeight: d => Math.min(d.value, maxDomain),
         elevationAggregation: 'MAX',
-/*
-updateTriggers: {
-    getColorWeight: [type],
-    getElevationWeight: [type]
-},
-*/
-
-
-      radius: 90,
-      pickable: true,
-      onHover: info => {
-          const tooltip = document.getElementById('tooltip');
-          if (info.object) {
+        /*
+        updateTriggers: {
+        getColorWeight: [type],
+        getElevationWeight: [type]
+        },
+        */
+        radius: 90,
+        pickable: true,
+        onHover: info => {
+            const tooltip = document.getElementById('tooltip');
+            if (info.object) {
               const count = info.object.points.length;
               const source = info.object.points[0].source;
               const maxValue = Math.max(...info.object.points.map(p => p.source.value));
@@ -168,11 +157,12 @@ updateTriggers: {
               tooltip.style.display = 'block';
               tooltip.style.left = `${info.x + 15}px`;
               tooltip.style.top = `${info.y + 15}px`;
-          } else {
+            } else {
               tooltip.style.display = 'none';
-          }
-       },
+            }
+        },
   }
+
     startHexagonAnimation(props);
 }
 
@@ -208,7 +198,7 @@ function startHexagonAnimation(props) {
 
             // 애니메이션 루프 중단
             cancelAnimationFrame(animationId);
-            console.log("최고점에 도달하여 애니메이션을 중단합니다.");
+
             return;
         }
 
