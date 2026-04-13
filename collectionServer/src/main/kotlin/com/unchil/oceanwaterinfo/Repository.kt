@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 import com.unchil.oceanwaterinfo.Config.Companion.configData
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
@@ -66,21 +67,20 @@ class Repository {
         } while (requestPage <= maxPage )
         return rows
     }
+     @OptIn(FormatStringsInDatetimeFormats::class)
      fun getSDoTEnvInfoGyonggi(){
 
-        @OptIn(FormatStringsInDatetimeFormats::class)
-        val now = kotlinx.datetime.Clock.System.now()
+        val now = Clock.System.now()
         val previous1Hour = now
             .minus(1, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH")}) + ":00"
 
-
          val url = "${configData.SDOT_Gyonggi?.endPoint}" +
                    "/${configData.SDOT_Gyonggi?.subPath}" +
                  "?KEY=${configData.SDOT_Gyonggi?.apikey}" +
                  "&Type=${configData.SDOT_Gyonggi?.type}" +
-                 "&MESURE_DAY_TM=${URLEncoder.encode(previous1Hour, StandardCharsets.UTF_8.toString())}"
+                 "&MESURE_DAY_TM=${previous1Hour.encodeURLParameter()}"
 
 
         LOGGER.info( "${::getSDoTEnvInfoGyonggi.name} [MESURE_DAY_TM:${previous1Hour}, Url:${url}]")
