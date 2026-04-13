@@ -9,6 +9,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
@@ -24,10 +25,17 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.kotlinx.dataframe.DataFrame
+import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
+import org.jetbrains.kotlinx.dataframe.api.describe
 import org.jetbrains.kotlinx.dataframe.api.forEach
+import org.jetbrains.kotlinx.dataframe.api.head
+import org.jetbrains.kotlinx.dataframe.api.rename
+import org.jetbrains.kotlinx.dataframe.api.schema
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.json.XML
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.time.Clock
@@ -41,6 +49,93 @@ class Repository {
         }
     }
 
+    fun loadDataSDoT(path:String, maxPage:Int): List<DataFrame<*>> {
+        val rows = mutableListOf<DataFrame<*>>()
+        var requestPage = 1
+        do{
+            val pagePath = "$path&pIndex=$requestPage"
+            val jsonData = DataFrame.readJson(pagePath)
+            try {
+                val instanceDf = (jsonData["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
+                requestPage += 1
+                rows.add(instanceDf)
+            } catch(e: Exception) {
+                print(e.localizedMessage)
+                break
+            }
+        } while (requestPage <= maxPage )
+        return rows
+    }
+     fun getSDoTEnvInfoGyonggi(){
+
+        @OptIn(FormatStringsInDatetimeFormats::class)
+        val now = kotlinx.datetime.Clock.System.now()
+        val previous1Hour = now
+            .minus(1, DateTimeUnit.HOUR)
+            .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH")}) + ":00"
+
+
+         val url = "${configData.SDOT_Gyonggi?.endPoint}" +
+                   "/${configData.SDOT_Gyonggi?.subPath}" +
+                 "?KEY=${configData.SDOT_Gyonggi?.apikey}" +
+                 "&Type=${configData.SDOT_Gyonggi?.type}" +
+                 "&MESURE_DAY_TM=${URLEncoder.encode(previous1Hour, StandardCharsets.UTF_8.toString())}"
+
+
+        LOGGER.info( "${::getSDoTEnvInfoGyonggi.name} [MESURE_DAY_TM:${previous1Hour}, Url:${url}]")
+
+        try {
+
+            val dfResult = loadDataSDoT(url, 2).concat()
+            val result = dfResult.rename(
+                "SUA_GAS_DNST_VL" to "SO2",
+                "COMNXD_DNST_VL" to "CO",
+                "NO2_DNST_VL" to "NO2",
+                "OZONE_DNST_VL" to "O3",
+                "FINEDUST_PM10_DNST_VL" to "PM10",
+                "FINEDUST_PM2_5_DNST_VL" to "PM2.5"
+            )
+
+            LOGGER.info("\n"+ result.schema().toString())
+            LOGGER.info("\n"+ result.head(5).toString())
+
+            transaction(Config.conn) {
+                SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
+
+                result.forEach {  item  ->
+                    try{
+                        SDoT_EnvInfo_Gyonggi.insertIgnore { it ->
+
+                            it[obs] = item["MESURSTN_NM"].toString()
+                            it[region] = item["MESRNW_NM"].toString()
+                            it[sensing_time] = item["MESURE_DAY_TM"].toString()
+                            it[so2] = item["SO2"].toString()
+                            it[co] = item["CO"].toString()
+                            it[no2] = item["NO2"].toString()
+                            it[o3] = item["O3"].toString()
+                            it[pm10] = item["PM10"].toString()
+                            it[pm25] = item["PM2.5"].toString()
+
+                        }
+                    } catch (e:Exception){
+                        e.localizedMessage?.let { msg ->
+                            LOGGER.debug(msg)
+                            LOGGER.debug("Exception PRIMARYKEY: [" + item["MESURSTN_NM"].toString() + "," + item["MESURE_DAY_TM"].toString() + "]")
+
+                        }
+                    }
+                }
+
+
+            }
+
+
+
+        }catch (e: Exception){
+            val msg = e.localizedMessage
+        }
+    }
 
     suspend fun getSDoTEnvInfo(){
 

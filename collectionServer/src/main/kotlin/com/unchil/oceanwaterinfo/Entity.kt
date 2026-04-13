@@ -1,6 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 import com.unchil.oceanwaterinfo.SDoT_EnvInfo.sensing_time
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo.serial
 import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.pre_lat
 import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.pre_lon
 import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.sch_time
@@ -118,6 +119,20 @@ object SDoT_Location: Table("SDoT_Location"){
     val lng = varchar("lng", length=30)
 
     override val primaryKey = PrimaryKey(serial, name = "primaryKey")
+}
+
+object SDoT_EnvInfo_Gyonggi: Table("SDoT_EnvInfo_Gyonggi"){
+    val obs = varchar("obs", length=30)
+    val region = varchar("region", length=30)
+    val sensing_time = varchar("sensing_time", length=30)
+    val so2 = varchar("so2", length=30)
+    val co = varchar("co", length=30)
+    val no2 = varchar("no2", length=30)
+    val o3 = varchar("o3", length=30)
+    val pm10 = varchar("pm10", length=30)
+    val pm25 = varchar("pm25", length=30)
+
+    override val primaryKey = PrimaryKey(obs, sensing_time, name = "primaryKey")
 }
 
 object SDoT_EnvInfo: Table("SDoT_EnvInfo"){

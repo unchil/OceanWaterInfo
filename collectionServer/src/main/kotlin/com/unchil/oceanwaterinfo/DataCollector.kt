@@ -18,6 +18,7 @@ class DataCollector {
                 repository.getKhoaObservation()
                 repository.getKhoaTidalCurrent()
                 repository.getSDoTEnvInfo()
+                repository.getSDoTEnvInfoGyonggi()
 
                 //jobType:["batch", "schedule"]
                 //jobEvent:["recovery", "operation"]

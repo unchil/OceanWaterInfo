@@ -281,6 +281,8 @@ data class ConfigData(
     val KHOA_API: KhoaApiConfig? = null,
     val KHOA_TIDALCURRENT_API: KhoaTidalCurrentApiConfig? = null,
     val SDOT_API: SDoTApiConfig? = null,
+
+    val SDOT_Gyonggi: SDoTGyonggiConfig? = null,
     val SQLITE_DB: DatabaseConfig? = null,
     val COLLECTION_TYPE: CollectionConfig? = null
 )
@@ -325,6 +327,14 @@ data class  KhoaApiConfig(
     val type: String,
     val min: String,
     val numOfRows: String
+)
+
+@Serializable
+data class SDoTGyonggiConfig(
+    val endPoint: String,
+    val apikey: String,
+    val subPath: String,
+    val type: String
 )
 
 @Serializable
