@@ -12,6 +12,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.FloatColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.avg
 import org.jetbrains.exposed.v1.core.castTo
@@ -20,10 +21,12 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.min
+import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.core.substring
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.unionAll
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
@@ -49,11 +52,36 @@ private val cacheStorage_SDoTEnvInfo = ConcurrentHashMap<String, Pair<List<SDoTE
 
 private val cacheStorage_SDoTEnvInfoGyonggi = ConcurrentHashMap<String, Pair<List<SDoTEnvInformationGyonggi>, Long>>()
 
+private val cacheStorage_SDoTEnvInfoUnion = ConcurrentHashMap<String, Pair<List<SDoTEnvInfoUnion>, Long>>()
+
+
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 
 class Repository {
+
+
+    fun sDoTEnvInfoUnion():List<SDoTEnvInfoUnion> {
+        val key = "cache_sdot_envinfo_union"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_SDoTEnvInfoUnion[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchSDoTEnvInfoUnionFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_SDoTEnvInfoUnion[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
+
 
 
     fun sDoTEnvInfoGyonggi():List<SDoTEnvInformationGyonggi> {
@@ -240,6 +268,61 @@ class Repository {
         return resultFromDb
     }
 
+    fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion> = transaction {
+        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoUnionFromDb")
+
+        // 1. 서울(SDoT) 최신 시간 조회
+        val maxSensingTime = SDoT_EnvInfo.sensing_time.max()
+        val seoulLastTime = SDoT_EnvInfo.select(maxSensingTime).limit(1).map {
+            it[maxSensingTime]
+        }.firstOrNull()
+
+        // 2. 경기도(Gyonggi) 최신 시간 조회
+        val maxSensingTimeGyonggi = SDoT_EnvInfo_Gyonggi.sensing_time.max()
+        val gyonggiLastTime = SDoT_EnvInfo_Gyonggi.select(maxSensingTimeGyonggi).limit(1).map {
+            it[maxSensingTimeGyonggi]
+        }.firstOrNull()
+
+        // 3. 서울 데이터 쿼리 (Join + Select)
+        // 경기도에만 있는 pm10, pm25는 빈 값(stringLiteral)으로 대체
+        val seoulQuery = SDoT_EnvInfo.join(
+            SDoT_Location,
+            JoinType.INNER,
+            onColumn = SDoT_EnvInfo.serial,
+            otherColumn = SDoT_Location.serial
+        ).select(
+                SDoT_EnvInfo.sensing_time, SDoT_EnvInfo.serial, SDoT_EnvInfo.region,
+                SDoT_Location.addr, SDoT_Location.lat, SDoT_Location.lng,
+                SDoT_EnvInfo.max_so2, SDoT_EnvInfo.max_co, SDoT_EnvInfo.max_no2,
+                SDoT_EnvInfo.max_o3, SDoT_EnvInfo.max_nh3, SDoT_EnvInfo.max_h2s
+            ).where { SDoT_EnvInfo.sensing_time eq (seoulLastTime ?: "") }
+            .map { resultRow ->
+                toSDoTEnvInfoUnionFromSDoT_EnvInfo(resultRow)
+            }
+
+
+        // 4. 경기도 데이터 쿼리 (Join + Select)
+        // 서울에만 있는 nh3, h2s는 빈 값(stringLiteral)으로 대체
+        val gyonggiQuery = SDoT_EnvInfo_Gyonggi.join(
+            SDoT_Location_Gyonggi,
+            JoinType.INNER,
+            onColumn = SDoT_EnvInfo_Gyonggi.obs,
+            otherColumn = SDoT_Location_Gyonggi.obs
+        ).select(
+                SDoT_EnvInfo_Gyonggi.sensing_time, SDoT_EnvInfo_Gyonggi.obs, SDoT_EnvInfo_Gyonggi.region,
+                SDoT_Location_Gyonggi.addr, SDoT_Location_Gyonggi.lat, SDoT_Location_Gyonggi.lng,
+                SDoT_EnvInfo_Gyonggi.so2, SDoT_EnvInfo_Gyonggi.co, SDoT_EnvInfo_Gyonggi.no2,
+                SDoT_EnvInfo_Gyonggi.o3,
+                SDoT_EnvInfo_Gyonggi.pm10, SDoT_EnvInfo_Gyonggi.pm25
+            ).where { SDoT_EnvInfo_Gyonggi.sensing_time eq (gyonggiLastTime ?: "") }
+            .map { resultRow ->
+                toSDoTEnvInfoUnionFromSDoT_EnvInfoGyonggi(resultRow)
+            }
+
+        // 5. Union 실행 및 결과 매핑
+        // Union을 위해 컬럼 순서와 개수를 동일하게 맞췄습니다.
+        return@transaction seoulQuery + gyonggiQuery
+    }
 
     fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi> = transaction {
         LOGGER.info("Serving from DB for : fetchSDoTEnvInfoGyonggiFromDb")

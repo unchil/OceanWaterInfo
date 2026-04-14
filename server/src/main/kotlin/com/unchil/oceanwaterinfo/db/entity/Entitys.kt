@@ -308,3 +308,29 @@ fun toSDoTEnvInformationGyonggi(it: ResultRow) = SDoTEnvInformationGyonggi(
     it[SDoT_EnvInfo_Gyonggi.o3], it[SDoT_EnvInfo_Gyonggi.pm10], it[SDoT_EnvInfo_Gyonggi.pm25],
 
 )
+
+
+fun toSDoTEnvInfoUnionFromSDoT_EnvInfo(it: ResultRow) = SDoTEnvInfoUnion(
+    it[SDoT_EnvInfo.sensing_time],
+    it[SDoT_EnvInfo.serial],
+    it[SDoT_EnvInfo.region],
+    it[SDoT_Location.addr],
+    it[SDoT_Location.lat],
+    it[SDoT_Location.lng],
+    it[SDoT_EnvInfo.max_so2], it[SDoT_EnvInfo.max_co], it[SDoT_EnvInfo.max_no2],
+    it[SDoT_EnvInfo.max_o3], it[SDoT_EnvInfo.max_nh3], it[SDoT_EnvInfo.max_h2s],
+    "", ""
+)
+
+fun toSDoTEnvInfoUnionFromSDoT_EnvInfoGyonggi(it: ResultRow) = SDoTEnvInfoUnion(
+    it[SDoT_EnvInfo_Gyonggi.sensing_time],
+    it[SDoT_EnvInfo_Gyonggi.obs],
+    it[SDoT_EnvInfo_Gyonggi.region],
+    it[SDoT_Location_Gyonggi.addr],
+    it[SDoT_Location_Gyonggi.lat],
+    it[SDoT_Location_Gyonggi.lng],
+    it[SDoT_EnvInfo_Gyonggi.so2], it[SDoT_EnvInfo_Gyonggi.co], it[SDoT_EnvInfo_Gyonggi.no2],
+    it[SDoT_EnvInfo_Gyonggi.o3], "", "",
+    it[SDoT_EnvInfo_Gyonggi.pm10], it[SDoT_EnvInfo_Gyonggi.pm25]
+
+    )
