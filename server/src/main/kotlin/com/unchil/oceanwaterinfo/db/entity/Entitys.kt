@@ -268,3 +268,43 @@ object SDoT_EnvInfo: Table("SDoT_EnvInfo"){
 
     override val primaryKey = PrimaryKey(serial, sensing_time, name = "primaryKey")
 }
+
+object SDoT_EnvInfo_Gyonggi: Table("SDoT_EnvInfo_Gyonggi"){
+    val obs = varchar("obs", length=30)
+    val region = varchar("region", length=30)
+    val sensing_time = varchar("sensing_time", length=30)
+    val so2 = varchar("so2", length=30)
+    val co = varchar("co", length=30)
+    val no2 = varchar("no2", length=30)
+    val o3 = varchar("o3", length=30)
+    val pm10 = varchar("pm10", length=30)
+    val pm25 = varchar("pm25", length=30)
+
+    override val primaryKey = PrimaryKey(obs, sensing_time, name = "primaryKey")
+}
+
+
+object SDoT_Location_Gyonggi: Table("SDoT_Location_Gyonggi"){
+    val obs = varchar("obs", length=30)
+    val addr = varchar("addr", length=30)
+    val op = varchar("op", length=30)
+    val regdate = varchar("regdate", length=30)
+    val lng = varchar("lng", length=30)
+    val lat = varchar("lat", length=30)
+
+
+    override val primaryKey = PrimaryKey(obs, name = "primaryKey")
+}
+
+
+fun toSDoTEnvInformationGyonggi(it: ResultRow) = SDoTEnvInformationGyonggi(
+    it[SDoT_EnvInfo_Gyonggi.sensing_time],
+    it[SDoT_EnvInfo_Gyonggi.obs],
+    it[SDoT_EnvInfo_Gyonggi.region],
+    it[SDoT_Location_Gyonggi.addr],
+    it[SDoT_Location_Gyonggi.lat],
+    it[SDoT_Location_Gyonggi.lng],
+    it[SDoT_EnvInfo_Gyonggi.so2], it[SDoT_EnvInfo_Gyonggi.co], it[SDoT_EnvInfo_Gyonggi.no2],
+    it[SDoT_EnvInfo_Gyonggi.o3], it[SDoT_EnvInfo_Gyonggi.pm10], it[SDoT_EnvInfo_Gyonggi.pm25],
+
+)

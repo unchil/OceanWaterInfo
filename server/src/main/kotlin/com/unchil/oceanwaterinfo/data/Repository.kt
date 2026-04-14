@@ -47,11 +47,36 @@ private val cacheStorage_KhoaTidalCurrentInfo = ConcurrentHashMap<String, Pair<L
 
 private val cacheStorage_SDoTEnvInfo = ConcurrentHashMap<String, Pair<List<SDoTEnvInformation>, Long>>()
 
+private val cacheStorage_SDoTEnvInfoGyonggi = ConcurrentHashMap<String, Pair<List<SDoTEnvInformationGyonggi>, Long>>()
+
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 
 class Repository {
+
+
+    fun sDoTEnvInfoGyonggi():List<SDoTEnvInformationGyonggi> {
+        val key = "cache_sdot_envinfo_gyonggi"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_SDoTEnvInfoGyonggi[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchSDoTEnvInfoGyonggiFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_SDoTEnvInfoGyonggi[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
+
+
 
     fun sDoTEnvInfo():List<SDoTEnvInformation> {
         val key = "cache_sdot_envinfo"
@@ -213,6 +238,39 @@ class Repository {
             cacheStorage_SeaWaterInfoBoxPlot[key] = Pair(resultFromDb, now)
         }
         return resultFromDb
+    }
+
+
+    fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi> = transaction {
+        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoGyonggiFromDb")
+
+        val lastTimeExpression = SDoT_EnvInfo_Gyonggi.sensing_time.max()
+
+        val maxSensingTime = SDoT_EnvInfo_Gyonggi.select(lastTimeExpression).limit(1).map {
+            it[lastTimeExpression]
+        }.firstOrNull()
+
+        println("가장 최근 sensing_time: $maxSensingTime")
+
+        val result = SDoT_EnvInfo_Gyonggi.join(
+            SDoT_Location_Gyonggi,
+            JoinType.INNER,
+            onColumn = SDoT_EnvInfo_Gyonggi.obs,
+            otherColumn = SDoT_Location_Gyonggi.obs
+        ).select(
+            SDoT_EnvInfo_Gyonggi.sensing_time,
+            SDoT_EnvInfo_Gyonggi.obs,  SDoT_EnvInfo_Gyonggi.region,
+            SDoT_Location_Gyonggi.addr, SDoT_Location_Gyonggi.lat, SDoT_Location_Gyonggi.lng,
+            SDoT_EnvInfo_Gyonggi.so2, SDoT_EnvInfo_Gyonggi.co, SDoT_EnvInfo_Gyonggi.no2,
+            SDoT_EnvInfo_Gyonggi.o3, SDoT_EnvInfo_Gyonggi.pm10, SDoT_EnvInfo_Gyonggi.pm25,
+
+        ).where{
+            SDoT_EnvInfo_Gyonggi.sensing_time.eq(maxSensingTime ?: "")
+        }.map { resultRow ->
+            toSDoTEnvInformationGyonggi(resultRow)
+        }
+
+        return@transaction result
     }
 
 

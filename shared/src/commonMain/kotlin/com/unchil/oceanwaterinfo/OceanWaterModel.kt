@@ -154,7 +154,22 @@ data class TidalCurrentData(
     var prev_lat:Double,
 )
 
+@Serializable
+data class SDoTEnvInformationGyonggi(
+    val sensing_time:String,
+    val obs:String,
+    val region:String,
+    val addr:String,
+    val lat:String,
+    val lng:String,
+    val so2:String,
+    val co:String,
+    val no2:String,
+    val o3:String,
+    val pm10:String,
+    val pm25:String,
 
+)
 
 @Serializable
 data class SDoTEnvInformation(

@@ -42,6 +42,22 @@ fun Application.configureSerialization(repository: Repository) {
             }
         }
 
+        route("/gyonggi"){
+            get("/sdot_env_info"){
+                try {
+                    val result = repository.sDoTEnvInfoGyonggi()
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+        }
+
+
         route("/khoa"){
 
             get("/tidal_current_info"){
