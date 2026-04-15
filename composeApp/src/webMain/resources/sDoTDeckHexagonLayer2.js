@@ -2,7 +2,8 @@
 
 const {GoogleMapsOverlay, HexagonLayer } = deck;
 const { load, JSONLoader } = loaders;
-const DATA_URL = 'http://192.168.35.107:7788/seoul/sdot_env_info';
+let cachedData = null; // 서버에서 받은 데이터를 저장할 변수
+const DATA_URL = 'http://192.168.35.107:7788/sdot_env_info';
 
 let map;
 let overlay;
@@ -19,16 +20,112 @@ let colorRange = [[255, 255, 255],[0, 200, 255],[0, 255, 100],[0, 255, 100],[255
 let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
 
+let currentType = 'o3';
 
-//페이지 새로고침 없이 함수만 호출하고 싶을 때
-window.addEventListener("message", (event) => {
-    if (event.data.action === 'CHANGE_TYPE') {
-        const type = event.data.type;
-        initMapWithType(type);
-        // 위에서 만든 loadDataByUrlParam과 유사한 로직 실행
-        // (단, 여기서는 파라미터 대신 event.data.type 사용)
+
+// 1. 데이터 업데이트 로직 (서버 요청)
+window.updateData = async function(type) {
+    currentType = type;
+    const dataUrl = `${DATA_URL}?t=${new Date().getTime()}`;
+    console.log(`[데이터 갱신] 타입: ${type}, URL: ${dataUrl}`);
+
+    try {
+        // loaders.gl의 load 함수를 사용하여 데이터를 미리 가져옵니다.
+        const rawData = await load(dataUrl, JSONLoader);
+
+        // 데이터 구조 변환 (기존 dataTransform 로직을 여기로 이동)
+        const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
+        cachedData = rows.map(d => ({
+            ...d,
+            lng: Number(d.lng),
+            lat: Number(d.lat)
+            // 각 타입별 value는 renderLayer에서 동적으로 처리하거나
+            // 여기서 미리 계산할 수 있습니다.
+        }));
+
+        // 데이터 로드 완료 후 화면 그리기
+        renderLayer();
+    } catch (error) {
+        console.error("데이터 로드 실패:", error);
     }
-});
+};
+
+
+// 2. 레이어 렌더링 로직 (시각적 설정 및 애니메이션 시작)
+window.renderLayer = function() {
+    if (!cachedData) return;
+
+    let title;
+    let maxDomain;
+
+    // 타입에 따른 설정값 결정
+    switch(currentType) {
+        case 'o3': title = "Ozone(O3)"; maxDomain = 0.15; break;
+        case 'no2': title = "Nitrogen dioxide(NO2)"; maxDomain = 0.2; break;
+        case 'co': title = "Carbon monoxide(CO)"; maxDomain = 50; break;
+        case 'so2': title = "Sulfur dioxide(SO2)"; maxDomain = 0.15; break;
+        case 'nh3': title = "Ammonia(NH3)"; maxDomain = 0.15; break;
+        case 'h2s': title = "Hydrogen sulfide(H2S)"; maxDomain = 0.3; break;
+        case 'pm10': title = "Particulate Matter(PM10)"; maxDomain = 81; break;
+        case 'pm25': title = "Particulate Matter(PM2.5)"; maxDomain = 36; break;
+        default: title = "Ozone(O3)"; maxDomain = 0.15;
+    }
+    /*
+    공식 설명 (Math.pow 활용)
+    •줌 레벨 12: 90 * Math.pow(2, 12 - 12) = 90 * 1 = 90m
+    •줌 레벨 14 (확대): 90 * Math.pow(2, 12 - 14) = 90 * 0.25 = 22.5m (육각형이 너무 커지는 것을 방지)
+    •줌 레벨 10 (축소): 90 * Math.pow(2, 12 - 10) = 90 * 4 = 360m (육각형이 너무 작아져서 안 보이는 것을 방지)
+    */
+    const currentZoom = map.getZoom();
+    const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
+    const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
+
+    // ID는 타입이 바뀔 때만 변경되도록 하여 줌 변경 시 불필요한 전체 리렌더링 방지
+    const layerId = `hexagon-layer-${currentType}`;
+
+    const props = {
+        id: layerId,
+        data: cachedData, // 미리 로드된 데이터(Array)를 직접 전달 (네트워크 요청 없음)
+        dataTransform: (data) => data.map(d => ({
+            ...d,
+            value: Number(d[currentType] || 0) // 선택된 타입에 따른 가중치 설정
+        })),
+        gpuAggregation: true,
+        extruded: true,
+        getPosition: d => [d.lng, d.lat],
+        colorRange: colorRange,
+        colorDomain: [0, maxDomain],
+        getColorWeight: d => Math.min(d.value, maxDomain),
+        colorAggregation: 'MAX',
+        elevationRange: [0, dynamicMaxElevation],
+        elevationDomain: [0, maxDomain],
+        getElevationWeight: d => Math.min(d.value, maxDomain),
+        elevationAggregation: 'MAX',
+        radius: dynamicRadius,
+        pickable: true,
+        onHover: info => {
+            const tooltip = document.getElementById('tooltip');
+            if (info.object) {
+                const source = info.object.points[0].source;
+                const maxValue = Math.max(...info.object.points.map(p => p.source.value));
+                tooltip.innerHTML = `
+                    <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
+                    <div>${source.sensing_time}</div>
+                    <div>SerialID: ${source.obs}</div>
+                    <div>${title}:${source.value}</div>
+                    <div>최대값: ${maxValue}</div>
+                `;
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${info.x + 15}px`;
+                tooltip.style.top = `${info.y + 15}px`;
+            } else {
+                tooltip.style.display = 'none';
+            }
+        }
+    };
+
+    startHexagonAnimation(props);
+};
 
 
 
@@ -55,52 +152,95 @@ async function initMap() {
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
+ // [줌 변경] 데이터 요청 없이 레이어 설정만 업데이트
+    map.addListener('zoom_changed', () => {
+       // renderLayer();
+        initMapWithType(currentType);
+    });
+
+    // [최초 로드] 데이터 요청 포함
     google.maps.event.addListenerOnce(map, 'idle', () => {
-        initMapWithType('max_o3');
+        //updateData(currentType);
+        initMapWithType(currentType);
     });
 
 
 };
 
+//페이지 새로고침 없이 함수만 호출하고 싶을 때
+window.addEventListener("message", (event) => {
+    if (event.data.action === 'CHANGE_TYPE') {
+        currentType = event.data.type;
+        initMapWithType(currentType);
+      //  updateData(event.data.type);
+    }
+});
+
+
 window.initMapWithType =  function( type) {
     let title;
     let maxDomain;
 
-
     // 1. 타입에 따른 타이틀 및 도메인 범위 설정
     switch(type) {
-        case 'max_o3':
+        case 'o3':
             title = "Ozone(O3)";
             maxDomain = 0.15;
             break;
-        case 'max_no2':
+        case 'no2':
             title = "Nitrogen dioxide(NO2)";
             maxDomain = 0.2;
             break;
-        case 'max_co':
+        case 'co':
             title = "Carbon monoxide(CO)";
             maxDomain = 50;
             break;
-        case 'max_so2':
+        case 'so2':
             title = "Sulfur dioxide(SO2)";
             maxDomain = 0.15;
             break;
-        case 'max_nh3':
+        case 'nh3':
             title = "Ammonia(NH3)";
             maxDomain = 0.15;
             break;
-        case 'max_h2s':
+        case 'h2s':
             title = "Hydrogen sulfide(H2S)";
             maxDomain = 0.3;
             break;
+        case 'pm10':
+            title = "Particulate Matter(PM10)";
+            maxDomain = 81;
+            break;
+        case 'pm25':
+            title = "Particulate Matter(PM2.5)";
+            maxDomain = 36;
+            break;
         default:
             title = "Ozone(O3)";
-            type = 'max_o3';
+            type = 'o3';
             maxDomain = 0.15;
     }
     let id =  'hexagon-layer-' + type + '_' + Date.now();
     let dataUrl = DATA_URL + "?t=" + new Date().getTime();
     console.log(`[자동 갱신] ${id} - ${dataUrl} 데이터를 새로 고침합니다.`);
+
+    // [추가] 줌 레벨에 따른 동적 radius 계산
+    // 공식: 기준반경 * 2^(기준줌 - 현재줌)
+    // 줌이 커지면(확대) radius는 작아지고, 줌이 작아지면(축소) radius는 커집니다.
+    //공식 설명 (Math.pow 활용)
+    //•줌 레벨 12: 90 * Math.pow(2, 12 - 12) = 90 * 1 = 90m
+    //•줌 레벨 14 (확대): 90 * Math.pow(2, 12 - 14) = 90 * 0.25 = 22.5m (육각형이 너무 커지는 것을 방지)
+    //•줌 레벨 10 (축소): 90 * Math.pow(2, 12 - 10) = 90 * 4 = 360m (육각형이 너무 작아져서 안 보이는 것을 방지)
+
+    const currentZoom = map.getZoom();
+    const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
+
+    // [추가] 줌 레벨에 따른 동적 elevationRange 최대값 계산
+    // 기준 줌 12에서 최대 높이를 100으로 설정하고, 줌 레벨에 따라 지수적으로 변경합니다.
+    // 줌 확대(숫자 커짐) -> 최대 높이 감소 (세밀하게 보기 위함)
+    // 줌 축소(숫자 작아짐) -> 최대 높이 증가 (멀리서도 잘 보이기 위함)
+
+    const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
 
     let props = {
         id: id,
@@ -126,18 +266,13 @@ window.initMapWithType =  function( type) {
         colorDomain: [0, maxDomain],
         getColorWeight: d => Math.min(d.value, maxDomain),
         colorAggregation: 'MAX',
-
-        elevationRange: [0, 100],
+        // <selection> [수정] 고정값 100 대신 계산된 dynamicMaxElevation 적용 </selection>
+        elevationRange: [0, dynamicMaxElevation],
         elevationDomain: [0, maxDomain],
         getElevationWeight: d => Math.min(d.value, maxDomain),
         elevationAggregation: 'MAX',
-        /*
-        updateTriggers: {
-        getColorWeight: [type],
-        getElevationWeight: [type]
-        },
-        */
-        radius: 90,
+        // [수정] 고정값 90 대신 계산된 dynamicRadius 적용
+        radius: dynamicRadius,
         pickable: true,
         onHover: info => {
             const tooltip = document.getElementById('tooltip');
@@ -149,7 +284,7 @@ window.initMapWithType =  function( type) {
               tooltip.innerHTML = `
                   <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
                   <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.serial}</div>
+                  <div>SerialID: ${source.obs}</div>
                   <div>${title}:${source.value}</div>
                   <div>측정 지점 수: ${count}개</div>
                   <div>최대값: ${maxValue}</div>
