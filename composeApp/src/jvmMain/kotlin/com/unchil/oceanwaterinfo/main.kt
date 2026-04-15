@@ -44,6 +44,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import com.unchil.sdotenvinfo.SDoTEnvInfoMapHexagonLayer
+import com.unchil.sdotenvinfo.SDoTEnvInfoUnionMapHexagonLayer
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.Dispatchers
@@ -93,12 +94,12 @@ fun main() = application {
     }
 
     var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
-    val tabTitles = listOf("Seoul Downtown Air Quality", "Korea Ocean Water")
+    val tabTitles = listOf("Seoul/Gyonggi  Air Quality", "Korea Ocean Water")
 
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "OceanWaterInformation",
+        title = "Environmental Observation Information",
         state = state,
     ) {
         MaterialTheme(colorScheme = getColorScheme(false)) {
@@ -138,7 +139,7 @@ fun main() = application {
                                 // --- 탭 1: Seoul SDoT 정보 ---
                                 Column(modifier = Modifier.fillMaxSize()) {
                                     Text(
-                                        "Seoul SDoT Environmental Observation Information",
+                                        "Seoul/Gyonggi SDoT Air Environmental Observation Information",
                                         modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
                                         color = MaterialTheme.colorScheme.onBackground,
                                         fontSize = 20.sp,
@@ -146,7 +147,8 @@ fun main() = application {
                                         textAlign = TextAlign.Center
                                     )
                                     CompositionLocalProvider(LocalPoint provides clickPoint.value) {
-                                        SDoTEnvInfoMapHexagonLayer(initialized, download, errorMessage)
+                                      //  SDoTEnvInfoMapHexagonLayer(initialized, download, errorMessage)
+                                        SDoTEnvInfoUnionMapHexagonLayer(initialized, download, errorMessage)
                                     }
                                 }
                             }

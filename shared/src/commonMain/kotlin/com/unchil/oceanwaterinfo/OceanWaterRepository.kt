@@ -41,6 +41,22 @@ class OceanWaterRepository {
     val _sDoTEnvInfo: MutableStateFlow<List<SDoTEnvInformation>>
             = MutableStateFlow(emptyList())
 
+    val _sDoTEnvInfoUnion: MutableStateFlow<List<SDoTEnvInfoUnion>>
+            = MutableStateFlow(emptyList())
+
+
+
+    suspend fun getSDoTEnvInfoUnion(){
+        try {
+            oceanWaterApi.getSDoTEnvInfoUnion().let {
+                _sDoTEnvInfoUnion.value = it
+                LOGGER.debug("getSDoTEnvInfoUnion() called[${it.count()}]")
+            }
+        }catch (e:Exception){
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
+
 
     suspend fun getSDoTEnvInfo(){
         try {
@@ -52,6 +68,8 @@ class OceanWaterRepository {
             LOGGER.error(e.message ?: "Error ")
         }
     }
+
+
 
     suspend fun getKhoaObservationInfo(){
         try {
