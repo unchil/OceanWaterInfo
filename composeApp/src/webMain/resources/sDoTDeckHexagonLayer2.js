@@ -154,14 +154,14 @@ async function initMap() {
 
  // [줌 변경] 데이터 요청 없이 레이어 설정만 업데이트
     map.addListener('zoom_changed', () => {
-       // renderLayer();
-        initMapWithType(currentType);
+        renderLayer();
+     //   initMapWithType(currentType);
     });
 
     // [최초 로드] 데이터 요청 포함
     google.maps.event.addListenerOnce(map, 'idle', () => {
-        //updateData(currentType);
-        initMapWithType(currentType);
+        updateData(currentType);
+      //  initMapWithType(currentType);
     });
 
 
@@ -171,8 +171,8 @@ async function initMap() {
 window.addEventListener("message", (event) => {
     if (event.data.action === 'CHANGE_TYPE') {
         currentType = event.data.type;
-        initMapWithType(currentType);
-      //  updateData(event.data.type);
+      //  initMapWithType(currentType);
+        updateData(event.data.type);
     }
 });
 
