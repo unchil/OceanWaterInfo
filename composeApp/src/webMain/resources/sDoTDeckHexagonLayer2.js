@@ -77,8 +77,10 @@ window.renderLayer = function() {
     •줌 레벨 10 (축소): 90 * Math.pow(2, 12 - 10) = 90 * 4 = 360m (육각형이 너무 작아져서 안 보이는 것을 방지)
     */
     const currentZoom = map.getZoom();
-    const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
-    const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
+    const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
+    const dynamicMaxElevation =   currentZoom >= zoomLevel ? 20 : (100 * Math.pow(2, zoomLevel - currentZoom))
+//  const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
+//  const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
 
     // ID는 타입이 바뀔 때만 변경되도록 하여 줌 변경 시 불필요한 전체 리렌더링 방지
     const layerId = `hexagon-layer-${currentType}`;

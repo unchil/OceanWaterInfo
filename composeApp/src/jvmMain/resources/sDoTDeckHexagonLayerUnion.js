@@ -111,23 +111,17 @@ window.initMapWithData =  function( values, type) {
     let dataUrl = DATA_URL + "?t=" + new Date().getTime();
     console.log(`[자동 갱신] ${id} - ${dataUrl} 데이터를 새로 고침합니다.`);
 
-    // [추가] 줌 레벨에 따른 동적 radius 계산
-    // 공식: 기준반경 * 2^(기준줌 - 현재줌)
-    // 줌이 커지면(확대) radius는 작아지고, 줌이 작아지면(축소) radius는 커집니다.
-    //공식 설명 (Math.pow 활용)
-    //•줌 레벨 12: 90 * Math.pow(2, 12 - 12) = 90 * 1 = 90m
-    //•줌 레벨 14 (확대): 90 * Math.pow(2, 12 - 14) = 90 * 0.25 = 22.5m (육각형이 너무 커지는 것을 방지)
-    //•줌 레벨 10 (축소): 90 * Math.pow(2, 12 - 10) = 90 * 4 = 360m (육각형이 너무 작아져서 안 보이는 것을 방지)
-
+    /*
+    공식 설명 (Math.pow 활용)
+    •줌 레벨 12: 90 * Math.pow(2, 12 - 12) = 90 * 1 = 90m
+    •줌 레벨 14 (확대): 90 * Math.pow(2, 12 - 14) = 90 * 0.25 = 22.5m (육각형이 너무 커지는 것을 방지)
+    •줌 레벨 10 (축소): 90 * Math.pow(2, 12 - 10) = 90 * 4 = 360m (육각형이 너무 작아져서 안 보이는 것을 방지)
+    */
     const currentZoom = map.getZoom();
-    const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
-
-    // [추가] 줌 레벨에 따른 동적 elevationRange 최대값 계산
-    // 기준 줌 12에서 최대 높이를 100으로 설정하고, 줌 레벨에 따라 지수적으로 변경합니다.
-    // 줌 확대(숫자 커짐) -> 최대 높이 감소 (세밀하게 보기 위함)
-    // 줌 축소(숫자 작아짐) -> 최대 높이 증가 (멀리서도 잘 보이기 위함)
-
-    const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
+    const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
+    const dynamicMaxElevation =   currentZoom >= zoomLevel ? 20 : (100 * Math.pow(2, zoomLevel - currentZoom))
+//  const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
+//  const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
 
     let props = {
         id: id,
