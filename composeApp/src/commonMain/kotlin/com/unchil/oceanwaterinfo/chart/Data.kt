@@ -144,7 +144,7 @@ val padding = 8.dp
 val paddingMod = Modifier.padding(padding)
 
 object AIR_QUAlITY_UNION {
-    const val caption =  "https://data.seoul.go.kr/dataList/OA-15969/S/1/datasetView.do\nhttps://data.gg.go.kr/"
+    const val caption =  "https://data.seoul.go.kr https://data.gg.go.kr"
     enum class QualityType{
         o3, no2, co, so2, nh3, h2s, pm10, pm25
     }

@@ -7,18 +7,28 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -123,8 +133,6 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         }
     }
 
-
-
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -153,85 +161,99 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
             }
         }
 
-        AnimatedVisibility(descriptionBox){
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text =  selectedOption.desc(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start
-                )
-            }
-        }
 
-        Box( modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ){
-            val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+        Row(modifier=Modifier.fillMaxSize()){
 
-            IconButton(
-                onClick = { descriptionBox = !descriptionBox },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                ){
-                    Icon(
-                        imageVector = Icons.Default.ArrowCircleDown,
-                        contentDescription = "Toggle Description",
-                        modifier = Modifier.rotate(rotation) // 회전 애니메이션 적용
-                    )
-                    Spacer(Modifier.padding(2.dp))
-                    Text("Description", fontWeight = FontWeight.Bold)
-                }
-            }
-        }
 
-        when {
-            initialized -> {
+            AnimatedVisibility(descriptionBox){
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.2f)
+                        .fillMaxHeight()
+                        .padding(10.dp)
+                        .verticalScroll(rememberScrollState())
 
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
-
-                    CaptionText(
-                        AIR_QUAlITY_UNION.caption,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).padding(end = 20.dp),
-                        textAlign = TextAlign.End
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text =  selectedOption.desc(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Start
                     )
+                }
+            }
 
-                    WebView(
-                        state = webViewState,
-                        navigator = navigator,
-                        modifier = Modifier.fillMaxSize()
-                    )
+            Box( modifier = Modifier.width(24.dp).fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ){
+                val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+
+                IconButton(
+                    onClick = { descriptionBox = !descriptionBox },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ){
+                        Icon(
+                            imageVector = Icons.Default.ArrowCircleRight,
+                            contentDescription = "Toggle Description",
+                            modifier = Modifier.rotate(rotation) // 회전 애니메이션 적용
+                        )
+                        Spacer(Modifier.padding(2.dp))
+                    }
+                }
+            }
 
 
+            when {
+                initialized -> {
+
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+
+                        CaptionText(
+                            AIR_QUAlITY_UNION.caption,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).padding(end = 20.dp),
+                            textAlign = TextAlign.End
+                        )
+
+                        WebView(
+                            state = webViewState,
+                            navigator = navigator,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+
+
+                    }
 
                 }
-
-            }
-            errorMessage.isNotEmpty() -> {
-                Text(errorMessage)
-            }
-            else -> {
-                if (download > -1) {
-                    Text("Downloading: $download%")
-                } else {
-                    Text("Initializing please wait...")
+                errorMessage.isNotEmpty() -> {
+                    Text(errorMessage)
                 }
-                CircularProgressIndicator()
+                else -> {
+                    if (download > -1) {
+                        Text("Downloading: $download%")
+                    } else {
+                        Text("Initializing please wait...")
+                    }
+                    CircularProgressIndicator()
 
+                }
             }
+
         }
+
+
+
+
     }
+
+
 
 }
