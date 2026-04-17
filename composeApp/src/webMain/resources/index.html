@@ -146,6 +146,13 @@
             // 2. 클릭된 탭에 'active' 클래스 추가
             element.classList.add('active');
 
+                // 클릭된 버튼(element)의 텍스트를 가져와서 사이드바의 h3에 할당합니다.
+            const sidebarTitle = document.querySelector('.sidebar-header h3');
+            if (sidebarTitle) {
+                sidebarTitle.innerText = element.innerText;
+            }
+
+
                 // --- 추가: 설명 텍스트 업데이트 ---
         const textElem = document.getElementById('description-text');
         if (qualityDescriptions[type]) {
@@ -335,8 +342,10 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             const textElem = document.getElementById('description-text');
+            const sidebarTitle = document.querySelector('.sidebar-header h3'); // 추가
             if (qualityDescriptions['o3']) {
                 textElem.innerText = qualityDescriptions['o3'];
+                if (sidebarTitle) sidebarTitle.innerText = "Ozone(O3)";
             }
 
               // 자동 리프레시 타이머 시작
