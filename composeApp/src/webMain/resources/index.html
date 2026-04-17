@@ -11,11 +11,8 @@
 
 
 <div class="main-tab-row">
-
-    <button class="main-tab " onclick="switchMainTab(this, 0)">Seoul/Gyonggi SDoT Information</button>
-    <button class="main-tab active" onclick="switchMainTab(this, 1)">Korea Ocean Information</button>
-
-
+    <button class="main-tab active" onclick="switchMainTab(this, 0)">Korea Ocean Information</button>
+    <button class="main-tab " onclick="switchMainTab(this, 1)">Seoul/Gyonggi SDoT Information</button>
 </div>
 
 
@@ -121,11 +118,11 @@
             const oceanSection = document.getElementById('section-ocean');
 
             if (index === 0) {
-                sdotSection.style.display = 'flex'; // block 대신 flex
-                oceanSection.style.display = 'none';
-            } else {
                 oceanSection.style.display = 'flex'; // block 대신 flex
                 sdotSection.style.display = 'none';
+            } else {
+                sdotSection.style.display = 'flex'; // block 대신 flex
+                oceanSection.style.display = 'none';
             }
 
             // 필요 시 Compose 측에 상태 변경을 알리는 로직을 추가할 수 있습니다.
@@ -136,9 +133,9 @@
         // 브라우저 창 크기가 변경될 때 실행되는 이벤트 리스너
         window.addEventListener('resize', function() {
             // .main-tab 클래스를 가진 요소 중 2번째(Korea Ocean) 버튼을 직접 찾음
-            const oceanButton = document.querySelector('.main-tab:nth-child(2)');
+            const oceanButton = document.querySelector('.main-tab:nth-child(1)');
             if (oceanButton) {
-                switchMainTab(oceanButton, 1);
+                switchMainTab(oceanButton, 0);
             }
 
         });
