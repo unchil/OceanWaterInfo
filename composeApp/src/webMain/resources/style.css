@@ -18,8 +18,8 @@ body {
 .sidebar-wrapper {
     position: fixed;
     top: 50%; /* 화면 중앙 정렬 */
-    left: -320px; /* 사이드바 너비만큼 왼쪽으로 숨김 */
-    width: 320px;
+    left: -520px; /* 사이드바 너비만큼 왼쪽으로 숨김 */
+    width: 520px;
     height: 50%; /* 고정 높이 혹은 100% 선택 가능 */
     transform: translateY(-50%); /* 중앙 정렬 보정 */
     display: flex;
@@ -286,6 +286,7 @@ body {
     font-size: 14px; /* bodyMedium */
     line-height: 1.5;
     color: #49454f;
+    text-align: start;
     white-space: pre-line; /* \n 개행 문자 적용 */
 }
 
