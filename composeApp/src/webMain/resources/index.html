@@ -19,12 +19,12 @@
 </div>
 
 
-<!-- 2. Seoul SDoT 섹션 (기존 내용) -->
+
 <div id="section-sdot" class="tab-content" style="display: none;">
 
     <h2 class="compose-title">Seoul/Gyonggi Air Environmental Observation Information</h2>
 
-    <!-- 탭 메뉴 영역 -->
+
     <div class="tab-row">
         <button class="tab-item active" onclick="changeTab(this, 'o3')">Ozone(O3)</button>
         <button class="tab-item" onclick="changeTab(this, 'no2')">Nitrogen dioxide(NO2)</button>
@@ -54,18 +54,21 @@
     </div>
 
 
-    <!-- 기존 iframe에 id 추가 (JS 제어용) -->
+
     <iframe id="map-iframe"
             src="http://192.168.35.107:7878/sDoTDeckHexagonLayer2.html"
             title="Seoul/Gyonggi Air Quality Information" allow="fullscreen"></iframe>
 
 </div>
 
+
+
+
+
 <!-- 3. Korea Ocean 섹션 (새로 추가될 영역) -->
+
 <div id="section-ocean" class="tab-content"  style="display: flex;" >
     <h2 class="compose-title">Korea Ocean Water Information</h2>
-    <!-- 해양 정보 관련 iframe 또는 컨텐츠가 들어갈 자리 -->
-    <!-- 이 div가 남은 공간을 채우고 그 안의 webmain도 채우게 됨 -->
 
     <div id="webmain" >
 
@@ -118,22 +121,27 @@
             const oceanSection = document.getElementById('section-ocean');
 
             if (index === 0) {
-
                 sdotSection.style.display = 'flex'; // block 대신 flex
                 oceanSection.style.display = 'none';
             } else {
                 oceanSection.style.display = 'flex'; // block 대신 flex
                 sdotSection.style.display = 'none';
-
-
             }
 
             // 필요 시 Compose 측에 상태 변경을 알리는 로직을 추가할 수 있습니다.
             console.log("Main Tab Switched to:", index);
         }
 
+        // Resize 시 composeApp.js 리프리젠테이션 관련 에러
+        // 브라우저 창 크기가 변경될 때 실행되는 이벤트 리스너
+        window.addEventListener('resize', function() {
+            // .main-tab 클래스를 가진 요소 중 2번째(Korea Ocean) 버튼을 직접 찾음
+            const oceanButton = document.querySelector('.main-tab:nth-child(2)');
+            if (oceanButton) {
+                switchMainTab(oceanButton, 1);
+            }
 
-
+        });
 
         function changeTab(element, type) {
                 // 현재 선택된 타입 업데이트
@@ -359,8 +367,6 @@
             box.classList.toggle('show');
             icon.classList.toggle('rotate');
         }
-
-
 
 </script>
 </body>
