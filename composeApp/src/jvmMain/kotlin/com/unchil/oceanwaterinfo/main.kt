@@ -1,6 +1,8 @@
 package com.unchil.oceanwaterinfo
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -48,6 +50,7 @@ import com.unchil.sdotenvinfo.SDoTEnvInfoUnionMapHexagonLayer
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 
 val LocalPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
@@ -113,22 +116,48 @@ fun main() = application {
 
                     SecondaryTabRow(
                         selectedTabIndex,
-                        Modifier,
+                        Modifier.fillMaxWidth(),
                         MaterialTheme.colorScheme.surface,
                         MaterialTheme.colorScheme.primary,
                          { HorizontalDivider() }
                     ) {
                         tabTitles.forEachIndexed { index, title ->
+
+
+                            val interactionSource = remember { MutableInteractionSource() }
+                            // InteractionSource의 상태 변화를 직접 감지하는 로직
+                            LaunchedEffect(interactionSource) {
+                                interactionSource.interactions.collectLatest { interaction ->
+                                    when (interaction) {
+                                        is PressInteraction.Press -> {
+                                            if (selectedTabIndex != index) {
+                                                selectedTabIndex = index
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
                             Tab(
                                 selected = selectedTabIndex == index,
-                                onClick = { selectedTabIndex = index },
+                                onClick = {
+                                    // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                    if (selectedTabIndex != index) {
+                                        selectedTabIndex = index
+                                    }
+                                },
                                 text = {
                                     Text(
                                         text = title,
                                         fontSize = 16.sp,
-                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light
+                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                        // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                        softWrap = false,
+                                        maxLines = 1
                                     )
-                                }
+                                },
+                                // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                interactionSource = interactionSource
                             )
                         }
                     }
