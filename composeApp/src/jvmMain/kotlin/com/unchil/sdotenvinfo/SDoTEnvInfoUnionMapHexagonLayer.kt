@@ -162,9 +162,8 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         }
 
 
-        Row(modifier=Modifier.fillMaxSize()){
-
-
+        Row(modifier=Modifier.fillMaxSize())
+        {
             AnimatedVisibility(descriptionBox){
                 Box(
                     modifier = Modifier
@@ -192,17 +191,12 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                     onClick = { descriptionBox = !descriptionBox },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row (
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                    ){
-                        Icon(
-                            imageVector = Icons.Default.ArrowCircleRight,
-                            contentDescription = "Toggle Description",
-                            modifier = Modifier.rotate(rotation) // 회전 애니메이션 적용
-                        )
-                        Spacer(Modifier.padding(2.dp))
-                    }
+                    Icon(
+                        imageVector = Icons.Default.ArrowCircleRight,
+                        contentDescription = "Toggle Description",
+                        modifier = Modifier.rotate(rotation) // 회전 애니메이션 적용
+                    )
+
                 }
             }
 
