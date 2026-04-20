@@ -281,6 +281,7 @@ data class ConfigData(
     val KHOA_API: KhoaApiConfig? = null,
     val KHOA_TIDALCURRENT_API: KhoaTidalCurrentApiConfig? = null,
     val SDOT_API: SDoTApiConfig? = null,
+    val KHNP: KHNP? = null,
 
     val SDOT_Gyonggi: SDoTGyonggiConfig? = null,
     val SQLITE_DB: DatabaseConfig? = null,
@@ -328,6 +329,23 @@ data class  KhoaApiConfig(
     val min: String,
     val numOfRows: String
 )
+
+@Serializable
+data class KHNP_SUBURL(
+    val NuclearPlantStates: String,
+    val WasteWater: String,
+    val RadioRate: String,
+    val ThermalWasteWater: String,
+    val RadioActiveWaste: String
+)
+
+@Serializable
+data class KHNP(
+    val endPoint: String,
+    val subPath: KHNP_SUBURL,
+    val serviceKey: String
+)
+
 
 @Serializable
 data class SDoTGyonggiConfig(

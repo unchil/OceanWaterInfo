@@ -112,6 +112,16 @@ object TidalCurrentInfoKHOA: Table("TidalCurrentInfoKHOA"){
     override val primaryKey = PrimaryKey(sch_time, pre_lon, pre_lat, name = "primaryKey")
 }
 
+object KHNP_WasteWater:Table("KHNP_WasteWater"){
+    val genName = varchar("genName", length=30)
+    val expl = varchar("expl", length=30)
+    val name = varchar("name", length=30)
+    val time = varchar("time", length=30)
+    val value = varchar("value", length=30)
+
+    override val primaryKey = PrimaryKey(genName, name, time, name = "primaryKey")
+}
+
 object SDoT_Location: Table("SDoT_Location"){
     val serial = varchar("serial", length=30)
     val addr = varchar("addr", length=30)

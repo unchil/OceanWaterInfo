@@ -19,6 +19,7 @@ class DataCollector {
                 repository.getKhoaTidalCurrent()
                 repository.getSDoTEnvInfo()
                 repository.getSDoTEnvInfoGyonggi()
+                repository.getKHNP_WasteWater()
 
                 //jobType:["batch", "schedule"]
                 //jobEvent:["recovery", "operation"]

@@ -1,6 +1,12 @@
 package com.unchil.oceanwaterinfo
 
 import com.unchil.oceanwaterinfo.Config.Companion.configData
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.co
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.no2
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.obs
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.region
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.sensing_time
+import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.so2
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
@@ -26,14 +32,18 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.kotlinx.dataframe.DataFrame
+import org.jetbrains.kotlinx.dataframe.api.at
 import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
 import org.jetbrains.kotlinx.dataframe.api.describe
 import org.jetbrains.kotlinx.dataframe.api.forEach
 import org.jetbrains.kotlinx.dataframe.api.head
+import org.jetbrains.kotlinx.dataframe.api.insert
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.schema
+import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
+import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -50,6 +60,53 @@ class Repository {
         }
     }
 
+    fun getKHNP_WasteWater(){
+        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+        val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
+        val rows = mutableListOf<DataFrame<*>>()
+        genNames.forEach { genName ->
+            val urlPath = url + "&genName=${genName}"
+            try {
+                val df_json = DataFrame.readJson(
+                    XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
+                )
+                val instanceDf =
+                    df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
+                val updatedDf = instanceDf.insert("genName") { genName }.at(0)
+                rows.add(updatedDf)
+            }catch(e:Exception){
+                print(e.localizedMessage)
+                LOGGER.error("Exception : [" + e.localizedMessage + "]")
+                LOGGER.error("Url : [" + urlPath + "]")
+            }
+        }
+
+        val result = rows.concat()
+        LOGGER.info("\n ${::getKHNP_WasteWater.name}  Schema[${result.schema()}]")
+        LOGGER.info("\n ${::getKHNP_WasteWater.name}  Count:[${result.count()}]")
+
+        transaction(Config.conn) {
+            SchemaUtils.create(KHNP_WasteWater)
+
+            result.forEach { item  ->
+                try{
+                    KHNP_WasteWater.insertIgnore { it ->
+                        it[genName] = item["genName"].toString()
+                        it[name] = item["name"].toString()
+                        it[time] = item["time"].toString()
+                        it[value] = item["value"].toString()
+                        it[expl] = item["expl"].toString()
+                    }
+                }catch (e:Exception){
+                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
+
+                }
+            }
+        }
+
+
+
+    }
     fun loadDataSDoT(path:String, maxPage:Int): List<DataFrame<*>> {
         val rows = mutableListOf<DataFrame<*>>()
         var requestPage = 1
