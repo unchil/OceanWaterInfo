@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import com.unchil.oceanwaterinfo.KHNP_WasteWater.name
 import com.unchil.oceanwaterinfo.SDoT_EnvInfo.sensing_time
 import com.unchil.oceanwaterinfo.SDoT_EnvInfo.serial
 import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.pre_lat
@@ -112,7 +113,28 @@ object TidalCurrentInfoKHOA: Table("TidalCurrentInfoKHOA"){
     override val primaryKey = PrimaryKey(sch_time, pre_lon, pre_lat, name = "primaryKey")
 }
 
+
+object KHNP_WasteWater2:Table("KHNP_WasteWater2"){
+    val time = varchar("time", length=30)
+    val genName = varchar("genName", length=30)
+    val tm001 = varchar("tm001", length=30)
+    val tm002 = varchar("tm002", length=30)
+
+    override val primaryKey = PrimaryKey( time,genName,  name = "primaryKey")
+}
+
 object KHNP_WasteWater:Table("KHNP_WasteWater"){
+    val genName = varchar("genName", length=30)
+    val expl = varchar("expl", length=30)
+    val name = varchar("name", length=30)
+    val time = varchar("time", length=30)
+    val value = varchar("value", length=30)
+
+    override val primaryKey = PrimaryKey(genName, name, time, name = "primaryKey")
+}
+
+
+object KHNP_ThermalWasteWater:Table("KHNP_ThermalWasteWater"){
     val genName = varchar("genName", length=30)
     val expl = varchar("expl", length=30)
     val name = varchar("name", length=30)

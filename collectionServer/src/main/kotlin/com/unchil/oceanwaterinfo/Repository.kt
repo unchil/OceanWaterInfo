@@ -1,12 +1,6 @@
 package com.unchil.oceanwaterinfo
 
 import com.unchil.oceanwaterinfo.Config.Companion.configData
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.co
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.no2
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.obs
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.region
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.sensing_time
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo_Gyonggi.so2
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
@@ -24,31 +18,31 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
-import org.jetbrains.exposed.v1.jdbc.replace
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.kotlinx.dataframe.DataFrame
+import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.at
 import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
-import org.jetbrains.kotlinx.dataframe.api.describe
+import org.jetbrains.kotlinx.dataframe.api.flatten
 import org.jetbrains.kotlinx.dataframe.api.forEach
+import org.jetbrains.kotlinx.dataframe.api.groupBy
 import org.jetbrains.kotlinx.dataframe.api.head
 import org.jetbrains.kotlinx.dataframe.api.insert
+import org.jetbrains.kotlinx.dataframe.api.pivot
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.schema
+import org.jetbrains.kotlinx.dataframe.api.update
+import org.jetbrains.kotlinx.dataframe.api.values
+import org.jetbrains.kotlinx.dataframe.api.with
 import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.time.Clock
 
 class Repository {
@@ -59,6 +53,125 @@ class Repository {
             addLogger(StdOutSqlLogger)
         }
     }
+
+
+    fun getKHNP_ThermalWasteWater(){
+        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+        val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
+        val rows = mutableListOf<DataFrame<*>>()
+        genNames.forEach { genName ->
+            val urlPath = url + "&genName=${genName}"
+            try {
+                val df_json = DataFrame.readJson(
+                    XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
+                )
+                val instanceDf =
+                    df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
+                val updatedDf = instanceDf.insert("genName") { genName }.at(0)
+                rows.add(updatedDf)
+            }catch(e:Exception){
+                print(e.localizedMessage)
+                LOGGER.error("Exception : [" + e.localizedMessage + "]")
+                LOGGER.error("Url : [" + urlPath + "]")
+            }
+        }
+
+        val result = rows.concat()
+        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
+        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Count:[${result.count()}]")
+
+        transaction(Config.conn) {
+            SchemaUtils.create(KHNP_ThermalWasteWater)
+
+            result.forEach { item  ->
+                try{
+                    KHNP_ThermalWasteWater.insertIgnore { it ->
+                        it[genName] = item["genName"].toString()
+                        it[name] = item["name"].toString()
+                        it[time] = item["time"].toString()
+                        it[value] = item["value"].toString()
+                        it[expl] = item["expl"].toString()
+                    }
+                }catch (e:Exception){
+                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
+
+                }
+            }
+        }
+
+    }
+
+    fun getKHNP_WasteWater2(){
+
+        val myCollectionTime = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
+        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+        val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
+        val rows = mutableListOf<DataFrame<*>>()
+
+        genNames.forEach { genName ->
+            val urlPath = url + "&genName=${genName}"
+            try {
+                val df_json = DataFrame.readJson(
+                    XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
+                )
+                val instanceDf =
+                    df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
+
+                val updatedDf = instanceDf.add {
+                    "collectionTime" from { myCollectionTime }
+                    "genName" from { genName }
+                }
+                rows.add(updatedDf)
+            }catch(e:Exception){
+                print(e.localizedMessage)
+                LOGGER.error("Exception : [" + e.localizedMessage + "]")
+                LOGGER.error("Url : [" + urlPath + "]")
+            }
+        }
+
+        val concatDf = rows.concat()
+
+        val updatedDf = concatDf.update ("name" ).with {
+            val currentName = it.toString() // 현재 행의 name 값
+            when {
+                currentName.contains("FLW00") || currentName.contains("TM001") -> "TM001"
+                currentName.contains("PHY00") || currentName.contains("TM002") -> "TM002"
+                else -> it // 조건에 해당하지 않으면 원래 값 유지
+            }
+        }
+
+        val result = updatedDf.pivot("name")
+            .groupBy ( "collectionTime" , "genName" )
+            .values( "value" )
+            .flatten()
+
+
+        LOGGER.info("\n ${::getKHNP_WasteWater2.name}  Schema[${result.schema()}]")
+        LOGGER.info("\n ${::getKHNP_WasteWater2.name}  Count:[${result.count()}]")
+
+        transaction(Config.conn) {
+            SchemaUtils.create(KHNP_WasteWater2)
+
+            result.forEach { item  ->
+                try{
+                    KHNP_WasteWater2.insertIgnore { it ->
+                        it[time] = item["collectionTime"].toString()
+                        it[genName] = item["genName"].toString()
+                        it[tm001] = item["TM001"].toString()
+                        it[tm002] = item["TM002"].toString()
+                    }
+                }catch (e:Exception){
+                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
+
+                }
+            }
+        }
+
+    }
+
+
+
+
 
     fun getKHNP_WasteWater(){
         val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
@@ -104,9 +217,10 @@ class Repository {
             }
         }
 
-
-
     }
+
+
+
     fun loadDataSDoT(path:String, maxPage:Int): List<DataFrame<*>> {
         val rows = mutableListOf<DataFrame<*>>()
         var requestPage = 1
