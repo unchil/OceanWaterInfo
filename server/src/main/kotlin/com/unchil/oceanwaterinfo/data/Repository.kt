@@ -54,12 +54,33 @@ private val cacheStorage_SDoTEnvInfoGyonggi = ConcurrentHashMap<String, Pair<Lis
 
 private val cacheStorage_SDoTEnvInfoUnion = ConcurrentHashMap<String, Pair<List<SDoTEnvInfoUnion>, Long>>()
 
+private val cacheStorage_KHNPWasteWater = ConcurrentHashMap<String, Pair<List<KHNPWasteWater>, Long>>()
 
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 
 class Repository {
+
+    fun khnp_WasteWater():List<KHNPWasteWater> {
+        val key = "cache_khnp_wastewater"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KHNPWasteWater[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchKHNPWasteWaterFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KHNPWasteWater[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
 
 
     fun sDoTEnvInfoUnion():List<SDoTEnvInfoUnion> {
@@ -266,6 +287,33 @@ class Repository {
             cacheStorage_SeaWaterInfoBoxPlot[key] = Pair(resultFromDb, now)
         }
         return resultFromDb
+    }
+
+
+    fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater> = transaction {
+        LOGGER.info("Serving from DB for : fetchKHNPWasteWaterFromDb")
+        val previous24Hour =
+            kotlin.time.Clock.System.now()
+                .minus(24, DateTimeUnit.HOUR)
+                .toLocalDateTime(TimeZone.UTC)
+                .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
+
+        val result = KHNP_WasteWater2.select(
+            KHNP_WasteWater2.time,
+            KHNP_WasteWater2.genName,
+            KHNP_WasteWater2.tm001,
+            KHNP_WasteWater2.tm002
+        ).where { KHNP_WasteWater2.time greaterEq previous24Hour }
+            .map {
+                KHNPWasteWater(
+                    it[KHNP_WasteWater2.time],
+                    it[KHNP_WasteWater2.genName],
+                    it[KHNP_WasteWater2.tm001],
+                    it[KHNP_WasteWater2.tm002],
+                )
+            }
+        return@transaction result
+
     }
 
     fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion> = transaction {

@@ -72,6 +72,21 @@ fun Application.configureSerialization(repository: Repository) {
             }
         }
 
+        route("/khnp"){
+            get("/wastewater"){
+                try {
+                    val result = repository.khnp_WasteWater()
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+        }
+
 
 
         route("/khoa"){

@@ -334,3 +334,13 @@ fun toSDoTEnvInfoUnionFromSDoT_EnvInfoGyonggi(it: ResultRow) = SDoTEnvInfoUnion(
     it[SDoT_EnvInfo_Gyonggi.pm10], it[SDoT_EnvInfo_Gyonggi.pm25]
 
     )
+
+
+object KHNP_WasteWater2:Table("KHNP_WasteWater2"){
+    val time = varchar("time", length=30)
+    val genName = varchar("genName", length=30)
+    val tm001 = varchar("tm001", length=30)
+    val tm002 = varchar("tm002", length=30)
+
+    override val primaryKey = PrimaryKey( time,genName,  name = "primaryKey")
+}

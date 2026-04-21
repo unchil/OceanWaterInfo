@@ -239,3 +239,12 @@ data class SDoTEnvInformation(
     val avg_o3:String,
     val min_o3:String
 )
+
+
+@Serializable
+data class KHNPWasteWater(
+    val time: String,
+    val genName: String,
+    val tm001 :String,
+    val tm002: String
+)
