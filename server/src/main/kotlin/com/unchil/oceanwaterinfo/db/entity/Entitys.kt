@@ -336,11 +336,31 @@ fun toSDoTEnvInfoUnionFromSDoT_EnvInfoGyonggi(it: ResultRow) = SDoTEnvInfoUnion(
     )
 
 
-object KHNP_WasteWater2:Table("KHNP_WasteWater2"){
+
+object KHNP_WasteWater:Table("KHNP_WasteWater"){
     val time = varchar("time", length=30)
     val genName = varchar("genName", length=30)
     val tm001 = varchar("tm001", length=30)
+    val tm001_time = varchar("tm001_time", length=30)
     val tm002 = varchar("tm002", length=30)
+    val tm002_time = varchar("tm002_time", length=30)
 
     override val primaryKey = PrimaryKey( time,genName,  name = "primaryKey")
 }
+
+
+object KHNP_ThermalWasteWater:Table("KHNP_ThermalWasteWater"){
+    val time = varchar("time", length=30)
+    val genName = varchar("genName", length=30)
+    val rm001 = varchar("rm001", length=30)
+    val rm001_time = varchar("rm001_time", length=30)
+    val rm002 = varchar("rm002", length=30)
+    val rm002_time = varchar("rm002_time", length=30)
+    val rm005 = varchar("rm005", length=30)
+    val rm005_time = varchar("rm005_time", length=30)
+    val rm006 = varchar("rm006", length=30)
+    val rm006_time = varchar("rm006_time", length=30)
+
+    override val primaryKey = PrimaryKey( time,genName,  name = "primaryKey")
+}
+

@@ -1,11 +1,6 @@
 package com.unchil.oceanwaterinfo
 
-import com.unchil.oceanwaterinfo.KHNP_WasteWater.name
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo.sensing_time
-import com.unchil.oceanwaterinfo.SDoT_EnvInfo.serial
-import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.pre_lat
-import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.pre_lon
-import com.unchil.oceanwaterinfo.TidalCurrentInfoKHOA.sch_time
+
 import org.jetbrains.exposed.v1.core.Table
 
 object ObservationTable: Table("Observation"){
@@ -114,35 +109,36 @@ object TidalCurrentInfoKHOA: Table("TidalCurrentInfoKHOA"){
 }
 
 
-object KHNP_WasteWater2:Table("KHNP_WasteWater2"){
+object KHNP_ThermalWasteWater:Table("KHNP_ThermalWasteWater"){
     val time = varchar("time", length=30)
     val genName = varchar("genName", length=30)
-    val tm001 = varchar("tm001", length=30)
-    val tm002 = varchar("tm002", length=30)
+    val rm001 = varchar("rm001", length=30)
+    val rm001_time = varchar("rm001_time", length=30)
+    val rm002 = varchar("rm002", length=30)
+    val rm002_time = varchar("rm002_time", length=30)
+    val rm005 = varchar("rm005", length=30)
+    val rm005_time = varchar("rm005_time", length=30)
+    val rm006 = varchar("rm006", length=30)
+    val rm006_time = varchar("rm006_time", length=30)
 
     override val primaryKey = PrimaryKey( time,genName,  name = "primaryKey")
 }
 
+
+
 object KHNP_WasteWater:Table("KHNP_WasteWater"){
-    val genName = varchar("genName", length=30)
-    val expl = varchar("expl", length=30)
-    val name = varchar("name", length=30)
     val time = varchar("time", length=30)
-    val value = varchar("value", length=30)
+    val genName = varchar("genName", length=30)
+    val tm001 = varchar("tm001", length=30)
+    val tm001_time = varchar("tm001_time", length=30)
+    val tm002 = varchar("tm002", length=30)
+    val tm002_time = varchar("tm002_time", length=30)
 
-    override val primaryKey = PrimaryKey(genName, name, time, name = "primaryKey")
+    override val primaryKey = PrimaryKey( time,genName,  name = "primaryKey")
 }
 
 
-object KHNP_ThermalWasteWater:Table("KHNP_ThermalWasteWater"){
-    val genName = varchar("genName", length=30)
-    val expl = varchar("expl", length=30)
-    val name = varchar("name", length=30)
-    val time = varchar("time", length=30)
-    val value = varchar("value", length=30)
 
-    override val primaryKey = PrimaryKey(genName, name, time, name = "primaryKey")
-}
 
 object SDoT_Location: Table("SDoT_Location"){
     val serial = varchar("serial", length=30)

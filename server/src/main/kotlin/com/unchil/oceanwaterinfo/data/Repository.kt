@@ -56,11 +56,37 @@ private val cacheStorage_SDoTEnvInfoUnion = ConcurrentHashMap<String, Pair<List<
 
 private val cacheStorage_KHNPWasteWater = ConcurrentHashMap<String, Pair<List<KHNPWasteWater>, Long>>()
 
+private val cacheStorage_KHNPThermalWasteWater = ConcurrentHashMap<String, Pair<List<KHNPThermalWasteWater>, Long>>()
+
+
+
+
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 
 class Repository {
+
+    fun khnp_ThermalWasteWater():List<KHNPThermalWasteWater> {
+        val key = "cache_khnp_thermalwastewater"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KHNPThermalWasteWater[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchKHNPThermalWasteWaterFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KHNPThermalWasteWater[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
+
 
     fun khnp_WasteWater():List<KHNPWasteWater> {
         val key = "cache_khnp_wastewater"
@@ -289,27 +315,68 @@ class Repository {
         return resultFromDb
     }
 
+    fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater> = transaction {
+        LOGGER.info("Serving from DB for : fetchKHNPThermalWasteWaterFromDb")
+        val previous24Hour =
+            kotlin.time.Clock.System.now()
+                .minus(6, DateTimeUnit.HOUR)
+                .toLocalDateTime(TimeZone.UTC)
+                .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
+
+        val result = KHNP_ThermalWasteWater.select(
+            KHNP_ThermalWasteWater.time,
+            KHNP_ThermalWasteWater.genName,
+            KHNP_ThermalWasteWater.rm001,
+            KHNP_ThermalWasteWater.rm001_time,
+            KHNP_ThermalWasteWater.rm002,
+            KHNP_ThermalWasteWater.rm002_time,
+            KHNP_ThermalWasteWater.rm005,
+            KHNP_ThermalWasteWater.rm005_time,
+            KHNP_ThermalWasteWater.rm006,
+            KHNP_ThermalWasteWater.rm006_time
+        ).where { KHNP_ThermalWasteWater.time greaterEq previous24Hour }
+            .map {
+                KHNPThermalWasteWater(
+                    it[KHNP_ThermalWasteWater.time],
+                    it[KHNP_ThermalWasteWater.genName],
+                    it[KHNP_ThermalWasteWater.rm001],
+                    it[KHNP_ThermalWasteWater.rm001_time],
+                    it[KHNP_ThermalWasteWater.rm002],
+                    it[KHNP_ThermalWasteWater.rm002_time],
+                    it[KHNP_ThermalWasteWater.rm005],
+                    it[KHNP_ThermalWasteWater.rm005_time],
+                    it[KHNP_ThermalWasteWater.rm006],
+                    it[KHNP_ThermalWasteWater.rm006_time]
+                )
+            }
+        return@transaction result
+
+    }
 
     fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater> = transaction {
         LOGGER.info("Serving from DB for : fetchKHNPWasteWaterFromDb")
         val previous24Hour =
             kotlin.time.Clock.System.now()
-                .minus(24, DateTimeUnit.HOUR)
+                .minus(6, DateTimeUnit.HOUR)
                 .toLocalDateTime(TimeZone.UTC)
                 .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 
-        val result = KHNP_WasteWater2.select(
-            KHNP_WasteWater2.time,
-            KHNP_WasteWater2.genName,
-            KHNP_WasteWater2.tm001,
-            KHNP_WasteWater2.tm002
-        ).where { KHNP_WasteWater2.time greaterEq previous24Hour }
+        val result = KHNP_WasteWater.select(
+            KHNP_WasteWater.time,
+            KHNP_WasteWater.genName,
+            KHNP_WasteWater.tm001,
+            KHNP_WasteWater.tm001_time,
+            KHNP_WasteWater.tm002,
+            KHNP_WasteWater.tm002_time
+        ).where { KHNP_WasteWater.time greaterEq previous24Hour }
             .map {
                 KHNPWasteWater(
-                    it[KHNP_WasteWater2.time],
-                    it[KHNP_WasteWater2.genName],
-                    it[KHNP_WasteWater2.tm001],
-                    it[KHNP_WasteWater2.tm002],
+                    it[KHNP_WasteWater.time],
+                    it[KHNP_WasteWater.genName],
+                    it[KHNP_WasteWater.tm001],
+                    it[KHNP_WasteWater.tm001_time],
+                    it[KHNP_WasteWater.tm002],
+                    it[KHNP_WasteWater.tm002_time]
                 )
             }
         return@transaction result

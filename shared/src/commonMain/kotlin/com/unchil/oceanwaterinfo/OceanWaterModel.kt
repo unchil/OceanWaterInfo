@@ -246,5 +246,22 @@ data class KHNPWasteWater(
     val time: String,
     val genName: String,
     val tm001 :String,
-    val tm002: String
+    val tm001_time: String,
+    val tm002: String,
+    val tm002_time: String
+)
+
+
+@Serializable
+data class KHNPThermalWasteWater(
+    val time: String,
+    val genName: String,
+    val rm001 :String,
+    val rm001_time: String,
+    val rm002: String,
+    val rm002_time: String,
+    val rm005: String,
+    val rm005_time: String,
+    val rm006: String,
+    val rm006_time: String
 )

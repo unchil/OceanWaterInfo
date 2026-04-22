@@ -54,59 +54,11 @@ class Repository {
         }
     }
 
-
-    fun getKHNP_ThermalWasteWater(){
-        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+    fun loadKHNP_Service(url:String): DataFrame<*> {
+        val now = Clock.System.now()
         val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
         val rows = mutableListOf<DataFrame<*>>()
-        genNames.forEach { genName ->
-            val urlPath = url + "&genName=${genName}"
-            try {
-                val df_json = DataFrame.readJson(
-                    XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
-                )
-                val instanceDf =
-                    df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
-                val updatedDf = instanceDf.insert("genName") { genName }.at(0)
-                rows.add(updatedDf)
-            }catch(e:Exception){
-                print(e.localizedMessage)
-                LOGGER.error("Exception : [" + e.localizedMessage + "]")
-                LOGGER.error("Url : [" + urlPath + "]")
-            }
-        }
-
-        val result = rows.concat()
-        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
-        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Count:[${result.count()}]")
-
-        transaction(Config.conn) {
-            SchemaUtils.create(KHNP_ThermalWasteWater)
-
-            result.forEach { item  ->
-                try{
-                    KHNP_ThermalWasteWater.insertIgnore { it ->
-                        it[genName] = item["genName"].toString()
-                        it[name] = item["name"].toString()
-                        it[time] = item["time"].toString()
-                        it[value] = item["value"].toString()
-                        it[expl] = item["expl"].toString()
-                    }
-                }catch (e:Exception){
-                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
-
-                }
-            }
-        }
-
-    }
-
-    fun getKHNP_WasteWater2(){
-
-        val myCollectionTime = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
-        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
-        val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
-        val rows = mutableListOf<DataFrame<*>>()
+        val myCollectionTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
 
         genNames.forEach { genName ->
             val urlPath = url + "&genName=${genName}"
@@ -124,12 +76,80 @@ class Repository {
                 rows.add(updatedDf)
             }catch(e:Exception){
                 print(e.localizedMessage)
-                LOGGER.error("Exception : [" + e.localizedMessage + "]")
-                LOGGER.error("Url : [" + urlPath + "]")
+                print(urlPath)
             }
         }
 
-        val concatDf = rows.concat()
+        return rows.concat()
+    }
+
+
+    fun getKHNP_ThermalWasteWater(){
+        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+        val concatDf = loadKHNP_Service(url)
+
+        val updatedDf = concatDf.update ( "name" ).with {
+            val currentName = it.toString() // 현재 행의 name 값
+            when {
+                currentName.contains("RM001")-> "RM001"
+                currentName.contains("RM002")-> "RM002"
+                currentName.contains("RM005")-> "RM005"
+                currentName.contains("RM006")-> "RM006"
+                else -> it // 조건에 해당하지 않으면 원래 값 유지
+            }
+        }
+        val pivotedDf = updatedDf.pivot ( "name"  )
+            .groupBy ( "collectionTime" , "genName" )
+            .values ( "value" , "time" )
+            .flatten()
+
+
+        val result = pivotedDf.rename(
+            "value" to "rm001",
+            "time" to "rm001_time",
+            "value1" to "rm002",
+            "time1" to "rm002_time",
+            "value2" to "rm005",
+            "time2" to "rm005_time",
+            "value3" to "rm006",
+            "time3" to "rm006_time",
+        )
+
+        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
+        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Count:[${result.count()}]")
+
+        transaction(Config.conn) {
+            SchemaUtils.create(KHNP_ThermalWasteWater)
+
+            result.forEach { item  ->
+                try{
+                    KHNP_ThermalWasteWater.insertIgnore { it ->
+                        it[time] = item["collectionTime"].toString()
+                        it[genName] = item["genName"].toString()
+                        it[rm001] = item["rm001"].toString()
+                        it[rm001_time] = item["rm001_time"].toString()
+                        it[rm002] = item["rm002"].toString()
+                        it[rm002_time] = item["rm002_time"].toString()
+                        it[rm005] = item["rm005"].toString()
+                        it[rm005_time] = item["rm005_time"].toString()
+                        it[rm006] = item["rm006"].toString()
+                        it[rm006_time] = item["rm006_time"].toString()
+                    }
+                }catch (e:Exception){
+                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
+
+                }
+            }
+        }
+
+    }
+
+
+
+    fun getKHNP_WasteWater(){
+
+        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+        val concatDf = loadKHNP_Service(url)
 
         val updatedDf = concatDf.update ("name" ).with {
             val currentName = it.toString() // 현재 행의 name 값
@@ -140,61 +160,19 @@ class Repository {
             }
         }
 
-        val result = updatedDf.pivot("name")
+        val pivotedDf = updatedDf.pivot("name")
             .groupBy ( "collectionTime" , "genName" )
-            .values( "value" )
+            .values( "value", "time" )
             .flatten()
 
-
-        LOGGER.info("\n ${::getKHNP_WasteWater2.name}  Schema[${result.schema()}]")
-        LOGGER.info("\n ${::getKHNP_WasteWater2.name}  Count:[${result.count()}]")
-
-        transaction(Config.conn) {
-            SchemaUtils.create(KHNP_WasteWater2)
-
-            result.forEach { item  ->
-                try{
-                    KHNP_WasteWater2.insertIgnore { it ->
-                        it[time] = item["collectionTime"].toString()
-                        it[genName] = item["genName"].toString()
-                        it[tm001] = item["TM001"].toString()
-                        it[tm002] = item["TM002"].toString()
-                    }
-                }catch (e:Exception){
-                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
-
-                }
-            }
-        }
-
-    }
+        val result = pivotedDf.rename(
+            "value" to "tm001",
+            "time" to "tm001_time",
+            "value1" to "tm002",
+            "time1" to "tm002_time"
+        )
 
 
-
-
-
-    fun getKHNP_WasteWater(){
-        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
-        val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
-        val rows = mutableListOf<DataFrame<*>>()
-        genNames.forEach { genName ->
-            val urlPath = url + "&genName=${genName}"
-            try {
-                val df_json = DataFrame.readJson(
-                    XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
-                )
-                val instanceDf =
-                    df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
-                val updatedDf = instanceDf.insert("genName") { genName }.at(0)
-                rows.add(updatedDf)
-            }catch(e:Exception){
-                print(e.localizedMessage)
-                LOGGER.error("Exception : [" + e.localizedMessage + "]")
-                LOGGER.error("Url : [" + urlPath + "]")
-            }
-        }
-
-        val result = rows.concat()
         LOGGER.info("\n ${::getKHNP_WasteWater.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_WasteWater.name}  Count:[${result.count()}]")
 
@@ -204,11 +182,12 @@ class Repository {
             result.forEach { item  ->
                 try{
                     KHNP_WasteWater.insertIgnore { it ->
+                        it[time] = item["collectionTime"].toString()
                         it[genName] = item["genName"].toString()
-                        it[name] = item["name"].toString()
-                        it[time] = item["time"].toString()
-                        it[value] = item["value"].toString()
-                        it[expl] = item["expl"].toString()
+                        it[tm001] = item["tm001"].toString()
+                        it[tm001_time] = item["tm001_time"].toString()
+                        it[tm002] = item["tm002"].toString()
+                        it[tm002_time] = item["tm002_time"].toString()
                     }
                 }catch (e:Exception){
                     LOGGER.error("Exception : [" + e.localizedMessage + "]")
@@ -218,6 +197,7 @@ class Repository {
         }
 
     }
+
 
 
 
