@@ -86,4 +86,14 @@ class OceanWaterApi {
         return httpClient.get(url).body<List<SDoTEnvInfoUnion>>()
     }
 
+    suspend fun getKhnpWasteWater(): List<KHNPWasteWater>{
+        val url = "${endPoint}/khnp/wastewater"
+        return httpClient.get(url).body<List<KHNPWasteWater>>()
+    }
+
+    suspend fun getKhnpThermalWasteWater(): List<KHNPThermalWasteWater>{
+        val url = "${endPoint}/khnp/thermalwastewater"
+        return httpClient.get(url).body<List<KHNPThermalWasteWater>>()
+    }
+
 }

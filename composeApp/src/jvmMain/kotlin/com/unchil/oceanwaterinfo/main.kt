@@ -114,6 +114,7 @@ fun main() = application {
                         .background(color = MaterialTheme.colorScheme.surface)
                 ) {
 
+
                     SecondaryTabRow(
                         selectedTabIndex,
                         Modifier.fillMaxWidth(),
@@ -283,7 +284,7 @@ fun main() = application {
                                                         .verticalScroll(rememberScrollState()),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
-
+                                                    WasteWater_PointLineChart_KHNP()
                                                     WaterDegLineChart_KHOA()
                                                     WaterTempLineChart_KHOA()
                                                     OceanWaterInfoBoxPlotChart()
@@ -339,22 +340,17 @@ fun main() = application {
                         }
                     }
 
-
-
-
                 }
             }
         }
     }
+
 
     DisposableEffect(Unit) {
         onDispose {
             KCEF.disposeBlocking()
         }
     }
-
-
-
 
 
 

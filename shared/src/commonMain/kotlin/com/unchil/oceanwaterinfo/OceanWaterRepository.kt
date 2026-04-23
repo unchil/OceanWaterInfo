@@ -44,6 +44,37 @@ class OceanWaterRepository {
     val _sDoTEnvInfoUnion: MutableStateFlow<List<SDoTEnvInfoUnion>>
             = MutableStateFlow(emptyList())
 
+    val _khnpWasteWater: MutableStateFlow<List<KHNPWasteWater>>
+            = MutableStateFlow(emptyList())
+
+
+    val _khnpThermalWasteWater: MutableStateFlow<List<KHNPThermalWasteWater>>
+            = MutableStateFlow(emptyList())
+
+
+    suspend fun getKhnpThermalWasteWater(){
+        try {
+            oceanWaterApi.getKhnpThermalWasteWater().let {
+                _khnpThermalWasteWater.value = it
+                LOGGER.debug("getKhnpThermalWasteWater() called[${it.count()}]")
+            }
+        }catch (e:Exception){
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
+
+
+    suspend fun getKhnpWasteWater(){
+        try {
+            oceanWaterApi.getKhnpWasteWater().let {
+                _khnpWasteWater.value = it
+                LOGGER.debug("getKhnpWasteWater() called[${it.count()}]")
+            }
+        }catch (e:Exception){
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
+
 
 
     suspend fun getSDoTEnvInfoUnion(){

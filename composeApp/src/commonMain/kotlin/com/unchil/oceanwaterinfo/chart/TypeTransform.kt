@@ -16,6 +16,7 @@ import kotlin.math.sin
 import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
+import kotlin.math.round
 
 
 fun Double.round(decimals: Int): Double {
@@ -144,6 +145,54 @@ fun List<Point<Double, Double>>.getRange(
     return Pair(xMin-boundValue..xMax+boundValue, yMin-boundValue..yMax+boundValue )
 }
 
+@OptIn(FormatStringsInDatetimeFormats::class)
+fun List<KHNPWasteWater>.toLineTripleListWasteWater():  List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>> {
+    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
+
+    val validData =  this.sortedBy { it.time }.groupBy{it.genName}.flatMap{ (genName, items) ->
+        items.map{ it ->
+            val formattedTime = LocalDateTime.parse(it.time, inputFormat)
+                .toInstant(TimeZone.UTC)
+                .toEpochMilliseconds().toDouble()
+
+            genName to (
+                    formattedTime to
+                            Pair( (round(it.tm002.trim().toFloat() * 10) / 10.0).toFloat(),
+                                (round(it.tm001.trim().toFloat() * 10) / 10.0).toFloat()
+                            )
+
+                    )
+        }
+    }
+
+    val xValues = validData.map { it.second.first }.distinct().sorted()
+
+    val groupedByStation = validData
+        .groupBy({ it.first }, { it.second })
+        .mapValues { (_, timeValuePairs) ->
+            // 시간별로 맵을 만들어 xValues 순서대로 값을 배치 (데이터가 없으면 0f)
+            val timeMap = timeValuePairs.toMap()
+            xValues.map {  time ->
+                timeMap[time]
+            }
+        }
+
+
+    val result = groupedByStation.entries.map {  entry ->
+
+        val pointList = entry.value.mapIndexed { index, value ->
+            Point(xValues[index], (value as Pair<Float,Float>).first)
+        }
+
+        val valueList = entry.value.mapIndexed { index, value ->
+            Point(xValues[index],  (value as Pair<Float,Float>).second)
+        }
+
+        Triple(entry.key, pointList,  mapOf("tm001" to valueList) )
+    }
+
+    return result
+}
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun List<SeawaterInformationByObservationPoint>.toLineTripleList(): List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>{
