@@ -320,7 +320,7 @@ class Repository {
         val previous24Hour =
             kotlin.time.Clock.System.now()
                 .minus(6, DateTimeUnit.HOUR)
-                .toLocalDateTime(TimeZone.UTC)
+                .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 
         val result = KHNP_ThermalWasteWater.select(
@@ -358,7 +358,7 @@ class Repository {
         val previous24Hour =
             kotlin.time.Clock.System.now()
                 .minus(6, DateTimeUnit.HOUR)
-                .toLocalDateTime(TimeZone.UTC)
+                .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 
         val result = KHNP_WasteWater.select(
@@ -682,7 +682,7 @@ class Repository {
         val previous24Hour =
             kotlin.time.Clock.System.now()
                 .minus(24, DateTimeUnit.HOUR)
-                .toLocalDateTime(TimeZone.UTC)
+                .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm:ss")})
 
         val rawRecords = ObservationTable.join(
