@@ -48,6 +48,158 @@ import io.github.koalaplot.core.xygraph.XYGraphScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun XYGraphScope<Double, Float>.VerticalBarChartArea(
+    data: List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>,
+    onHoverEvent:((Int)->Unit)? = null
+){
+
+    val baseLineData = data.flatMap { it.second }
+    val areaLineData = data.flatMap { it.third["rm005"] as List<Point<Double, Float>> }
+    val allPoints = baseLineData + areaLineData
+    val yMax = allPoints.maxOf { it.y }
+    val yMin = allPoints.minOf { it.y }
+
+    val range = yMin - 1.0f..yMax + 1.0f
+
+    val colors = getColors(data.map { triple -> triple.first })
+    val toolTipWidth = remember { 120.dp }
+
+
+    val values: List<VerticalBarPlotEntry<Double, Float>> = data.first().second.map { point ->
+        DefaultVerticalBarPlotEntry(  point.x,
+            DefaultBarPosition(range.start, range.endInclusive)
+        )
+    }
+
+
+    val interactionSources = remember( baseLineData.size) {
+        List(baseLineData.size) { MutableInteractionSource() }
+    }
+
+    val tooltipStates = List(baseLineData.size) { index ->
+        rememberTooltipState()
+    }
+
+    BoxWithConstraints {
+
+        // 1. 하나의 슬롯당 할당된 너비 (Dp)
+        val chkSize = this.maxWidth / data.first().second.size
+
+        // 2. 원하는 최대 막대 너비 (예: 12.dp)
+        val maxBarWidth = remember{ 12.dp }
+
+        // 3. 공식: x = maxBarWidth / chkSize
+        // (chkSize가 0일 경우를 대비해 coerceAtMost(1f)로 비율의 최대값을 1.0으로 제한합니다)
+        val barWidth = (maxBarWidth / chkSize).coerceIn(0.2f, 0.9f)
+
+        VerticalBarPlot(
+            values,
+            modifier = Modifier,
+            bar = { index, _, _ ->
+
+                val interactionSource = interactionSources[index]
+                val isHovered by interactionSource.collectIsHoveredAsState()
+
+                LaunchedEffect(isHovered) {
+                    if (isHovered)  {
+                        onHoverEvent?.invoke(index)
+                    } else {
+                        onHoverEvent?.invoke(-1)
+                    }
+                }
+
+                val modifier = if (isHovered) {
+                    Modifier.zIndex(1f)
+                        .border(1.dp, color= DarkGray, ShapeDefaults.Small)
+                }else {
+                    Modifier.zIndex(0f)
+                }
+
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                        if (index > (values.size / 2) ) TooltipAnchorPosition.Start else TooltipAnchorPosition.End
+                    ),
+                    tooltip = {
+                        Box(
+                            modifier = Modifier
+                                .wrapContentSize(unbounded = true)
+                                .background(  color = Color.Transparent,  shape = ShapeDefaults.Medium  ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(){
+                                val modifier = Modifier
+                                    .width(toolTipWidth)
+                                    .padding(vertical = 1.dp)
+                                    .border(1.dp, color= DarkGray, ShapeDefaults.Small)
+                                    .background( color = DarkGray, shape = ShapeDefaults.Small)
+
+                                val textStyleTitle = TextStyle(
+                                    color = Color.White,
+                                    fontSize =  12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontStyle = FontStyle.Italic,
+                                    textAlign = TextAlign.Center
+                                )
+                                val textStyle = TextStyle(
+                                    color = Color.White,
+                                    fontSize =  12.sp,
+                                    fontWeight = FontWeight.Light,
+                                    textAlign = TextAlign.Start
+                                )
+                                val text = formatLongToDateTime(values[index].x)
+
+                                BoxPlotTooltips(
+                                    text,
+                                    textStyleTitle,
+                                    modifier
+                                )
+
+                                val sortedEntries = data.map { triple ->
+                                    triple.first to (
+                                            Pair( triple.second.getOrNull(index)?.y ?: 0f,
+                                                (triple.third["rm005"] as List<Point<Double, Float>> ).getOrNull(index)?.y ?: 0f
+                                            )
+                                    )
+                                }.sortedByDescending { it.second.first }
+
+                                sortedEntries.forEach {  (observatory, value) ->
+
+                                    BoxPlotTooltips(
+                                        "${observatory} : ${value.first} ~ ${value.second}",
+                                        textStyle,
+                                        modifier.background( color = colors[observatory] as Color, shape = ShapeDefaults.Small),
+
+                                        )
+                                }
+
+
+
+                            }
+                        }
+                    },
+                    state = tooltipStates[index],
+                ){
+                    DefaultBar(
+                        brush = SolidColor( if (isHovered) Color.LightGray.copy(0.2f) else Color.Transparent),
+                        modifier = modifier.hoverable(interactionSource = interactionSource)
+                    )
+
+                }
+
+            },
+            barWidth = barWidth,
+
+
+        )
+
+
+    }
+
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun XYGraphScope<Double, Float>.VerticalBarChart(
     data: List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>,
     range: ClosedFloatingPointRange<Float>,

@@ -133,7 +133,7 @@ data class LayoutData(
 }
 
 enum class ChartType {
-    XYGraph, Line, VerticalBar, GroupVerticalBar, BoxPlot, Geo, DegLine, Point
+    XYGraph, Line, VerticalBar, GroupVerticalBar, BoxPlot, Geo, DegLine, Point, Area
 }
 
 enum class BoxPlotRange {

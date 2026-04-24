@@ -85,6 +85,8 @@ fun main() = application {
 
 
 
+
+
     val state = WindowState(
         size = DpSize(1400.dp, 1000.dp),
         position = WindowPosition(Alignment.Center)
@@ -113,6 +115,9 @@ fun main() = application {
                     modifier = Modifier.fillMaxSize()
                         .background(color = MaterialTheme.colorScheme.surface)
                 ) {
+
+
+
 
 
                     SecondaryTabRow(
@@ -284,6 +289,7 @@ fun main() = application {
                                                         .verticalScroll(rememberScrollState()),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
+                                                    ThermalWasteWater_AreaLineChart_KHNP()
                                                     WasteWater_PointLineChart_KHNP()
                                                     WaterDegLineChart_KHOA()
                                                     WaterTempLineChart_KHOA()
@@ -340,10 +346,13 @@ fun main() = application {
                         }
                     }
 
+
+
                 }
             }
         }
     }
+
 
 
     DisposableEffect(Unit) {
@@ -351,6 +360,8 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
+
+
 
 
 

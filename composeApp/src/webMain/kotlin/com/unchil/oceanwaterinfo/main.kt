@@ -52,6 +52,7 @@ fun main() {
                                 modifier = Modifier.verticalScroll(rememberScrollState()),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ){
+                                ThermalWasteWater_AreaLineChart_KHNP()
                                 WasteWater_PointLineChart_KHNP()
                                 OceanWaterInfoBoxPlotChart()
                                 OceanWaterInfoBarChart()

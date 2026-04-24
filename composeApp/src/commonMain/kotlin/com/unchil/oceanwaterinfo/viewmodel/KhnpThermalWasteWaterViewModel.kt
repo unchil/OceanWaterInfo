@@ -1,7 +1,6 @@
 package com.unchil.oceanwaterinfo.viewmodel
 
 import com.unchil.oceanwaterinfo.KHNPThermalWasteWater
-import com.unchil.oceanwaterinfo.KHNPWasteWater
 import com.unchil.oceanwaterinfo.getPlatform
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

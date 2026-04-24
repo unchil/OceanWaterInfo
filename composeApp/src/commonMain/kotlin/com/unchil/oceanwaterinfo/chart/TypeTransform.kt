@@ -145,56 +145,44 @@ fun List<Point<Double, Double>>.getRange(
     return Pair(xMin-boundValue..xMax+boundValue, yMin-boundValue..yMax+boundValue )
 }
 
-/*
+
+
 @OptIn(FormatStringsInDatetimeFormats::class)
-fun List<KHNPWasteWater>.toLineTripleListWasteWater():  List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>> {
+fun List<KHNPThermalWasteWater>.toLineTripleListThermalWasteWater(): List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>> {
     val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
 
-    val validData =  this.sortedBy { it.time }.groupBy{it.genName}.flatMap{ (genName, items) ->
-        items.map{ it ->
-            val formattedTime = LocalDateTime.parse(it.time, inputFormat)
-                .toInstant(TimeZone.UTC)
-                .toEpochMilliseconds().toDouble()
 
-            genName to (
-                    formattedTime to
-                            Pair( (round(it.tm002.trim().toFloat() * 10) / 10.0).toFloat(),
-                                (round(it.tm001.trim().toFloat() * 10) / 10.0).toFloat()
-                            )
+    val processedData = this.map { item ->
+        val timeX = LocalDateTime.parse(item.time, inputFormat)
+            .toInstant(TimeZone.UTC).toEpochMilliseconds().toDouble()
 
-                    )
-        }
+        // 반올림 및 안전한 Float 변환
+        val inputY = (item.rm001.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
+        val outputY = (item.rm005.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
+
+        item.genName to (timeX to (inputY to outputY))
     }
 
-    val xValues = validData.map { it.second.first }.distinct().sorted()
+    // 2. 전체 데이터에서 고유한 X축(시간) 값 추출 및 정렬
+    val allXValues = processedData.map { it.second.first }.distinct().sorted()
 
-    val groupedByStation = validData
-        .groupBy({ it.first }, { it.second })
-        .mapValues { (_, timeValuePairs) ->
-            // 시간별로 맵을 만들어 xValues 순서대로 값을 배치 (데이터가 없으면 0f)
-            val timeMap = timeValuePairs.toMap()
-            xValues.map {  time ->
-                timeMap[time]
+    // 3. 발전소별로 그룹화하여 최종 Triple 리스트 생성
+    return processedData.groupBy({ it.first }, { it.second })
+        .map { (genName, timeValues) ->
+            val timeMap = timeValues.toMap()
+
+            // 모든 X축 지점에 대해 데이터가 없으면 0f로 채움
+            val inputPoints = allXValues.map { x ->
+                Point(x, timeMap[x]?.first ?: 0f)
             }
+            val outputPoints = allXValues.map { x ->
+                Point(x, timeMap[x]?.second ?: 0f)
+            }
+
+            Triple(genName, inputPoints, mapOf("rm005" to outputPoints))
         }
-
-
-    val result = groupedByStation.entries.map {  entry ->
-
-        val pointList = entry.value.mapIndexed { index, value ->
-            Point(xValues[index], (value as Pair<Float,Float>).first)
-        }
-
-        val valueList = entry.value.mapIndexed { index, value ->
-            Point(xValues[index],  (value as Pair<Float,Float>).second)
-        }
-
-        Triple(entry.key, pointList,  mapOf("tm001" to valueList) )
-    }
-
-    return result
 }
-*/
+
 
 
 @OptIn(FormatStringsInDatetimeFormats::class)

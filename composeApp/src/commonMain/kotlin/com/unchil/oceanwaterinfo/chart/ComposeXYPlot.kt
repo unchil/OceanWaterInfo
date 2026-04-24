@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.chart.AreaLineChart
 import com.unchil.oceanwaterinfo.chart.DegLineChart
 import com.unchil.oceanwaterinfo.chart.PointLineChart
 import io.github.koalaplot.core.ChartLayout
@@ -46,7 +47,8 @@ fun ComposeXYPlot(
     val colors = getColors(entries)
 
     val modifier = when(layout.type){
-        ChartType.XYGraph, ChartType.Line, ChartType.DegLine, ChartType.VerticalBar, ChartType.GroupVerticalBar, ChartType.BoxPlot, ChartType.Point -> {
+        ChartType.XYGraph, ChartType.Line, ChartType.DegLine, ChartType.VerticalBar,
+        ChartType.GroupVerticalBar, ChartType.BoxPlot, ChartType.Point, ChartType.Area -> {
             Modifier
                 .fillMaxWidth()
                 .height(layout.size.height)
@@ -90,30 +92,28 @@ fun ComposeXYPlot(
 
                 XYGraph(
                     xAxisModel = when (layout.type) {
-                        ChartType.Line, ChartType.DegLine, ChartType.Geo, ChartType.Point -> layout.xAxis.model as DoubleLinearAxisModel
-                        ChartType.VerticalBar, ChartType.BoxPlot, ChartType.GroupVerticalBar, ChartType.XYGraph -> {
-                            layout.xAxis.model as CategoryAxisModel<Any>
-                        }
+                        ChartType.Line, ChartType.DegLine, ChartType.Geo, ChartType.Point, ChartType.Area
+                            -> { layout.xAxis.model as DoubleLinearAxisModel }
+                        ChartType.VerticalBar, ChartType.BoxPlot, ChartType.GroupVerticalBar, ChartType.XYGraph
+                            -> {  layout.xAxis.model as CategoryAxisModel<Any> }
                     },
                     yAxisModel = when (layout.type) {
-                        ChartType.XYGraph, ChartType.VerticalBar, ChartType.BoxPlot,ChartType.GroupVerticalBar, ChartType.Line, ChartType.DegLine, ChartType.Point -> {
-                            layout.yAxis.model as FloatLinearAxisModel
-                        }
-                        ChartType.Geo -> layout.yAxis.model as DoubleLinearAxisModel
+                        ChartType.XYGraph, ChartType.VerticalBar, ChartType.BoxPlot,ChartType.GroupVerticalBar,
+                        ChartType.Line, ChartType.DegLine, ChartType.Point, ChartType.Area
+                            -> { layout.yAxis.model as FloatLinearAxisModel  }
+                        ChartType.Geo
+                            -> { layout.yAxis.model as DoubleLinearAxisModel }
                     },
                     xAxisContent = AxisContent(
                         labels = {
                             if (layout.xAxis.isLabels) {
                                 when (layout.type) {
-                                    ChartType.XYGraph, ChartType.VerticalBar, ChartType.GroupVerticalBar, ChartType.BoxPlot -> {
-                                        AxisLabel(it.toString(), Modifier.padding(top = 2.dp))
-                                    }
-                                    ChartType.Line, ChartType.DegLine, ChartType.Point -> {
-                                        AxisLabel(formatLongToDateTime(it), Modifier.padding(top = 2.dp))
-                                    }
-                                    ChartType.Geo ->{
-                                        AxisLabel(it.toString(), Modifier.padding(top = 2.dp))
-                                    }
+                                    ChartType.XYGraph, ChartType.VerticalBar, ChartType.GroupVerticalBar, ChartType.BoxPlot
+                                        -> {  AxisLabel(it.toString(), Modifier.padding(top = 2.dp))  }
+                                    ChartType.Line, ChartType.DegLine, ChartType.Point, ChartType.Area
+                                        -> {  AxisLabel(formatLongToDateTime(it), Modifier.padding(top = 2.dp)) }
+                                    ChartType.Geo
+                                        -> { AxisLabel(it.toString(), Modifier.padding(top = 2.dp)) }
                                 }
                             }
                         },
@@ -190,6 +190,11 @@ fun ComposeXYPlot(
                 ) {
 
                     when (layout.type) {
+
+                        ChartType.Area -> {
+                            val scope = this as XYGraphScope<Double, Float>
+                            scope.AreaLineChart(data, layout.tooltips.isTooltips, layout.tooltips.isSymbol)
+                        }
 
                         ChartType.Point -> {
                             val scope = this as XYGraphScope<Double, Float>
