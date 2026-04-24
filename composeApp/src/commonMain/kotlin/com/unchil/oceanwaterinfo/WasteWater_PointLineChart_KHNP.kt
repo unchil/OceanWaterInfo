@@ -125,7 +125,7 @@ fun WasteWater_PointLineChart_KHNP(){
                 val yMin = allPoints.minOf { it.y }
 
                 val xRange = xMin-300 * 1000..xMax+ 300*1000
-                val yRange = yMin-1.0f..yMax+1.0f
+                val yRange = yMin-0.2f..yMax+0.2f
 
                 chartLayout.value = LayoutData(
                     type = ChartType.Point,
