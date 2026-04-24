@@ -145,17 +145,14 @@ fun XYGraphScope<Double, Float>.PointLineChart(
                     else -> dynamicSize
                 }
 
-                /*
                 val symbolAlpha = when {
-                    isHovered || usableSymbol || triple.second.indexOf(point) == 0 || triple.second.indexOf(
-                        point
-                    ) == triple.second.lastIndex -> 1.0f
-
+                    usableSymbol ||
+                            triple.second.indexOf(point) == 0 ||
+                            triple.second.indexOf(point ) == triple.second.lastIndex -> 0.5f
                     else -> 0f
                 }
 
-                 */
-                val symbolAlpha = 0.5f
+
 
                     TooltipBox(
                     positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
