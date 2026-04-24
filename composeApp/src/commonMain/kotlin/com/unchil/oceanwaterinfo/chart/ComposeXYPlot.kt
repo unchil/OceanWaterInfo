@@ -34,6 +34,7 @@ import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.XYGraph
 import io.github.koalaplot.core.xygraph.XYGraphScope
 import io.github.koalaplot.core.xygraph.rememberGridStyle
+import kotlin.math.round
 
 @OptIn(ExperimentalKoalaPlotApi::class)
 @Composable
@@ -142,7 +143,14 @@ fun ComposeXYPlot(
                     yAxisContent = AxisContent(
                         labels = {
                             if (layout.yAxis.isLabels) {
-                                AxisLabel(it.toString(), Modifier.absolutePadding(right = 2.dp))
+                                // it의 타입(Float 또는 Double)에 따라 소수점 한 자리 반올림 처리
+                                val label = when(it) {
+                                    is Float -> (round(it * 10) / 10f).toString()
+                                    is Double -> (round(it * 10) / 10.0).toString()
+                                    else -> it.toString()
+                                }
+
+                                AxisLabel(label, Modifier.absolutePadding(right = 2.dp))
                             }
                         },
                         title = {
