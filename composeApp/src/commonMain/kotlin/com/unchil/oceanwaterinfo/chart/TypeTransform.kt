@@ -145,6 +145,7 @@ fun List<Point<Double, Double>>.getRange(
     return Pair(xMin-boundValue..xMax+boundValue, yMin-boundValue..yMax+boundValue )
 }
 
+/*
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun List<KHNPWasteWater>.toLineTripleListWasteWater():  List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>> {
     val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
@@ -192,6 +193,44 @@ fun List<KHNPWasteWater>.toLineTripleListWasteWater():  List<Triple< String, Lis
     }
 
     return result
+}
+*/
+
+
+@OptIn(FormatStringsInDatetimeFormats::class)
+fun List<KHNPWasteWater>.toLineTripleListWasteWater(): List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>> {
+    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
+
+    // 1. 데이터 전처리: 발전소별 (시간, PH, 유량) 맵핑
+    val processedData = this.map { item ->
+        val timeX = LocalDateTime.parse(item.time, inputFormat)
+            .toInstant(TimeZone.UTC).toEpochMilliseconds().toDouble()
+
+        // 반올림 및 안전한 Float 변환
+        val phY = (item.tm002.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
+        val flowY = (item.tm001.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
+
+        item.genName to (timeX to (phY to flowY))
+    }
+
+    // 2. 전체 데이터에서 고유한 X축(시간) 값 추출 및 정렬
+    val allXValues = processedData.map { it.second.first }.distinct().sorted()
+
+    // 3. 발전소별로 그룹화하여 최종 Triple 리스트 생성
+    return processedData.groupBy({ it.first }, { it.second })
+        .map { (genName, timeValues) ->
+            val timeMap = timeValues.toMap()
+
+            // 모든 X축 지점에 대해 데이터가 없으면 0f로 채움
+            val phPoints = allXValues.map { x ->
+                Point(x, timeMap[x]?.first ?: 0f)
+            }
+            val flowPoints = allXValues.map { x ->
+                Point(x, timeMap[x]?.second ?: 0f)
+            }
+
+            Triple(genName, phPoints, mapOf("tm001" to flowPoints))
+        }
 }
 
 @OptIn(FormatStringsInDatetimeFormats::class)

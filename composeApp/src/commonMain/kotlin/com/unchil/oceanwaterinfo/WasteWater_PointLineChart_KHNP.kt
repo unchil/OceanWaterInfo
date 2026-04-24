@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.Point
@@ -28,13 +27,12 @@ import kotlinx.coroutines.delay
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
-import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.minus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.datetime.toLocalDateTime
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 @Composable
@@ -59,7 +57,7 @@ fun WasteWater_PointLineChart_KHNP(){
     val data: MutableState< List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>> = remember { mutableStateOf(emptyList() ) }
     val chartLayout = remember { mutableStateOf(LayoutData() )}
     val chartHeight = remember {400.dp}
-    val chartTitle = remember {"6-hour WasteWater Current"}
+    val chartTitle = remember {"3-hour WasteWater Current"}
     val chartXTitle = remember { "DateTime"}
     val chartYTitle = remember { "Quality(PH)"}
     val chartCaption = remember {"from https://www.data.go.kr/data/15157700/openapi.do (행정안전부 공공데이터포털)"}
@@ -69,26 +67,23 @@ fun WasteWater_PointLineChart_KHNP(){
     var isLegend by remember { mutableStateOf(true) }
 
 
-    fun String.toSeoulInstant(): kotlin.time.Instant {
-        return LocalDateTime.parse(this.replace(" ", "T")).toInstant(TimeZone.UTC)
-    }
+
 
     LaunchedEffect(key1= wasterWaterInfo.value){
 
-        /*
-        val previous6Hour = kotlin.time.Clock.System.now()
-            .minus(6, DateTimeUnit.HOUR)
-            .toLocalDateTime(seoulTz)
-            .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
-        */
+        val previousHour = kotlin.time.Clock.System.now()
+            .minus(3, DateTimeUnit.HOUR)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .toInstant(TimeZone.UTC)
+
         val checkTime_Wastewater = 10.minutes
 
         val filteredList = wasterWaterInfo.value.filter { item ->
-            val time = item.time.toSeoulInstant()
-            val tm01 = item.tm001_time.toSeoulInstant()
-            val tm02 = item.tm002_time.toSeoulInstant()
+            val time = LocalDateTime.parse(item.time.replace(" ", "T")).toInstant(TimeZone.UTC)
+            val tm01 = LocalDateTime.parse(item.tm001_time.replace(" ", "T")).toInstant(TimeZone.UTC)
+            val tm02 = LocalDateTime.parse(item.tm002_time.replace(" ", "T")).toInstant(TimeZone.UTC)
 
-         //   item.time >= previous6Hour &&
+            time >= previousHour &&
             (time - tm01).absoluteValue <= checkTime_Wastewater &&
             (time - tm02).absoluteValue <= checkTime_Wastewater
         }
