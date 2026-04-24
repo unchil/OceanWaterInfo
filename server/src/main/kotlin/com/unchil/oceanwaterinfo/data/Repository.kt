@@ -319,7 +319,7 @@ class Repository {
         LOGGER.info("Serving from DB for : fetchKHNPThermalWasteWaterFromDb")
         val previous24Hour =
             kotlin.time.Clock.System.now()
-                .minus(6, DateTimeUnit.HOUR)
+                .minus(24, DateTimeUnit.HOUR)
                 .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 

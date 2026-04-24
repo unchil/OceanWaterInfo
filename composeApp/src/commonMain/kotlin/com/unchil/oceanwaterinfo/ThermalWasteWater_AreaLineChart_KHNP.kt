@@ -56,7 +56,7 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
     val data: MutableState< List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>> = remember { mutableStateOf(emptyList() ) }
     val chartLayout = remember { mutableStateOf(LayoutData() )}
     val chartHeight = remember {400.dp}
-    val chartTitle = remember {"6-hour ThermalWasteWater Current"}
+    val chartTitle = remember {"24-hour ThermalWasteWater Current"}
     val chartXTitle = remember { "DateTime"}
     val chartYTitle = remember { "Water Temperature(°C)"}
     val chartCaption = remember {"from https://www.data.go.kr/data/15157696/openapi.do (행정안전부 공공데이터포털)"}
@@ -68,7 +68,7 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
     LaunchedEffect(key1= thermalWasterWaterInfo.value){
 
         val previousHour = kotlin.time.Clock.System.now()
-            .minus(6, DateTimeUnit.HOUR)
+            .minus(24, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.currentSystemDefault())
             .toInstant(TimeZone.UTC)
 
@@ -79,8 +79,8 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
             val rm01 = LocalDateTime.parse(item.rm001_time.replace(" ", "T")).toInstant(TimeZone.UTC)
             val rm05 = LocalDateTime.parse(item.rm005_time.replace(" ", "T")).toInstant(TimeZone.UTC)
 
-          //  item.genName.equals("KR") &&
-            time >= previousHour &&
+
+  //          time >= previousHour &&
             (time - rm01).absoluteValue <= checkTime_Wastewater &&
             (time - rm05).absoluteValue <= checkTime_Wastewater
         }
