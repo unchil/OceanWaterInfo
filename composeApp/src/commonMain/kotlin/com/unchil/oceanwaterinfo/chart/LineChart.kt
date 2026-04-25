@@ -40,7 +40,7 @@ fun XYGraphScope<Double, Float>.LineChart(
     usableSymbol: Boolean = true,
 ) {
 
-    val data = (data as List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>)
+    val data = (data as ChartDataList)
 
     val colors = getColors(data.map { triple -> triple.first })
 

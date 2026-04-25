@@ -54,7 +54,7 @@ fun WasteWater_PointLineChart_KHNP(){
     }
 
     val wasterWaterInfo = viewModel._khnpWasteWaterStateFlow.collectAsState()
-    val data: MutableState< List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>> = remember { mutableStateOf(emptyList() ) }
+    val data: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
     val chartLayout = remember { mutableStateOf(LayoutData() )}
     val chartHeight = remember {400.dp}
     val chartTitle = remember {"3-hour WasteWater Current"}

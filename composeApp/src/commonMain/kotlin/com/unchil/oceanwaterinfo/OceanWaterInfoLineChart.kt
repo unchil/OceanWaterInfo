@@ -70,7 +70,7 @@ fun OceanWaterInfoLineChart(){
     var selectedOption by remember { mutableStateOf(SEA_AREA.GRU_NAME.entries[0]) }
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
-    val data: MutableState< List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>> = remember { mutableStateOf(emptyList() ) }
+    val data: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
     val chartLayout = remember { mutableStateOf(LayoutData() )}
     val chartHeight = remember {400.dp}
     val chartTitle = remember {"24-hour Surface Sea Temperature"}

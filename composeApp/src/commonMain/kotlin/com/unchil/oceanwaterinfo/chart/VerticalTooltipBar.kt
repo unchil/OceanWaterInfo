@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.unchil.oceanwaterinfo.BoxPlotTooltips
+import com.unchil.oceanwaterinfo.ChartDataList
 import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.formatLongToDateTime
 import com.unchil.oceanwaterinfo.getColors
@@ -49,7 +50,7 @@ import io.github.koalaplot.core.xygraph.XYGraphScope
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XYGraphScope<Double, Float>.VerticalTooltipBar(
-    data: List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>,
+    data: ChartDataList,
     type: ChartType,
     onHoverEvent:((Int)->Unit)? = null
 ){

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.ChartDataList
 import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.getColors
 import io.github.koalaplot.core.line.AreaBaseline
@@ -37,7 +38,7 @@ fun XYGraphScope<Double, Float>.AreaLineChart(
     usableSymbol: Boolean = true,
 ) {
 
-    val data = (data as List<Triple<String, List<Point<Double, Float>>, Map<String, Any>    >>)
+    val data = (data as ChartDataList)
 
     val colors = getColors(data.map { triple -> triple.first })
 

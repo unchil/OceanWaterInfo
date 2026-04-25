@@ -57,7 +57,7 @@ fun OceanWaterInfoLineChart_MOF(){
     var selectedOption by remember { mutableStateOf(WATER_QUALITY.QualityType.entries[0]) }
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
-    val data: MutableState< List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>> = remember { mutableStateOf(emptyList() ) }
+    val data: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
     val chartLayout = remember { mutableStateOf(LayoutData() )}
     val maxTurbidity = remember { 500f}

@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.ChartDataList
 import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.formatLongToDateTime
 import com.unchil.oceanwaterinfo.getColors
@@ -54,7 +55,7 @@ fun XYGraphScope<Double, Float>.DegLineChart(
     usableSymbol: Boolean = true,
 ) {
 
-    val data = (data as List<Triple<String, List<Point<Double, Float>>, Map<String, Any>    >>)
+    val data = (data as ChartDataList)
 
     val colors = getColors(data.map { triple -> triple.first })
 

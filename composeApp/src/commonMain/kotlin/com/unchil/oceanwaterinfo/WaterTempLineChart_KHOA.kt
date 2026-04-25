@@ -46,7 +46,7 @@ fun WaterTempLineChart_KHOA(){
 
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
 
-    val data: MutableState< List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>> = remember { mutableStateOf(emptyList() ) }
+    val data: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
     val chartLayout = remember { mutableStateOf(LayoutData() )}
     val chartHeight = remember {400.dp}
     val chartTitle = remember {"24-hour Sea Water Temperature"}
