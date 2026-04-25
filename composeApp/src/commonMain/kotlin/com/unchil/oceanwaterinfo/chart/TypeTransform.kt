@@ -146,364 +146,73 @@ fun List<Point<Double, Double>>.getRange(
 }
 
 
-
+/**
+ * 다양한 데이터 리스트를 차트용 Triple 리스트로 변환하는 범용 함수
+ */
 @OptIn(FormatStringsInDatetimeFormats::class)
-fun List<KHNPThermalWasteWater>.toLineTripleListThermalWasteWater(): List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>> {
-    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
+fun <T> List<T>.toChartTripleList(
+    nameSelector: (T) -> String,          // Entry.Key (발전소/관측소) 이름 추출
+    timeSelector: (T) -> String,          // 시간 문자열 추출
+    timePattern: String,                  // 시간 포맷 패턴
+    primaryValueSelector: (T) -> Float,   // 메인 Y축 값 (예: 수온, PH)
+    secondaryValueSelector: ((T) -> Float)? = null, // 보조 Y축 값 (선택 사항, 예: 유량)
+    secondaryKey: String = ""             // 보조 데이터의 Map Key 이름
+): List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>> {
 
+    val inputFormat = LocalDateTime.Format { byUnicodePattern(timePattern) }
 
+    // 1. 공통 데이터 전처리
     val processedData = this.map { item ->
-        val timeX = LocalDateTime.parse(item.time, inputFormat)
+        val timeX = LocalDateTime.parse(timeSelector(item), inputFormat)
             .toInstant(TimeZone.UTC).toEpochMilliseconds().toDouble()
 
-        // 반올림 및 안전한 Float 변환
-        val inputY = (item.rm001.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
-        val outputY = (item.rm005.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
+        val val1 = (round(primaryValueSelector(item) * 10) / 10f)
+        val val2 = secondaryValueSelector?.invoke(item)?.let { (round(it * 10) / 10f) }
 
-        item.genName to (timeX to (inputY to outputY))
-    }
+        nameSelector(item) to (timeX to (val1 to val2))
+    }.sortedBy { it.second.first } // 시간순 정렬 (결측치 보정을 위해 필수)
 
-    // 2. 전체 데이터에서 고유한 X축(시간) 값 추출 및 정렬
+    // 2. 전체 고유 시간축 추출 및 정렬
     val allXValues = processedData.map { it.second.first }.distinct().sorted()
 
-    // 3. 발전소별로 그룹화하여 최종 Triple 리스트 생성
+    // 3. 그룹화 및 결측치 보정 (Forward Fill 또는 0f)
     return processedData.groupBy({ it.first }, { it.second })
-        .map { (genName, timeValues) ->
+        .map { (name, timeValues) ->
             val timeMap = timeValues.toMap()
 
-            // 모든 X축 지점에 대해 데이터가 없으면 0f로 채움
-            val inputPoints = allXValues.map { x ->
-                Point(x, timeMap[x]?.first ?: 0f)
-            }
-            val outputPoints = allXValues.map { x ->
-                Point(x, timeMap[x]?.second ?: 0f)
-            }
+            // Forward Fill용 변수 초기화
+            var lastValidVal1 = 0f
+            var lastValidVal2 = 0f
 
-            Triple(genName, inputPoints, mapOf("rm005" to outputPoints))
-        }
-}
-
-
-
-@OptIn(FormatStringsInDatetimeFormats::class)
-fun List<KHNPWasteWater>.toLineTripleListWasteWater(): List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>> {
-    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
-
-    // 1. 데이터 전처리: 발전소별 (시간, PH, 유량) 맵핑
-    val processedData = this.map { item ->
-        val timeX = LocalDateTime.parse(item.time, inputFormat)
-            .toInstant(TimeZone.UTC).toEpochMilliseconds().toDouble()
-
-        // 반올림 및 안전한 Float 변환
-        val phY = (item.tm002.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
-        val flowY = (item.tm001.trim().toFloatOrNull() ?: 0f).let { (round(it * 10) / 10f) }
-
-        item.genName to (timeX to (phY to flowY))
-    }
-
-    // 2. 전체 데이터에서 고유한 X축(시간) 값 추출 및 정렬
-    val allXValues = processedData.map { it.second.first }.distinct().sorted()
-
-    // 3. 발전소별로 그룹화하여 최종 Triple 리스트 생성
-    return processedData.groupBy({ it.first }, { it.second })
-        .map { (genName, timeValues) ->
-            val timeMap = timeValues.toMap()
-
-            // 모든 X축 지점에 대해 데이터가 없으면 0f로 채움
-            val phPoints = allXValues.map { x ->
-                Point(x, timeMap[x]?.first ?: 0f)
-            }
-            val flowPoints = allXValues.map { x ->
-                Point(x, timeMap[x]?.second ?: 0f)
-            }
-
-            Triple(genName, phPoints, mapOf("tm001" to flowPoints))
-        }
-}
-
-@OptIn(FormatStringsInDatetimeFormats::class)
-fun List<SeawaterInformationByObservationPoint>.toLineTripleList(): List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>{
-    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm:ss") }
-    val outputFormat = LocalDateTime.Format { byUnicodePattern("yy/MM/dd HH:mm") }
-
-    // 1. 기본 필터링 및 데이터 추출 (시간순 정렬 포함)
-    val rawData = this.sortedBy { it.obs_datetime } // 이전 값을 참조하기 위해 시간순 정렬 필수
-
-    // 2. 관측소별로 그룹화하여 결측치 보정 (Forward Fill)
-    val validData = rawData.groupBy { it.sta_nam_kor }
-        .flatMap { (staName, items) ->
-            var lastValidValue = 0f // 이전 인덱스의 유효한 값을 저장
-            items.map { it ->
-
-                val formattedTime = LocalDateTime.parse(it.obs_datetime, inputFormat)
-                    .toInstant(TimeZone.UTC)
-                    .toEpochMilliseconds().toDouble()
-
-                val currentValue = it.wtr_tmp.trim().toFloatOrNull()
-
-                val finalValue:Float = if ( currentValue == null ) {
-                    lastValidValue
+            // 모든 시간 지점을 순회하며 보정
+            val primaryPoints = allXValues.map { x ->
+                val current = timeMap[x]
+                if (current != null) {
+                    lastValidVal1 = current.first
+                    Point(x, current.first)
                 } else {
-                    lastValidValue = currentValue
-                    currentValue
+                    Point(x, lastValidVal1) // 데이터 없으면 이전 값 사용
                 }
-
-                staName to (formattedTime to (kotlin.math.round(finalValue * 10) / 10.0).toFloat())
-
             }
-        }
 
-    val xValues = validData.map { it.second.first }.distinct().sorted()
-
-    val groupedByStation = validData
-        .groupBy({ it.first }, { it.second })
-        .mapValues { (_, timeValuePairs) ->
-            // 시간별로 맵을 만들어 xValues 순서대로 값을 배치 (데이터가 없으면 0f)
-            val timeMap = timeValuePairs.toMap()
-            xValues.map {  time ->
-
-                // 1. 현재 시간에 데이터가 있으면 사용
-                // 2. 없으면 timeValuePairs(리스트)에서 현재 time보다 이전인 것 중 가장 늦은 시간의 값을 가져옴
-                timeMap[time] ?: timeValuePairs
-                    .filter { it.first < time }
-                    .maxByOrNull { it.first }?.second
-                ?: 0f // 이전 데이터도 전혀 없으면 0f
-
-            }
-        }
-
-    val result = groupedByStation.entries.map {  entry ->
-
-        val pointList = entry.value.mapIndexed { index, value ->
-            Point(xValues[index], value)
-        }
-
-        Triple(entry.key, pointList,  emptyMap<String,Any>() )
-    }
-
-
-    return result
-}
-
-
-
-@OptIn(FormatStringsInDatetimeFormats::class)
-fun List<KhoaObservation>.toLineTripleList2(): List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>{
-    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
-    val outputFormat = LocalDateTime.Format { byUnicodePattern("yy/MM/dd HH:mm") }
-
-    // 1. 기본 필터링 및 데이터 추출 (시간순 정렬 포함)
-    val rawData = this.sortedBy { it.obsrvnDt } // 이전 값을 참조하기 위해 시간순 정렬 필수
-
-    // 2. 관측소별로 그룹화하여 결측치 보정 (Forward Fill)
-    val validData = rawData.groupBy { it.obsvtrNm }
-        .flatMap { (obsvtrNm, items) ->
-            var lastValidValue = 0f // 이전 인덱스의 유효한 값을 저장
-            items.map { it ->
-
-                val formattedTime = LocalDateTime.parse(it.obsrvnDt, inputFormat)
-                    .toInstant(TimeZone.UTC)
-                    .toEpochMilliseconds().toDouble()
-
-                val currentValue = it.wtem?.trim()?.toFloatOrNull()
-
-                val finalValue:Float = if ( currentValue == null ) {
-                    lastValidValue
-                } else {
-                    lastValidValue = currentValue
-                    currentValue
+            val extraData = if (secondaryValueSelector != null && secondaryKey.isNotBlank()) {
+                // 두 번째 값에 대해서도 동일하게 Forward Fill 수행
+                val secondaryPoints = allXValues.map { x ->
+                    val current = timeMap[x]
+                    if (current != null && current.second != null) {
+                        lastValidVal2 = current.second!!
+                        Point(x, current.second!!)
+                    } else {
+                        Point(x, lastValidVal2)
+                    }
                 }
-
-                obsvtrNm to (formattedTime to (kotlin.math.round(finalValue * 10) / 10.0).toFloat())
-
-            }
-        }
-
-    val xValues = validData.map { it.second.first }.distinct().sorted()
-
-    val groupedByStation = validData
-        .groupBy({ it.first }, { it.second })
-        .mapValues { (_, timeValuePairs) ->
-            // 시간별로 맵을 만들어 xValues 순서대로 값을 배치 (데이터가 없으면 0f)
-            val timeMap = timeValuePairs.toMap()
-            xValues.map {  time ->
-
-                // 1. 현재 시간에 데이터가 있으면 사용
-                // 2. 없으면 timeValuePairs(리스트)에서 현재 time보다 이전인 것 중 가장 늦은 시간의 값을 가져옴
-                timeMap[time] ?: timeValuePairs
-                    .filter { it.first < time }
-                    .maxByOrNull { it.first }?.second
-                ?: 0f // 이전 데이터도 전혀 없으면 0f
-
-            }
-        }
-
-    val result = groupedByStation.entries.map {  entry ->
-
-        val pointList = entry.value.mapIndexed { index, value ->
-            Point(xValues[index], value)
-        }
-
-        Triple(entry.key, pointList,  emptyMap<String,Any>() )
-    }
-
-
-    return result
-}
-
-
-@OptIn(FormatStringsInDatetimeFormats::class)
-fun List<KhoaObservation>.toLineTripleList3(): List<Triple< String, List<Point<Double, Float>>,  Map<String, Any>  >>{
-    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") }
-    val outputFormat = LocalDateTime.Format { byUnicodePattern("yy/MM/dd HH:mm") }
-
-    // 1. 기본 필터링 및 데이터 추출 (시간순 정렬 포함)
-    val rawData = this.sortedBy { it.obsrvnDt } // 이전 값을 참조하기 위해 시간순 정렬 필수
-
-    // 2. 관측소별로 그룹화하여 결측치 보정 (Forward Fill)
-    val validData = rawData.groupBy { it.obsvtrNm }
-        .flatMap { (obsvtrNm, items) ->
-            var lastValidValue = 0f // 이전 인덱스의 유효한 값을 저장
-            items.map { it ->
-
-                val formattedTime = LocalDateTime.parse(it.obsrvnDt, inputFormat)
-                    .toInstant(TimeZone.UTC)
-                    .toEpochMilliseconds().toDouble()
-
-                val currentValue = it.crsp?.trim()?.toFloatOrNull()
-
-                val finalValue:Float = if ( currentValue == null ) {
-                    lastValidValue
-                } else {
-                    lastValidValue = currentValue
-                    currentValue
-                }
-
-                obsvtrNm to ( formattedTime to  Pair( (kotlin.math.round(finalValue * 10) / 10.0).toFloat() , it.crdir?.trim()?.toFloatOrNull() ?: 0f)   )
-
-            }
-        }
-
-    val xValues = validData.map { it.second.first }.distinct().sorted()
-
-    val groupedByStation = validData
-        .groupBy({ it.first }, { it.second })
-        .mapValues { (_, timeValuePairs) ->
-            // 시간별로 맵을 만들어 xValues 순서대로 값을 배치 (데이터가 없으면 0f)
-            val timeMap = timeValuePairs.toMap()
-            xValues.map {  time ->
-                // 1. 현재 시간에 데이터가 있으면 사용
-                // 2. 없으면 timeValuePairs(리스트)에서 현재 time보다 이전인 것 중 가장 늦은 시간의 값을 가져옴
-                timeMap[time] ?: timeValuePairs.filter { it.first < time }.maxByOrNull { it.first }?.second ?: Pair(0f,0f) // 이전 데이터도 전혀 없으면 0f
-            }
-        }
-
-    val result = groupedByStation.entries.map {  entry ->
-
-        val pointList = entry.value.mapIndexed { index, value ->
-
-            val crsp = (value as Pair<Float,Float>).first
-
-            Point(xValues[index], crsp )
-        }
-
-        val degList = entry.value.mapIndexed { index, value ->
-            val crdir = (value as Pair<Float,Float>).second
-
-            Point(xValues[index], crdir )
-        }
-
-
-        Triple(entry.key, pointList,  mapOf("crdir" to degList) )
-
-
-    }
-
-
-    return result
-}
-
-
-
-
-@OptIn(FormatStringsInDatetimeFormats::class)
-fun List<SeaWaterInformation>.toMofLineTripleList(qualityType: WATER_QUALITY.QualityType):List<Triple< String, List<Point<Double, Float>>, Map<String, Any>>>{
-    val inputFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm:ss") }
-    val outputFormat = LocalDateTime.Format { byUnicodePattern("yy/MM/dd HH:mm") }
-
-    // 1. 기본 필터링 및 데이터 추출 (시간순 정렬 포함)
-    val rawData = this.filterIsInstance<SeaWaterInformation>()
-        .sortedBy { it.rtmWqWtchDtlDt } // 이전 값을 참조하기 위해 시간순 정렬 필수
-
-
-    // 2. 관측소별로 그룹화하여 결측치 보정 (Forward Fill)
-    val validData = rawData.groupBy { it.rtmWqWtchStaName }
-        .flatMap { (staName, items) ->
-
-            var lastValidValue = 0f // 이전 인덱스의 유효한 값을 저장
-
-            items.map { it ->
-                //           val formattedTime = inputFormat.parse(it.rtmWqWtchDtlDt)
-                val formattedTime = LocalDateTime.parse(it.rtmWqWtchDtlDt, inputFormat)
-                    .toInstant(TimeZone.UTC)
-                    .toEpochMilliseconds().toDouble()
-
-
-                // 현재 값 추출
-                val currentValue = when (qualityType) {
-                    WATER_QUALITY.QualityType.rtmWtchWtem -> it.rtmWtchWtem
-                    WATER_QUALITY.QualityType.rtmWqCndctv -> it.rtmWqCndctv
-                    WATER_QUALITY.QualityType.ph -> it.ph
-                    WATER_QUALITY.QualityType.rtmWqDoxn -> it.rtmWqDoxn
-                    WATER_QUALITY.QualityType.rtmWqTu -> it.rtmWqTu
-                    WATER_QUALITY.QualityType.rtmWqChpla -> it.rtmWqChpla
-                    WATER_QUALITY.QualityType.rtmWqSlnty -> it.rtmWqSlnty
-                }.trim().toFloatOrNull()
-
-                val finalValue:Float = if ( currentValue == null ) {
-                    lastValidValue
-                } else {
-                    lastValidValue = currentValue
-                    currentValue
-                }
-
-                staName to ( formattedTime to  (kotlin.math.round(finalValue * 10) / 10.0).toFloat() )
+                mapOf(secondaryKey to secondaryPoints)
+            } else {
+                emptyMap<String, Any>()
             }
 
+            Triple(name, primaryPoints, extraData)
         }
-
-    val xValues = validData.map { it.second.first }.distinct().sorted()
-
-    val groupedByStation = validData
-        .groupBy({ it.first }, { it.second })
-        .mapValues { (_, timeValuePairs) ->
-            // 시간별로 맵을 만들어 xValues 순서대로 값을 배치 (데이터가 없으면 0f)
-            val timeMap = timeValuePairs.toMap()
-            xValues.map {  time ->
-
-                // 1. 현재 시간에 데이터가 있으면 사용
-                // 2. 없으면 timeValuePairs(리스트)에서 현재 time보다 이전인 것 중 가장 늦은 시간의 값을 가져옴
-                timeMap[time] ?: timeValuePairs
-                    .filter { it.first < time }
-                    .maxByOrNull { it.first }?.second
-                ?: 0f // 이전 데이터도 전혀 없으면 0f
-
-            }
-        }
-
-
-    val result = groupedByStation.entries.map {  entry ->
-
-        val pointList = entry.value.mapIndexed { index, value ->
-            Point(xValues[index], value)
-        }
-
-        Triple(entry.key, pointList,  emptyMap<String,Any>() )
-    }
-
-
-
-    return result
 }
 
 

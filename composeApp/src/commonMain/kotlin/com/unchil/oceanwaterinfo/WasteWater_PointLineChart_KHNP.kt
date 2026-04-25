@@ -89,7 +89,14 @@ fun WasteWater_PointLineChart_KHNP(){
         }
 
         if(filteredList.isNotEmpty()){
-            data.value = filteredList.toLineTripleListWasteWater()
+            data.value = filteredList.toChartTripleList(
+                nameSelector = { it.genName },
+                timeSelector = { it.time },
+                timePattern = "yyyy-MM-dd HH:mm",
+                primaryValueSelector = { it.tm002.trim().toFloatOrNull() ?: 0f },   // PH
+                secondaryValueSelector = { it.tm001.trim().toFloatOrNull() ?: 0f }, // 유량
+                secondaryKey = "tm001"
+            )
         }else{
            data.value = emptyList()
         }

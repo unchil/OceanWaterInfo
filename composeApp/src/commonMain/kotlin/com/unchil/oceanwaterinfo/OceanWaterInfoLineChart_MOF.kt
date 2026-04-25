@@ -75,7 +75,25 @@ fun OceanWaterInfoLineChart_MOF(){
     var isLegend by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1= seaWaterInfo.value, key2=selectedOption){
-        data.value = seaWaterInfo.value.toMofLineTripleList(selectedOption)
+        if(seaWaterInfo.value.isNotEmpty()){
+            data.value = seaWaterInfo.value.toChartTripleList(
+                nameSelector = { it.rtmWqWtchStaName },
+                timeSelector = { it.rtmWqWtchDtlDt },
+                timePattern = "yyyy-MM-dd HH:mm:ss",
+                primaryValueSelector = {
+                    when (selectedOption) {
+                        WATER_QUALITY.QualityType.rtmWtchWtem -> it.rtmWtchWtem
+                        WATER_QUALITY.QualityType.rtmWqCndctv -> it.rtmWqCndctv
+                        WATER_QUALITY.QualityType.ph -> it.ph
+                        WATER_QUALITY.QualityType.rtmWqDoxn -> it.rtmWqDoxn
+                        WATER_QUALITY.QualityType.rtmWqTu -> it.rtmWqTu
+                        WATER_QUALITY.QualityType.rtmWqChpla -> it.rtmWqChpla
+                        WATER_QUALITY.QualityType.rtmWqSlnty -> it.rtmWqSlnty
+                    }.trim().toFloatOrNull() ?: 0f
+                }
+            )
+        }
+
     }
 
     LaunchedEffect(isTooltips, isSymbol){

@@ -81,7 +81,14 @@ fun WaterDegLineChart_KHOA(){
         }
 
         if(filteredList.isNotEmpty()){
-            data.value = filteredList.toLineTripleList3()
+            data.value = filteredList.toChartTripleList(
+                nameSelector = { it.obsvtrNm },
+                timeSelector = { it.obsrvnDt },
+                timePattern = "yyyy-MM-dd HH:mm",
+                primaryValueSelector = { it.crsp?.trim()?.toFloatOrNull() ?: 0f },
+                secondaryValueSelector = {it.crdir?.trim()?.toFloatOrNull() ?: 0f},
+                secondaryKey = "crdir"
+            )
         }else{
             data.value = emptyList()
         }

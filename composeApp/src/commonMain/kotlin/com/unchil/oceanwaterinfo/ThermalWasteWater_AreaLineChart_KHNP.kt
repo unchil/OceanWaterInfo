@@ -86,7 +86,14 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
         }
 
         if(filteredList.isNotEmpty()){
-            data.value = filteredList.toLineTripleListThermalWasteWater()
+            data.value = filteredList.toChartTripleList(
+                nameSelector = { it.genName },
+                timeSelector = { it.time },
+                timePattern = "yyyy-MM-dd HH:mm",
+                primaryValueSelector = { it.rm001.trim().toFloatOrNull() ?: 0f },   // 취수수온
+                secondaryValueSelector = { it.rm005.trim().toFloatOrNull() ?: 0f }, // 배수수온
+                secondaryKey = "rm005"
+            )
         }else{
             data.value = emptyList()
         }

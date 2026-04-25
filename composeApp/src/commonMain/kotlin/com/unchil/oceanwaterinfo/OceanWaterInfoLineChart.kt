@@ -89,7 +89,13 @@ fun OceanWaterInfoLineChart(){
         }
 
         if(filteredList.isNotEmpty()){
-            data.value = filteredList.toLineTripleList()
+            data.value = filteredList.toChartTripleList(
+                nameSelector = { it.sta_nam_kor },
+                timeSelector = { it.obs_datetime },
+                timePattern = "yyyy-MM-dd HH:mm:ss",
+                primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
+
+            )
         }else{
             data.value = emptyList()
         }

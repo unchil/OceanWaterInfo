@@ -64,7 +64,13 @@ fun WaterTempLineChart_KHOA(){
         }
 
         if(filteredList.isNotEmpty()){
-            data.value = filteredList.toLineTripleList2()
+            data.value = filteredList.toChartTripleList(
+                nameSelector = { it.obsvtrNm },
+                timeSelector = { it.obsrvnDt },
+                timePattern = "yyyy-MM-dd HH:mm",
+                primaryValueSelector = { it.wtem?.trim()?.toFloatOrNull() ?: 0f },
+
+            )
         }else{
             data.value = emptyList()
         }
