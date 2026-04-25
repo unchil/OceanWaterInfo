@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.chart.VerticalTooltipBar
 import io.github.koalaplot.core.Symbol
 import io.github.koalaplot.core.line.LinePlot2
 import io.github.koalaplot.core.style.LineStyle
@@ -49,18 +50,10 @@ fun XYGraphScope<Double, Float>.LineChart(
         isVisibleSymbol.value = index
     }
 
-    val yMax = data.maxOf{ entry -> entry.second.maxOf { point -> point.y } }
-    val yMin = data.minOf{ entry -> entry.second.minOf { point -> point.y } }
-    val range = yMin-1.0f..yMax+1.0f
-
-
     if(usableTooltips) {
-        VerticalBarChart(
-            data,
-            range,
-            onHoverEvent
-        )
+        VerticalTooltipBar(data, ChartType.Line, onHoverEvent)
     }
+
 
         data.forEachIndexed { index, triple ->
 

@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
-import com.unchil.oceanwaterinfo.VerticalBarChartArea
+import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.getColors
 import io.github.koalaplot.core.line.AreaBaseline
 import io.github.koalaplot.core.line.AreaPlot2
@@ -49,10 +49,7 @@ fun XYGraphScope<Double, Float>.AreaLineChart(
 
 
     if (usableTooltips) {
-        VerticalBarChartArea(
-            data,
-            onHoverEvent
-        )
+        VerticalTooltipBar(data, ChartType.Area, onHoverEvent)
     }
 
     data.forEachIndexed { index, triple ->

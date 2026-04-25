@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.unchil.oceanwaterinfo.VerticalBarChart
+import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.formatLongToDateTime
 import com.unchil.oceanwaterinfo.getColors
 import io.github.koalaplot.core.line.LinePlot2
@@ -42,9 +42,7 @@ import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.Point
 import io.github.koalaplot.core.xygraph.XYGraphScope
 import oceanwaterinfo.composeapp.generated.resources.Res
-import oceanwaterinfo.composeapp.generated.resources.arrow_downward_alt_24px
 import oceanwaterinfo.composeapp.generated.resources.arrow_upward_alt_24px
-import oceanwaterinfo.composeapp.generated.resources.baseline_arrow_circle_up_24
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -66,17 +64,8 @@ fun XYGraphScope<Double, Float>.DegLineChart(
         isVisibleSymbol.value = index
     }
 
-    val yMax = data.maxOf { entry -> entry.second.maxOf { point -> point.y } }
-    val yMin = data.minOf { entry -> entry.second.minOf { point -> point.y } }
-    val range = yMin - 1.0f..yMax + 1.0f
-
-
     if (usableTooltips) {
-        VerticalBarChart(
-            data,
-            range,
-            onHoverEvent
-        )
+        VerticalTooltipBar(data, ChartType.DegLine, onHoverEvent)
     }
 
     data.forEachIndexed { index, triple ->
