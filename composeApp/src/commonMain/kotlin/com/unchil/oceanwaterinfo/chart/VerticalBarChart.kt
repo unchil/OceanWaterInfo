@@ -20,7 +20,7 @@ import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.Point
 import io.github.koalaplot.core.xygraph.XYGraphScope
 
-
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<String, Float>.VerticalBarChart(

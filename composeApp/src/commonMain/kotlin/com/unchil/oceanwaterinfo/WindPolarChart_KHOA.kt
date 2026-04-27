@@ -52,6 +52,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.round
 import kotlin.math.roundToInt
 
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalKoalaPlotApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun WindPolarChart(){

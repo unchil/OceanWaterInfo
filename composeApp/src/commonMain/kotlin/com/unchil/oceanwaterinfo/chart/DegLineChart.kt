@@ -48,6 +48,7 @@ import org.jetbrains.compose.resources.painterResource
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun XYGraphScope<Double, Float>.DegLineChart(
     data: Any,

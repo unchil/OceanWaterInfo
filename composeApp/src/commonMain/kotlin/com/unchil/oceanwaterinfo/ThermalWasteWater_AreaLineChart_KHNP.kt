@@ -32,6 +32,7 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.minutes
 
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun ThermalWasteWater_AreaLineChart_KHNP(){
 
@@ -61,7 +62,7 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
     val chartCaption = remember {"from https://www.data.go.kr/data/15157696/openapi.do (행정안전부 공공데이터포털)"}
 
     var isTooltips by remember { mutableStateOf(true) }
-    var isSymbol by remember { mutableStateOf(true) }
+    var isSymbol by remember { mutableStateOf(false) }
     var isLegend by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1= thermalWasterWaterInfo.value){
@@ -198,7 +199,7 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
                     entries = state.entries
                 )
 
-                val optionList = listOf("Tooltips", "Symbol", "Legend")
+                val optionList = listOf("Tooltips", "Legend")
 
                 val selectedOptions = remember {
                     mutableStateListOf<Int>().apply { addAll(optionList.indices) }
@@ -214,8 +215,7 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
 
                                 when(index){
                                     0 -> isTooltips = it
-                                    1 -> isSymbol = it
-                                    2 -> isLegend = it
+                                    1 -> isLegend = it
                                 }
                             },
                             checked = index in selectedOptions

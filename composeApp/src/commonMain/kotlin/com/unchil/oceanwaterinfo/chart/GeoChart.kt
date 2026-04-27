@@ -23,6 +23,7 @@ import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.XYGraphScope
 import kotlin.Double
 
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<Double, Double>.GeoChart(

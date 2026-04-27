@@ -46,7 +46,7 @@ import io.github.koalaplot.core.bar.VerticalBarPlotEntry
 import io.github.koalaplot.core.xygraph.Point
 import io.github.koalaplot.core.xygraph.XYGraphScope
 
-
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XYGraphScope<Double, Float>.VerticalTooltipBar(

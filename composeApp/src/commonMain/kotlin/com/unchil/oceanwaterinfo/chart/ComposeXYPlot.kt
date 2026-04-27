@@ -38,6 +38,7 @@ import io.github.koalaplot.core.xygraph.rememberGridStyle
 import kotlin.math.round
 
 @OptIn(ExperimentalKoalaPlotApi::class)
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun ComposeXYPlot(
     layout: LayoutData,

@@ -58,6 +58,7 @@ fun XYGraphScope<String, Float>.BoxPlotChart(
     usableTooltips: Boolean,
     range:BoxPlotRange
 ) {
+    @Suppress("UNCHECKED_CAST")
     val data = (data as Map<String, SeaWaterBoxPlotStat>)
 
     val colors = getColors(data.keys.toList())
@@ -197,6 +198,7 @@ fun XYGraphScope<String, Float>.BoxPlotChart(
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun XYGraphScope<String, Float>.BoxPlotOutliers(
     data:Any,
