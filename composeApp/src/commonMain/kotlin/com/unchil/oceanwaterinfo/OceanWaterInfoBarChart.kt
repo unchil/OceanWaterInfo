@@ -98,14 +98,28 @@ fun OceanWaterInfoBarChart(){
         uiState.value = when {
 
             data.value.isNotEmpty() -> {
-                val allPoints = data.value.map { it.second  }
+                ChartUiState.Success(
+                    chartData = data.value,
+                    entries = data.value.map{ triple -> triple.first },
+                    chartLayout = chartLayout.value
+                )
+            }
+            data.value.isEmpty()-> {
+                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
+            }
+            else -> { ChartUiState.Loading }
+        }
 
+        chartLayout.value = when {
+
+            data.value.isNotEmpty() -> {
+
+                val allPoints = data.value.map { it.second  }
                 val yMax = allPoints.maxOf { it.y }
                 val yMin = allPoints.minOf { it.y }
-
                 val yRange = 0f..(yMax + 1.0f)
 
-                chartLayout.value = LayoutData(
+                LayoutData(
                     type = ChartType.VerticalBar,
                     layout = TitleConfig(true, chartTitle.value),
                     legend = LegendConfig(isLegend, true, chartXTitle),
@@ -127,25 +141,18 @@ fun OceanWaterInfoBarChart(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  ),
                 )
-
-                ChartUiState.Success(
-                    chartData = data.value,
-                    entries = data.value.map{ triple -> triple.first },
-                    chartLayout = chartLayout.value
-                )
             }
-            data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
+            else -> {
+                LayoutData(
                     layout = TitleConfig(true, chartTitle.value),
                     xAxis = AxisConfig(chartXTitle),
                     yAxis = AxisConfig( chartYTitle),
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  )
                 )
-                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
             }
-            else -> { ChartUiState.Loading }
         }
+
     }
 
 

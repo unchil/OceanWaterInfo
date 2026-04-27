@@ -120,8 +120,22 @@ fun WasteWater_PointLineChart_KHNP(){
     }
 
     LaunchedEffect(data.value){
-        uiState.value = when {
 
+        uiState.value = when {
+            data.value.isNotEmpty() -> {
+                ChartUiState.Success(
+                    chartData = data.value,
+                    entries = data.value.map{ triple -> triple.first },
+                    chartLayout = chartLayout.value
+                )
+            }
+            data.value.isEmpty()-> {
+                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
+            }
+            else -> { ChartUiState.Loading }
+        }
+
+        chartLayout.value = when {
             data.value.isNotEmpty() -> {
                 // 모든 포인트를 리스트 하나로 합칩니다.
                 val allPoints = data.value.flatMap { it.second }
@@ -134,7 +148,7 @@ fun WasteWater_PointLineChart_KHNP(){
                 val xRange = xMin-300 * 1000..xMax+ 300*1000
                 val yRange = yMin-0.1f..yMax+0.1f
 
-                chartLayout.value = LayoutData(
+                LayoutData(
                     type = ChartType.Point,
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, "Power Plant"),
@@ -150,14 +164,9 @@ fun WasteWater_PointLineChart_KHNP(){
                     caption = CaptionConfig(true,chartCaption ),
                 )
 
-                ChartUiState.Success(
-                    chartData = data.value,
-                    entries = data.value.map{ triple -> triple.first },
-                    chartLayout = chartLayout.value
-                )
             }
-            data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
+            else -> {
+                LayoutData(
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
@@ -165,10 +174,7 @@ fun WasteWater_PointLineChart_KHNP(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  )
                 )
-
-                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
             }
-            else -> { ChartUiState.Loading }
         }
 
 

@@ -96,10 +96,24 @@ fun OceanWaterInfoBoxPlotChart(){
         uiState.value = when {
 
             data.value.isNotEmpty() -> {
-                val yMax = data.value.values.maxOf {entry -> entry.max }
+                ChartUiState.Success(
+                    chartData = data.value,
+                    entries =  data.value.keys.toList(),
+                    chartLayout = chartLayout.value
+                )
+            }
+            data.value.isEmpty()-> {
+                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
+            }
+            else -> { ChartUiState.Loading }
+        }
+
+        chartLayout.value = when {
+            data.value.isNotEmpty() -> {
+                val yMax = data.value.values.maxOf { entry -> entry.max }
                 val yRange = 0f..(yMax * 1.1f)
 
-                chartLayout.value = LayoutData(
+                LayoutData(
                     type = ChartType.BoxPlot,
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, chartXTitle),
@@ -114,33 +128,27 @@ fun OceanWaterInfoBoxPlotChart(){
                     ),
                     gridStyle = GridStyle(
                         horizontalMajorStyle = null,
-                        horizontalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
+                        horizontalMinorStyle = LineStyle(brush = SolidColor(Color.Transparent)),
                         verticalMajorStyle = null,
-                        verticalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
+                        verticalMinorStyle = LineStyle(brush = SolidColor(Color.Transparent)),
                     ),
                     size = SizeConfig(height = chartHeight),
-                    caption = CaptionConfig(true,chartCaption  ),
-                )
-
-                ChartUiState.Success(
-                    chartData = data.value,
-                    entries =  data.value.keys.toList(),
-                    chartLayout = chartLayout.value
+                    caption = CaptionConfig(true, chartCaption),
                 )
             }
-            data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
+
+            else -> {
+                LayoutData(
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
-                    yAxis = AxisConfig( chartYTitle),
+                    yAxis = AxisConfig(chartYTitle),
                     size = SizeConfig(height = chartHeight),
-                    caption = CaptionConfig(true,  chartCaption  )
+                    caption = CaptionConfig(true, chartCaption)
                 )
-                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
             }
-            else -> { ChartUiState.Loading }
         }
+
     }
 
     Column (modifier = paddingMod,

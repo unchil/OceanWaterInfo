@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpThermalWasteWaterViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.Point
@@ -79,7 +78,6 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
             val rm01 = LocalDateTime.parse(item.rm001_time.replace(" ", "T")).toInstant(TimeZone.UTC)
             val rm05 = LocalDateTime.parse(item.rm005_time.replace(" ", "T")).toInstant(TimeZone.UTC)
 
-
   //          time >= previousHour &&
             (time - rm01).absoluteValue <= checkTime_Wastewater &&
             (time - rm05).absoluteValue <= checkTime_Wastewater
@@ -117,10 +115,23 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
     }
 
 
-
     LaunchedEffect(data.value){
-        uiState.value = when {
 
+        uiState.value = when {
+            data.value.isNotEmpty() -> {
+                ChartUiState.Success(
+                    chartData = data.value,
+                    entries = data.value.map{ triple -> triple.first },
+                    chartLayout = chartLayout.value
+                )
+            }
+            data.value.isEmpty()-> {
+                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
+            }
+            else -> { ChartUiState.Loading }
+        }
+
+        chartLayout.value = when {
             data.value.isNotEmpty() -> {
                 // 모든 포인트를 리스트 하나로 합칩니다.
                 val inputPoints = data.value.flatMap { it.second }
@@ -134,7 +145,7 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
                 val xRange = xMin-300 * 1000..xMax+ 300*1000
                 val yRange = yMin-1.0f..yMax+1.0f
 
-                chartLayout.value = LayoutData(
+                LayoutData(
                     type = ChartType.Area,
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, "Power Plant"),
@@ -149,15 +160,9 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,chartCaption ),
                 )
-
-                ChartUiState.Success(
-                    chartData = data.value,
-                    entries = data.value.map{ triple -> triple.first },
-                    chartLayout = chartLayout.value
-                )
             }
-            data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
+            else -> {
+                LayoutData(
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
@@ -165,15 +170,11 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  )
                 )
-
-                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
             }
-            else -> { ChartUiState.Loading }
         }
 
 
     }
-
 
 
     Column (modifier = paddingMod) {

@@ -126,13 +126,6 @@ fun WindPolarChart(){
     LaunchedEffect(data.value){
         uiState.value = when {
             data.value.isNotEmpty() -> {
-                chartLayout.value = LayoutData(
-                    type = ChartType.VerticalBar,
-                    layout = TitleConfig(true,  chartTitle.value),
-                    legend = LegendConfig(isLegend, true, "관측소"),
-                    size = SizeConfig(height = chartHeight),
-                    caption = CaptionConfig(true,  chartCaption  ),
-                )
                 ChartUiState.Success(
                     chartData = data.value,
                     entries = data.value.map{ triple -> triple.first },
@@ -140,14 +133,28 @@ fun WindPolarChart(){
                 )
             }
             data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
-                    layout = TitleConfig(true, chartTitle.value),
-                    size = SizeConfig(height = chartHeight),
-                    caption = CaptionConfig(true,  chartCaption  )
-                )
                 ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
             }
             else -> { ChartUiState.Loading }
+        }
+
+        chartLayout.value = when {
+            data.value.isNotEmpty() -> {
+                LayoutData(
+                    type = ChartType.VerticalBar,
+                    layout = TitleConfig(true, chartTitle.value),
+                    legend = LegendConfig(isLegend, true, "관측소"),
+                    size = SizeConfig(height = chartHeight),
+                    caption = CaptionConfig(true, chartCaption),
+                )
+            }
+            else -> {
+                LayoutData(
+                    layout = TitleConfig(true, chartTitle.value),
+                    size = SizeConfig(height = chartHeight),
+                    caption = CaptionConfig(true, chartCaption)
+                )
+            }
         }
     }
 

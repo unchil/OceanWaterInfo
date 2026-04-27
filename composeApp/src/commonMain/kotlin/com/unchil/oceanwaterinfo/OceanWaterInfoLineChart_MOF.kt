@@ -118,6 +118,20 @@ fun OceanWaterInfoLineChart_MOF(){
 
         uiState.value = when {
             data.value.isNotEmpty() -> {
+                ChartUiState.Success(
+                    chartData = data.value,
+                    entries = data.value.map{ triple -> triple.first },
+                    chartLayout = chartLayout.value
+                )
+            }
+            data.value.isEmpty()-> {
+                ChartUiState.EmptyChart(chartLayout = chartLayout.value)
+            }
+            else -> {ChartUiState.Loading}
+        }
+
+        chartLayout.value = when {
+            data.value.isNotEmpty() -> {
                 val legendTitle = "Observatory"
                 // 모든 포인트를 리스트 하나로 합칩니다.
                 val allPoints = data.value.flatMap { it.second }
@@ -143,7 +157,7 @@ fun OceanWaterInfoLineChart_MOF(){
                 val xRange = xMin-300 * 1000..xMax + 300*1000
                 val yRange = min-1.0f..max+1.0f
 
-                chartLayout.value = LayoutData(
+                LayoutData(
                     type = ChartType.Line,
                     layout = TitleConfig(true, "${chartTitle} (${selectedOption.name()})", description = selectedOption.desc()),
                     legend = LegendConfig(isLegend, true, legendTitle),
@@ -159,16 +173,9 @@ fun OceanWaterInfoLineChart_MOF(){
                     caption = CaptionConfig(true,chartCaption  ),
                     tooltips = TooltipConfig(isTooltips, isSymbol)
                 )
-
-
-                ChartUiState.Success(
-                    chartData = data.value,
-                    entries = data.value.map{ triple -> triple.first },
-                    chartLayout = chartLayout.value
-                )
             }
-            data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
+            else -> {
+                LayoutData(
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(false, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
@@ -176,10 +183,10 @@ fun OceanWaterInfoLineChart_MOF(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  )
                 )
-                ChartUiState.EmptyChart(chartLayout = chartLayout.value)
             }
-            else -> {ChartUiState.Loading}
         }
+
+
     }
 
 

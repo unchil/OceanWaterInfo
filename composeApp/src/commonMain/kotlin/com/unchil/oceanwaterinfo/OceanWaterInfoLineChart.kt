@@ -55,13 +55,10 @@ fun OceanWaterInfoLineChart(){
 
     val uiState: MutableState<ChartUiState> = remember { mutableStateOf(ChartUiState.Loading) }
 
-
     LaunchedEffect(key1 =viewModel){
         while(true){
             delay(1 * 60 * 1000L).let{
-
                 viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
-
             }
         }
     }
@@ -94,7 +91,6 @@ fun OceanWaterInfoLineChart(){
                 timeSelector = { it.obs_datetime },
                 timePattern = "yyyy-MM-dd HH:mm:ss",
                 primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
-
             )
         }else{
             data.value = emptyList()
@@ -121,9 +117,22 @@ fun OceanWaterInfoLineChart(){
     LaunchedEffect(data.value){
 
         uiState.value = when {
-
             data.value.isNotEmpty() -> {
                 // 모든 포인트를 리스트 하나로 합칩니다.
+                ChartUiState.Success(
+                    chartData = data.value,
+                    entries = data.value.map{ triple -> triple.first },
+                    chartLayout = chartLayout.value
+                )
+            }
+            data.value.isEmpty()-> {
+                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
+            }
+            else -> { ChartUiState.Loading }
+        }
+
+        chartLayout.value = when {
+            data.value.isNotEmpty() -> {
                 val allPoints = data.value.flatMap { it.second }
                 // 한 번씩만 호출하여 결과 도출
                 val xMax = allPoints.maxOf { it.x }
@@ -134,7 +143,7 @@ fun OceanWaterInfoLineChart(){
                 val xRange = xMin-1800 * 1000..xMax+ 1800*1000
                 val yRange = yMin-1.0f..yMax+1.0f
 
-                chartLayout.value = LayoutData(
+                LayoutData(
                     type = ChartType.Line,
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, "Observatory"),
@@ -149,15 +158,9 @@ fun OceanWaterInfoLineChart(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,chartCaption ),
                 )
-
-                ChartUiState.Success(
-                    chartData = data.value,
-                    entries = data.value.map{ triple -> triple.first },
-                    chartLayout = chartLayout.value
-                )
             }
-            data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
+            else -> {
+                LayoutData(
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
@@ -165,15 +168,9 @@ fun OceanWaterInfoLineChart(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  )
                 )
-
-                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
             }
-            else -> { ChartUiState.Loading }
         }
     }
-
-
-
 
 
     Column (modifier = paddingMod) {
@@ -212,9 +209,6 @@ fun OceanWaterInfoLineChart(){
                 CircularProgressIndicator()
             }
             is ChartUiState.Success -> {
-
-
-
 
                 ComposeXYPlot(
                     layout = chartLayout.value,

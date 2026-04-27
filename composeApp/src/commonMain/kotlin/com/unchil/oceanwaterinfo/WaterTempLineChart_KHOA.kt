@@ -97,7 +97,20 @@ fun WaterTempLineChart_KHOA(){
     LaunchedEffect(data.value){
 
         uiState.value = when {
+            data.value.isNotEmpty() -> {
+                ChartUiState.Success(
+                    chartData = data.value,
+                    entries = data.value.map{ triple -> triple.first },
+                    chartLayout = chartLayout.value
+                )
+            }
+            data.value.isEmpty()-> {
+                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
+            }
+            else -> { ChartUiState.Loading }
+        }
 
+        chartLayout.value = when {
             data.value.isNotEmpty() -> {
                 // 모든 포인트를 리스트 하나로 합칩니다.
                 val allPoints = data.value.flatMap { it.second }
@@ -110,7 +123,7 @@ fun WaterTempLineChart_KHOA(){
                 val xRange = xMin-1800 * 1000..xMax+ 1800*1000
                 val yRange = yMin-1.0f..yMax+1.0f
 
-                chartLayout.value = LayoutData(
+                LayoutData(
                     type = ChartType.Line,
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, "Observatory"),
@@ -126,14 +139,9 @@ fun WaterTempLineChart_KHOA(){
                     caption = CaptionConfig(true,chartCaption ),
                 )
 
-                ChartUiState.Success(
-                    chartData = data.value,
-                    entries = data.value.map{ triple -> triple.first },
-                    chartLayout = chartLayout.value
-                )
             }
-            data.value.isEmpty()-> {
-                chartLayout.value = LayoutData(
+            else -> {
+                LayoutData(
                     layout = TitleConfig(true, chartTitle),
                     legend = LegendConfig(isLegend, true, chartXTitle),
                     xAxis = AxisConfig(chartXTitle),
@@ -141,11 +149,11 @@ fun WaterTempLineChart_KHOA(){
                     size = SizeConfig(height = chartHeight),
                     caption = CaptionConfig(true,  chartCaption  )
                 )
-
-                ChartUiState.EmptyChart( chartLayout =  chartLayout.value)
             }
-            else -> { ChartUiState.Loading }
         }
+
+
+
     }
 
 
