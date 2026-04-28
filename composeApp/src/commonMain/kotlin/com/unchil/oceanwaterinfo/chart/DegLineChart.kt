@@ -51,12 +51,12 @@ import org.jetbrains.compose.resources.painterResource
 @Suppress("UNCHECKED_CAST")
 @Composable
 fun XYGraphScope<Double, Float>.DegLineChart(
-    data: Any,
+    data: ChartDataList,
     usableTooltips: Boolean = false,
     usableSymbol: Boolean = true,
 ) {
 
-    val data = (data as ChartDataList)
+ //   val data = (data as ChartDataList)
 
     val colors = getColors(data.map { triple -> triple.first })
 

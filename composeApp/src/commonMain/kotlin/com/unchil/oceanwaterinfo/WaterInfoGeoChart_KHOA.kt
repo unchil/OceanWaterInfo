@@ -239,6 +239,8 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
             is ChartUiState.Loading -> {
                 CircularProgressIndicator()
             }
+
+            else -> {}
         }
     }
 

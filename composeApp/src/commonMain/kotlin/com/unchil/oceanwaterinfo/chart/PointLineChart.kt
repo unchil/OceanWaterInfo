@@ -48,12 +48,12 @@ import io.github.koalaplot.core.xygraph.XYGraphScope
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<Double, Float>.PointLineChart(
-    data: Any,
+    data: ChartDataList,
     usableTooltips: Boolean = false,
     usableSymbol: Boolean = true,
 ) {
 
-    val data = (data as ChartDataList)
+  //  val data = (data as ChartDataList)
 
     val colors = getColors(data.map { triple -> triple.first })
 

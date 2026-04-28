@@ -226,6 +226,8 @@ fun OceanWaterInfoBoxPlotChart(){
 
 
             }
+
+            else -> {}
         }
 
     }

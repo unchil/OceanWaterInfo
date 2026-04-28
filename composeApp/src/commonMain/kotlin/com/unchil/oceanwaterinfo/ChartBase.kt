@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.chart.XYPlotTimeSeries
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.Point
@@ -69,6 +70,7 @@ fun ChartScaffold(
     modifier: Modifier = paddingMod,
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
+    onSuccessTimeSeries:@Composable (ChartUiState.SuccessTimeSeries) -> Unit,
     onSuccess: @Composable (ChartUiState.Success) -> Unit
 ) {
 
@@ -79,6 +81,7 @@ fun ChartScaffold(
             is ChartUiState.Error -> Text(uiState.message)
             is ChartUiState.EmptyChart -> EmptyChart(uiState.chartLayout)
             is ChartUiState.Success -> onSuccess(uiState)
+            is ChartUiState.SuccessTimeSeries -> onSuccessTimeSeries(uiState)
         }
         bottomBar()
     }
@@ -196,7 +199,7 @@ fun ChartDataFlowTimeSeries(
         )
 
         uiState.value = when {
-            chartData.isNotEmpty() -> ChartUiState.Success(
+            chartData.isNotEmpty() -> ChartUiState.SuccessTimeSeries(
                 chartData = chartData,
                 entries = chartData.map { it.first },
                 chartLayout = chartLayout.value
@@ -216,14 +219,21 @@ fun ChartDataFlowTimeSeries(
                 isLegend = isLegend, onLegendChange = { isLegend = it }
             )
         },
-    ) { state ->
+        onSuccessTimeSeries = { state ->
+            XYPlotTimeSeries(
+                layout = state.chartLayout,
+                data = state.chartData,
+                entries = state.entries
+            )
+        },
+        onSuccess = { state ->
+            ComposeXYPlot(
+                layout = state.chartLayout,
+                data = state.chartData,
+                entries = state.entries
+            )
+        }
+    )
 
-        ComposeXYPlot(
-            layout = state.chartLayout,
-            data = state.chartData,
-            entries = state.entries
-        )
-
-    }
 }
 

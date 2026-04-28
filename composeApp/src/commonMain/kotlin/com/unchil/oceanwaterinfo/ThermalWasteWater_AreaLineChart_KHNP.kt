@@ -227,6 +227,7 @@ fun ThermalWasteWater_AreaLineChart_KHNP(){
 
             }
 
+            else -> {}
         }
 
 

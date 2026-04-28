@@ -231,6 +231,8 @@ fun OceanWaterInfoBarChart(){
                 }
 
             }
+
+            else -> {}
         }
 
 

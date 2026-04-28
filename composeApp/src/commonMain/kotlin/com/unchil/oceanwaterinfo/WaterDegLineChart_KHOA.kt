@@ -224,6 +224,7 @@ fun WaterDegLineChart_KHOA(){
 
             }
 
+            else -> {}
         }
 
 

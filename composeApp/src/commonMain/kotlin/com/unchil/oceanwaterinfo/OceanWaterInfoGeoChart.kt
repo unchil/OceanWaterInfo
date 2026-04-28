@@ -250,6 +250,8 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double,Double>)->Unit = { point -
             is ChartUiState.Loading -> {
                 CircularProgressIndicator()
             }
+
+            else -> {}
         }
     }
 
