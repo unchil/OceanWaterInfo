@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,12 +27,23 @@ fun WaterDegTimeSeries_KHOA(){
     val viewModel: KhoaObservationViewModel = remember {
         KhoaObservationViewModel(  coroutineScope  )
     }
+
+    val onRefresh:()->Unit = {
+        coroutineScope.launch {
+            while(true){
+                delay(1 * 60 * 1000L).let{
+                    viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
+                }
+            }
+        }
+    }
+
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
-    val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
+  //  val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
-    LaunchedEffect(key1= seaWaterInfo.value){
+ //   LaunchedEffect(key1= seaWaterInfo.value){
 
-        chartData.value = seaWaterInfo.value.filter {
+        val chartData = seaWaterInfo.value.filter {
             val previous6Hour = kotlin.time.Clock.System.now()
                 .minus(6, DateTimeUnit.HOUR)
                 .toLocalDateTime(TimeZone.currentSystemDefault())
@@ -50,14 +62,14 @@ fun WaterDegTimeSeries_KHOA(){
         )
 
 
-    }
+//    }
 
 
 
 
-    if(chartData.value.isNotEmpty()){
+    if(chartData.isNotEmpty()){
         ChartDataFlowTimeSeries(
-            chartData = chartData.value,
+            chartData = chartData,
             title = "6-hour Direction/Speed of ocean current",
             xTitle = "DateTime",
             yTitle = "Speed(cm/sec)",
@@ -66,15 +78,7 @@ fun WaterDegTimeSeries_KHOA(){
             yRangePadding = 1.0f,
             // YAxis min/max 에 함께 사용될 secondaryKey
           //  secondaryKey = ,
-            onRefresh = {
-                coroutineScope.launch {
-                    while(true){
-                        delay(5 * 60 * 1000L).let{
-                            viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
-                        }
-                    }
-                }
-            }
+            onRefresh = onRefresh
         )
     }
 

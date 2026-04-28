@@ -23,12 +23,23 @@ import kotlin.time.Duration.Companion.minutes
 fun ThermalWasteWaterTimeSeries_KHNP() {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpThermalWasteWaterViewModel = remember { KhnpThermalWasteWaterViewModel(coroutineScope) }
+
+    val onRefresh:()->Unit = {
+        coroutineScope.launch {
+            while(true){
+                delay(1 * 60 * 1000L).let{
+                    viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
+                }
+            }
+        }
+    }
+
     val thermalWasterWaterInfo = viewModel._khnpThermalWasteWaterStateFlow.collectAsState()
 
-    val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
-    LaunchedEffect(key1= thermalWasterWaterInfo.value){
+   // val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
+   // LaunchedEffect(key1= thermalWasterWaterInfo.value){
 // ViewModel 데이터를 ChartDataList로 변환하는 로직만 수행
-        chartData.value = thermalWasterWaterInfo.value.filter { item ->
+        val chartData = thermalWasterWaterInfo.value.filter { item ->
             val previousHour = kotlin.time.Clock.System.now()
                 .minus(24, DateTimeUnit.HOUR)
                 .toLocalDateTime(TimeZone.currentSystemDefault())
@@ -54,13 +65,13 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
         )
 
 
-    }
+ //   }
 
 
 
-    if(chartData.value.isNotEmpty()){
+    if(chartData.isNotEmpty()){
         ChartDataFlowTimeSeries(
-            chartData = chartData.value,
+            chartData = chartData,
             title = "24-hour ThermalWasteWater Current",
             xTitle = "DateTime",
             yTitle = "Water Temperature(°C)",
@@ -69,15 +80,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             yRangePadding = 1.0f,
             // YAxis min/max 에 함께 사용될 secondaryKey
             secondaryKey = "rm005",
-            onRefresh = {
-                coroutineScope.launch {
-                    while(true){
-                        delay(5 * 60 * 1000L).let{
-                            viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
-                        }
-                    }
-                }
-            }
+            onRefresh = onRefresh
         )
     }
 

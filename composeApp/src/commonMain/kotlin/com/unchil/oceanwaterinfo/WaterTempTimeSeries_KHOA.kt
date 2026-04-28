@@ -18,6 +18,16 @@ fun WaterTempTimeSeries_KHOA(){
         KhoaObservationViewModel(  coroutineScope  )
     }
 
+    val onRefresh:()->Unit = {
+        coroutineScope.launch {
+            while(true){
+                delay(1 * 60 * 1000L).let{
+                    viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
+                }
+            }
+        }
+    }
+
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
 
     val chartData = seaWaterInfo.value.filter {
@@ -41,15 +51,7 @@ fun WaterTempTimeSeries_KHOA(){
             yRangePadding = 1.0f,
             // YAxis min/max 에 함께 사용될 secondaryKey
             //    secondaryKey = "tm001",
-            onRefresh = {
-                coroutineScope.launch {
-                    while(true){
-                        delay(1 * 60 * 1000L).let{
-                            viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
-                        }
-                    }
-                }
-            }
+            onRefresh = onRefresh
         )
     }
 

@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.unchil.oceanwaterinfo.ChartDataFlowTimeSeries
 import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.toChartTripleList
+import com.unchil.oceanwaterinfo.viewmodel.KhnpThermalWasteWaterViewModel
 import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,12 +27,27 @@ import kotlin.time.Duration.Companion.minutes
 fun WasteWaterTimeSeries_KHNP() {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel(coroutineScope) }
-    val wasterWaterInfo = viewModel._khnpWasteWaterStateFlow.collectAsState()
-    val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
+    val onRefresh:()->Unit = {
+        coroutineScope.launch {
+            while(true){
+                delay(1 * 60 * 1000L).let{
+                    viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
+                }
+            }
+        }
+    }
 
-    LaunchedEffect(key1= wasterWaterInfo.value){
+
+    val wasterWaterInfo = viewModel._khnpWasteWaterStateFlow.collectAsState()
+
+
+
+
+ //   val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
+
+ //   LaunchedEffect(key1= wasterWaterInfo.value){
         // ViewModel 데이터를 ChartDataList로 변환하는 로직만 수행
-        chartData.value = wasterWaterInfo.value.filter { item ->
+        val chartData = wasterWaterInfo.value.filter { item ->
             val previousHour = kotlin.time.Clock.System.now()
                 .minus(3, DateTimeUnit.HOUR)
                 .toLocalDateTime(TimeZone.currentSystemDefault())
@@ -55,13 +71,13 @@ fun WasteWaterTimeSeries_KHNP() {
             secondaryValueSelector = { it.tm001.trim().toFloatOrNull() ?: 0f }, // 유량
             secondaryKey = "tm001"
         )
-    }
+ //   }
 
 
 
-    if(chartData.value.isNotEmpty()){
+    if(chartData.isNotEmpty()){
         ChartDataFlowTimeSeries(
-            chartData = chartData.value,
+            chartData = chartData,
             title = "3-hour WasteWater Current",
             xTitle = "DateTime",
             yTitle = "Quality(PH)",
@@ -70,15 +86,7 @@ fun WasteWaterTimeSeries_KHNP() {
             yRangePadding = 0.1f,
             // YAxis min/max 에 함께 사용될 secondaryKey
         //    secondaryKey = "tm001",
-            onRefresh = {
-                coroutineScope.launch {
-                    while(true){
-                        delay(5 * 60 * 1000L).let{
-                            viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
-                        }
-                    }
-                }
-            }
+            onRefresh = onRefresh
         )
     }
 

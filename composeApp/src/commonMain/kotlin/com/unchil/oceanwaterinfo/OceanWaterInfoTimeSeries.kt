@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
 import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -28,16 +29,29 @@ fun OceanWaterInfoTimeSeries(){
         NifsSeaWaterInfoViewModel( coroutineScope )
     }
 
+
+    val onRefresh:()->Unit = {
+        coroutineScope.launch {
+            while(true){
+                delay(1 * 60 * 1000L).let{
+                    viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
+                }
+            }
+        }
+    }
+
+
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
-    val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
+//    val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
     var selectedOption by remember { mutableStateOf(SEA_AREA.GRU_NAME.entries[0]) }
 
     val onSelection: ( SEA_AREA.GRU_NAME ) -> Unit = { entry ->
         selectedOption = entry
     }
-    LaunchedEffect(key1= seaWaterInfo.value){
-        chartData.value = seaWaterInfo.value.filter { it ->
+
+ //   LaunchedEffect(key1= seaWaterInfo.value){
+        val chartData = seaWaterInfo.value.filter { it ->
             it.gru_nam.equals(selectedOption.gru_nam()) &&  it.obs_lay == "1"
         }.toChartTripleList(
             nameSelector = { it.sta_nam_kor },
@@ -45,12 +59,12 @@ fun OceanWaterInfoTimeSeries(){
             timePattern = "yyyy-MM-dd HH:mm:ss",
             primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
         )
-    }
+   // }
 
 
-    if(chartData.value.isNotEmpty()){
+    if(chartData.isNotEmpty()){
         ChartDataFlowTimeSeries(
-            chartData = chartData.value,
+            chartData = chartData,
             title = "24-hour Surface Sea Temperature",
             xTitle = "DateTime",
             yTitle = "Water Temperature °C",
@@ -59,15 +73,7 @@ fun OceanWaterInfoTimeSeries(){
             yRangePadding = 0.1f,
             // YAxis min/max 에 함께 사용될 secondaryKey
             //    secondaryKey = "tm001",
-            onRefresh = {
-                coroutineScope.launch {
-                    while(true){
-                        delay(1 * 60 * 1000L).let{
-                            viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
-                        }
-                    }
-                }
-            },
+            onRefresh = onRefresh
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }
