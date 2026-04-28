@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -14,16 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabIndicatorScope
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -34,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,7 +40,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import com.unchil.sdotenvinfo.SDoTEnvInfoMapHexagonLayer
 import com.unchil.sdotenvinfo.SDoTEnvInfoUnionMapHexagonLayer
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
@@ -289,15 +283,16 @@ fun main() = application {
                                                         .verticalScroll(rememberScrollState()),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
-                                                    ThermalWasteWater_AreaLineChart_KHNP()
-                                                    WasteWater_PointLineChart_KHNP()
-                                                    WaterDegLineChart_KHOA()
-                                                    WaterTempLineChart_KHOA()
-                                                    OceanWaterInfoBoxPlotChart()
-                                                    OceanWaterInfoLineChart()
-                                                    OceanWaterInfoBarChart()
-                                            //        OceanWaterInfoLineChart_MOF()
 
+                                                    WaterDegTimeSeries_KHOA()
+                                                    ThermalWasteWaterTimeSeries_KHNP()
+                                                    WasteWaterTimeSeries_KHNP()
+                                                    WaterTempTimeSeries_KHOA()
+                                                    OceanWaterInfoTimeSeries()
+
+
+                                                    OceanWaterInfoBoxPlotChart()
+                                                    OceanWaterInfoBarChart()
 
                                                     //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
                                                     Row(

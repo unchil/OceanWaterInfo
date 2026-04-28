@@ -72,7 +72,7 @@ fun WaterDegLineChart_KHOA(){
 
         val previous6Hour = kotlin.time.Clock.System.now()
             .minus(6, DateTimeUnit.HOUR)
-            .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .toLocalDateTime(TimeZone.currentSystemDefault())
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 
         val filteredList = seaWaterInfo.value.filter {
