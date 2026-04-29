@@ -1,6 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +31,22 @@ fun WaterTempTimeSeries_KHOA(){
 
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
 
+    val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
+
+    LaunchedEffect(key1= seaWaterInfo.value) {
+        if (seaWaterInfo.value.isNotEmpty()) {
+            chartData.value = seaWaterInfo.value.filter {
+                it.obsCode.contains("HB")
+            }.toChartTripleList(
+                nameSelector = { it.obsvtrNm },
+                timeSelector = { it.obsrvnDt },
+                timePattern = "yyyy-MM-dd HH:mm",
+                primaryValueSelector = { it.wtem?.trim()?.toFloatOrNull() ?: 0f },
+            )
+        }
+
+    }
+    /*
     val chartData = seaWaterInfo.value.filter {
         it.obsCode.contains("HB")
     }.toChartTripleList(
@@ -39,10 +56,12 @@ fun WaterTempTimeSeries_KHOA(){
         primaryValueSelector = { it.wtem?.trim()?.toFloatOrNull() ?: 0f },
     )
 
+     */
 
-    if(chartData.isNotEmpty()){
+
+    if(chartData.value.isNotEmpty()){
         ChartDataFlowTimeSeries(
-            chartData = chartData,
+            chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Sea Water Temperature",
             xTitle = "DateTime",
             yTitle = "Water Temperature °C",

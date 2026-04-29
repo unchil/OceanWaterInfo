@@ -20,18 +20,16 @@ import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.Point
 import io.github.koalaplot.core.xygraph.XYGraphScope
 
-@Suppress("UNCHECKED_CAST")
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<String, Float>.VerticalBarChart(
-    data: Any,
+    data: ChartDataListStringFloat,
     usableTooltips: Boolean,
     barWidth: Float = 0.9f
 ){
-    val data = (data as List<Triple< String, Point<String, Float>, Map<String, Any>>>)
 
     val colors = getColors(data.map { triple -> triple.first })
-
 
     val values = data.map { triple ->
         DefaultVerticalBarPlotEntry(  triple.second.x,

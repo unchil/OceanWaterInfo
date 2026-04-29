@@ -18,7 +18,7 @@ import kotlin.math.atan2
 import kotlin.math.round
 
 typealias ChartDataList = List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>>
-
+typealias ChartDataListStringFloat = List<Triple<String, Point<String, Float>, Map<String, Any>>>
 
 fun Double.round(decimals: Int): Double {
     var multiplier = 1.0
@@ -244,7 +244,7 @@ fun List<SeawaterInformationByObservationPoint>.toGridDataMap(): Map<String, Lis
 }
 
 
-fun List<SeawaterInformationByObservationPoint>.toBarChartTripleList(): List<Triple<String, Point<String, Float>, Map<String, Any>>>{
+fun List<SeawaterInformationByObservationPoint>.toBarChartTripleList(): ChartDataListStringFloat{
 
 
     val columns = this.first().makeGridColumns()

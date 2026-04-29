@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -15,78 +16,53 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
-import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OceanWaterInfoTimeSeries(){
+fun OceanWaterInfoBarChart2(){
 
     val coroutineScope = rememberCoroutineScope()
-
-    val viewModel: NifsSeaWaterInfoViewModel = remember {
-        NifsSeaWaterInfoViewModel( coroutineScope )
+    val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
+        NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
     }
-
 
     val onRefresh:()->Unit = {
         coroutineScope.launch {
             while(true){
                 delay(1 * 60 * 1000L).let{
-                    viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
+                    viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
                 }
             }
         }
     }
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
-
     var selectedOption by remember { mutableStateOf(SEA_AREA.GRU_NAME.entries[0]) }
-
     val onSelection: ( SEA_AREA.GRU_NAME ) -> Unit = { entry ->
         selectedOption = entry
     }
 
-
-    val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
+    val chartData: MutableState<  ChartDataListStringFloat> = remember { mutableStateOf(emptyList() ) }
 
     LaunchedEffect(key1= seaWaterInfo.value,  key2=selectedOption){
         if(seaWaterInfo.value.isNotEmpty()){
             chartData.value = seaWaterInfo.value.filter {
-                it.gru_nam.equals(selectedOption.gru_nam()) && it.obs_lay == "1"
-            }.toChartTripleList(
-                nameSelector = { it.sta_nam_kor },
-                timeSelector = { it.obs_datetime },
-                timePattern = "yyyy-MM-dd HH:mm:ss",
-                primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
-            )
+                it.gru_nam.equals(selectedOption.gru_nam()) &&  it.obs_lay == "1"
+            }.toBarChartTripleList()
         }
     }
 
-    /*
-    val chartData = seaWaterInfo.value.filter { it ->
-        it.gru_nam.equals(selectedOption.gru_nam()) &&  it.obs_lay == "1"
-    }.toChartTripleList(
-        nameSelector = { it.sta_nam_kor },
-        timeSelector = { it.obs_datetime },
-        timePattern = "yyyy-MM-dd HH:mm:ss",
-        primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
-    )
-
-     */
-
-
-
     if(chartData.value.isNotEmpty()){
         ChartDataFlowTimeSeries(
-            chartData = ChartData.TimeSeries(chartData.value),
-            title = "24-hour Surface Sea Temperature",
+            chartData = ChartData.XYPlotStringFloat(chartData.value),
+            title = "Surface Temperature",
             xTitle = "DateTime",
             yTitle = "Water Temperature °C",
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
-            chartType = ChartType.Line,
-            yRangePadding = 0.1f,
+            chartType = ChartType.VerticalBar,
+            yRangePadding = 1.0f,
             legendTitle = "Observatory",
             // YAxis min/max 에 함께 사용될 secondaryKey
             //    secondaryKey = "tm001",
@@ -119,6 +95,5 @@ fun OceanWaterInfoTimeSeries(){
 
         }
     }
-
 
 }

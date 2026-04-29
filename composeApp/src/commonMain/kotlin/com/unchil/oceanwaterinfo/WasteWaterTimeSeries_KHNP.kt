@@ -17,6 +17,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +59,39 @@ fun WasteWaterTimeSeries_KHNP() {
 
     val wasterWaterInfo = viewModel._khnpWasteWaterStateFlow.collectAsState()
 
+    val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
+
+    LaunchedEffect(key1= wasterWaterInfo.value){
+        if(wasterWaterInfo.value.isNotEmpty()){
+            chartData.value = wasterWaterInfo.value.filter { item ->
+                val previousHour = kotlin.time.Clock.System.now()
+                    .minus(3, DateTimeUnit.HOUR)
+                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                    .toInstant(TimeZone.UTC)
+
+                val checkTime_Wastewater = 10.minutes
+
+                val time = LocalDateTime.parse(item.time.replace(" ", "T")).toInstant(TimeZone.UTC)
+                val tm01 = LocalDateTime.parse(item.tm001_time.replace(" ", "T")).toInstant(TimeZone.UTC)
+                val tm02 = LocalDateTime.parse(item.tm002_time.replace(" ", "T")).toInstant(TimeZone.UTC)
+
+                time >= previousHour &&
+                        (time - tm01).absoluteValue <= checkTime_Wastewater &&
+                        (time - tm02).absoluteValue <= checkTime_Wastewater
+
+            }.toChartTripleList(
+                nameSelector = { it.genName },
+                timeSelector = { it.time },
+                timePattern = "yyyy-MM-dd HH:mm",
+                primaryValueSelector = { it.tm002.trim().toFloatOrNull() ?: 0f },
+                secondaryValueSelector = { it.tm001.trim().toFloatOrNull() ?: 0f }, // 유량
+                secondaryKey = "tm001"
+            )
+        }
+
+    }
+
+    /*
     val chartData = wasterWaterInfo.value.filter { item ->
         val previousHour = kotlin.time.Clock.System.now()
             .minus(3, DateTimeUnit.HOUR)
@@ -82,11 +117,13 @@ fun WasteWaterTimeSeries_KHNP() {
         secondaryKey = "tm001"
     )
 
+     */
+
     var description by remember { mutableStateOf(false) }
 
-    if(chartData.isNotEmpty()){
+    if(chartData.value.isNotEmpty()){
         ChartDataFlowTimeSeries(
-            chartData = chartData,
+            chartData = ChartData.TimeSeries(chartData.value),
             title = "3-hour WasteWater Current",
             xTitle = "DateTime",
             yTitle = "Quality(PH)",

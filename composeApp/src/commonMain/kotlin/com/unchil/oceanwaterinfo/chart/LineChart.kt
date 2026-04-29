@@ -31,7 +31,6 @@ import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.Point
 import io.github.koalaplot.core.xygraph.XYGraphScope
 
-@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<Double, Float>.LineChart(
@@ -39,23 +38,16 @@ fun XYGraphScope<Double, Float>.LineChart(
     usableTooltips: Boolean = false,
     usableSymbol: Boolean = true,
 ) {
-
-  //  val data = (data as ChartDataList)
-
     val colors = getColors(data.map { triple -> triple.first })
-
     val isVisibleSymbol = remember{mutableStateOf(0)}
-
     val onHoverEvent = { index:Int ->
         isVisibleSymbol.value = index
     }
-
     if(usableTooltips) {
         VerticalTooltipBar(data, ChartType.Line, onHoverEvent)
     }
 
-
-        data.forEachIndexed { index, triple ->
+    data.forEachIndexed { index, triple ->
 
         val strokeWidth = remember{ mutableStateOf(1.dp)}
         val interactionSource = remember { MutableInteractionSource() }
@@ -69,10 +61,8 @@ fun XYGraphScope<Double, Float>.LineChart(
                 brush = SolidColor(colors[triple.first] ?: Color.Black),
                 strokeWidth = strokeWidth.value),
             symbol = { point ->
-
                 // 1. 현재 포인트가 호버 상태인지 미리 판별
                 val isHovered = isVisibleSymbol.value == triple.second.indexOf(point)
-
 
                 // 2. 상태에 따른 크기와 투명도 결정
                 val symbolSize = when {

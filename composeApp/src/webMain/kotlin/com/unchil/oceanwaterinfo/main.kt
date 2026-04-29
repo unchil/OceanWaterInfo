@@ -45,16 +45,14 @@ fun main() {
                                 OceanWaterInfoTimeSeries()
 
                                 OceanWaterInfoBoxPlotChart()
-                                OceanWaterInfoBarChart()
+                                OceanWaterInfoBarChart2()
                                 OceanWaterInfoDataGrid()
 
                             }
 
                         }
-
-
-
                     }
+
 
 
 
