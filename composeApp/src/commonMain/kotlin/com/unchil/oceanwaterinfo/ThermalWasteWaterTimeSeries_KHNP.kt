@@ -71,6 +71,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             caption = "from https://www.data.go.kr/data/15157696/openapi.do (행정안전부 공공데이터포털)",
             chartType = ChartType.Area,
             yRangePadding = 1.0f,
+            legendTitle = "Power Plant",
             // YAxis min/max 에 함께 사용될 secondaryKey
             secondaryKey = "rm005",
             onRefresh = onRefresh

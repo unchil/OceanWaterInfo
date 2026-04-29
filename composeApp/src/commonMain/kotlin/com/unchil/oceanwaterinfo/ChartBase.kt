@@ -104,7 +104,9 @@ fun prepareChartLayout(
     isLegend: Boolean,
     height: Dp = 400.dp,
     yRangePadding: Float ,
-    secondaryKey: String? = null
+    secondaryKey: String? = null,
+    legendTitle:String = "Entry",
+    description:String? = null
 ): LayoutData {
     // 1. 데이터가 없는 경우의 기본 레이아웃 처리
     if (data.isEmpty()) {
@@ -141,8 +143,8 @@ fun prepareChartLayout(
     // 3. 계산된 범위를 바탕으로 LayoutData 반환
     return LayoutData(
         type = chartType,
-        layout = TitleConfig(true, title),
-        legend = LegendConfig(isLegend, true, "Entry"), // 범례 제목
+        layout = TitleConfig(true, title, description),
+        legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
         xAxis = AxisConfig(
             model = DoubleLinearAxisModel(xRange)
         ),
@@ -167,6 +169,8 @@ fun ChartDataFlowTimeSeries(
     chartType: ChartType,
     yRangePadding: Float = 1.0f,
     secondaryKey: String? = null,
+    legendTitle: String = "Entry",
+    description:String? = null,
     onRefresh: () -> Unit,
     topBar: @Composable (() -> Unit) = {},
 ) {
@@ -195,7 +199,9 @@ fun ChartDataFlowTimeSeries(
             isSymbol = isSymbol,
             isLegend = isLegend,
             yRangePadding = yRangePadding,
-            secondaryKey = secondaryKey
+            secondaryKey = secondaryKey,
+            legendTitle = legendTitle,
+            description = description
         )
 
         uiState.value = when {
