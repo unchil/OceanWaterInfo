@@ -284,9 +284,9 @@ fun main() = application {
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
 
-                                                    WaterDegTimeSeries_KHOA()
-                                                    ThermalWasteWaterTimeSeries_KHNP()
                                                     WasteWaterTimeSeries_KHNP()
+                                                    ThermalWasteWaterTimeSeries_KHNP()
+                                                    WaterDegTimeSeries_KHOA()
                                                     WaterTempTimeSeries_KHOA()
                                                     OceanWaterInfoTimeSeries()
 
