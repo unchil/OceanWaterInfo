@@ -36,37 +36,30 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
 
     val thermalWasterWaterInfo = viewModel._khnpThermalWasteWaterStateFlow.collectAsState()
 
-   // val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
-   // LaunchedEffect(key1= thermalWasterWaterInfo.value){
-// ViewModel 데이터를 ChartDataList로 변환하는 로직만 수행
-        val chartData = thermalWasterWaterInfo.value.filter { item ->
-            val previousHour = kotlin.time.Clock.System.now()
-                .minus(24, DateTimeUnit.HOUR)
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .toInstant(TimeZone.UTC)
+    val chartData = thermalWasterWaterInfo.value.filter { item ->
+        val previousHour = kotlin.time.Clock.System.now()
+            .minus(24, DateTimeUnit.HOUR)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .toInstant(TimeZone.UTC)
 
-            val checkTime_Wastewater = 30.minutes
+        val checkTime_Wastewater = 30.minutes
 
-            val time = LocalDateTime.parse(item.time.replace(" ", "T")).toInstant(TimeZone.UTC)
-            val rm01 = LocalDateTime.parse(item.rm001_time.replace(" ", "T")).toInstant(TimeZone.UTC)
-            val rm05 = LocalDateTime.parse(item.rm005_time.replace(" ", "T")).toInstant(TimeZone.UTC)
+        val time = LocalDateTime.parse(item.time.replace(" ", "T")).toInstant(TimeZone.UTC)
+        val rm01 = LocalDateTime.parse(item.rm001_time.replace(" ", "T")).toInstant(TimeZone.UTC)
+        val rm05 = LocalDateTime.parse(item.rm005_time.replace(" ", "T")).toInstant(TimeZone.UTC)
 
-            //          time >= previousHour &&
-            (time - rm01).absoluteValue <= checkTime_Wastewater &&
-                    (time - rm05).absoluteValue <= checkTime_Wastewater
+        //          time >= previousHour &&
+        (time - rm01).absoluteValue <= checkTime_Wastewater &&
+                (time - rm05).absoluteValue <= checkTime_Wastewater
 
-        }.toChartTripleList(
-            nameSelector = { it.genName },
-            timeSelector = { it.time },
-            timePattern = "yyyy-MM-dd HH:mm",
-            primaryValueSelector = { it.rm001.trim().toFloatOrNull() ?: 0f },
-            secondaryValueSelector = { it.rm005.trim().toFloatOrNull() ?: 0f },
-            secondaryKey = "rm005"
-        )
-
-
- //   }
-
+    }.toChartTripleList(
+        nameSelector = { it.genName },
+        timeSelector = { it.time },
+        timePattern = "yyyy-MM-dd HH:mm",
+        primaryValueSelector = { it.rm001.trim().toFloatOrNull() ?: 0f },
+        secondaryValueSelector = { it.rm005.trim().toFloatOrNull() ?: 0f },
+        secondaryKey = "rm005"
+    )
 
 
     if(chartData.isNotEmpty()){

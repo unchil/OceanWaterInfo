@@ -39,32 +39,24 @@ fun WaterDegTimeSeries_KHOA(){
     }
 
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
-  //  val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
- //   LaunchedEffect(key1= seaWaterInfo.value){
+    val chartData = seaWaterInfo.value.filter {
+        val previous6Hour = kotlin.time.Clock.System.now()
+            .minus(6, DateTimeUnit.HOUR)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 
-        val chartData = seaWaterInfo.value.filter {
-            val previous6Hour = kotlin.time.Clock.System.now()
-                .minus(6, DateTimeUnit.HOUR)
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
+        it.obsCode.contains("HB") &&
+                it.obsrvnDt > previous6Hour
 
-            it.obsCode.contains("HB") &&
-                    it.obsrvnDt > previous6Hour
-
-        }.toChartTripleList(
-            nameSelector = { it.obsvtrNm },
-            timeSelector = { it.obsrvnDt },
-            timePattern = "yyyy-MM-dd HH:mm",
-            primaryValueSelector = { it.crsp?.trim()?.toFloatOrNull() ?: 0f },
-            secondaryValueSelector = { it.crdir?.trim()?.toFloatOrNull() ?: 0f },
-            secondaryKey = "crdir"
-        )
-
-
-//    }
-
-
+    }.toChartTripleList(
+        nameSelector = { it.obsvtrNm },
+        timeSelector = { it.obsrvnDt },
+        timePattern = "yyyy-MM-dd HH:mm",
+        primaryValueSelector = { it.crsp?.trim()?.toFloatOrNull() ?: 0f },
+        secondaryValueSelector = { it.crdir?.trim()?.toFloatOrNull() ?: 0f },
+        secondaryKey = "crdir"
+    )
 
 
     if(chartData.isNotEmpty()){

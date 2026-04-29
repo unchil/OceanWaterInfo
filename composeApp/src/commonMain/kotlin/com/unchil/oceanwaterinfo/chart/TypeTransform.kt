@@ -3,7 +3,6 @@ package com.unchil.oceanwaterinfo
 
 
 import io.github.koalaplot.core.xygraph.Point
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
@@ -120,7 +119,7 @@ fun updatePrevCoordinates(
 fun formatLongToDateTime(millis: Any): String {
 
     // 1. Long을 Instant로 변환
-    val instant = Instant.fromEpochMilliseconds(   (millis as Double).toLong())
+    val instant = kotlin.time.Instant.fromEpochMilliseconds(   (millis as Double).toLong())
 
     // 2. 시스템 기본 시간대(TimeZone)를 적용하여 LocalDateTime으로 변환
     val localDateTime = instant.toLocalDateTime(TimeZone.UTC)

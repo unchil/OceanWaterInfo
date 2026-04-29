@@ -40,9 +40,7 @@ fun OceanWaterInfoTimeSeries(){
         }
     }
 
-
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
-//    val chartData: MutableState< ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
     var selectedOption by remember { mutableStateOf(SEA_AREA.GRU_NAME.entries[0]) }
 
@@ -50,16 +48,15 @@ fun OceanWaterInfoTimeSeries(){
         selectedOption = entry
     }
 
- //   LaunchedEffect(key1= seaWaterInfo.value){
-        val chartData = seaWaterInfo.value.filter { it ->
-            it.gru_nam.equals(selectedOption.gru_nam()) &&  it.obs_lay == "1"
-        }.toChartTripleList(
-            nameSelector = { it.sta_nam_kor },
-            timeSelector = { it.obs_datetime },
-            timePattern = "yyyy-MM-dd HH:mm:ss",
-            primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
-        )
-   // }
+    val chartData = seaWaterInfo.value.filter { it ->
+        it.gru_nam.equals(selectedOption.gru_nam()) &&  it.obs_lay == "1"
+    }.toChartTripleList(
+        nameSelector = { it.sta_nam_kor },
+        timeSelector = { it.obs_datetime },
+        timePattern = "yyyy-MM-dd HH:mm:ss",
+        primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
+    )
+
 
 
     if(chartData.isNotEmpty()){

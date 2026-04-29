@@ -38,19 +38,21 @@ fun OceanWaterInfo(){
                     fontWeight = FontWeight.Bold,
                 )
 
-                OceanWaterInfoBoxPlotChart()
-
-                OceanWaterInfoLineChart()
-
                 OceanWaterInfoBarChart()
 
-                OceanWaterInfoLineChart_MOF()
+                OceanWaterInfoBoxPlotChart()
 
                 OceanWaterInfoDataGrid()
 
                 OceanWaterInfoGeoChart()
 
+                OceanWaterInfoLineChart_MOF()
+
+                WindPolarChart()
+
             }
+
+
 
 
 }

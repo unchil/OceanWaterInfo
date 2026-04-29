@@ -230,7 +230,7 @@ fun WindPolarChart(){
                         ) {
                             val data = (state.chartData as List<Triple< String, Point<Double, Double>, List<PolarPoint<Float, AngularValue> >>> )
 
-                            val polarPointList = (state.chartData as List<Triple< String, Point<Double, Double>, List<PolarPoint<Float, AngularValue> >>> ).flatMap {
+                            val polarPointList = data.flatMap {
                                 listOf(it.third)
                             }
                             polarPointList.forEachIndexed { index, seriesData ->
