@@ -77,9 +77,7 @@ fun ChartScaffold(
     modifier: Modifier = paddingMod,
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
-    onSuccessTimeSeries:@Composable (ChartUiState.SuccessTimeSeries) -> Unit,
-    onSuccessStringFloat:@Composable (ChartUiState.SuccessStringFloat) -> Unit,
-    onSuccess: @Composable (ChartUiState.Success) -> Unit
+    onSuccessChartData:@Composable (ChartUiState.SuccessChartData) -> Unit,
 ) {
 
     Column(modifier = modifier) {
@@ -88,9 +86,8 @@ fun ChartScaffold(
             ChartUiState.Loading -> CircularProgressIndicator()
             is ChartUiState.Error -> Text(uiState.message)
             is ChartUiState.EmptyChart -> EmptyChart(uiState.chartLayout)
-            is ChartUiState.Success -> onSuccess(uiState)
-            is ChartUiState.SuccessTimeSeries -> onSuccessTimeSeries(uiState)
-            is ChartUiState.SuccessStringFloat -> onSuccessStringFloat(uiState)
+            is ChartUiState.SuccessChartData -> onSuccessChartData(uiState)
+            else -> {}
         }
         bottomBar()
     }
@@ -217,7 +214,7 @@ fun prepareChartLayout(
 }
 
 @Composable
-fun ChartDataFlowTimeSeries(
+fun ChartDataFlow(
     chartData: ChartData,
     title: String,
     xTitle: String,
@@ -265,8 +262,8 @@ fun ChartDataFlowTimeSeries(
             is ChartData.TimeSeries -> {
 
                 if(chartData.data.isNotEmpty()){
-                    ChartUiState.SuccessTimeSeries(
-                        chartData = chartData.data,
+                    ChartUiState.SuccessChartData(
+                        chartData = chartData,
                         entries = chartData.data.map { it.first },
                         chartLayout = chartLayout.value
                     )
@@ -277,8 +274,8 @@ fun ChartDataFlowTimeSeries(
             is ChartData.XYPlotStringFloat -> {
 
                 if(chartData.data.isNotEmpty()){
-                    ChartUiState.SuccessStringFloat(
-                        chartData = chartData.data,
+                    ChartUiState.SuccessChartData(
+                        chartData = chartData,
                         entries = chartData.data.map { it.first },
                         chartLayout = chartLayout.value
                     )
@@ -302,26 +299,25 @@ fun ChartDataFlowTimeSeries(
                 isLegend = isLegend, onLegendChange = { isLegend = it }
             )
         },
-        onSuccessTimeSeries = { state ->
-            XYPlotTimeSeries(
-                layout = state.chartLayout,
-                data = state.chartData,
-                entries = state.entries
-            )
-        },
-        onSuccessStringFloat = { state ->
-            XYPlotTimeSeries(
-                layout = state.chartLayout,
-                data = state.chartData,
-                entries = state.entries
-            )
-        },
-        onSuccess = { state ->
-            ComposeXYPlot(
-                layout = state.chartLayout,
-                data = state.chartData,
-                entries = state.entries
-            )
+        onSuccessChartData = { state ->
+
+            when(state.chartData){
+                is ChartData.TimeSeries -> {
+                    XYPlotTimeSeries(
+                        layout = state.chartLayout,
+                        data = state.chartData.data,
+                        entries = state.entries
+                    )
+                }
+                is ChartData.XYPlotStringFloat -> {
+                    XYPlotTimeSeries(
+                        layout = state.chartLayout,
+                        data = state.chartData.data,
+                        entries = state.entries
+                    )
+                }
+            }
+
         }
     )
 

@@ -92,7 +92,7 @@ fun XYPlotTimeSeries(
                     HorizontalDivider(modifier = Modifier.padding(10.dp))
                 }
 
-
+                layout.xAxis.model.toString()
                 XYGraph (
                     xAxisModel = layout.xAxis.model as CategoryAxisModel<String>,
                     yAxisModel = layout.yAxis.model as FloatLinearAxisModel,

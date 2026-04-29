@@ -7,7 +7,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -60,7 +59,7 @@ fun WaterTempTimeSeries_KHOA(){
 
 
     if(chartData.value.isNotEmpty()){
-        ChartDataFlowTimeSeries(
+        ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Sea Water Temperature",
             xTitle = "DateTime",

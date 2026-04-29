@@ -15,8 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
-import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -79,7 +77,7 @@ fun OceanWaterInfoTimeSeries(){
 
 
     if(chartData.value.isNotEmpty()){
-        ChartDataFlowTimeSeries(
+        ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Surface Sea Temperature",
             xTitle = "DateTime",

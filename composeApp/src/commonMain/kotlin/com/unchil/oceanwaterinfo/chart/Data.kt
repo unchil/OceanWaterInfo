@@ -40,15 +40,8 @@ sealed class ChartUiState {
         val geoData: GeoShapeDataType? = null
     ) : ChartUiState()
 
-    data class SuccessStringFloat(
-        val chartData:  ChartDataListStringFloat,
-        val entries: ChartEntriesType,
-        val chartLayout: LayoutData,
-        val geoData: GeoShapeDataType? = null
-    ) : ChartUiState()
-
-    data class SuccessTimeSeries(
-        val chartData:  ChartDataList,
+    data class SuccessChartData(
+        val chartData:  ChartData,
         val entries: ChartEntriesType,
         val chartLayout: LayoutData,
         val geoData: GeoShapeDataType? = null
