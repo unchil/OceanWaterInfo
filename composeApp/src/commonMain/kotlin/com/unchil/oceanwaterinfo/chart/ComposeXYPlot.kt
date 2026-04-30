@@ -221,13 +221,15 @@ fun ComposeXYPlot(
                             scope.VerticalBarChart(data, layout.tooltips.isTooltips,layout.barConf.widthWeight  )
                         }
 
-                         */
+
 
 
                         ChartType.BoxPlot -> {
                             val scope = this as XYGraphScope<String, Float>
                             scope.BoxPlot(data, layout.tooltips.isTooltips )
                         }
+
+                         */
 
                         ChartType.Geo -> {
                             val scope = this as XYGraphScope<Double, Double>

@@ -38,28 +38,33 @@ import io.github.koalaplot.core.xygraph.XYGraphScope
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<String, Float>.BoxPlot(
-    data:Any,
+    chartData:ChartData,
     usableTooltips: Boolean,
 ) {
 
-    BoxPlotChart(data, usableTooltips , BoxPlotRange.Q1_Q3)
-    BoxPlotChart(data, usableTooltips, BoxPlotRange.MIN_MAX )
-    BoxPlotChart(data, usableTooltips, BoxPlotRange.MIN )
-    BoxPlotChart(data, usableTooltips, BoxPlotRange.MAX)
-    BoxPlotChart(data, usableTooltips, BoxPlotRange.Q2)
-    BoxPlotOutliers(data, usableTooltips)
+    when(chartData) {
+        is ChartData.XYPlotBoxPlot -> {
+            BoxPlotChart(chartData.data, usableTooltips , BoxPlotRange.Q1_Q3)
+            BoxPlotChart(chartData.data, usableTooltips, BoxPlotRange.MIN_MAX )
+            BoxPlotChart(chartData.data, usableTooltips, BoxPlotRange.MIN )
+            BoxPlotChart(chartData.data, usableTooltips, BoxPlotRange.MAX)
+            BoxPlotChart(chartData.data, usableTooltips, BoxPlotRange.Q2)
+            BoxPlotOutliers(chartData.data, usableTooltips)
+        }
+        else -> {}
+    }
+
+
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<String, Float>.BoxPlotChart(
-    data:Any,
+    data:ChartDataBoxPlot,
     usableTooltips: Boolean,
     range:BoxPlotRange
 ) {
-    @Suppress("UNCHECKED_CAST")
-    val data = (data as Map<String, SeaWaterBoxPlotStat>)
 
     val colors = getColors(data.keys.toList())
 
@@ -198,20 +203,19 @@ fun XYGraphScope<String, Float>.BoxPlotChart(
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
-@Suppress("UNCHECKED_CAST")
+
 @Composable
 fun XYGraphScope<String, Float>.BoxPlotOutliers(
-    data:Any,
+    data:ChartDataBoxPlot,
     usableTooltips: Boolean,
 ){
 
-    val rawData = (data as Map<String, SeaWaterBoxPlotStat>)
-    val colors = getColors(rawData.keys.toList())
-    val data = rawData.values.map { entry -> entry.outliers }
-    val xValues = rawData.keys.toList()
+    val colors = getColors(data.keys.toList())
+    val dataList = data.values.map { entry -> entry.outliers }
+    val xValues = data.keys.toList()
 
 
-    data.forEachIndexed { index, floats ->
+    dataList.forEachIndexed { index, floats ->
 
         LinePlot2(
             data =  floats.map {

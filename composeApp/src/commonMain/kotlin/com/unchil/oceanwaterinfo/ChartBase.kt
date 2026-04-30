@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.ChartUiState.*
 import com.unchil.oceanwaterinfo.chart.XYPlotChart
 import io.github.koalaplot.core.xygraph.AxisStyle
 import io.github.koalaplot.core.xygraph.CategoryAxisModel
@@ -24,10 +25,15 @@ import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.Point
 
+typealias ChartDataList = List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>>
+typealias ChartDataListStringFloat = List<Triple<String, Point<String, Float>, Map<String, Any>>>
+typealias ChartDataBoxPlot = Map<String, SeaWaterBoxPlotStat>
 
 sealed class ChartData {
     data class TimeSeries(val data: ChartDataList) : ChartData()
     data class XYPlotStringFloat(val data: ChartDataListStringFloat) : ChartData()
+
+    data class XYPlotBoxPlot(val data: ChartDataBoxPlot) : ChartData()
 }
 
 @Composable
@@ -77,16 +83,16 @@ fun ChartScaffold(
     modifier: Modifier = paddingMod,
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
-    onSuccessChartData:@Composable (ChartUiState.SuccessChartData) -> Unit,
+    onSuccessChartData:@Composable (SuccessChartData) -> Unit,
 ) {
 
     Column(modifier = modifier) {
         topBar() // 탭 로우 등이 들어가는 자리
         when (uiState) {
-            ChartUiState.Loading -> CircularProgressIndicator()
-            is ChartUiState.Error -> Text(uiState.message)
-            is ChartUiState.EmptyChart -> EmptyChart(uiState.chartLayout)
-            is ChartUiState.SuccessChartData -> onSuccessChartData(uiState)
+            Loading -> CircularProgressIndicator()
+            is Error -> Text(uiState.message)
+            is EmptyChart -> EmptyChart(uiState.chartLayout)
+            is SuccessChartData -> onSuccessChartData(uiState)
             else -> {}
         }
         bottomBar()
@@ -116,6 +122,7 @@ fun prepareChartLayout(
 ): LayoutData {
 
     when(chartData) {
+
         is ChartData.TimeSeries -> {
 
             if (chartData.data.isEmpty()) {
@@ -167,6 +174,7 @@ fun prepareChartLayout(
             )
 
         }
+
         is ChartData.XYPlotStringFloat -> {
 
             if (chartData.data.isEmpty()) {
@@ -206,6 +214,42 @@ fun prepareChartLayout(
             )
         }
 
+        is ChartData.XYPlotBoxPlot -> {
+            if (chartData.data.isEmpty()) {
+                return LayoutData(
+                    type = chartType,
+                    layout = TitleConfig(true, title),
+                    legend = LegendConfig(isLegend, true),
+                    xAxis = AxisConfig(xTitle),
+                    yAxis = AxisConfig(yTitle),
+                    size = SizeConfig(height = height),
+                    caption = CaptionConfig(true, caption)
+                )
+            }
+
+            val yMax = chartData.data.values.maxOf { entry -> entry.max }
+            val yRange = 0f..(yMax * yRangePadding)
+
+            return LayoutData(
+                type = chartType,
+                layout = TitleConfig(true, title, description),
+                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                xAxis = AxisConfig(
+                    title = xTitle,
+                    model = CategoryAxisModel(chartData.data.keys.toList()),
+                    style = AxisStyle(labelRotation = 45)
+                ),
+                yAxis = AxisConfig(
+                    yTitle,
+                    model = FloatLinearAxisModel(yRange)
+                ),
+                tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
+                size = SizeConfig(height = height),
+                caption = CaptionConfig(true, caption)
+            )
+
+
+        }
     }
 
 }
@@ -255,33 +299,23 @@ fun ChartDataFlow(
             description = description
         )
 
-        uiState.value = when(chartData) {
-            is ChartData.TimeSeries -> {
-
-                if(chartData.data.isNotEmpty()){
-                    ChartUiState.SuccessChartData(
-                        chartData = chartData,
-                        entries = chartData.data.map { it.first },
-                        chartLayout = chartLayout.value
-                    )
-                }else {
-                    ChartUiState.EmptyChart(chartLayout = chartLayout.value)
-                }
-            }
-            is ChartData.XYPlotStringFloat -> {
-
-                if(chartData.data.isNotEmpty()){
-                    ChartUiState.SuccessChartData(
-                        chartData = chartData,
-                        entries = chartData.data.map { it.first },
-                        chartLayout = chartLayout.value
-                    )
-                }else {
-                    ChartUiState.EmptyChart(chartLayout = chartLayout.value)
-                }
-            }
-
+        val entries = when(chartData){
+            is ChartData.TimeSeries -> chartData.data.map { it.first }
+            is ChartData.XYPlotBoxPlot -> chartData.data.keys.toList()
+            is ChartData.XYPlotStringFloat -> chartData.data.map { it.first }
         }
+
+        uiState.value = if(entries.isNotEmpty()) {
+            SuccessChartData(
+                chartData = chartData,
+                entries = entries,
+                chartLayout = chartLayout.value
+            )
+        } else {
+            EmptyChart(chartLayout = chartLayout.value)
+        }
+
+
 
     }
 

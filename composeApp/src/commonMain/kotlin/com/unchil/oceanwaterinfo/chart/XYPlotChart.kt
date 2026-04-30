@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.AxisLabel
+import com.unchil.oceanwaterinfo.BoxPlot
 import com.unchil.oceanwaterinfo.ChartData
+import com.unchil.oceanwaterinfo.ChartDataList
 import com.unchil.oceanwaterinfo.ChartTitle
 import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.LayoutData
@@ -142,7 +144,7 @@ fun XYPlotChart(
                             }
                         }
                     }
-                    is ChartData.XYPlotStringFloat -> {
+                    is ChartData.XYPlotStringFloat  -> {
                         XYGraph (
                             xAxisModel = layout.xAxis.model as CategoryAxisModel<String>,
                             yAxisModel = layout.yAxis.model as FloatLinearAxisModel,
@@ -177,6 +179,37 @@ fun XYPlotChart(
 
                     }
 
+                    is ChartData.XYPlotBoxPlot -> {
+                        XYGraph (
+                            xAxisModel = layout.xAxis.model as CategoryAxisModel<String>,
+                            yAxisModel = layout.yAxis.model as FloatLinearAxisModel,
+                            xAxisContent = AxisContent(
+                                labels = {
+                                    if (layout.xAxis.isLabels) { AxisLabel(it, Modifier.padding(top = 2.dp))}
+                                },
+                                title = {  if (layout.xAxis.isTitle)  xTitle(layout.xAxis.title) },
+                                style = xStyle,
+                            ),
+                            yAxisContent = AxisContent(
+                                labels = {
+                                    if (layout.yAxis.isLabels) { AxisLabel((round(it * 10) / 10f).toString(), Modifier.absolutePadding(right = 2.dp)) }
+                                },
+                                title = { if (layout.yAxis.isTitle)  yTitle(layout.yAxis.title )} ,
+                                style = yStyle
+                            ),
+                            gridStyle  = gridStyle,
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        ){
+                            when (layout.type) {
+                                ChartType.BoxPlot -> {
+                                    BoxPlot(chartData, layout.tooltips.isTooltips )
+                                }
+                                else -> {}
+                            }
+                        }
+
+
+                    }
                 }// when(ChartData)
 
             } // Column
