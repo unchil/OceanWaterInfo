@@ -34,92 +34,101 @@ import io.github.koalaplot.core.xygraph.XYGraphScope
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<Double, Float>.LineChart(
-    data: ChartDataList,
+    chartData: ChartData,
     usableTooltips: Boolean = false,
     usableSymbol: Boolean = true,
 ) {
-    val colors = getColors(data.map { triple -> triple.first })
-    val isVisibleSymbol = remember{mutableStateOf(0)}
-    val onHoverEvent = { index:Int ->
-        isVisibleSymbol.value = index
-    }
-    if(usableTooltips) {
-        VerticalTooltipBar(data, ChartType.Line, onHoverEvent)
-    }
 
-    data.forEachIndexed { index, triple ->
+    when(chartData) {
+        is ChartData.TimeSeries -> {
 
-        val strokeWidth = remember{ mutableStateOf(1.dp)}
-        val interactionSource = remember { MutableInteractionSource() }
-        val isPressed by interactionSource.collectIsPressedAsState()
-        val isUsableSymbolTooltips by interactionSource.collectIsHoveredAsState()
-        strokeWidth.value = if(isPressed) 3.dp else 1.dp
+            val colors = getColors(chartData.data.map { triple -> triple.first })
+            val isVisibleSymbol = remember{mutableStateOf(0)}
+            val onHoverEvent = { index:Int ->
+                isVisibleSymbol.value = index
+            }
+            if(usableTooltips) {
+                VerticalTooltipBar(chartData.data, ChartType.Line, onHoverEvent)
+            }
 
-        LinePlot2(
-            data = triple.second,
-            lineStyle = LineStyle(
-                brush = SolidColor(colors[triple.first] ?: Color.Black),
-                strokeWidth = strokeWidth.value),
-            symbol = { point ->
-                // 1. 현재 포인트가 호버 상태인지 미리 판별
-                val isHovered = isVisibleSymbol.value == triple.second.indexOf(point)
+            chartData.data.forEachIndexed { index, triple ->
 
-                // 2. 상태에 따른 크기와 투명도 결정
-                val symbolSize = when {
-                    isPressed -> 8.dp
-                    isHovered -> 6.dp
-                    isUsableSymbolTooltips -> 6.dp
-                    triple.second.indexOf(point) == 0 -> 6.dp
-                    triple.second.indexOf(point) == triple.second.lastIndex -> 6.dp
-                    usableSymbol -> 4.dp
-                    else -> 0.dp
-                }
+                val strokeWidth = remember{ mutableStateOf(1.dp)}
+                val interactionSource = remember { MutableInteractionSource() }
+                val isPressed by interactionSource.collectIsPressedAsState()
+                val isUsableSymbolTooltips by interactionSource.collectIsHoveredAsState()
+                strokeWidth.value = if(isPressed) 3.dp else 1.dp
 
-                val symbolAlpha = when {
-                    isHovered || usableSymbol || triple.second.indexOf(point) == 0 || triple.second.indexOf(point) == triple.second.lastIndex -> 1.0f
-                    else -> 0f
-                }
+                LinePlot2(
+                    data = triple.second,
+                    lineStyle = LineStyle(
+                        brush = SolidColor(colors[triple.first] ?: Color.Black),
+                        strokeWidth = strokeWidth.value),
+                    symbol = { point ->
+                        // 1. 현재 포인트가 호버 상태인지 미리 판별
+                        val isHovered = isVisibleSymbol.value == triple.second.indexOf(point)
 
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
-                        TooltipAnchorPosition.Above
-                    ),
-                    tooltip = {
-                        if (isUsableSymbolTooltips) {
-                            PlainTooltip {
-                                Column() {
-                                    Text( text =  formatLongToDateTime(point.x), textAlign = TextAlign.Center,  fontStyle = FontStyle.Italic)
-                                    Text( text =  "${triple.first} : ${point.y}")
-                                    Text( text =  "24-hour min : ${triple.second.minOf { point-> point.y }}")
-                                    Text( text =  "24-hour max : ${triple.second.maxOf { point-> point.y }}")
-                                }
-
-                            }
+                        // 2. 상태에 따른 크기와 투명도 결정
+                        val symbolSize = when {
+                            isPressed -> 8.dp
+                            isHovered -> 6.dp
+                            isUsableSymbolTooltips -> 6.dp
+                            triple.second.indexOf(point) == 0 -> 6.dp
+                            triple.second.indexOf(point) == triple.second.lastIndex -> 6.dp
+                            usableSymbol -> 4.dp
+                            else -> 0.dp
                         }
+
+                        val symbolAlpha = when {
+                            isHovered || usableSymbol || triple.second.indexOf(point) == 0 || triple.second.indexOf(point) == triple.second.lastIndex -> 1.0f
+                            else -> 0f
+                        }
+
+                        TooltipBox(
+                            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                TooltipAnchorPosition.Above
+                            ),
+                            tooltip = {
+                                if (isUsableSymbolTooltips) {
+                                    PlainTooltip {
+                                        Column() {
+                                            Text( text =  formatLongToDateTime(point.x), textAlign = TextAlign.Center,  fontStyle = FontStyle.Italic)
+                                            Text( text =  "${triple.first} : ${point.y}")
+                                            Text( text =  "24-hour min : ${triple.second.minOf { point-> point.y }}")
+                                            Text( text =  "24-hour max : ${triple.second.maxOf { point-> point.y }}")
+                                        }
+
+                                    }
+                                }
+                            },
+                            state = rememberTooltipState(),
+                        ) {
+
+
+                            Symbol(
+                                modifier = Modifier.clickable(
+                                    interactionSource =interactionSource,
+                                    indication = null, // 리플 효과
+                                    onClick = {
+
+                                    }
+                                ),
+                                shape = ShapeDefaults.ExtraSmall,
+                                fillBrush = SolidColor(colors[triple.first] ?: Color.Black),
+                                size = symbolSize,
+                                alpha = symbolAlpha
+                            )
+                        }
+
                     },
-                    state = rememberTooltipState(),
-                ) {
+                ) //LinePlot2
 
-
-                    Symbol(
-                        modifier = Modifier.clickable(
-                            interactionSource =interactionSource,
-                            indication = null, // 리플 효과
-                            onClick = {
-
-                            }
-                        ),
-                        shape = ShapeDefaults.ExtraSmall,
-                        fillBrush = SolidColor(colors[triple.first] ?: Color.Black),
-                        size = symbolSize,
-                        alpha = symbolAlpha
-                    )
-                }
-
-            },
-        ) //LinePlot2
-
+            }
+        }
+        else -> {}
     }
+
+
 }
 
 

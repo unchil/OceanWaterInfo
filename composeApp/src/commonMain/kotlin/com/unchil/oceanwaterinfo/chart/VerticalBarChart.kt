@@ -24,46 +24,53 @@ import io.github.koalaplot.core.xygraph.XYGraphScope
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalKoalaPlotApi::class)
 @Composable
 fun XYGraphScope<String, Float>.VerticalBarChart(
-    data: ChartDataListStringFloat,
+    chartData: ChartData,
     usableTooltips: Boolean,
     barWidth: Float = 0.9f
 ){
 
-    val colors = getColors(data.map { triple -> triple.first })
+    when(chartData){
+        is ChartData.XYPlotStringFloat -> {
 
-    val values = data.map { triple ->
-        DefaultVerticalBarPlotEntry(  triple.second.x,
-            DefaultBarPosition(0f, triple.second.y)
-        )
-    }
+            val colors = getColors(chartData.data.map { triple -> triple.first })
 
-    VerticalBarPlot(
-        values,
-        bar = { index, _, _ ->
-
-            TooltipBox(
-                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
-                    TooltipAnchorPosition.Above
-                ),
-                tooltip = {
-                    if (usableTooltips){
-                        PlainTooltip {
-                            Text("${values[index].x}\n${values[index].y.end }" )
-                        }
-                    }
-                }                    ,
-                state = rememberTooltipState(),
-            ) {
-                DefaultBar(
-                    brush = SolidColor(colors[data[index].first] ?: Color.Black),
-                    modifier = Modifier.fillMaxWidth(),
+            val values = chartData.data.map { triple ->
+                DefaultVerticalBarPlotEntry(  triple.second.x,
+                    DefaultBarPosition(0f, triple.second.y)
                 )
             }
 
+            VerticalBarPlot(
+                values,
+                bar = { index, _, _ ->
 
-        },
-        barWidth = barWidth
-    )
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                            TooltipAnchorPosition.Above
+                        ),
+                        tooltip = {
+                            if (usableTooltips){
+                                PlainTooltip {
+                                    Text("${values[index].x}\n${values[index].y.end }" )
+                                }
+                            }
+                        }                    ,
+                        state = rememberTooltipState(),
+                    ) {
+                        DefaultBar(
+                            brush = SolidColor(colors[chartData.data[index].first] ?: Color.Black),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+
+                },
+                barWidth = barWidth
+            )
+        }
+        else -> {}
+    }
+
 }
 
 

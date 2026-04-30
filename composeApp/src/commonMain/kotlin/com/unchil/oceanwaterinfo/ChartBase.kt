@@ -17,7 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.unchil.oceanwaterinfo.chart.XYPlotTimeSeries
+import com.unchil.oceanwaterinfo.chart.XYPlotChart
 import io.github.koalaplot.core.xygraph.AxisStyle
 import io.github.koalaplot.core.xygraph.CategoryAxisModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
@@ -169,7 +169,6 @@ fun prepareChartLayout(
         }
         is ChartData.XYPlotStringFloat -> {
 
-
             if (chartData.data.isEmpty()) {
                 return LayoutData(
                     type = chartType,
@@ -181,8 +180,6 @@ fun prepareChartLayout(
                     caption = CaptionConfig(true, caption)
                 )
             }
-
-
 
             val allPoints = chartData.data.map { it.second  }
             val yMax = allPoints.maxOf { it.y }
@@ -301,22 +298,12 @@ fun ChartDataFlow(
         },
         onSuccessChartData = { state ->
 
-            when(state.chartData){
-                is ChartData.TimeSeries -> {
-                    XYPlotTimeSeries(
-                        layout = state.chartLayout,
-                        data = state.chartData.data,
-                        entries = state.entries
-                    )
-                }
-                is ChartData.XYPlotStringFloat -> {
-                    XYPlotTimeSeries(
-                        layout = state.chartLayout,
-                        data = state.chartData.data,
-                        entries = state.entries
-                    )
-                }
-            }
+            XYPlotChart(
+                layout = state.chartLayout,
+                chartData = state.chartData,
+                entries = state.entries
+            )
+
 
         }
     )
