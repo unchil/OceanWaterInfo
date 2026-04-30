@@ -254,6 +254,8 @@ fun XYPlotChart(
                         }
 
                     }
+
+                    else -> {  }
                 }// when(ChartData)
 
             } // Column

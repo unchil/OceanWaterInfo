@@ -32,6 +32,9 @@ fun main() {
                             .background(color = MaterialTheme.colorScheme.surface)
                     ) {
 
+                     //   OceanWaterInfo()
+
+
                         Box(modifier = Modifier.fillMaxHeight()) {
                             Column(
                                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -47,6 +50,7 @@ fun main() {
                                 OceanWaterInfoBoxPlotChart()
                                 OceanWaterInfoBarChart()
                                 OceanWaterInfoDataGrid()
+
 
                             }
 

@@ -35,9 +35,9 @@ fun OceanWaterInfo(){
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
-
-        WindPolarChart()
-        OceanWaterInfoDataGrid()
+        WindPolarChart_KHOA()
+       // WindPolarChart()
+      //  OceanWaterInfoDataGrid()
 
         /*
         OceanWaterInfoGeoChart()
