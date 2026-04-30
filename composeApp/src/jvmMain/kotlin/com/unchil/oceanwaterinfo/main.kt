@@ -174,7 +174,6 @@ fun main() = application {
                                         textAlign = TextAlign.Center
                                     )
                                     CompositionLocalProvider(LocalPoint provides clickPoint.value) {
-                                      //  SDoTEnvInfoMapHexagonLayer(initialized, download, errorMessage)
                                         SDoTEnvInfoUnionMapHexagonLayer(initialized, download, errorMessage)
                                     }
                                 }
@@ -208,6 +207,7 @@ fun main() = application {
                                                 ).fillMaxHeight()
                                             ) {
                                                 val totalHeight = this.maxHeight.value
+
 
                                                 CompositionLocalProvider(LocalPoint provides clickPoint.value) {
                                                     Column {
@@ -252,6 +252,8 @@ fun main() = application {
                                                     }
                                                 }
 
+
+
                                             }
 
 
@@ -282,6 +284,7 @@ fun main() = application {
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
 
+
                                                     WasteWaterTimeSeries_KHNP()
                                                     ThermalWasteWaterTimeSeries_KHNP()
                                                     WaterDegTimeSeries_KHOA()
@@ -289,6 +292,8 @@ fun main() = application {
                                                     OceanWaterInfoTimeSeries()
                                                     OceanWaterInfoBoxPlotChart()
                                                     OceanWaterInfoBarChart()
+
+
 
                                                     //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
                                                     Row(

@@ -15,25 +15,37 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.ChartUiState.*
 import com.unchil.oceanwaterinfo.chart.XYPlotChart
+import io.github.koalaplot.core.style.LineStyle
 import io.github.koalaplot.core.xygraph.AxisStyle
 import io.github.koalaplot.core.xygraph.CategoryAxisModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
+import io.github.koalaplot.core.xygraph.GridStyle
 import io.github.koalaplot.core.xygraph.Point
 
-typealias ChartDataList = List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>>
+typealias ChartDataList =            List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>>
 typealias ChartDataListStringFloat = List<Triple<String, Point<String, Float>, Map<String, Any>>>
-typealias ChartDataBoxPlot = Map<String, SeaWaterBoxPlotStat>
+typealias ChartDataBoxPlot =         Map<String, SeaWaterBoxPlotStat>
+typealias ChartEntriesType =        List<String>
+typealias ChartValuesGeo =          Triple<String, Point<Double, Double>, Pair<String, String>>
+typealias GeoShapeDataType =        Pair<List<Point<Double,Double>>, (Point<Double,Double>)->Unit>
+typealias ChartDataGeoPlot =        Triple< ChartEntriesType, List<ChartValuesGeo>, GeoShapeDataType >
+
+
 
 sealed class ChartData {
     data class TimeSeries(val data: ChartDataList) : ChartData()
     data class XYPlotStringFloat(val data: ChartDataListStringFloat) : ChartData()
 
     data class XYPlotBoxPlot(val data: ChartDataBoxPlot) : ChartData()
+
+    data class XYPlotGeoPlot(val data: ChartDataGeoPlot): ChartData()
 }
 
 @Composable
@@ -181,7 +193,7 @@ fun prepareChartLayout(
                 return LayoutData(
                     type = chartType,
                     layout = TitleConfig(true, title),
-                    legend = LegendConfig(isLegend, true),
+                    legend = LegendConfig(isLegend, true, legendTitle),
                     xAxis = AxisConfig(xTitle),
                     yAxis = AxisConfig(yTitle),
                     size = SizeConfig(height = height),
@@ -219,7 +231,7 @@ fun prepareChartLayout(
                 return LayoutData(
                     type = chartType,
                     layout = TitleConfig(true, title),
-                    legend = LegendConfig(isLegend, true),
+                    legend = LegendConfig(isLegend, true, legendTitle),
                     xAxis = AxisConfig(xTitle),
                     yAxis = AxisConfig(yTitle),
                     size = SizeConfig(height = height),
@@ -250,6 +262,40 @@ fun prepareChartLayout(
 
 
         }
+
+        is ChartData.XYPlotGeoPlot -> {
+            if (chartData.data.first.isEmpty()) {
+                return LayoutData(
+                    type = chartType,
+                    layout = TitleConfig(true, title),
+                    legend = LegendConfig(isLegend, true, legendTitle),
+                    xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
+                    yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
+                    size = SizeConfig(height = height),
+                    caption = CaptionConfig(true, caption)
+                )
+            }
+
+            return LayoutData(
+                type = chartType,
+                layout = TitleConfig(true, title = "${chartData.data.second.first().third.first} ${title}"),
+                legend = LegendConfig(isLegend, true, legendTitle),
+                xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
+                yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
+                gridStyle = GridStyle(
+                    horizontalMajorStyle = LineStyle(brush= SolidColor(Color.Gray)),
+                    horizontalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
+                    verticalMajorStyle = LineStyle(brush= SolidColor(Color.Gray)),
+                    verticalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
+                ),
+                size = SizeConfig(height = height),
+                caption = CaptionConfig(true, caption)
+            )
+
+
+
+
+        }
     }
 
 }
@@ -266,6 +312,7 @@ fun ChartDataFlow(
     secondaryKey: String? = null,
     legendTitle: String = "Entry",
     description:String? = null,
+    height:Dp = 400.dp,
     onRefresh: () -> Unit,
     topBar: @Composable (() -> Unit) = {},
 ) {
@@ -293,6 +340,7 @@ fun ChartDataFlow(
             isTooltips = isTooltips,
             isSymbol = isSymbol,
             isLegend = isLegend,
+            height = height,
             yRangePadding = yRangePadding,
             secondaryKey = secondaryKey,
             legendTitle = legendTitle,
@@ -303,6 +351,7 @@ fun ChartDataFlow(
             is ChartData.TimeSeries -> chartData.data.map { it.first }
             is ChartData.XYPlotBoxPlot -> chartData.data.keys.toList()
             is ChartData.XYPlotStringFloat -> chartData.data.map { it.first }
+            is ChartData.XYPlotGeoPlot -> chartData.data.first
         }
 
         uiState.value = if(entries.isNotEmpty()) {
@@ -312,12 +361,19 @@ fun ChartDataFlow(
                 chartLayout = chartLayout.value
             )
         } else {
-            EmptyChart(chartLayout = chartLayout.value)
+            when(chartData){
+                is ChartData.XYPlotGeoPlot -> {
+                    EmptyChart(chartLayout = chartLayout.value, chartData.data.third)
+                }
+                else -> {
+                    EmptyChart(chartLayout = chartLayout.value)
+                }
+            }
         }
 
-
-
     }
+
+
 
     // 4. 공통 UI 렌더링 흐름 (스캐폴드 활용)
     ChartScaffold(

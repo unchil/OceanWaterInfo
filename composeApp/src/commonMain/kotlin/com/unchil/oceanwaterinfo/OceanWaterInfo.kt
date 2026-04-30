@@ -21,38 +21,30 @@ import androidx.compose.ui.unit.sp
 @UiComposable
 fun OceanWaterInfo(){
 
+    Column(
+        modifier = paddingMod.fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .safeContentPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
 
+        Text(
+            "Korea Ocean Water Information",
+            modifier = Modifier.padding(vertical = 20.dp),
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+        )
 
-            Column(
-                modifier = paddingMod.fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .safeContentPadding(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+        WindPolarChart()
+        OceanWaterInfoDataGrid()
 
-                Text(
-                    "Korea Ocean Water Information",
-                    modifier = Modifier.padding(vertical = 20.dp),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+        /*
+        OceanWaterInfoGeoChart()
 
-                OceanWaterInfoBarChart()
+        OceanWaterInfoLineChart_MOF()
 
-                OceanWaterInfoBoxPlotChart()
+         */
 
-                OceanWaterInfoDataGrid()
-
-                OceanWaterInfoGeoChart()
-
-                OceanWaterInfoLineChart_MOF()
-
-                WindPolarChart()
-
-            }
-
-
-
-
+    }
 }

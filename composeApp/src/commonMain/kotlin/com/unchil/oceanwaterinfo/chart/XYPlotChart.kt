@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,9 +17,9 @@ import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.AxisLabel
 import com.unchil.oceanwaterinfo.BoxPlot
 import com.unchil.oceanwaterinfo.ChartData
-import com.unchil.oceanwaterinfo.ChartDataList
 import com.unchil.oceanwaterinfo.ChartTitle
 import com.unchil.oceanwaterinfo.ChartType
+import com.unchil.oceanwaterinfo.GeoChart
 import com.unchil.oceanwaterinfo.LayoutData
 import com.unchil.oceanwaterinfo.Legend
 import com.unchil.oceanwaterinfo.LineChart
@@ -88,10 +89,21 @@ fun XYPlotChart(
         )
     }
 
+    val modifier = when(layout.type){
+        ChartType.Geo -> {
+            Modifier
+                .width(layout.size.height*1.2f)
+                .height(layout.size.height)
+        }
+        else -> {
+            Modifier
+                .fillMaxWidth()
+                .height(layout.size.height)
+        }
+    }
 
-    Box( modifier = Modifier
-        .fillMaxWidth()
-        .height(layout.size.height),
+
+    Box( modifier = modifier,
         contentAlignment =  Alignment.Center
     ) {
 
@@ -109,6 +121,7 @@ fun XYPlotChart(
                 if (!layout.layout.description.isNullOrBlank()) description
 
                 when(chartData){
+
                     is ChartData.TimeSeries -> {
                         XYGraph (
                             xAxisModel = layout.xAxis.model as DoubleLinearAxisModel,
@@ -178,7 +191,6 @@ fun XYPlotChart(
                         }
 
                     }
-
                     is ChartData.XYPlotBoxPlot -> {
                         XYGraph (
                             xAxisModel = layout.xAxis.model as CategoryAxisModel<String>,
@@ -208,6 +220,38 @@ fun XYPlotChart(
                             }
                         }
 
+
+                    }
+                    is ChartData.XYPlotGeoPlot -> {
+                        XYGraph (
+                            xAxisModel = layout.xAxis.model as DoubleLinearAxisModel,
+                            yAxisModel = layout.yAxis.model as DoubleLinearAxisModel,
+                            xAxisContent = AxisContent(
+                                labels = {
+                                    if (layout.xAxis.isLabels) {  AxisLabel(it.toString(), Modifier.padding(top = 2.dp))}
+                                },
+                                title = {  if (layout.xAxis.isTitle)  xTitle(layout.xAxis.title) },
+                                style = xStyle,
+                            ),
+                            yAxisContent = AxisContent(
+                                labels = {
+                                    if (layout.yAxis.isLabels) {
+                                          AxisLabel((round(it * 10) / 10.0).toString(), Modifier.absolutePadding(right = 2.dp))
+                                    }
+                                },
+                                title = { if (layout.yAxis.isTitle)  yTitle(layout.yAxis.title )} ,
+                                style = yStyle
+                            ),
+                            gridStyle  = gridStyle,
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        ){
+                            when (layout.type) {
+                                ChartType.Geo -> {
+                                    GeoChart(chartData, layout.tooltips.isTooltips )
+                                }
+                                else -> {}
+                            }
+                        }
 
                     }
                 }// when(ChartData)
