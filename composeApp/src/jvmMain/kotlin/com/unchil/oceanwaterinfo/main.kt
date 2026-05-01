@@ -102,14 +102,13 @@ fun main() = application {
 
             CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
-               // OceanWaterInfo()
+            //    OceanWaterInfo()
 
 
                 Column(
                     modifier = Modifier.fillMaxSize()
                         .background(color = MaterialTheme.colorScheme.surface)
                 ) {
-
                     SecondaryTabRow(
                         selectedTabIndex,
                         Modifier.fillMaxWidth(),
@@ -157,7 +156,6 @@ fun main() = application {
                             )
                         }
                     }
-
                     Box(modifier = Modifier.fillMaxSize()) {
                         when (selectedTabIndex) {
                             0 -> {
@@ -357,9 +355,6 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
-
-
-
 
 
 

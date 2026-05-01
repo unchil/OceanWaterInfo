@@ -32,7 +32,7 @@ fun main() {
                             .background(color = MaterialTheme.colorScheme.surface)
                     ) {
 
-                     //   OceanWaterInfo()
+ //                       OceanWaterInfo()
 
 
                         Box(modifier = Modifier.fillMaxHeight()) {
@@ -55,11 +55,9 @@ fun main() {
                             }
 
                         }
+
+
                     }
-
-
-
-
 
             }
 

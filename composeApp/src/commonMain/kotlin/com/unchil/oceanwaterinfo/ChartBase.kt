@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.ChartUiState.*
+import com.unchil.oceanwaterinfo.chart.PolarPlotChart
 import com.unchil.oceanwaterinfo.chart.XYPlotChart
 import io.github.koalaplot.core.ChartLayout
 import io.github.koalaplot.core.Symbol
@@ -331,12 +332,15 @@ fun prepareChartLayout(
 
 }
 
+
+
 @OptIn(ExperimentalKoalaPlotApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChartDataFlow(
     chartData: ChartData,
     title: String,
     caption: String,
+    chartType: ChartType,
     legendTitle: String = "Entry",
     description:String? = null,
     height:Dp = 400.dp,
@@ -355,21 +359,25 @@ fun ChartDataFlow(
             is ChartData.PolarGraphPlot ->{
                 if(chartData.data.isEmpty()){
                      LayoutData(
+                         type = chartType,
                         layout = TitleConfig(true, title),
                         size = SizeConfig(height = height),
                         caption = CaptionConfig(true, caption)
                     )
                 }else {
                     LayoutData(
+                        type = chartType,
                         layout = TitleConfig(true, title),
                         legend = LegendConfig(true, true, legendTitle),
                         size = SizeConfig(height = height),
                         caption = CaptionConfig(true, caption),
+                        maxCrSp = maxCrSp
                     )
                 }
             }
             else -> {
                 LayoutData(
+                    type = chartType,
                     layout = TitleConfig(true, title),
                     size = SizeConfig(height = height),
                     caption = CaptionConfig(true, caption)
@@ -400,121 +408,11 @@ fun ChartDataFlow(
         bottomBar = { },
         onSuccessChartData = { state ->
 
-            Column (modifier = paddingMod.fillMaxWidth(0.5f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                val colors = getColors(state.entries)
-
-                Box(  contentAlignment =  Alignment.Center ) {
-
-                    ChartLayout(
-                        modifier = paddingMod
-                            .sizeIn(minHeight = chartLayout.value.size.minHeight, maxHeight = chartLayout.value.size.maxHeight)
-                            .background(color = MaterialTheme.colorScheme.surface),
-                        title = {
-                            if (chartLayout.value.layout.isTitle) {
-                                ChartTitle(chartLayout.value.layout.title, modifier = paddingMod)
-                            }
-                        },
-                        legend = {
-                            if(chartLayout.value.legend.isUsable ) {
-                                Legend(chartLayout.value, state.entries, colors)
-                            }
-                        },
-                        legendLocation = chartLayout.value.legend.location
-                    ) {
-
-                        val angularAxisGridLineStyle =
-                            LineStyle(SolidColor(Color.LightGray), strokeWidth = 1.dp)
-
-                        PolarGraph(
-                            radialAxisModel = rememberFloatRadialAxisModel(
-                                List(5) { i -> round((maxCrSp / 3) * i  ) }
-                            ),
-                            angularAxisModel = rememberAngularValueAxisModel(
-                                angleDirection = AngularAxisModel.AngleDirection.CLOCKWISE ,
-                                angleZero = AngularAxisModel.AngleZero.TWELVE_OCLOCK
-                            ),
-                            radialAxisLabels = {
-                                Text("${it}" )
-                            },
-                            angularAxisLabels = {
-                                Text("${it.toDegrees().value}\u00B0")
-                            },
-                            polarGraphProperties = PolarGraphDefaults.polarGraphPropertyDefaults()
-                                .copy(
-                                    angularAxisGridLineStyle = angularAxisGridLineStyle,
-                                    radialAxisGridLineStyle = angularAxisGridLineStyle,
-                                    background = AreaStyle(
-                                        SolidColor(Color.Yellow),
-                                        alpha = 0.1f,
-                                    ),
-                                ),
-                            ) {
-
-                                when(state.chartData){
-                                    is ChartData.PolarGraphPlot -> {
-                                        val polarPointList = state.chartData.data.flatMap {
-                                            listOf(it.third)
-                                        }
-                                        polarPointList.forEachIndexed { index, seriesData ->
-                                            PolarPlotSeries2(
-                                                seriesData,
-                                                symbols = {
-                                                    TooltipBox(
-                                                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
-                                                            TooltipAnchorPosition.Above
-                                                        ),
-                                                        tooltip = {
-
-                                                            PlainTooltip {
-                                                                Column() {
-                                                                    Text( text = state.chartData.data[index].first)
-                                                                    Text( text =  "latitude:${state.chartData.data[index].second.y}, longitude:${state.chartData.data[index].second.x}")
-                                                                    Text( text = "${state.chartData.data[index].third[0].r} 유속(cm/s)")
-                                                                    Text( text = "${state.chartData.data[index].third[0].theta.toDegrees()} deg")
-                                                                }
-
-                                                            }
-
-                                                        },
-                                                        state = rememberTooltipState(),
-                                                    ) {
-
-                                                        Symbol(
-                                                            shape = CircleShape,
-                                                            fillBrush = SolidColor(
-                                                                colors[state.entries[index]] ?: Color.LightGray
-                                                            )
-                                                        )
-
-                                                    }
-                                                },
-                                            )
-                                        }
-                                    }
-
-                                    else-> {}
-                                }
-
-
-                        }
-
-
-                        if (chartLayout.value.caption.isCaption) {
-                            Box( modifier = Modifier.fillMaxSize(),
-                                contentAlignment = chartLayout.value.caption.location
-                            ) {
-                                CaptionText(chartLayout.value.caption.title, modifier = paddingMod)
-                            }
-                        } //-- Caption
-
-
-
-                    }
-
-                }
-            }
+            PolarPlotChart(
+                layout = state.chartLayout,
+                chartData = state.chartData,
+                entries = state.entries
+            )
 
         }
     )
