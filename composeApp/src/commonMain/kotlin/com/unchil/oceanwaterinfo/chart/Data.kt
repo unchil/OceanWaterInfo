@@ -128,13 +128,14 @@ data class LayoutData(
     val caption: CaptionConfig = CaptionConfig(),
     val tooltips: TooltipConfig = TooltipConfig(),
     val size: SizeConfig = SizeConfig(),
-    val barConf: BarConfig = BarConfig()
+    val barConf: BarConfig = BarConfig(),
+    var maxCrSp:Float = 0f
 ) {
 
 }
 
 enum class ChartType {
-    XYGraph, Line, VerticalBar, GroupVerticalBar, BoxPlot, Geo, DegLine, Point, Area
+    XYGraph, Line, VerticalBar, GroupVerticalBar, BoxPlot, Geo, DegLine, Point, Area, Polar
 }
 
 enum class BoxPlotRange {
