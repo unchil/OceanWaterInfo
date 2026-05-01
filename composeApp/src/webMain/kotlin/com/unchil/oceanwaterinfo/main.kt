@@ -51,19 +51,14 @@ fun main() {
 
  //                       OceanWaterInfo()
 
-                            WasteWaterTimeSeries_KHNP()
-                            ThermalWasteWaterTimeSeries_KHNP()
-                            WaterDegTimeSeries_KHOA()
-                            WaterTempTimeSeries_KHOA()
-                            OceanWaterInfoTimeSeries()
-
-                            OceanWaterInfoBoxPlotChart()
-                            OceanWaterInfoBarChart()
-                            OceanWaterInfoDataGrid()
-
-
-
-
+                        WasteWaterTimeSeries_KHNP()
+                        ThermalWasteWaterTimeSeries_KHNP()
+                        WaterTempTimeSeries_KHOA()
+                        OceanWaterInfoTimeSeries()
+                        OceanWaterInfoBoxPlotChart()
+                        OceanWaterInfoBarChart()
+                        OceanWaterInfoDataGrid()
+                        WaterDegTimeSeries_KHOA()
                         Row(
                             modifier = Modifier.fillMaxSize(),
                             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -83,8 +78,6 @@ fun main() {
                             }
 
                         }
-
-
 
                     }
 
