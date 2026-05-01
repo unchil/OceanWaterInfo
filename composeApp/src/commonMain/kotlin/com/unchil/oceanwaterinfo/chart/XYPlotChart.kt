@@ -50,7 +50,7 @@ fun XYPlotChart(
     chartData: ChartData,
     entries:List<String>
 ){
-    val colors = getColors(entries)
+
 
     val xStyle = if (layout.xAxis.style == null){
         rememberAxisStyle()
@@ -112,7 +112,7 @@ fun XYPlotChart(
                 .sizeIn(minHeight = layout.size.minHeight, maxHeight = layout.size.maxHeight)
                 .background(color = MaterialTheme.colorScheme.surface),
             title = { if (layout.layout.isTitle) { ChartTitle(layout.layout.title, modifier = paddingMod)  } },
-            legend = { if(layout.legend.isUsable ) { Legend(layout, entries, colors) }  },
+            legend = { if(layout.legend.isUsable ) { Legend(layout, entries) }  },
             legendLocation = layout.legend.location
         ) {
 

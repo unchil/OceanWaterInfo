@@ -111,9 +111,9 @@ fun SeaFlowMapHexagonLayer(
 
                     CaptionText(
                         "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                        textAlign = TextAlign.End
+                        textAlign = TextAlign.Center
                     )
+
 
                     WebView(
                         state = webViewState,

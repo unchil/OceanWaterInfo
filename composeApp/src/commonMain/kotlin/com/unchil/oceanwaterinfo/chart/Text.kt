@@ -55,13 +55,13 @@ val description: @Composable (ColumnScope.(text: String) -> Unit) = {
 
 val caption: @Composable ( (text: String,  contentAlignment: Alignment) -> Unit ) = { text, contentAlignment ->
     Box( modifier = Modifier.fillMaxSize(), contentAlignment = contentAlignment) {
-        CaptionText(text, modifier = paddingMod)
+        Text(text, fontStyle = FontStyle.Italic, style = MaterialTheme.typography.bodySmall, modifier=Modifier.fillMaxWidth(), textAlign= TextAlign.Center)
     }
 }
 
 
 @Composable
-fun CaptionText(text: String, modifier:Modifier=Modifier, textAlign: TextAlign? = null,) {
+fun CaptionText(text: String, modifier:Modifier=Modifier.fillMaxWidth(), textAlign: TextAlign? = null,) {
     Text(text, fontStyle = FontStyle.Italic, style = MaterialTheme.typography.bodySmall, modifier=modifier, textAlign=textAlign)
 }
 

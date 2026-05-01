@@ -97,6 +97,8 @@ fun EmptyChart(layoutData: LayoutData){
             }
         }
 
+        if (layoutData.caption.isCaption) caption(layoutData.caption.title, Alignment.BottomEnd)
+        /*
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment =  Alignment.BottomEnd
@@ -106,6 +108,8 @@ fun EmptyChart(layoutData: LayoutData){
             }
 
         }
+
+         */
     }
 
 }

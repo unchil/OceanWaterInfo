@@ -44,6 +44,7 @@ import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.desc
 import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.name
 import com.unchil.oceanwaterinfo.CaptionText
 import com.unchil.oceanwaterinfo.LocalPoint
+import com.unchil.oceanwaterinfo.caption
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 
@@ -203,9 +204,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
                         CaptionText(
                             AIR_QUAlITY_UNION.caption,
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).padding(end = 20.dp),
-                            textAlign = TextAlign.End
+                            textAlign = TextAlign.Center
                         )
+
+
 
                         WebView(
                             state = webViewState,

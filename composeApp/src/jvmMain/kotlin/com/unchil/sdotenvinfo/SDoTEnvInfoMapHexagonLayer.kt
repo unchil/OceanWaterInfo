@@ -65,6 +65,7 @@ import com.unchil.oceanwaterinfo.ChartTitle
 import com.unchil.oceanwaterinfo.LocalPoint
 import com.unchil.oceanwaterinfo.WATER_QUALITY
 import com.unchil.oceanwaterinfo.WATER_QUALITY.name
+import com.unchil.oceanwaterinfo.caption
 import com.unchil.oceanwaterinfo.formatLongToDateTime
 import com.unchil.oceanwaterinfo.toTidalCurrentDataMap
 import com.unchil.oceanwaterinfo.transformToHexagonData
@@ -235,9 +236,9 @@ fun SDoTEnvInfoMapHexagonLayer(
 
                     CaptionText(
                         "from https://data.seoul.go.kr/dataList/OA-15969/S/1/datasetView.do (Seoul Metropolitan Government)",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).padding(end = 20.dp),
-                        textAlign = TextAlign.End
+                        textAlign = TextAlign.Center
                     )
+
 
                     WebView(
                         state = webViewState,

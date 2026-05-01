@@ -29,9 +29,9 @@ import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 @Composable
 fun Legend(
     layout: LayoutData,
-    entries:List<String>,
-    colors: Map<String, Color>
+    entries:List<String>
 ){
+    val colors = getColors(entries)
     val defaultSize = remember {  24.dp}
     val legendLocation = layout.legend.location
     val isVertical = legendLocation == LegendLocation.LEFT || legendLocation == LegendLocation.RIGHT
