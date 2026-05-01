@@ -283,11 +283,12 @@ fun main() = application {
 
                                                     WasteWaterTimeSeries_KHNP()
                                                     ThermalWasteWaterTimeSeries_KHNP()
-                                                    WaterDegTimeSeries_KHOA()
+
                                                     WaterTempTimeSeries_KHOA()
                                                     OceanWaterInfoTimeSeries()
                                                     OceanWaterInfoBoxPlotChart()
                                                     OceanWaterInfoBarChart()
+                                                    WaterDegTimeSeries_KHOA()
                                                     WindPolarChart_KHOA()
 
 
