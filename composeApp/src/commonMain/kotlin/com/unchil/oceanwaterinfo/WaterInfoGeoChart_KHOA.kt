@@ -107,6 +107,7 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
         )
 
         ChartDataFlow(
+            chartScope = ChartGraphScope.XY,
             chartData = chartData,
             title = "Sea Water Temperature",
             xTitle = "Longitude",

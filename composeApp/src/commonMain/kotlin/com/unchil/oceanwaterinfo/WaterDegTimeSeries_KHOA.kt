@@ -64,30 +64,10 @@ fun WaterDegTimeSeries_KHOA(){
         }
     }
 
-    /*
-    val chartData = seaWaterInfo.value.filter {
-        val previous6Hour = kotlin.time.Clock.System.now()
-            .minus(6, DateTimeUnit.HOUR)
-            .toLocalDateTime(TimeZone.currentSystemDefault())
-            .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
-
-        it.obsCode.contains("HB") &&
-                it.obsrvnDt > previous6Hour
-
-    }.toChartTripleList(
-        nameSelector = { it.obsvtrNm },
-        timeSelector = { it.obsrvnDt },
-        timePattern = "yyyy-MM-dd HH:mm",
-        primaryValueSelector = { it.crsp?.trim()?.toFloatOrNull() ?: 0f },
-        secondaryValueSelector = { it.crdir?.trim()?.toFloatOrNull() ?: 0f },
-        secondaryKey = "crdir"
-    )
-
-     */
-
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
+            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "6-hour Direction/Speed of ocean current",
             xTitle = "DateTime",

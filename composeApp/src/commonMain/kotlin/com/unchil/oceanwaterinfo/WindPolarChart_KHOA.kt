@@ -68,13 +68,17 @@ fun WindPolarChart_KHOA(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
+            chartScope = ChartGraphScope.Polar,
             chartData = ChartData.PolarGraphPlot(chartData.value),
             title = chartTitle.value,
+            xTitle = "",
+            yTitle = "",
             caption = "from https://www.data.go.kr/data/15155516/openapi.do (행정안전부 공공데이터포털)",
             chartType = ChartType.Polar,
             legendTitle = "관측소",
             height = 500.dp,
             maxCrSp = maxCrSp.value,
+            visibleBottomBar = false,
             onRefresh = onRefresh
         )
     }

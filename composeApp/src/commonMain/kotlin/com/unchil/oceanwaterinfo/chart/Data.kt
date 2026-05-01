@@ -11,16 +11,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.koalaplot.core.legend.LegendLocation
 import io.github.koalaplot.core.util.generateHueColorPalette
-import io.github.koalaplot.core.xygraph.AxisModel
 import io.github.koalaplot.core.xygraph.AxisStyle
-import io.github.koalaplot.core.xygraph.CategoryAxisModel
-import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.GridStyle
-import io.github.koalaplot.core.xygraph.Point
 import io.github.koalaplot.core.xygraph.TickPosition
 import kotlin.Any
-import kotlin.math.ceil
-
 
 
 sealed class ChartUiState {
@@ -28,13 +22,6 @@ sealed class ChartUiState {
     object Loading : ChartUiState()
 
     data class Success(
-        val chartData: Any,
-        val entries: ChartEntriesType,
-        val chartLayout: LayoutData,
-        val geoData: GeoShapeDataType? = null
-    ) : ChartUiState()
-
-    data class SuccessChartData(
         val chartData:  ChartData,
         val entries: ChartEntriesType,
         val chartLayout: LayoutData,
@@ -132,6 +119,10 @@ data class LayoutData(
     var maxCrSp:Float = 0f
 ) {
 
+}
+
+enum class ChartGraphScope{
+    XY, Polar
 }
 
 enum class ChartType {

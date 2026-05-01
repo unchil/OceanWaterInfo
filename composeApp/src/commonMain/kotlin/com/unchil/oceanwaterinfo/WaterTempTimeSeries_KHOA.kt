@@ -45,21 +45,11 @@ fun WaterTempTimeSeries_KHOA(){
         }
 
     }
-    /*
-    val chartData = seaWaterInfo.value.filter {
-        it.obsCode.contains("HB")
-    }.toChartTripleList(
-        nameSelector = { it.obsvtrNm },
-        timeSelector = { it.obsrvnDt },
-        timePattern = "yyyy-MM-dd HH:mm",
-        primaryValueSelector = { it.wtem?.trim()?.toFloatOrNull() ?: 0f },
-    )
-
-     */
 
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
+            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Sea Water Temperature",
             xTitle = "DateTime",

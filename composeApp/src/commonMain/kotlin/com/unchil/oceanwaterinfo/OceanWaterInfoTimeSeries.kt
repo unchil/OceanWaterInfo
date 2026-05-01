@@ -62,22 +62,11 @@ fun OceanWaterInfoTimeSeries(){
         }
     }
 
-    /*
-    val chartData = seaWaterInfo.value.filter { it ->
-        it.gru_nam.equals(selectedOption.gru_nam()) &&  it.obs_lay == "1"
-    }.toChartTripleList(
-        nameSelector = { it.sta_nam_kor },
-        timeSelector = { it.obs_datetime },
-        timePattern = "yyyy-MM-dd HH:mm:ss",
-        primaryValueSelector = { it.wtr_tmp.trim().toFloatOrNull() ?: 0f },
-    )
-
-     */
-
 
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
+            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Surface Sea Temperature",
             xTitle = "DateTime",

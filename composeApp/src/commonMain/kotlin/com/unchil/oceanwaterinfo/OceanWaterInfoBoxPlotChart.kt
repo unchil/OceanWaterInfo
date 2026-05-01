@@ -57,6 +57,7 @@ fun OceanWaterInfoBoxPlotChart(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
+            chartScope = ChartGraphScope.XY,
             chartData = ChartData.XYPlotBoxPlot(chartData.value),
             title = "Surface Temperature 24-Hour Stat",
             xTitle = "Observatory",

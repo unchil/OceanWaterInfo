@@ -67,37 +67,11 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             )
         }
     }
-/*
-    val chartData = thermalWasterWaterInfo.value.filter { item ->
-        val previousHour = kotlin.time.Clock.System.now()
-            .minus(24, DateTimeUnit.HOUR)
-            .toLocalDateTime(TimeZone.currentSystemDefault())
-            .toInstant(TimeZone.UTC)
-
-        val checkTime_Wastewater = 30.minutes
-
-        val time = LocalDateTime.parse(item.time.replace(" ", "T")).toInstant(TimeZone.UTC)
-        val rm01 = LocalDateTime.parse(item.rm001_time.replace(" ", "T")).toInstant(TimeZone.UTC)
-        val rm05 = LocalDateTime.parse(item.rm005_time.replace(" ", "T")).toInstant(TimeZone.UTC)
-
-        //          time >= previousHour &&
-        (time - rm01).absoluteValue <= checkTime_Wastewater &&
-                (time - rm05).absoluteValue <= checkTime_Wastewater
-
-    }.toChartTripleList(
-        nameSelector = { it.genName },
-        timeSelector = { it.time },
-        timePattern = "yyyy-MM-dd HH:mm",
-        primaryValueSelector = { it.rm001.trim().toFloatOrNull() ?: 0f },
-        secondaryValueSelector = { it.rm005.trim().toFloatOrNull() ?: 0f },
-        secondaryKey = "rm005"
-    )
-
- */
 
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
+            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour ThermalWasteWater Current",
             xTitle = "DateTime",

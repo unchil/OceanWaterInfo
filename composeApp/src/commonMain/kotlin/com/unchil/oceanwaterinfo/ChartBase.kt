@@ -1,24 +1,13 @@
 package com.unchil.oceanwaterinfo
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,7 +15,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -35,27 +23,16 @@ import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.ChartUiState.*
 import com.unchil.oceanwaterinfo.chart.PolarPlotChart
 import com.unchil.oceanwaterinfo.chart.XYPlotChart
-import io.github.koalaplot.core.ChartLayout
-import io.github.koalaplot.core.Symbol
-import io.github.koalaplot.core.polar.AngularAxisModel
-import io.github.koalaplot.core.polar.PolarGraph
-import io.github.koalaplot.core.polar.PolarGraphDefaults
-import io.github.koalaplot.core.polar.PolarPlotSeries2
 import io.github.koalaplot.core.polar.PolarPoint
-import io.github.koalaplot.core.polar.rememberAngularValueAxisModel
-import io.github.koalaplot.core.polar.rememberFloatRadialAxisModel
-import io.github.koalaplot.core.style.AreaStyle
 import io.github.koalaplot.core.style.LineStyle
 import io.github.koalaplot.core.util.AngularValue
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
-import io.github.koalaplot.core.util.toDegrees
 import io.github.koalaplot.core.xygraph.AxisStyle
 import io.github.koalaplot.core.xygraph.CategoryAxisModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.GridStyle
 import io.github.koalaplot.core.xygraph.Point
-import kotlin.math.round
 
 typealias ChartDataList =            List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>>
 typealias ChartDataListStringFloat = List<Triple<String, Point<String, Float>, Map<String, Any>>>
@@ -125,7 +102,7 @@ fun ChartScaffold(
     modifier: Modifier = paddingMod,
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
-    onSuccessChartData:@Composable (SuccessChartData) -> Unit,
+    onSuccess:@Composable (Success) -> Unit,
 ) {
 
     Column(modifier = modifier) {
@@ -134,7 +111,7 @@ fun ChartScaffold(
             Loading -> CircularProgressIndicator()
             is Error -> Text(uiState.message)
             is EmptyChart -> EmptyChart(uiState.chartLayout)
-            is SuccessChartData -> onSuccessChartData(uiState)
+            is Success -> onSuccess(uiState)
             else -> {}
         }
         bottomBar()
@@ -142,229 +119,200 @@ fun ChartScaffold(
 
 }
 
-
-/**
- * 차트 데이터(ChartDataList)를 분석하여 범위(Axis Range)와 레이아웃 설정을 생성하는 함수
- */
 fun prepareChartLayout(
+    chartScope: ChartGraphScope,
     chartType: ChartType,
     chartData: ChartData,
     title: String,
     xTitle: String,
     yTitle: String,
-    caption: String,
+    legendTitle:String = "Entry",
+    caption: String = "",
+    description:String? = null,
     isTooltips: Boolean,
     isSymbol: Boolean,
     isLegend: Boolean,
     height: Dp = 400.dp,
+    maxCrSp: Float = 0f,
     yRangePadding: Float ,
     secondaryKey: String? = null,
-    legendTitle:String = "Entry",
-    description:String? = null
 ): LayoutData {
 
-    when(chartData) {
+    return when(chartScope){
+        ChartGraphScope.XY -> {
+            when(chartData) {
+                is ChartData.TimeSeries -> {
 
-        is ChartData.TimeSeries -> {
-
-            if (chartData.data.isEmpty()) {
-                return LayoutData(
-                    type = chartType,
-                    layout = TitleConfig(true, title),
-                    legend = LegendConfig(isLegend, true),
-                    xAxis = AxisConfig(xTitle),
-                    yAxis = AxisConfig(yTitle),
-                    size = SizeConfig(height = height),
-                    caption = CaptionConfig(true, caption)
-                )
-            }
-
-
-            val mainPoints = chartData.data.flatMap { it.second }
-            @Suppress("UNCHECKED_CAST")
-            val secondaryPoints = secondaryKey?.let { key ->
-                chartData.data.flatMap { it.third[key] as? List<Point<Double, Float>> ?: emptyList() }
-            } ?: emptyList()
-
-            val allPoints = mainPoints + secondaryPoints
-
-            val xMax = allPoints.maxOf { it.x }
-            val xMin = allPoints.minOf { it.x }
-            val yMax = allPoints.maxOf { it.y }
-            val yMin = allPoints.minOf { it.y }
-
-            // X축(시간): 데이터 전후로 5분(300,000ms)의 여유를 둠
-            val xRange = (xMin - 300 * 1000)..(xMax + 300 * 1000)
-            // Y축: 데이터 상하로 yRangePadding만큼 여유를 둠
-            val yRange = (yMin - yRangePadding)..(yMax + yRangePadding)
-
-            // 3. 계산된 범위를 바탕으로 LayoutData 반환
-            return LayoutData(
-                type = chartType,
-                layout = TitleConfig(true, title, description),
-                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
-                xAxis = AxisConfig(
-                    model = DoubleLinearAxisModel(xRange)
-                ),
-                yAxis = AxisConfig(
-                    yTitle,
-                    model = FloatLinearAxisModel(yRange)
-                ),
-                tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
-                size = SizeConfig(height = height),
-                caption = CaptionConfig(true, caption)
-            )
-
-        }
-
-        is ChartData.XYPlotStringFloat -> {
-
-            if (chartData.data.isEmpty()) {
-                return LayoutData(
-                    type = chartType,
-                    layout = TitleConfig(true, title),
-                    legend = LegendConfig(isLegend, true, legendTitle),
-                    xAxis = AxisConfig(xTitle),
-                    yAxis = AxisConfig(yTitle),
-                    size = SizeConfig(height = height),
-                    caption = CaptionConfig(true, caption)
-                )
-            }
-
-            val allPoints = chartData.data.map { it.second  }
-            val yMax = allPoints.maxOf { it.y }
-            val yRange = 0f..(yMax + yRangePadding)
+                    if (chartData.data.isEmpty()) {
+                        return LayoutData(
+                            type = chartType,
+                            layout = TitleConfig(true, title),
+                            legend = LegendConfig(isLegend, true),
+                            xAxis = AxisConfig(xTitle),
+                            yAxis = AxisConfig(yTitle),
+                            size = SizeConfig(height = height),
+                            caption = CaptionConfig(true, caption)
+                        )
+                    }
 
 
-            // 3. 계산된 범위를 바탕으로 LayoutData 반환
-            return LayoutData(
-                type = chartType,
-                layout = TitleConfig(true, title, description),
-                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
-                xAxis = AxisConfig(
-                    xTitle,
-                    model = CategoryAxisModel(chartData.data.map{ triple -> triple.first }),
-                    style = AxisStyle(labelRotation = 45)
-                ),
-                yAxis = AxisConfig(
-                    yTitle,
-                    model = FloatLinearAxisModel(yRange)
-                ),
-                tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
-                size = SizeConfig(height = height),
-                caption = CaptionConfig(true, caption)
-            )
-        }
+                    val mainPoints = chartData.data.flatMap { it.second }
+                    @Suppress("UNCHECKED_CAST")
+                    val secondaryPoints = secondaryKey?.let { key ->
+                        chartData.data.flatMap { it.third[key] as? List<Point<Double, Float>> ?: emptyList() }
+                    } ?: emptyList()
 
-        is ChartData.XYPlotBoxPlot -> {
-            if (chartData.data.isEmpty()) {
-                return LayoutData(
-                    type = chartType,
-                    layout = TitleConfig(true, title),
-                    legend = LegendConfig(isLegend, true, legendTitle),
-                    xAxis = AxisConfig(xTitle),
-                    yAxis = AxisConfig(yTitle),
-                    size = SizeConfig(height = height),
-                    caption = CaptionConfig(true, caption)
-                )
-            }
+                    val allPoints = mainPoints + secondaryPoints
 
-            val yMax = chartData.data.values.maxOf { entry -> entry.max }
-            val yRange = 0f..(yMax * yRangePadding)
+                    val xMax = allPoints.maxOf { it.x }
+                    val xMin = allPoints.minOf { it.x }
+                    val yMax = allPoints.maxOf { it.y }
+                    val yMin = allPoints.minOf { it.y }
 
-            return LayoutData(
-                type = chartType,
-                layout = TitleConfig(true, title, description),
-                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
-                xAxis = AxisConfig(
-                    title = xTitle,
-                    model = CategoryAxisModel(chartData.data.keys.toList()),
-                    style = AxisStyle(labelRotation = 45)
-                ),
-                yAxis = AxisConfig(
-                    yTitle,
-                    model = FloatLinearAxisModel(yRange)
-                ),
-                tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
-                size = SizeConfig(height = height),
-                caption = CaptionConfig(true, caption)
-            )
+                    // X축(시간): 데이터 전후로 5분(300,000ms)의 여유를 둠
+                    val xRange = (xMin - 300 * 1000)..(xMax + 300 * 1000)
+                    // Y축: 데이터 상하로 yRangePadding만큼 여유를 둠
+                    val yRange = (yMin - yRangePadding)..(yMax + yRangePadding)
 
-
-        }
-
-        is ChartData.XYPlotGeoPlot -> {
-            if (chartData.data.first.isEmpty()) {
-                return LayoutData(
-                    type = chartType,
-                    layout = TitleConfig(true, title),
-                    legend = LegendConfig(isLegend, true, legendTitle),
-                    xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
-                    yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
-                    size = SizeConfig(height = height),
-                    caption = CaptionConfig(true, caption)
-                )
-            }
-
-            return LayoutData(
-                type = chartType,
-                layout = TitleConfig(true, title = "${chartData.data.second.first().third.first} ${title}"),
-                legend = LegendConfig(isLegend, true, legendTitle),
-                xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
-                yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
-                gridStyle = GridStyle(
-                    horizontalMajorStyle = LineStyle(brush= SolidColor(Color.Gray)),
-                    horizontalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
-                    verticalMajorStyle = LineStyle(brush= SolidColor(Color.Gray)),
-                    verticalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
-                ),
-                size = SizeConfig(height = height),
-                caption = CaptionConfig(true, caption)
-            )
-
-
-
-
-        }
-
-        else -> TODO()
-    }
-
-}
-
-
-
-@OptIn(ExperimentalKoalaPlotApi::class, ExperimentalMaterial3Api::class)
-@Composable
-fun ChartDataFlow(
-    chartData: ChartData,
-    title: String,
-    caption: String,
-    chartType: ChartType,
-    legendTitle: String = "Entry",
-    description:String? = null,
-    height:Dp = 400.dp,
-    maxCrSp: Float,
-    onRefresh: () -> Unit,
-    topBar: @Composable (() -> Unit) = {},
-){
-    // 1. 주기적 데이터 갱신 로직 (1분 단위)
-    onRefresh()
-
-    val chartLayout = remember { mutableStateOf(LayoutData()) }
-    val uiState = remember { mutableStateOf<ChartUiState>(ChartUiState.Loading) }
-
-    LaunchedEffect(chartData){
-        chartLayout.value =  when(chartData) {
-            is ChartData.PolarGraphPlot ->{
-                if(chartData.data.isEmpty()){
-                     LayoutData(
-                         type = chartType,
-                        layout = TitleConfig(true, title),
+                    // 3. 계산된 범위를 바탕으로 LayoutData 반환
+                    return LayoutData(
+                        type = chartType,
+                        layout = TitleConfig(true, title, description),
+                        legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                        xAxis = AxisConfig(
+                            model = DoubleLinearAxisModel(xRange)
+                        ),
+                        yAxis = AxisConfig(
+                            yTitle,
+                            model = FloatLinearAxisModel(yRange)
+                        ),
+                        tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
                         size = SizeConfig(height = height),
                         caption = CaptionConfig(true, caption)
                     )
-                }else {
+
+                }
+                is ChartData.XYPlotStringFloat -> {
+
+                    if (chartData.data.isEmpty()) {
+                        return LayoutData(
+                            type = chartType,
+                            layout = TitleConfig(true, title),
+                            legend = LegendConfig(isLegend, true, legendTitle),
+                            xAxis = AxisConfig(xTitle),
+                            yAxis = AxisConfig(yTitle),
+                            size = SizeConfig(height = height),
+                            caption = CaptionConfig(true, caption)
+                        )
+                    }
+
+                    val allPoints = chartData.data.map { it.second  }
+                    val yMax = allPoints.maxOf { it.y }
+                    val yRange = 0f..(yMax + yRangePadding)
+
+
+                    // 3. 계산된 범위를 바탕으로 LayoutData 반환
+                    return LayoutData(
+                        type = chartType,
+                        layout = TitleConfig(true, title, description),
+                        legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                        xAxis = AxisConfig(
+                            xTitle,
+                            model = CategoryAxisModel(chartData.data.map{ triple -> triple.first }),
+                            style = AxisStyle(labelRotation = 45)
+                        ),
+                        yAxis = AxisConfig(
+                            yTitle,
+                            model = FloatLinearAxisModel(yRange)
+                        ),
+                        tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
+                        size = SizeConfig(height = height),
+                        caption = CaptionConfig(true, caption)
+                    )
+                }
+                is ChartData.XYPlotBoxPlot -> {
+                    if (chartData.data.isEmpty()) {
+                        return LayoutData(
+                            type = chartType,
+                            layout = TitleConfig(true, title),
+                            legend = LegendConfig(isLegend, true, legendTitle),
+                            xAxis = AxisConfig(xTitle),
+                            yAxis = AxisConfig(yTitle),
+                            size = SizeConfig(height = height),
+                            caption = CaptionConfig(true, caption)
+                        )
+                    }
+
+                    val yMax = chartData.data.values.maxOf { entry -> entry.max }
+                    val yRange = 0f..(yMax * yRangePadding)
+
+                    return LayoutData(
+                        type = chartType,
+                        layout = TitleConfig(true, title, description),
+                        legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                        xAxis = AxisConfig(
+                            title = xTitle,
+                            model = CategoryAxisModel(chartData.data.keys.toList()),
+                            style = AxisStyle(labelRotation = 45)
+                        ),
+                        yAxis = AxisConfig(
+                            yTitle,
+                            model = FloatLinearAxisModel(yRange)
+                        ),
+                        tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
+                        size = SizeConfig(height = height),
+                        caption = CaptionConfig(true, caption)
+                    )
+
+
+                }
+                is ChartData.XYPlotGeoPlot -> {
+                    if (chartData.data.first.isEmpty()) {
+                        return LayoutData(
+                            type = chartType,
+                            layout = TitleConfig(true, title),
+                            legend = LegendConfig(isLegend, true, legendTitle),
+                            xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
+                            yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
+                            size = SizeConfig(height = height),
+                            caption = CaptionConfig(true, caption)
+                        )
+                    }
+
+                    return LayoutData(
+                        type = chartType,
+                        layout = TitleConfig(true, title = "${chartData.data.second.first().third.first} ${title}"),
+                        legend = LegendConfig(isLegend, true, legendTitle),
+                        xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
+                        yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
+                        gridStyle = GridStyle(
+                            horizontalMajorStyle = LineStyle(brush= SolidColor(Color.Gray)),
+                            horizontalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
+                            verticalMajorStyle = LineStyle(brush= SolidColor(Color.Gray)),
+                            verticalMinorStyle = LineStyle(brush= SolidColor(Color.Transparent)),
+                        ),
+                        size = SizeConfig(height = height),
+                        caption = CaptionConfig(true, caption)
+                    )
+
+
+
+
+                }
+                else -> TODO()
+            }
+        }
+        ChartGraphScope.Polar ->{
+            when(chartData) {
+                is ChartData.PolarGraphPlot -> {
+                    if(chartData.data.isEmpty()){
+                        LayoutData(
+                            type = chartType,
+                            layout = TitleConfig(true, title),
+                            size = SizeConfig(height = height),
+                            caption = CaptionConfig(true, caption)
+                        )
+                    }
                     LayoutData(
                         type = chartType,
                         layout = TitleConfig(true, title),
@@ -373,68 +321,39 @@ fun ChartDataFlow(
                         caption = CaptionConfig(true, caption),
                         maxCrSp = maxCrSp
                     )
+
                 }
-            }
-            else -> {
-                LayoutData(
-                    type = chartType,
-                    layout = TitleConfig(true, title),
-                    size = SizeConfig(height = height),
-                    caption = CaptionConfig(true, caption)
-                )
+                else -> TODO()
             }
         }
-
-        val entries = when(chartData){
-            is ChartData.PolarGraphPlot ->  chartData.data.map{ triple -> triple.first }
-            else -> {emptyList()}
-        }
-
-        uiState.value = if(entries.isNotEmpty()) {
-            SuccessChartData(
-                chartData = chartData,
-                entries = entries,
-                chartLayout = chartLayout.value
-            )
-        } else {
-            EmptyChart(chartLayout = chartLayout.value)
-        }
-
     }
-
-    ChartScaffold(
-        uiState = uiState.value,
-        topBar = topBar,
-        bottomBar = { },
-        onSuccessChartData = { state ->
-
-            PolarPlotChart(
-                layout = state.chartLayout,
-                chartData = state.chartData,
-                entries = state.entries
-            )
-
-        }
-    )
 
 }
 
+
+
+
+
+
 @Composable
 fun ChartDataFlow(
+    chartScope: ChartGraphScope,
+    chartType: ChartType,
     chartData: ChartData,
     title: String,
     xTitle: String,
     yTitle: String,
-    caption: String,
-    chartType: ChartType,
-    yRangePadding: Float = 1.0f,
-    secondaryKey: String? = null,
     legendTitle: String = "Entry",
+    caption: String = "",
     description:String? = null,
     height:Dp = 400.dp,
+    maxCrSp: Float = 0f,
+    yRangePadding: Float = 1.0f,
+    secondaryKey: String? = null,
+    visibleBottomBar: Boolean = true,
     onRefresh: () -> Unit,
-    topBar: @Composable (() -> Unit) = {},
-) {
+    topBar: @Composable (() -> Unit) = {}
+){
     // 1. 주기적 데이터 갱신 로직 (1분 단위)
     onRefresh()
 
@@ -443,27 +362,29 @@ fun ChartDataFlow(
     var isSymbol by remember { mutableStateOf(true) }
     var isLegend by remember { mutableStateOf(true) }
 
-    val chartLayout = remember { mutableStateOf(LayoutData()) }
+
     val uiState = remember { mutableStateOf<ChartUiState>(ChartUiState.Loading) }
 
     // 3. 데이터 변경에 따른 레이아웃 및 UI 상태 업데이트 흐름
     LaunchedEffect(chartData, isTooltips, isSymbol, isLegend) {
 
-        chartLayout.value = prepareChartLayout(
+        val chartLayout = prepareChartLayout(
+            chartScope = chartScope,
             chartType = chartType,
             chartData = chartData ,
             title = title,
             xTitle = xTitle,
             yTitle = yTitle,
+            legendTitle = legendTitle,
             caption = caption,
+            description = description,
             isTooltips = isTooltips,
             isSymbol = isSymbol,
             isLegend = isLegend,
             height = height,
+            maxCrSp = maxCrSp,
             yRangePadding = yRangePadding,
             secondaryKey = secondaryKey,
-            legendTitle = legendTitle,
-            description = description
         )
 
         val entries = when(chartData){
@@ -471,52 +392,63 @@ fun ChartDataFlow(
             is ChartData.XYPlotBoxPlot -> chartData.data.keys.toList()
             is ChartData.XYPlotStringFloat -> chartData.data.map { it.first }
             is ChartData.XYPlotGeoPlot -> chartData.data.first
-            is ChartData.PolarGraphPlot -> TODO()
+            is ChartData.PolarGraphPlot -> chartData.data.map{ triple -> triple.first }
         }
 
         uiState.value = if(entries.isNotEmpty()) {
-            SuccessChartData(
+            Success(
                 chartData = chartData,
                 entries = entries,
-                chartLayout = chartLayout.value
+                chartLayout = chartLayout
             )
         } else {
             when(chartData){
                 is ChartData.XYPlotGeoPlot -> {
-                    EmptyChart(chartLayout = chartLayout.value, chartData.data.third)
+                    EmptyChart(chartLayout = chartLayout, chartData.data.third)
                 }
                 else -> {
-                    EmptyChart(chartLayout = chartLayout.value)
+                    EmptyChart(chartLayout = chartLayout)
                 }
             }
-        }
 
+        }
     }
 
 
-
-    // 4. 공통 UI 렌더링 흐름 (스캐폴드 활용)
     ChartScaffold(
         uiState = uiState.value,
         topBar = topBar,
         bottomBar = {
-            ChartFeatureControls(
-                isTooltips = isTooltips, onTooltipsChange = { isTooltips = it },
-                isSymbol = isSymbol, onSymbolChange = { isSymbol = it },
-                isLegend = isLegend, onLegendChange = { isLegend = it }
-            )
+            if(visibleBottomBar){
+                ChartFeatureControls(
+                    isTooltips = isTooltips, onTooltipsChange = { isTooltips = it },
+                    isSymbol = isSymbol, onSymbolChange = { isSymbol = it },
+                    isLegend = isLegend, onLegendChange = { isLegend = it }
+                )
+            }
         },
-        onSuccessChartData = { state ->
+        onSuccess = { state ->
 
-            XYPlotChart(
-                layout = state.chartLayout,
-                chartData = state.chartData,
-                entries = state.entries
-            )
-
-
+            when(chartScope){
+                ChartGraphScope.XY -> {
+                    XYPlotChart(
+                        layout = state.chartLayout,
+                        chartData = state.chartData,
+                        entries = state.entries
+                    )
+                }
+                ChartGraphScope.Polar -> {
+                    PolarPlotChart(
+                        layout = state.chartLayout,
+                        chartData = state.chartData,
+                        entries = state.entries
+                    )
+                }
+            }
         }
     )
 
-}
 
+
+
+}
