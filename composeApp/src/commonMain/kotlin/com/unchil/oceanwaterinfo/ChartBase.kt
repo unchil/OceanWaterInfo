@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.ChartUiState.*
+import com.unchil.oceanwaterinfo.WATER_QUALITY.desc
+import com.unchil.oceanwaterinfo.WATER_QUALITY.unit
 import com.unchil.oceanwaterinfo.chart.PolarPlotChart
 import com.unchil.oceanwaterinfo.chart.XYPlotChart
 import io.github.koalaplot.core.polar.PolarPoint
@@ -134,11 +136,14 @@ fun prepareChartLayout(
     height: Dp = 400.dp,
     maxCrSp: Float = 0f,
     yRangePadding: Float ,
+    selectedOption: WATER_QUALITY.QualityType? = null,
     secondaryKey: String? = null,
 ): LayoutData {
 
     return when(chartData) {
+
         is ChartData.TimeSeries -> {
+
             val mainPoints = chartData.data.flatMap { it.second }
             @Suppress("UNCHECKED_CAST")
             val secondaryPoints = secondaryKey?.let { key ->
@@ -151,16 +156,36 @@ fun prepareChartLayout(
             val xMin = allPoints.minOf { it.x }
             val yMax = allPoints.maxOf { it.y }
             val yMin = allPoints.minOf { it.y }
+            // Y축: 데이터 상하로 yRangePadding만큼 여유를 둠
+            //val yRange = (yMin - yRangePadding)..(yMax + yRangePadding)
+
+            val yRange =  if(selectedOption == null) {
+                (yMin - yRangePadding)..(yMax + yRangePadding)
+            } else {
+
+                val min = when (selectedOption) {
+                    WATER_QUALITY.QualityType.rtmWtchWtem ->  yMin.coerceAtLeast(10f)
+                    WATER_QUALITY.QualityType.rtmWqCndctv -> yMin.coerceAtLeast(20f)
+                    WATER_QUALITY.QualityType.ph -> yMin.coerceAtLeast(7f)
+                    WATER_QUALITY.QualityType.rtmWqDoxn -> yMin.coerceAtLeast(7f)
+                    WATER_QUALITY.QualityType.rtmWqSlnty -> yMin.coerceAtLeast(15f)
+                    else -> yMin
+                }
+                val max = when (selectedOption) {
+                    WATER_QUALITY.QualityType.rtmWqTu -> yMax.coerceAtMost(100f)
+                    WATER_QUALITY.QualityType.rtmWqChpla -> yMax.coerceAtMost(15f)
+                    else -> yMax
+                }
+                (min - yRangePadding)..(max + yRangePadding)
+            }
 
             // X축(시간): 데이터 전후로 5분(300,000ms)의 여유를 둠
             val xRange = (xMin - 300 * 1000)..(xMax + 300 * 1000)
-            // Y축: 데이터 상하로 yRangePadding만큼 여유를 둠
-            val yRange = (yMin - yRangePadding)..(yMax + yRangePadding)
 
             // 3. 계산된 범위를 바탕으로 LayoutData 반환
             LayoutData(
                 type = chartType,
-                layout = TitleConfig(true, title, description),
+                layout = TitleConfig(true, title,  description),
                 legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
                 xAxis = AxisConfig( model = DoubleLinearAxisModel(xRange) ),
                 yAxis = AxisConfig( yTitle, model = FloatLinearAxisModel(yRange)),
@@ -261,6 +286,7 @@ fun ChartDataFlow(
     height:Dp = 400.dp,
     maxCrSp: Float = 0f,
     yRangePadding: Float = 1.0f,
+    selectedOption: WATER_QUALITY.QualityType? = null,
     secondaryKey: String? = null,
     visibleBottomBar: Boolean = true,
     onRefresh: () -> Unit,
@@ -339,6 +365,7 @@ fun ChartDataFlow(
                 height = height,
                 maxCrSp = maxCrSp,
                 yRangePadding = yRangePadding,
+                selectedOption = selectedOption,
                 secondaryKey = secondaryKey,
             )
         }

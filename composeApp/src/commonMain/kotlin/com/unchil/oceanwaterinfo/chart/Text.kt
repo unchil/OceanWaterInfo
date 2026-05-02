@@ -47,7 +47,7 @@ val yTitle: @Composable ((text: String) -> Unit) = {
 val description: @Composable (ColumnScope.(text: String) -> Unit) = {
     Text(
         text = it,
-        modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding( 8.dp),
         textAlign = TextAlign.Start
     )
     HorizontalDivider(modifier = Modifier.padding(10.dp))

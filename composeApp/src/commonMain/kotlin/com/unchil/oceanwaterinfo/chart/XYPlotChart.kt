@@ -118,7 +118,9 @@ fun XYPlotChart(
 
             Column {
 
-                if (!layout.layout.description.isNullOrBlank()) description
+                if (!layout.layout.description.isNullOrBlank()) {
+                    description(layout.layout.description)
+                }
 
                 when(chartData){
 

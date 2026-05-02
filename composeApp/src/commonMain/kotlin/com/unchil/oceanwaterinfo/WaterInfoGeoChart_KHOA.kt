@@ -99,12 +99,13 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
 
     if(data.value.isNotEmpty() && geoData.value.isNotEmpty()){
 
-        val chartData = ChartData.XYPlotGeoPlot( Triple(
-            data.value.map{ triple -> triple.first },
-            data.value,
-            Pair(geoData.value, onClickPoint)
-        )
-        )
+        val chartData = ChartData.XYPlotGeoPlot(
+            Triple(
+                    data.value.map{ triple -> triple.first },
+                    data.value,
+                    Pair(geoData.value, onClickPoint)
+                )
+            )
 
         ChartDataFlow(
             chartScope = ChartGraphScope.XY,

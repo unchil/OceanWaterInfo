@@ -73,7 +73,7 @@ fun PolarPlotChart(
             ) {
 
 
-                if (!layout.layout.description.isNullOrBlank()) description
+                if (!layout.layout.description.isNullOrBlank()) description(layout.layout.description)
 
                 val angularAxisGridLineStyle =
                     LineStyle(SolidColor(Color.LightGray), strokeWidth = 1.dp)
