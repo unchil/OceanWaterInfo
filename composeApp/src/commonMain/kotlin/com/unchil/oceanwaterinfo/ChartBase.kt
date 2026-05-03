@@ -114,7 +114,7 @@ fun ChartScaffold(
             is Error -> Text(uiState.message)
             is EmptyChart -> EmptyChart(uiState.chartLayout)
             is Success -> onSuccess(uiState)
-            else -> {}
+
         }
         bottomBar()
     }
@@ -209,8 +209,14 @@ fun prepareChartLayout(
             )
         }
         is ChartData.XYPlotBoxPlot -> {
-            val yMax = chartData.data.values.maxOf { entry -> entry.max }
-            val yRange = 0f..(yMax * yRangePadding)
+            // 1. 모든 데이터(min, max, outliers)를 하나의 리스트로 합쳐서 전체 범위를 계산합니다.
+            val allYValues = chartData.data.values.flatMap { entry ->
+                listOf(entry.min, entry.max) + entry.outliers
+            }
+            val yMax = allYValues.maxOrNull() ?: 30f
+            val yMin = allYValues.minOrNull() ?: 0f
+
+            val yRange = (yMin - yRangePadding)..(yMax + yRangePadding)
 
             LayoutData(
                 type = chartType,

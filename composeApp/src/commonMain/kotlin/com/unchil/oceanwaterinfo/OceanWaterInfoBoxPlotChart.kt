@@ -64,7 +64,7 @@ fun OceanWaterInfoBoxPlotChart(){
             yTitle = "Water Temperature °C",
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.BoxPlot,
-            yRangePadding = 1.1f,
+            yRangePadding = 1.0f,
             legendTitle = "Observatory",
             onRefresh = onRefresh
         ){

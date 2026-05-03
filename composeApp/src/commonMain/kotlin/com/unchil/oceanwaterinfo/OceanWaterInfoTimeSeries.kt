@@ -73,7 +73,7 @@ fun OceanWaterInfoTimeSeries(){
             yTitle = "Water Temperature °C",
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.Line,
-            yRangePadding = 0.1f,
+            yRangePadding = 1.0f,
             legendTitle = "Observatory",
             // YAxis min/max 에 함께 사용될 secondaryKey
             //    secondaryKey = "tm001",
