@@ -155,7 +155,7 @@ fun prepareChartLayout(
             val xMax = allPoints.maxOf { it.x }
             val xMin = allPoints.minOf { it.x }
             val yMax = allPoints.maxOf { it.y }
-            val yMin = allPoints.minOf { it.y }
+            val yMin = allPoints.filter { it.y >= 1.0f }.minOfOrNull { it.y } ?: 0f
             // Y축: 데이터 상하로 yRangePadding만큼 여유를 둠
             //val yRange = (yMin - yRangePadding)..(yMax + yRangePadding)
 
@@ -163,20 +163,12 @@ fun prepareChartLayout(
                 (yMin - yRangePadding)..(yMax + yRangePadding)
             } else {
 
-                val min = when (selectedOption) {
-                    WATER_QUALITY.QualityType.rtmWtchWtem ->  yMin.coerceAtLeast(10f)
-                    WATER_QUALITY.QualityType.rtmWqCndctv -> yMin.coerceAtLeast(20f)
-                    WATER_QUALITY.QualityType.ph -> yMin.coerceAtLeast(7f)
-                    WATER_QUALITY.QualityType.rtmWqDoxn -> yMin.coerceAtLeast(7f)
-                    WATER_QUALITY.QualityType.rtmWqSlnty -> yMin.coerceAtLeast(15f)
-                    else -> yMin
-                }
                 val max = when (selectedOption) {
-                    WATER_QUALITY.QualityType.rtmWqTu -> yMax.coerceAtMost(100f)
-                    WATER_QUALITY.QualityType.rtmWqChpla -> yMax.coerceAtMost(15f)
+                    WATER_QUALITY.QualityType.rtmWqTu -> yMax.coerceAtMost(20f)
+                    WATER_QUALITY.QualityType.rtmWqChpla -> yMax.coerceAtMost(10f)
                     else -> yMax
                 }
-                (min - yRangePadding)..(max + yRangePadding)
+                (yMin - yRangePadding)..(max + yRangePadding)
             }
 
             // X축(시간): 데이터 전후로 5분(300,000ms)의 여유를 둠
