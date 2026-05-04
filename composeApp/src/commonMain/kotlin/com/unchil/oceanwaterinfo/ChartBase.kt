@@ -3,7 +3,6 @@ package com.unchil.oceanwaterinfo
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -21,14 +20,11 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.ChartUiState.*
-import com.unchil.oceanwaterinfo.WATER_QUALITY.desc
-import com.unchil.oceanwaterinfo.WATER_QUALITY.unit
 import com.unchil.oceanwaterinfo.chart.PolarPlotChart
 import com.unchil.oceanwaterinfo.chart.XYPlotChart
 import io.github.koalaplot.core.polar.PolarPoint
 import io.github.koalaplot.core.style.LineStyle
 import io.github.koalaplot.core.util.AngularValue
-import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.AxisStyle
 import io.github.koalaplot.core.xygraph.CategoryAxisModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
@@ -272,7 +268,6 @@ fun prepareChartLayout(
 
 @Composable
 fun ChartDataFlow(
-    chartScope: ChartGraphScope,
     chartType: ChartType,
     chartData: ChartData,
     title: String,
@@ -413,22 +408,23 @@ fun ChartDataFlow(
         },
         onSuccess = { state ->
 
-            when(chartScope){
-                ChartGraphScope.XY -> {
-                    XYPlotChart(
-                        layout = state.chartLayout,
-                        chartData = state.chartData,
-                        entries = state.entries
-                    )
-                }
-                ChartGraphScope.Polar -> {
+            when(chartData){
+                is ChartData.PolarGraphPlot -> {
                     PolarPlotChart(
                         layout = state.chartLayout,
                         chartData = state.chartData,
                         entries = state.entries
                     )
                 }
+                else -> {
+                    XYPlotChart(
+                        layout = state.chartLayout,
+                        chartData = state.chartData,
+                        entries = state.entries
+                    )
+                }
             }
+
         }
     )
 

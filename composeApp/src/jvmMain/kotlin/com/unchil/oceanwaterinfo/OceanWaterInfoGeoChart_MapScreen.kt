@@ -22,7 +22,7 @@ import io.github.koalaplot.core.xygraph.Point
 
 
 @Composable
-fun SimpleMapScreen(
+fun OceanWaterInfoGeoChart_MapScreen(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
@@ -128,13 +128,17 @@ fun SimpleMapScreen(
 
 
 
-    val center = LocalPoint.current
+    val center = OceanWaterInfoGeoChartPoint.current
+    val host = "http://192.168.35.107:7878"
+    val servicePage = "oceanWaterInfoGoogleMap.html"
 
-    val localUrl = "http://localhost:63342/OceanWaterInfo/googleMapView.html?_ijt=uj9t2va1sr6gdm4n8qsbsn02sj&_ij_reload=RELOAD_ON_SAVE"
+
+    val localUrl = "${host}/${servicePage}"
     val remoteUrl = "https://www.google.com/maps/"
 
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
+
 
     LaunchedEffect(locations.value, labels.value, webViewState.loadingState){
         if(locations.value.isNotEmpty() && labels.value.isNotEmpty() && webViewState.loadingState is LoadingState.Finished){
@@ -144,7 +148,7 @@ fun SimpleMapScreen(
     }
 
 
-    LaunchedEffect( LocalPoint.current){
+    LaunchedEffect( OceanWaterInfoGeoChartPoint.current){
         if (webViewState.loadingState is LoadingState.Finished) {
             //   navigator.evaluateJavaScript("alert(\"What a Wonderful World.\");" )
 
@@ -183,126 +187,3 @@ fun SimpleMapScreen(
 
 
 }
-
-/*
-
-class MapJsMessageHandler(
-    private val coroutineScope: CoroutineScope,
-    private val onMarkerClick: (lat: Double, lng: Double) -> Unit) : IJsMessageHandler {
-    val methodName = "markerClick"
-
-    override fun handle(
-        message: JsMessage,
-        navigator: WebViewNavigator?,
-        callback: (String) -> Unit
-    ) {
-        if (message.params.contains(methodName)) {
-            onMarkerClick(
-                message.params.get(0).code.toDouble(),
-                message.params.get(1).code.toDouble()
-            )
-        }
-    }
-
-    override fun methodName(): String {
-        return methodName
-    }
-
-}
-
-
-
-@Composable
-fun DesktopMapScreen(
-    initialized: Boolean,
-    download:Int,
-    errorMessage:String
-) {
-
-    val coroutineScope = rememberCoroutineScope()
-    val navigator = rememberWebViewNavigator()
-
-    // 핸들러 인스턴스 생성
-    val jsMessageHandler = remember(coroutineScope) {
-        MapJsMessageHandler(coroutineScope) { lat, lng ->
-            println("마커 클릭됨! 위도: $lat, 경도: $lng")
-            // 여기서 ViewModel을 업데이트하거나 다른 UI 로직을 수행
-        }
-    }
-
-    val jsBridge = remember {
-        WebViewJsBridge(navigator)
-    }
-
-    val onMarkerClick = { lat: Double, lng: Double ->
-
-    }
-
-    LaunchedEffect(jsBridge) {
-        jsBridge.register(jsMessageHandler)
-
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            initialized -> {
-                val state = rememberWebViewState("https://www.google.com/maps")
-            //    val state = rememberWebViewState("file:///Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/src/jvmMain/resources/googleMapView.html")
-
-
-                if (state.isLoading) {
-                    CircularProgressIndicator()
-                }else{
-                  //  navigator.evaluateJavaScript("window.onload()")
-                }
-
-
-                Column(Modifier.fillMaxSize()) {
-                    /*
-                    Row {
-                        Button(onClick = {
-                            // Kotlin에서 JavaScript 함수 호출
-                            navigator.evaluateJavaScript("window.moveMap(35.1796, 129.0756)")
-                        }) {
-                            Text("부산으로 이동")
-                        }
-                    }
-
-                     */
-
-                    WebView(
-                        state = state,
-                        navigator = navigator,
-                        webViewJsBridge = jsBridge,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-
-
-            }
-            errorMessage.isNotEmpty() -> {
-                Text(errorMessage)
-            }
-            else -> {
-                if (download > -1) {
-                    Text("Downloading: $download%")
-                } else {
-                    Text("Initializing please wait...")
-                }
-                CircularProgressIndicator()
-
-            }
-        }
-    }
-
-
-
-
-
-}
-
-
- */

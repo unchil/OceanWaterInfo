@@ -95,7 +95,6 @@ fun WasteWaterTimeSeries_KHNP() {
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
-            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "3-hour WasteWater Current",
             xTitle = "DateTime",

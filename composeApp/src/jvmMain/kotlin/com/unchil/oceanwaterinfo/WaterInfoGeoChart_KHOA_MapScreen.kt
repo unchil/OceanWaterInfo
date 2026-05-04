@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Outline
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
@@ -20,10 +19,9 @@ import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
 import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
-import kotlin.math.round
 
 @Composable
-fun SimpleMapScreen2(
+fun WaterInfoGeoChart_KHOA_MapScreen(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
@@ -108,9 +106,9 @@ fun SimpleMapScreen2(
     }
 
 
-    val center = LocalPoint.current
+    val center = WaterInfoGeoChartPoint.current
     val host = "http://192.168.35.107:7878"
-    val servicePage = "googleMapView.html"
+    val servicePage = "waterInfoGoogleMap.html"
 
 
     val localUrl = "${host}/${servicePage}"
@@ -127,7 +125,7 @@ fun SimpleMapScreen2(
     }
 
 
-    LaunchedEffect( LocalPoint.current){
+    LaunchedEffect( WaterInfoGeoChartPoint.current){
         if (webViewState.loadingState is LoadingState.Finished) {
             //   navigator.evaluateJavaScript("alert(\"What a Wonderful World.\");" )
 

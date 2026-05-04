@@ -67,7 +67,6 @@ fun WaterDegTimeSeries_KHOA(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
-            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "6-hour Direction/Speed of ocean current",
             xTitle = "DateTime",

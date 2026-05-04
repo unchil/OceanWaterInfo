@@ -74,7 +74,6 @@ fun OceanWaterInfo_MOF(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
-            chartScope = ChartGraphScope.XY,
             chartType = ChartType.Line,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Ocean Water Information",

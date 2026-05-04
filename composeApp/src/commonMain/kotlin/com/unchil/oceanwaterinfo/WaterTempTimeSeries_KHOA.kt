@@ -49,7 +49,6 @@ fun WaterTempTimeSeries_KHOA(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
-            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Sea Water Temperature",
             xTitle = "DateTime",

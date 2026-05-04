@@ -47,7 +47,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 
-val LocalPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
+val WaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
+val OceanWaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
 
 fun main() = application {
 
@@ -83,10 +84,16 @@ fun main() = application {
         position = WindowPosition(Alignment.Center)
     )
 
-    val clickPoint = mutableStateOf(Point(126.934515, 37.385852))
+    val clickPointWaterInfoGeoChart_KHOA = mutableStateOf(Point(126.934515, 37.385852))
 
-    val onClickPoint = { point:Point<Double, Double> ->
-        clickPoint.value = point
+    val onClickPointWaterInfoGeoChart_KHOA = { point:Point<Double, Double> ->
+        clickPointWaterInfoGeoChart_KHOA.value = point
+    }
+
+    val clickPointOceanWaterInfoGeoChart = mutableStateOf(Point(126.934515, 37.385852))
+
+    val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
+        clickPointOceanWaterInfoGeoChart.value = point
     }
 
     var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
@@ -169,9 +176,9 @@ fun main() = application {
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Center
                                     )
-                                    CompositionLocalProvider(LocalPoint provides clickPoint.value) {
+
                                         SDoTEnvInfoUnionMapHexagonLayer(initialized, download, errorMessage)
-                                    }
+
                                 }
                             }
                             1 -> {
@@ -204,8 +211,6 @@ fun main() = application {
                                             ) {
                                                 val totalHeight = this.maxHeight.value
 
-
-                                                CompositionLocalProvider(LocalPoint provides clickPoint.value) {
                                                     Column {
                                                         Box(
                                                             modifier = Modifier
@@ -246,9 +251,6 @@ fun main() = application {
                                                             )
                                                         }
                                                     }
-                                                }
-
-
 
                                             }
 
@@ -300,7 +302,7 @@ fun main() = application {
                                                                 .fillMaxWidth(splitFractionVertical2)
                                                                 .fillMaxHeight()
                                                         ) {
-                                                            WaterInfoGeoChart_KHOA(onClickPoint)
+                                                            WaterInfoGeoChart_KHOA(onClickPointWaterInfoGeoChart_KHOA)
                                                         }
 
                                                         DraggableVerticalDivider(
@@ -315,8 +317,8 @@ fun main() = application {
                                                             }
                                                         )
 
-                                                        CompositionLocalProvider(LocalPoint provides clickPoint.value) {
-                                                            SimpleMapScreen2(
+                                                        CompositionLocalProvider(WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value) {
+                                                            WaterInfoGeoChart_KHOA_MapScreen(
                                                                 initialized,
                                                                 download,
                                                                 errorMessage
@@ -324,6 +326,41 @@ fun main() = application {
                                                         }
 
                                                     }
+
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth()
+                                                            .height(700.dp)
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth(splitFractionVertical2)
+                                                                .fillMaxHeight()
+                                                        ) {
+                                                            OceanWaterInfoGeoChart(onClickPointOceanWaterInfoGeoChart)
+                                                        }
+
+                                                        DraggableVerticalDivider(
+                                                            onDrag = { deltaPx ->
+                                                                val deltaWeight2 =
+                                                                    deltaPx / totalWidth2
+                                                                splitFractionVertical2 =
+                                                                    (splitFractionVertical2 + deltaWeight2).coerceIn(
+                                                                        0.1f,
+                                                                        0.9f
+                                                                    )
+                                                            }
+                                                        )
+
+                                                        CompositionLocalProvider(OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value) {
+                                                            OceanWaterInfoGeoChart_MapScreen(
+                                                                initialized,
+                                                                download,
+                                                                errorMessage
+                                                            )
+                                                        }
+
+                                                    }
+
 
                                                     OceanWaterInfoDataGrid()
                                                 }

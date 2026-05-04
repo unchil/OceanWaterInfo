@@ -66,7 +66,6 @@ fun OceanWaterInfoTimeSeries(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
-            chartScope = ChartGraphScope.XY,
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Surface Sea Temperature",
             xTitle = "DateTime",

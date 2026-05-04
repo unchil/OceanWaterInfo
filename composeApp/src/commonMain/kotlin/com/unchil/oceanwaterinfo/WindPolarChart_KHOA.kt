@@ -68,7 +68,6 @@ fun WindPolarChart_KHOA(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
-            chartScope = ChartGraphScope.Polar,
             chartData = ChartData.PolarGraphPlot(chartData.value),
             title = chartTitle.value,
             xTitle = "",

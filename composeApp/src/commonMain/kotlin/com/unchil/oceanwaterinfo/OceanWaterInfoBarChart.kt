@@ -56,7 +56,6 @@ fun OceanWaterInfoBarChart(){
 
     if(chartData.value.isNotEmpty()){
         ChartDataFlow(
-            chartScope = ChartGraphScope.XY,
             chartData = ChartData.XYPlotStringFloat(chartData.value),
             title = "Surface Temperature",
             xTitle = "DateTime",
