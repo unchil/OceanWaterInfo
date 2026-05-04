@@ -111,7 +111,7 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
             chartType = ChartType.Geo,
             yRangePadding = 0.0f,
             legendTitle = "Observatory",
-            height = 600.dp,
+            height = 500.dp,
             onRefresh = onRefresh
         )
     }

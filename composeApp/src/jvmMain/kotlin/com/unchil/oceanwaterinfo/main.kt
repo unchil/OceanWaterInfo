@@ -295,12 +295,13 @@ fun main() = application {
                                                     //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
                                                     Row(
                                                         modifier = Modifier.fillMaxWidth()
-                                                            .height(700.dp)
+                                                            .height(600.dp)
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxWidth(splitFractionVertical2)
-                                                                .fillMaxHeight()
+                                                                .fillMaxHeight(),
+                                                        //    contentAlignment= Alignment.Center
                                                         ) {
                                                             WaterInfoGeoChart_KHOA(onClickPointWaterInfoGeoChart_KHOA)
                                                         }
@@ -318,23 +319,32 @@ fun main() = application {
                                                         )
 
                                                         CompositionLocalProvider(WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value) {
-                                                            WaterInfoGeoChart_KHOA_MapScreen(
-                                                                initialized,
-                                                                download,
-                                                                errorMessage
-                                                            )
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .fillMaxHeight().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 50.dp),
+                                                                contentAlignment= Alignment.Center
+                                                            ) {
+                                                                WaterInfoGeoChart_KHOA_MapScreen(
+                                                                    initialized,
+                                                                    download,
+                                                                    errorMessage
+                                                                )
+                                                            }
+
                                                         }
 
                                                     }
 
                                                     Row(
                                                         modifier = Modifier.fillMaxWidth()
-                                                            .height(700.dp)
+                                                            .height(600.dp)
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxWidth(splitFractionVertical2)
-                                                                .fillMaxHeight()
+                                                                .fillMaxHeight(),
+                                                      //      contentAlignment= Alignment.Center
                                                         ) {
                                                             OceanWaterInfoGeoChart(onClickPointOceanWaterInfoGeoChart)
                                                         }
@@ -352,11 +362,18 @@ fun main() = application {
                                                         )
 
                                                         CompositionLocalProvider(OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value) {
-                                                            OceanWaterInfoGeoChart_MapScreen(
-                                                                initialized,
-                                                                download,
-                                                                errorMessage
-                                                            )
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .fillMaxHeight().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 50.dp),
+                                                                contentAlignment= Alignment.Center
+                                                            ) {
+                                                                OceanWaterInfoGeoChart_MapScreen(
+                                                                    initialized,
+                                                                    download,
+                                                                    errorMessage
+                                                                )
+                                                            }
                                                         }
 
                                                     }
