@@ -43,8 +43,6 @@ import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION
 import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.desc
 import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.name
 import com.unchil.oceanwaterinfo.CaptionText
-import com.unchil.oceanwaterinfo.LocalPoint
-import com.unchil.oceanwaterinfo.caption
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 
@@ -62,7 +60,6 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         SDoTEnvInfoUnionViewModel(coroutineScope)
     }
 
-    val center = LocalPoint.current
     val host = "http://192.168.35.107:7878"
     val servicePage = "sDoTDeckHexagonLayerUnion.html"
 

@@ -2,8 +2,6 @@ package com.unchil.sdotenvinfo
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,27 +9,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,11 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.BlendMode.Companion.Color
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,21 +45,8 @@ import com.unchil.oceanwaterinfo.AIR_QUAlITY
 import com.unchil.oceanwaterinfo.AIR_QUAlITY.desc
 import com.unchil.oceanwaterinfo.AIR_QUAlITY.name
 import com.unchil.oceanwaterinfo.CaptionText
-import com.unchil.oceanwaterinfo.ChartTitle
-import com.unchil.oceanwaterinfo.LocalPoint
-import com.unchil.oceanwaterinfo.WATER_QUALITY
-import com.unchil.oceanwaterinfo.WATER_QUALITY.name
-import com.unchil.oceanwaterinfo.caption
-import com.unchil.oceanwaterinfo.formatLongToDateTime
-import com.unchil.oceanwaterinfo.toTidalCurrentDataMap
-import com.unchil.oceanwaterinfo.transformToHexagonData
-import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoViewModel
-import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
-import oceanwaterinfo.composeapp.generated.resources.Res
-import oceanwaterinfo.composeapp.generated.resources.arrow_downward_alt_24px
-import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalComposeUiApi::class
@@ -92,7 +63,7 @@ fun SDoTEnvInfoMapHexagonLayer(
         SDoTEnvInfoViewModel(coroutineScope)
     }
 
-    val center = LocalPoint.current
+
     val host = "http://localhost:7878"
     val servicePage = "sDoTDeckHexagonLayer.html"
 
