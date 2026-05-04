@@ -301,7 +301,7 @@ fun main() = application {
                                                             modifier = Modifier
                                                                 .fillMaxWidth(splitFractionVertical2)
                                                                 .fillMaxHeight(),
-                                                        //    contentAlignment= Alignment.Center
+                                                            contentAlignment= Alignment.Center
                                                         ) {
                                                             WaterInfoGeoChart_KHOA(onClickPointWaterInfoGeoChart_KHOA)
                                                         }
@@ -344,7 +344,7 @@ fun main() = application {
                                                             modifier = Modifier
                                                                 .fillMaxWidth(splitFractionVertical2)
                                                                 .fillMaxHeight(),
-                                                      //      contentAlignment= Alignment.Center
+                                                            contentAlignment= Alignment.Center
                                                         ) {
                                                             OceanWaterInfoGeoChart(onClickPointOceanWaterInfoGeoChart)
                                                         }
