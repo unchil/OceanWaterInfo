@@ -199,6 +199,36 @@ class Repository {
     }
 
 
+    fun getKHNP_RadioRate(){
+        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.RadioRate}?serviceKey=${configData.KHNP?.serviceKey}"
+        val result = loadKHNP_Service(url)
+
+
+        LOGGER.info("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
+        LOGGER.info("\n ${::getKHNP_RadioRate.name}  Count:[${result.count()}]")
+
+        transaction(Config.conn) {
+            SchemaUtils.create(KHNP_RadioRate)
+
+            result.forEach { item  ->
+                try{
+                    KHNP_RadioRate.insertIgnore { it ->
+                        it[collectionTime] = item["collectionTime"].toString()
+                        it[time] = item["time"].toString()
+                        it[genName] = item["genName"].toString()
+                        it[name] = item["name"].toString()
+                        it[expl] = item["expl"].toString()
+                        it[value] = item["value"].toString()
+                    }
+                }catch (e:Exception){
+                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
+
+                }
+            }
+        }
+    }
+
+
 
 
     fun loadDataSDoT(path:String, maxPage:Int): List<DataFrame<*>> {

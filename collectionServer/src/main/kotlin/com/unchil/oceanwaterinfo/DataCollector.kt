@@ -21,6 +21,7 @@ class DataCollector {
                 repository.getSDoTEnvInfoGyonggi()
                 repository.getKHNP_WasteWater()
                 repository.getKHNP_ThermalWasteWater()
+                repository.getKHNP_RadioRate()
 
                 //jobType:["batch", "schedule"]
                 //jobEvent:["recovery", "operation"]
