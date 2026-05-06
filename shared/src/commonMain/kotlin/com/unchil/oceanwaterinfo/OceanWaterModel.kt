@@ -265,3 +265,12 @@ data class KHNPThermalWasteWater(
     val rm006: String,
     val rm006_time: String
 )
+
+@Serializable
+data class KHNPRadioRate(
+    val time: String,
+    val genName: String,
+    val name :String,
+    val expl: String,
+    val value: String
+)

@@ -58,6 +58,8 @@ private val cacheStorage_KHNPWasteWater = ConcurrentHashMap<String, Pair<List<KH
 
 private val cacheStorage_KHNPThermalWasteWater = ConcurrentHashMap<String, Pair<List<KHNPThermalWasteWater>, Long>>()
 
+private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHNPRadioRate>, Long>>()
+
 
 
 
@@ -66,6 +68,28 @@ private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 class Repository {
+
+    fun khnp_RadioRate():List<KHNPRadioRate> {
+        val key = "cache_khnp_radiorate"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KHNPRadioRate[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchKHNPRadioRateFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KHNPRadioRate[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
+
+
 
     fun khnp_ThermalWasteWater():List<KHNPThermalWasteWater> {
         val key = "cache_khnp_thermalwastewater"
@@ -314,6 +338,30 @@ class Repository {
         }
         return resultFromDb
     }
+
+
+    fun fetchKHNPRadioRateFromDb(): List<KHNPRadioRate> = transaction {
+        LOGGER.info("Serving from DB for : fetchKHNPRadioRateFromDb")
+        val maxCollectionTime = KHNP_RadioRate.collectionTime.max()
+        val lastTime = KHNP_RadioRate.select(maxCollectionTime).limit(1).map {
+            it[maxCollectionTime]
+        }.firstOrNull()
+
+        val result = KHNP_RadioRate.selectAll().where { KHNP_RadioRate.collectionTime eq (lastTime ?: "") }
+            .map { it ->
+                KHNPRadioRate(
+                    it[KHNP_RadioRate.time],
+                    it[KHNP_RadioRate.genName],
+                    it[KHNP_RadioRate.name],
+                    it[KHNP_RadioRate.expl],
+                    it[KHNP_RadioRate.value],
+                )
+            }
+
+        return@transaction result
+    }
+
+
 
     fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater> = transaction {
         LOGGER.info("Serving from DB for : fetchKHNPThermalWasteWaterFromDb")

@@ -99,6 +99,21 @@ fun Application.configureSerialization(repository: Repository) {
                     call.respond(HttpStatusCode.BadRequest)
                 }
             }
+
+            get("/radiorate"){
+                try {
+                    val result = repository.khnp_RadioRate()
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+
+
         }
 
 
