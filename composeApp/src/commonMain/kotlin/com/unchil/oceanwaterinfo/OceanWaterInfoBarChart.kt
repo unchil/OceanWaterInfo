@@ -50,7 +50,11 @@ fun OceanWaterInfoBarChart(){
         if(seaWaterInfo.value.isNotEmpty()){
             chartData.value = seaWaterInfo.value.filter {
                 it.gru_nam.equals(selectedOption.gru_nam()) &&  it.obs_lay == "1"
-            }.toBarChartTripleList()
+            }.toBarChartTripleList(
+                nameSelector = { it.sta_nam_kor },
+                primaryValueSelector = {it.wtr_tmp.trim().toFloatOrNull() ?: 0f},
+                secondaryValueSelector = { Triple(it.gru_nam, it.sta_cde, it.obs_datetime) }
+            )
         }
     }
 

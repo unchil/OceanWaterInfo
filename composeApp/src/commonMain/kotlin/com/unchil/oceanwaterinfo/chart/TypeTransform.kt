@@ -145,33 +145,6 @@ fun List<Point<Double, Double>>.getRange(
 }
 
 
-
-fun List<SeawaterInformationByObservationPoint>.toBarChartTripleList(): ChartDataListStringFloat{
-
-
-    val columns = this.first().makeGridColumns()
-    val rows = this.map { it.toGridData() }
-
-    // 1. 필요한 컬럼의 인덱스를 찾습니다.
-    val obsIndex = columns.indexOf("Observatory")
-    val tempIndex = columns.indexOf("WaterTemperature")
-    // val timeIndex = columns.indexOf("Collection Time")
-
-    // 2. 인덱스가 유효한지 확인 후 데이터 추출
-    if (obsIndex != -1 && tempIndex != -1 ) {
-        val entries =  rows.map { it[obsIndex].toString() }
-        val values =  rows.map { it[tempIndex].toString().trim().toFloatOrNull() ?: 0f }
-
-        return entries.mapIndexed { index, observatory ->
-            Triple(observatory, Point(observatory, values[index]), emptyMap())
-        }
-    } else {
-        return emptyList()
-    }
-
-}
-
-
 fun<T>List<T>.toBarChartTripleList(
     nameSelector: (T) -> String,
     primaryValueSelector: (T) -> Float,
