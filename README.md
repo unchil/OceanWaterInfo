@@ -190,9 +190,12 @@ maven {
 3. JCEF Configuration (Desktop)
 
    When using `jcef-bundle` for the desktop application, ensure that the Chromium Embedded Framework is correctly located.
-   
-   ⚠️ **Important**: The location of `jcef-bundle/Frameworks/Chromium Embedded Framework.framework` must be correctly configured in your project path to avoid runtime errors on macOS.
 
+   ⚠️ **Important**: The location of `jcef-bundle/Frameworks/Chromium Embedded Framework.framework` must be correctly configured in your project path to avoid runtime errors on macOS.
+   Additionally, you may need to set the `DYLD_LIBRARY_PATH` in your shell configuration file (e.g., `.zshrc` or `.zshenv`):
+    ```bash
+    export DYLD_LIBRARY_PATH="$JCEF_BUNDLE_PATH/Frameworks/Chromium\ Embedded\ Framework.framework"
+    ```
 4. Running the Project
 
    • Run Backend Server: ./gradlew :server:run
