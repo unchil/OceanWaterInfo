@@ -145,6 +145,50 @@ fun List<Point<Double, Double>>.getRange(
 }
 
 
+
+fun List<SeawaterInformationByObservationPoint>.toBarChartTripleList(): ChartDataListStringFloat{
+
+
+    val columns = this.first().makeGridColumns()
+    val rows = this.map { it.toGridData() }
+
+    // 1. 필요한 컬럼의 인덱스를 찾습니다.
+    val obsIndex = columns.indexOf("Observatory")
+    val tempIndex = columns.indexOf("WaterTemperature")
+    // val timeIndex = columns.indexOf("Collection Time")
+
+    // 2. 인덱스가 유효한지 확인 후 데이터 추출
+    if (obsIndex != -1 && tempIndex != -1 ) {
+        val entries =  rows.map { it[obsIndex].toString() }
+        val values =  rows.map { it[tempIndex].toString().trim().toFloatOrNull() ?: 0f }
+
+        return entries.mapIndexed { index, observatory ->
+            Triple(observatory, Point(observatory, values[index]), emptyMap())
+        }
+    } else {
+        return emptyList()
+    }
+
+}
+
+
+fun<T>List<T>.toBarChartTripleList(
+    nameSelector: (T) -> String,
+    primaryValueSelector: (T) -> Float,
+    secondaryValueSelector:(T) -> Triple<String,String, String>
+):ChartDataListStringFloat{
+    return this.map {
+        val name  = nameSelector(it)
+        Triple(
+            name,
+            Point( name , primaryValueSelector(it) ),
+            mapOf( "info" to secondaryValueSelector(it))
+        )
+    }
+}
+
+
+
 /**
  * 다양한 데이터 리스트를 차트용 Triple 리스트로 변환하는 범용 함수
  */
@@ -241,31 +285,6 @@ fun List<SeawaterInformationByObservationPoint>.toGridDataMap(): Map<String, Lis
     return (columns to rows).toMap()
 }
 
-
-fun List<SeawaterInformationByObservationPoint>.toBarChartTripleList(): ChartDataListStringFloat{
-
-
-    val columns = this.first().makeGridColumns()
-    val rows = this.map { it.toGridData() }
-
-    // 1. 필요한 컬럼의 인덱스를 찾습니다.
-    val obsIndex = columns.indexOf("Observatory")
-    val tempIndex = columns.indexOf("WaterTemperature")
-    // val timeIndex = columns.indexOf("Collection Time")
-
-    // 2. 인덱스가 유효한지 확인 후 데이터 추출
-     if (obsIndex != -1 && tempIndex != -1 ) {
-        val entries =  rows.map { it[obsIndex].toString() }  // 관측소 목록
-        val values =  rows.map { it[tempIndex].toString().trim().toFloatOrNull() ?: 0f } // 수온 목록
-
-         return entries.mapIndexed { index, observatory ->
-            Triple(observatory, Point(observatory, values[index]), emptyMap())
-         }
-    } else {
-        return emptyList()
-    }
-
-}
 
 
 

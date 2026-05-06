@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.PlainTooltip
@@ -51,7 +52,19 @@ fun XYGraphScope<String, Float>.VerticalBarChart(
                         tooltip = {
                             if (usableTooltips){
                                 PlainTooltip {
-                                    Text("${values[index].x}\n${values[index].y.end }" )
+                                    Column{
+                                        if(chartData.data[index].third.isNotEmpty()){
+                                            val info = (chartData.data[index].third["info"] as Triple<String, String, String>)
+                                            Text(info.first)
+                                            Text(info.second)
+                                            Text(info.third)
+                                            Text("${values[index].y.end }" )
+                                        }else {
+                                            Text(values[index].x)
+                                            Text("${values[index].y.end }" )
+                                        }
+                                    }
+
                                 }
                             }
                         }                    ,

@@ -39,6 +39,24 @@ object SEA_AREA {
 }
 
 
+object POWER_PLANT_AREA {
+
+    enum class POWER_PLANT {
+       KR, YK, WS, UJ, SU
+    }
+
+    fun POWER_PLANT.gen_name():String {
+        return when(this) {
+            POWER_PLANT.KR -> "고리원자력"
+            POWER_PLANT.YK -> "한빛원자력"
+            POWER_PLANT.WS -> "월성원자력"
+            POWER_PLANT.UJ -> "한울원자력"
+            POWER_PLANT.SU -> "새울원자력"
+        }
+    }
+}
+
+
 @Serializable
 data class SeaWaterInformation(
     val rtmWqWtchDtlDt:String,
