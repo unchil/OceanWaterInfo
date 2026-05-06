@@ -104,7 +104,50 @@ Configure your keys in collectionServer/src/main/resources/application.json as f
         "apikey": "YOUR_MOF_DECODING_KEY",
         "subPath": "1192000/OceansWemoObvpRtmInfoService/OceansWemoObvpRtmInfo"
     },
-    "SQLITE_DB": {
+   "KHOA_API":{
+      "endPoint": "https://apis.data.go.kr",
+      "apikey": "YOUR_API_KEY",
+      "subPath": "1192136/twRecent/GetTWRecentApiService",
+      "type": "json",
+      "min": "5",
+      "numOfRows": "300"
+   },
+   "KHOA_TIDALCURRENT_API": {
+      "endPoint": "https://khoa.go.kr/oceandata/api/tidalCurrentArea",
+      "apikey": "YOUR_API_KEY",
+      "subPath": "search.do",
+      "type": "json",
+      "boundBox": "&MaxX=132&MinX=124&MaxY=40&MinY=32",
+      "interval":5,
+      "predictedTotalMinute":180
+   },
+
+   "SDOT_API":{
+      "endPoint": "http://openapi.seoul.go.kr:8088",
+      "apikey": "YOUR_API_KEY",
+      "subPath": "sDoTEnv",
+      "type": "json"
+   },
+
+   "SDOT_Gyonggi":{
+      "endPoint": "https://openapi.gg.go.kr",
+      "apikey": "YOUR_API_KEY",
+      "subPath": "Sidoatmospolutnmesure",
+      "type": "json"
+   },
+   "KHNP": {
+      "endPoint": "https://apis.data.go.kr/B552041",
+      "subPath": {
+         "NuclearPlantStates": "nplantstates/getnplantstates",
+         "WasteWater": "wastewater/getwastewater",
+         "RadioRate": "radiorate/getradiorate",
+         "ThermalWasteWater": "inoutwater/getinoutwater",
+         "RadioActiveWaste": "rwm/getrwm"
+      },
+      "serviceKey": "YOUR_API_KEY"
+   },
+
+   "SQLITE_DB": {
         "jdbcURL": "jdbc:sqlite:/path/to/your/database.sqlite"
     }
 }
@@ -144,7 +187,13 @@ maven {
 
    • GPR_KEY: A GitHub PAT with read:packages permission.
 
-3. Running the Project
+3. JCEF Configuration (Desktop)
+
+   When using `jcef-bundle` for the desktop application, ensure that the Chromium Embedded Framework is correctly located.
+   
+   ⚠️ **Important**: The location of `jcef-bundle/Frameworks/Chromium Embedded Framework.framework` must be correctly configured in your project path to avoid runtime errors on macOS.
+
+4. Running the Project
 
    • Run Backend Server: ./gradlew :server:run
 

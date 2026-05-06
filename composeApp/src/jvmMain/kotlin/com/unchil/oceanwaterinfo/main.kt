@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -79,6 +80,9 @@ fun main() = application {
     }
 
 
+
+
+
     val state = WindowState(
         size = DpSize(1400.dp, 1000.dp),
         position = WindowPosition(Alignment.Center)
@@ -109,7 +113,8 @@ fun main() = application {
 
             CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
-          //      OceanWaterInfo()
+              //  OceanWaterInfo()
+
 
 
                 Column(
@@ -281,7 +286,7 @@ fun main() = application {
                                                         .verticalScroll(rememberScrollState()),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
-
+                                                    RadioRateBarChart()
                                                     WasteWaterTimeSeries_KHNP()
                                                     ThermalWasteWaterTimeSeries_KHNP()
                                                     OceanWaterInfo_MOF()
@@ -325,11 +330,14 @@ fun main() = application {
                                                                     .fillMaxHeight().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 50.dp),
                                                                 contentAlignment= Alignment.Center
                                                             ) {
+
                                                                 WaterInfoGeoChart_KHOA_MapScreen(
                                                                     initialized,
                                                                     download,
                                                                     errorMessage
                                                                 )
+
+
                                                             }
 
                                                         }
@@ -368,11 +376,14 @@ fun main() = application {
                                                                     .fillMaxHeight().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 50.dp),
                                                                 contentAlignment= Alignment.Center
                                                             ) {
+
                                                                 OceanWaterInfoGeoChart_MapScreen(
                                                                     initialized,
                                                                     download,
                                                                     errorMessage
                                                                 )
+
+
                                                             }
                                                         }
 
@@ -391,6 +402,8 @@ fun main() = application {
                         }
                     }
                 }
+
+
 
 
 
