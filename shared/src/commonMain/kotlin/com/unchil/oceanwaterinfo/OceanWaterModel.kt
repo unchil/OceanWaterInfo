@@ -296,6 +296,8 @@ data class KHNPRadioRate(
 @Serializable
 data class KHNPRadioActiveWaste(
     val spmon: String,
+    val year: String,
+    val month: String,
     val genName: String,
     val plant :String,
     val total: String

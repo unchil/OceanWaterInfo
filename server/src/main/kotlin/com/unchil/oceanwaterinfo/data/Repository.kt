@@ -367,8 +367,12 @@ class Repository {
 
         val result = KHNP_RadioActiveWaste.selectAll()
             .map { it ->
+                val year = it[KHNP_RadioActiveWaste.spmon].substring(0, 4)
+                val month = it[KHNP_RadioActiveWaste.spmon].substring(4, 6)
                 KHNPRadioActiveWaste(
                     it[KHNP_RadioActiveWaste.spmon],
+                    year,
+                    month,
                     it[KHNP_RadioActiveWaste.genName],
                     it[KHNP_RadioActiveWaste.plant],
                     it[KHNP_RadioActiveWaste.total]
