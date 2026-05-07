@@ -60,7 +60,7 @@ private val cacheStorage_KHNPThermalWasteWater = ConcurrentHashMap<String, Pair<
 
 private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHNPRadioRate>, Long>>()
 
-
+private val cacheStorage_KHNPRadioActiveWaste = ConcurrentHashMap<String, Pair<List<KHNPRadioActiveWaste>, Long>>()
 
 
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
@@ -68,6 +68,27 @@ private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 class Repository {
+
+    fun khnp_RadioActiveWaste():List<KHNPRadioActiveWaste> {
+        val key = "cache_khnp_radioactivewaste"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KHNPRadioActiveWaste[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchKHNPRadioActiveWasteFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KHNPRadioActiveWaste[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
+
 
     fun khnp_RadioRate():List<KHNPRadioRate> {
         val key = "cache_khnp_radiorate"
@@ -339,6 +360,23 @@ class Repository {
         return resultFromDb
     }
 
+
+    fun fetchKHNPRadioActiveWasteFromDb(): List<KHNPRadioActiveWaste> = transaction {
+        LOGGER.info("Serving from DB for : fetchKHNPRadioActiveWasteFromDb")
+
+
+        val result = KHNP_RadioActiveWaste.selectAll()
+            .map { it ->
+                KHNPRadioActiveWaste(
+                    it[KHNP_RadioActiveWaste.spmon],
+                    it[KHNP_RadioActiveWaste.genName],
+                    it[KHNP_RadioActiveWaste.plant],
+                    it[KHNP_RadioActiveWaste.total]
+                )
+            }
+
+        return@transaction result
+    }
 
     fun fetchKHNPRadioRateFromDb(): List<KHNPRadioRate> = transaction {
         LOGGER.info("Serving from DB for : fetchKHNPRadioRateFromDb")

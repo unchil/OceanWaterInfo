@@ -101,4 +101,10 @@ class OceanWaterApi {
         return httpClient.get(url).body<List<KHNPRadioRate>>()
     }
 
+    suspend fun getKhnpRadioActiveWaste(): List<KHNPRadioActiveWaste>{
+        val url = "${endPoint}/khnp/radioactivewaste"
+        return httpClient.get(url).body<List<KHNPRadioActiveWaste>>()
+    }
+
+
 }

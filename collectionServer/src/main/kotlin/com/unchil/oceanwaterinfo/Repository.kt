@@ -43,6 +43,7 @@ import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
+import kotlin.collections.listOf
 import kotlin.time.Clock
 
 class Repository {
@@ -54,9 +55,8 @@ class Repository {
         }
     }
 
-    fun loadKHNP_Service(url:String): DataFrame<*> {
+    fun loadKHNP_Service(url:String, genNames:List<String>): DataFrame<*> {
         val now = Clock.System.now()
-        val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
         val rows = mutableListOf<DataFrame<*>>()
         val myCollectionTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
 
@@ -71,7 +71,16 @@ class Repository {
 
                 val updatedDf = instanceDf.add {
                     "collectionTime" from { myCollectionTime }
-                    "genName" from { genName }
+                    "genName" from {
+                        when(genName){
+                            "2100" -> "KR"
+                            "2200" -> "WS"
+                            "2300" -> "YK"
+                            "2400" -> "UJ"
+                            "2800" -> "SU"
+                            else -> genName
+                        }
+                    }
                 }
                 rows.add(updatedDf)
             }catch(e:Exception){
@@ -86,7 +95,7 @@ class Repository {
 
     fun getKHNP_ThermalWasteWater(){
         val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
-        val concatDf = loadKHNP_Service(url)
+        val concatDf = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
         val updatedDf = concatDf.update ( "name" ).with {
             val currentName = it.toString() // 현재 행의 name 값
@@ -149,7 +158,7 @@ class Repository {
     fun getKHNP_WasteWater(){
 
         val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
-        val concatDf = loadKHNP_Service(url)
+        val concatDf = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
         val updatedDf = concatDf.update ("name" ).with {
             val currentName = it.toString() // 현재 행의 name 값
@@ -201,7 +210,7 @@ class Repository {
 
     fun getKHNP_RadioRate(){
         val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.RadioRate}?serviceKey=${configData.KHNP?.serviceKey}"
-        val result = loadKHNP_Service(url)
+        val result = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
 
         LOGGER.info("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
@@ -219,6 +228,34 @@ class Repository {
                         it[name] = item["name"].toString()
                         it[expl] = item["expl"].toString()
                         it[value] = item["value"].toString()
+                    }
+                }catch (e:Exception){
+                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
+
+                }
+            }
+        }
+    }
+
+    fun getKHNP_RadioActiveWaste(){
+        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${configData.KHNP?.serviceKey}"
+        val result = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800") )
+
+
+        LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Schema[${result.schema()}]")
+        LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Count:[${result.count()}]")
+
+        transaction(Config.conn) {
+            SchemaUtils.create(KHNP_RadioActiveWaste)
+
+            result.forEach { item  ->
+                try{
+                    KHNP_RadioActiveWaste.insertIgnore { it ->
+                        it[collectionTime] = item["collectionTime"].toString()
+                        it[spmon] = item["spmon"].toString()
+                        it[genName] = item["genName"].toString()
+                        it[plant] = item["plant"].toString()
+                        it[total] = item["total"].toString()
                     }
                 }catch (e:Exception){
                     LOGGER.error("Exception : [" + e.localizedMessage + "]")

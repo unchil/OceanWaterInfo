@@ -374,3 +374,14 @@ object KHNP_RadioRate:Table("KHNP_RadioRate"){
 
     override val primaryKey = PrimaryKey(time, genName, name,  name = "primaryKey")
 }
+
+
+object KHNP_RadioActiveWaste:Table("KHNP_RadioActiveWaste"){
+    val collectionTime = varchar("collectionTime", length=30)
+    val spmon = varchar("spmon", length=30)
+    val genName = varchar("genName", length=30)
+    val plant = varchar("plant", length=30)
+    val total = varchar("total", length=30)
+
+    override val primaryKey = PrimaryKey(spmon, plant,   name = "primaryKey")
+}
