@@ -30,10 +30,12 @@ import io.github.koalaplot.core.xygraph.CategoryAxisModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
 import io.github.koalaplot.core.xygraph.GridStyle
+import io.github.koalaplot.core.xygraph.LongLinearAxisModel
 import io.github.koalaplot.core.xygraph.Point
 
 typealias ChartDataList =            List<Triple<String, List<Point<Double, Float>>, Map<String, Any>>>
 typealias ChartDataListStringFloat = List<Triple<String, Point<String, Float>, Map<String, Any>>>
+typealias ChartDataIntLong = List< Triple< List<Int>, List<List<Long>>, Map<String, Any>>>
 typealias ChartDataBoxPlot =         Map<String, SeaWaterBoxPlotStat>
 typealias ChartEntriesType =        List<String>
 typealias ChartValuesGeo =          Triple<String, Point<Double, Double>, Pair<String, String>>
@@ -45,6 +47,8 @@ typealias ChartDataPolar =          List<Triple< String, Point<Double, Double>, 
 sealed class ChartData {
     data class TimeSeries(val data: ChartDataList) : ChartData()
     data class XYPlotStringFloat(val data: ChartDataListStringFloat) : ChartData()
+
+    data class XYPlotIntLong(val data: ChartDataIntLong) : ChartData()
 
     data class XYPlotBoxPlot(val data: ChartDataBoxPlot) : ChartData()
 
@@ -257,6 +261,45 @@ fun prepareChartLayout(
 
         }
 
+        is ChartData.XYPlotIntLong -> {
+
+            // 1. 각 연도별 데이터의 합계 중 최댓값 구하기
+            // data.first: entryList(연도들), data.second: 각 카테고리별 데이터 리스트
+            val entries = chartData.data[0].first
+            val valuesByCategories = chartData.data[0].second
+
+            // 연도별 인덱스를 순회하며 모든 카테고리의 값을 합산한 뒤 그 중 최댓값을 찾습니다.
+            val yMax = if (entries.isNotEmpty()) {
+                entries.indices.maxOf { yearIndex ->
+                    valuesByCategories.sumOf { categoryData ->
+                        categoryData[yearIndex] // 해당 연도의 특정 카테고리 값
+                    }
+                }
+            } else {
+                1200L // 데이터가 없을 경우 기본값
+            }
+
+            // 2. 여유 공간(Padding) 추가 (예: 최대값의 10% 정도 상단 여백)
+            val bufferedYMax = (yMax * 1.1).toLong()
+
+            val yRange = 0L..bufferedYMax
+
+            // 3. 계산된 범위를 바탕으로 LayoutData 반환
+            LayoutData(
+                type = chartType,
+                layout = TitleConfig(true, title, description),
+                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                xAxis = AxisConfig( xTitle,
+                    model = CategoryAxisModel(chartData.data[0].first),
+                    style = AxisStyle(labelRotation = 0)
+                ),
+                yAxis = AxisConfig( yTitle, model = LongLinearAxisModel(yRange)),
+
+                tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
+                size = SizeConfig(height = height),
+                caption = CaptionConfig(true, caption)
+            )
+        }
     }
 
 }
@@ -306,6 +349,7 @@ fun ChartDataFlow(
             is ChartData.XYPlotStringFloat -> chartData.data.isEmpty()
             is ChartData.XYPlotGeoPlot -> chartData.data.first.isEmpty()
             is ChartData.PolarGraphPlot -> chartData.data.isEmpty()
+            is ChartData.XYPlotIntLong -> chartData.data.isEmpty()
         }
 
         val chartLayout = if(isEmpty){
@@ -372,6 +416,8 @@ fun ChartDataFlow(
             is ChartData.XYPlotStringFloat -> chartData.data.map { it.first }
             is ChartData.XYPlotGeoPlot -> chartData.data.first
             is ChartData.PolarGraphPlot -> chartData.data.map{ triple -> triple.first }
+            is ChartData.XYPlotIntLong -> chartData.data[0].third["yAxisEntries"] as List<String>
+
         }
 
         uiState.value = if(entries.isNotEmpty()) {

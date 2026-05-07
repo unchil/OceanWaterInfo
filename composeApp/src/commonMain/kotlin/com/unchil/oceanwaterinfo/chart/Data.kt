@@ -126,7 +126,7 @@ enum class ChartGraphScope{
 }
 
 enum class ChartType {
-    XYGraph, Line, VerticalBar, GroupVerticalBar, BoxPlot, Geo, DegLine, Point, Area, Polar
+    XYGraph, Line, VerticalBar, GroupVerticalBar, BoxPlot, Geo, DegLine, Point, Area, Polar, StackedVerticalBar
 }
 
 enum class BoxPlotRange {

@@ -25,6 +25,7 @@ import com.unchil.oceanwaterinfo.Legend
 import com.unchil.oceanwaterinfo.LineChart
 import com.unchil.oceanwaterinfo.VerticalBarChart
 import com.unchil.oceanwaterinfo.caption
+import com.unchil.oceanwaterinfo.chart.StackedVerticalBarChart
 import com.unchil.oceanwaterinfo.description
 import com.unchil.oceanwaterinfo.formatLongToDateTime
 import com.unchil.oceanwaterinfo.getColors
@@ -32,12 +33,15 @@ import com.unchil.oceanwaterinfo.paddingMod
 import com.unchil.oceanwaterinfo.xTitle
 import com.unchil.oceanwaterinfo.yTitle
 import io.github.koalaplot.core.ChartLayout
+import io.github.koalaplot.core.bar.DefaultBar
+import io.github.koalaplot.core.bar.StackedVerticalBarPlot
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.AxisContent
 import io.github.koalaplot.core.xygraph.AxisStyle
 import io.github.koalaplot.core.xygraph.CategoryAxisModel
 import io.github.koalaplot.core.xygraph.DoubleLinearAxisModel
 import io.github.koalaplot.core.xygraph.FloatLinearAxisModel
+import io.github.koalaplot.core.xygraph.LongLinearAxisModel
 import io.github.koalaplot.core.xygraph.XYGraph
 import io.github.koalaplot.core.xygraph.rememberAxisStyle
 import io.github.koalaplot.core.xygraph.rememberGridStyle
@@ -256,8 +260,43 @@ fun XYPlotChart(
                         }
 
                     }
+                    is ChartData.XYPlotIntLong -> {
+                        XYGraph (
+                            xAxisModel = layout.xAxis.model as CategoryAxisModel<Int>,
+                            yAxisModel = layout.yAxis.model as LongLinearAxisModel,
+                            xAxisContent = AxisContent(
+                                labels = {
+                                    if (layout.xAxis.isLabels) { AxisLabel(it.toString(), Modifier.padding(top = 2.dp))}
+                                },
+                                title = {  if (layout.xAxis.isTitle)  xTitle(layout.xAxis.title) },
+                                style = xStyle,
+                            ),
+                            yAxisContent = AxisContent(
+                                labels = {
+                                    if (layout.yAxis.isLabels) { AxisLabel( it.toString(), Modifier.absolutePadding(right = 2.dp)) }
+                                },
+                                title = { if (layout.yAxis.isTitle)  yTitle(layout.yAxis.title )} ,
+                                style = yStyle
+                            ),
+                            gridStyle  = gridStyle,
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        ){
+                            when (layout.type) {
+                                ChartType.StackedVerticalBar -> {
 
-                    else -> {  }
+                                    StackedVerticalBarChart(
+                                        chartData,
+                                        layout.tooltips.isTooltips,
+                                        layout.barConf.widthWeight
+                                    )
+
+                                }
+                                else -> {}
+                            }
+                        }
+                    }
+                    is ChartData.PolarGraphPlot -> TODO()
+
                 }// when(ChartData)
 
             } // Column

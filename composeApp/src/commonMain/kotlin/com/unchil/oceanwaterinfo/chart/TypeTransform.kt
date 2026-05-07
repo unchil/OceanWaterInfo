@@ -160,6 +160,50 @@ fun<T>List<T>.toBarChartTripleList(
     }
 }
 
+fun<T>List<T>.toStackedBarChartTripleList(
+    entrySelector: (T) -> Int,
+    groupBySelect:(T) -> String,
+    filterSelect:(T) -> Int,
+    primaryValueSelector:(T) -> Long,
+    secondaryValueSelector:(T) -> Map<String, Any>,
+    yAxisEntrys:() -> List<String>
+
+): ChartDataIntLong {
+
+     val entryList = this.map{
+            entrySelector(it)
+        }.distinct().sorted()
+
+    val data = this.groupBy { groupBySelect(it) }.map{ (_, items) ->
+        val verticalValues = entryList.map { year ->
+            val matchedItem = items.find { filterSelect(it) == year }
+            if (matchedItem != null) {
+                primaryValueSelector(matchedItem)
+            } else {
+                0L // 데이터가 없는 경우 0으로 처리 (중요!)
+            }
+        }
+        verticalValues
+    }
+
+
+    val info = this.groupBy { groupBySelect(it) }.map{ (_, items) ->
+        val verticalValues = entryList.map { year ->
+            val matchedItem = items.find { filterSelect(it) == year }
+            if (matchedItem != null) {
+                secondaryValueSelector(matchedItem)
+            } else {
+                emptyMap() // 데이터가 없는 경우 0으로 처리 (중요!)
+            }
+        }
+
+        verticalValues
+    }
+
+    return listOf( Triple(entryList, data,  mapOf("info" to info, "yAxisEntries" to yAxisEntrys()) ) )
+
+
+}
 
 
 /**

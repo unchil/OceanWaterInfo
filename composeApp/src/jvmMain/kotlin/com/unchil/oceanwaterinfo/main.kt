@@ -113,7 +113,7 @@ fun main() = application {
 
             CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
-              //  OceanWaterInfo()
+               // OceanWaterInfo()
 
 
 
@@ -286,6 +286,7 @@ fun main() = application {
                                                         .verticalScroll(rememberScrollState()),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
+                                                    KHNPRadioActiveWasteStackBarChart()
                                                     RadioRateBarChart()
                                                     WasteWaterTimeSeries_KHNP()
                                                     ThermalWasteWaterTimeSeries_KHNP()
@@ -419,6 +420,8 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
+
+
 
 
 

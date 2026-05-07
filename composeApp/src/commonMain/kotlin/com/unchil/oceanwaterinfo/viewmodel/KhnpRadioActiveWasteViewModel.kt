@@ -11,14 +11,14 @@ class KhnpRadioActiveWasteViewModel (scope: CoroutineScope) {
     private val repository = getPlatform().repository
 
 
-    val _khnpRadioRateStateFlow: MutableStateFlow<List<KHNPRadioActiveWaste>>
+    val _khnpRadioActiveWasteStateFlow: MutableStateFlow<List<KHNPRadioActiveWaste>>
             = MutableStateFlow(emptyList())
 
     init {
         scope.launch {
             getKhnpRadioActiveWaste()
             repository._khnpRadioActiveWaste.collectLatest {
-                _khnpRadioRateStateFlow.value = it
+                _khnpRadioActiveWasteStateFlow.value = it
             }
         }
     }
