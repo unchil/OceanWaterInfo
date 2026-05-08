@@ -67,7 +67,7 @@ fun KHNPRadioActiveWasteStackBarChart() {
 
     ChartDataFlow(
         chartData = ChartData.XYPlotIntLong(chartData.value),
-        title = "Power Plant Radio Active Waster (Month)",
+        title = "Power Plant Radio Active Waster (Year)",
         xTitle = "Year",
         yTitle = "RadioActiveWaster",
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
