@@ -47,7 +47,7 @@ fun WaterTempTimeSeries_KHOA(){
     }
 
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Sea Water Temperature",
@@ -61,6 +61,6 @@ fun WaterTempTimeSeries_KHOA(){
             //    secondaryKey = "tm001",
             onRefresh = onRefresh
         )
-    }
+
 
 }

@@ -55,7 +55,7 @@ fun OceanWaterInfoBoxPlotChart(){
         }
     }
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartData = ChartData.XYPlotBoxPlot(chartData.value),
             title = "Surface Temperature 24-Hour Stat",
@@ -93,7 +93,7 @@ fun OceanWaterInfoBoxPlotChart(){
             }
 
         }
-    }
+
 
 
 

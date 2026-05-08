@@ -65,7 +65,7 @@ fun WaterDegTimeSeries_KHOA(){
     }
 
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "6-hour Direction/Speed of ocean current",
@@ -79,7 +79,7 @@ fun WaterDegTimeSeries_KHOA(){
           //  secondaryKey = ,
             onRefresh = onRefresh
         )
-    }
+
 
 
 }

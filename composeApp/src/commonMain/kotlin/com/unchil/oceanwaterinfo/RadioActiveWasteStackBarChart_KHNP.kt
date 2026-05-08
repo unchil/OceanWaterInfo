@@ -64,45 +64,45 @@ fun KHNPRadioActiveWasteStackBarChart() {
         }
     }
 
-    if(chartData.value.first.isNotEmpty()){
-        ChartDataFlow(
-            chartData = ChartData.XYPlotIntLong(chartData.value),
-            title = "Power Plant Radio Active Waster",
-            xTitle = "Year",
-            yTitle = "RadioActiveWaster",
-            caption = "from https://www.data.go.kr/data/15157707/openapi.do",
-            height = 600.dp,
-            chartType = ChartType.StackedVerticalBar,
-            legendTitle = "Month",
-            onRefresh = onRefresh
-        ){
 
-            var selectedTabIndex by remember { mutableIntStateOf(0) }
-            SecondaryTabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-                contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
-            ) {
-                POWER_PLANT_AREA.POWER_PLANT.entries.forEachIndexed { index, entrie ->
+    ChartDataFlow(
+        chartData = ChartData.XYPlotIntLong(chartData.value),
+        title = "Power Plant Radio Active Waster",
+        xTitle = "Year",
+        yTitle = "RadioActiveWaster",
+        caption = "from https://www.data.go.kr/data/15157707/openapi.do",
+        height = 600.dp,
+        chartType = ChartType.StackedVerticalBar,
+        legendTitle = "Month",
+        onRefresh = onRefresh
+    ) {
 
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = {
-                            selectedTabIndex = index
-                            onSelection(entrie)
-                        },
-                        text = {
-                            Text(
-                                text = entrie.name,
-                                style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
-                            )
-                        }
-                    )
-                }
+        var selectedTabIndex by remember { mutableIntStateOf(0) }
+        SecondaryTabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
+            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+        ) {
+            POWER_PLANT_AREA.POWER_PLANT.entries.forEachIndexed { index, entrie ->
+
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = {
+                        selectedTabIndex = index
+                        onSelection(entrie)
+                    },
+                    text = {
+                        Text(
+                            text = entrie.name,
+                            style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
+                        )
+                    }
+                )
             }
-
         }
+
     }
+
 
 
 }

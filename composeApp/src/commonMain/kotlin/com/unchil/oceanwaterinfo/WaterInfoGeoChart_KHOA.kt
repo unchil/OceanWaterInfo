@@ -4,6 +4,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,9 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
     val sourthKrShape = mutableListOf<Position>()
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val chartData: MutableState< ChartDataGeoPlot> = remember { mutableStateOf(Triple(emptyList(), emptyList(), Pair(emptyList(), {}))) }
+
+
     LaunchedEffect(Unit) {
         try {
             featureCollection = FeatureCollection.fromJson<Geometry, JsonObject>(
@@ -97,18 +101,20 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
         }
     }
 
-    if(data.value.isNotEmpty() && geoData.value.isNotEmpty()){
-
-        val chartData = ChartData.XYPlotGeoPlot(
-            Triple(
-                    data.value.map{ triple -> triple.first },
-                    data.value,
-                    Pair(geoData.value, onClickPoint)
-                )
+    LaunchedEffect(data.value,geoData.value ){
+        if(data.value.isNotEmpty() && geoData.value.isNotEmpty()){
+            chartData.value = Triple(
+                data.value.map{ triple -> triple.first },
+                data.value,
+                Pair(geoData.value, onClickPoint)
             )
+        }
+    }
+
+
 
         ChartDataFlow(
-            chartData = chartData,
+            chartData = ChartData.XYPlotGeoPlot(chartData.value),
             title = "Sea Water Temperature",
             xTitle = "Longitude",
             yTitle = "Latitude",
@@ -119,7 +125,7 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
             height = 500.dp,
             onRefresh = onRefresh
         )
-    }
+
 
 
 

@@ -63,8 +63,6 @@ fun OceanWaterInfoTimeSeries(){
     }
 
 
-
-    if(chartData.value.isNotEmpty()){
         ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour Surface Sea Temperature",
@@ -104,7 +102,7 @@ fun OceanWaterInfoTimeSeries(){
             }
 
         }
-    }
+
 
 
 }

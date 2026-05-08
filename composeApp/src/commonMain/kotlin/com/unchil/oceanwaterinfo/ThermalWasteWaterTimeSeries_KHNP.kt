@@ -69,7 +69,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
     }
 
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "24-hour ThermalWasteWater Current",
@@ -83,7 +83,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             secondaryKey = "rm005",
             onRefresh = onRefresh
         )
-    }
+
 
 
 

@@ -414,8 +414,13 @@ fun ChartDataFlow(
             is ChartData.XYPlotStringFloat -> chartData.data.map { it.first }
             is ChartData.XYPlotGeoPlot -> chartData.data.first
             is ChartData.PolarGraphPlot -> chartData.data.map{ triple -> triple.first }
-            is ChartData.XYPlotIntLong -> chartData.data.third["yAxisEntries"] as List<String>
-
+            is ChartData.XYPlotIntLong -> {
+                if(isEmpty) {
+                    emptyList()
+                }else {
+                    chartData.data.third["yAxisEntries"] as List<String>
+                }
+            }
         }
 
         uiState.value = if(entries.isNotEmpty()) {

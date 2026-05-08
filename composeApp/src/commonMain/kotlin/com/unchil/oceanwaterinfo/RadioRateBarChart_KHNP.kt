@@ -57,7 +57,7 @@ fun RadioRateBarChart(){
         }
     }
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartData = ChartData.XYPlotStringFloat(chartData.value),
             title = "Power Plant Radio Rate",
@@ -95,7 +95,7 @@ fun RadioRateBarChart(){
             }
 
         }
-    }
+
 
 }
 

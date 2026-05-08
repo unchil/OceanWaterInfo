@@ -93,7 +93,7 @@ fun WasteWaterTimeSeries_KHNP() {
 
     var description by remember { mutableStateOf(false) }
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "3-hour WasteWater Current",
@@ -156,7 +156,7 @@ fun WasteWaterTimeSeries_KHNP() {
         }
 
 
-    }
+
 
 
 }

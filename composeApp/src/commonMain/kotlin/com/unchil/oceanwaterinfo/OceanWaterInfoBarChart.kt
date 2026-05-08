@@ -58,7 +58,7 @@ fun OceanWaterInfoBarChart(){
         }
     }
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartData = ChartData.XYPlotStringFloat(chartData.value),
             title = "Surface Temperature",
@@ -98,6 +98,6 @@ fun OceanWaterInfoBarChart(){
             }
 
         }
-    }
+
 
 }

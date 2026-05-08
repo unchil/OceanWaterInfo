@@ -72,7 +72,7 @@ fun OceanWaterInfo_MOF(){
 
 
 
-    if(chartData.value.isNotEmpty()){
+
         ChartDataFlow(
             chartType = ChartType.Line,
             chartData = ChartData.TimeSeries(chartData.value),
@@ -113,7 +113,7 @@ fun OceanWaterInfo_MOF(){
             }
 
         }
-    }
+
 
 
 

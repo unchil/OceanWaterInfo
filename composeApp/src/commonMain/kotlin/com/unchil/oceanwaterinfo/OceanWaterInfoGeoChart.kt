@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,8 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
     }
     val sourthKrShape = mutableListOf<Position>()
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val chartData: MutableState< ChartDataGeoPlot> = remember { mutableStateOf(Triple(emptyList(), emptyList(), Pair(emptyList(), {}))) }
 
     LaunchedEffect(Unit) {
         try {
@@ -91,30 +94,29 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
         }
     }
 
-
-    if(data.value.isNotEmpty() && geoData.value.isNotEmpty()){
-
-        val chartData = ChartData.XYPlotGeoPlot(
-            Triple(
+    LaunchedEffect(data.value,geoData.value ){
+        if(data.value.isNotEmpty() && geoData.value.isNotEmpty()){
+            chartData.value = Triple(
                 data.value.map{ triple -> triple.first },
                 data.value,
                 Pair(geoData.value, onClickPoint)
             )
-        )
-
-        ChartDataFlow(
-            chartData = chartData,
-            title = "Surface Temperature",
-            xTitle = "Longitude",
-            yTitle = "Latitude",
-            caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
-            chartType = ChartType.Geo,
-            yRangePadding = 0.0f,
-            legendTitle = "Observatory",
-            height = 500.dp,
-            onRefresh = onRefresh
-        )
+        }
     }
+
+    ChartDataFlow(
+        chartData = ChartData.XYPlotGeoPlot(chartData.value),
+        title = "Surface Temperature",
+        xTitle = "Longitude",
+        yTitle = "Latitude",
+        caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
+        chartType = ChartType.Geo,
+        yRangePadding = 0.0f,
+        legendTitle = "Observatory",
+        height = 500.dp,
+        onRefresh = onRefresh
+    )
+
 
 
 
