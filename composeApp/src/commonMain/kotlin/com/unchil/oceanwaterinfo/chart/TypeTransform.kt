@@ -165,7 +165,7 @@ fun List<KHNPRadioActiveWaste>.toKHNPRadioActiveWastePlant():List<KHNPRadioActiv
     this.groupBy{ it.plant to it.year}.forEach {  (key, items) ->
         val totalAmount = items.sumOf{ it.total.toLongOrNull() ?: 0L }
         radioActiveWastePlant.add(
-            KHNPRadioActiveWastePlant(key.first.toInt(), key.second, totalAmount)
+            KHNPRadioActiveWastePlant(key.first.toInt(), key.second, totalAmount, items.first().genName)
         )
     }
     return radioActiveWastePlant

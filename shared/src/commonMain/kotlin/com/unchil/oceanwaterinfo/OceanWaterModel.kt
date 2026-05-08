@@ -297,7 +297,8 @@ data class KHNPRadioRate(
 data class KHNPRadioActiveWastePlant(
     val plant :Int,
     val year: String,
-    val total: Long
+    val total: Long,
+    val genName: String,
 )
 
 

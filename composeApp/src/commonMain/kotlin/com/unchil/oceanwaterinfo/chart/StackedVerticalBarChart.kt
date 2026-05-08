@@ -74,7 +74,9 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
 
                                 PlainTooltip {
                                     Column{
-                                        Text("${ pointValue.x}")
+                                        if( desc[barIndex][entries.indexOf(pointValue.x)]["genName"] != null){
+                                            Text("plant:${ desc[barIndex][entries.indexOf(pointValue.x)]["genName"]}")
+                                        }
                                         if( desc[barIndex][entries.indexOf(pointValue.x)]["spmon"] != null){
                                             Text("month:${ desc[barIndex][entries.indexOf(pointValue.x)]["spmon"]}")
                                         }

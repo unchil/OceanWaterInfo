@@ -43,7 +43,7 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
                 groupBySelect = { it.year },
                 filterSelect = { it.plant },
                 primaryValueSelector = { it.total },
-                secondaryValueSelector = { mapOf("plant" to it.plant, "year" to it.year) },
+                secondaryValueSelector = { mapOf("plant" to it.plant, "year" to it.year, "genName" to it.genName) },
                 yAxisEntries = { yAxisEntries }
             )
         }
