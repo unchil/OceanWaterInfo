@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import com.unchil.oceanwaterinfo.ChartData
-import com.unchil.oceanwaterinfo.ChartType
 import com.unchil.oceanwaterinfo.getColors
 import io.github.koalaplot.core.bar.DefaultBar
 import io.github.koalaplot.core.bar.StackedVerticalBarPlot
@@ -35,7 +34,7 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
     when(chartData){
         is ChartData.XYPlotIntLong -> {
 
-            val entryList = chartData.data.first
+            val entries = chartData.data.first
             val data = chartData.data.second
 
             val desc = chartData.data.third["info"] as List<List<Map<String, Any>>>
@@ -43,16 +42,16 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
             val colors = getColors(months)
 
             fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<Int, Long>> =
-                entryList.mapIndexed { yearIndex, year ->
+                entries.mapIndexed { entriesIndex, item ->
                     object : VerticalBarPlotStackedPointEntry<Int, Long> {
-                        override val x: Int = year
+                        override val x: Int = item
                         override val yOrigin: Long = 0L
                         override val y: List<Long> = object : AbstractList<Long>() {
                             override val size: Int
                                 get() = data.size
 
                             override fun get(index: Int): Long = data.subList(0, index + 1).fold(0L) { accumulator, element ->
-                                    accumulator + element[yearIndex]
+                                    accumulator + element[entriesIndex]
                                 }
                         }
                     }
@@ -75,17 +74,14 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
 
                                 PlainTooltip {
                                     Column{
-
                                         Text("${ pointValue.x}")
-
-                                        if( desc[barIndex][entryList.indexOf(pointValue.x)]["spmon"] != null){
-                                            Text("month:${ desc[barIndex][entryList.indexOf(pointValue.x)]["spmon"]}")
+                                        if( desc[barIndex][entries.indexOf(pointValue.x)]["spmon"] != null){
+                                            Text("month:${ desc[barIndex][entries.indexOf(pointValue.x)]["spmon"]}")
                                         }
-                                        if( desc[barIndex][entryList.indexOf(pointValue.x)]["year"] != null){
-                                            Text("year:${ desc[barIndex][entryList.indexOf(pointValue.x)]["year"]}")
+                                        if( desc[barIndex][entries.indexOf(pointValue.x)]["year"] != null){
+                                            Text("year:${ desc[barIndex][entries.indexOf(pointValue.x)]["year"]}")
                                         }
-
-                                        Text("value:${ data[barIndex][entryList.indexOf(pointValue.x)]}")
+                                        Text("value:${ pointValue.y.end - pointValue.y.start}")
                                         Text("accumulated:${ pointValue.y.end}")
 
                                     }
