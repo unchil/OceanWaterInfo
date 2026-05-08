@@ -75,20 +75,19 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
 
                                 PlainTooltip {
                                     Column{
-                                        if(desc.isNotEmpty()){
 
-                                            if( desc[barIndex][entryList.indexOf(pointValue.x)]["spmon"] != null){
-                                                Text("date:${ desc[barIndex][entryList.indexOf(pointValue.x)]["spmon"]}")
-                                            }
-                                            if( desc[barIndex][entryList.indexOf(pointValue.x)]["year"] != null){
-                                                Text("year:${ desc[barIndex][entryList.indexOf(pointValue.x)]["year"]}")
-                                            }
+                                        Text("${ pointValue.x}")
 
-                                            Text("plant:${ desc[barIndex][entryList.indexOf(pointValue.x)]["plant"]}")
-
-
+                                        if( desc[barIndex][entryList.indexOf(pointValue.x)]["spmon"] != null){
+                                            Text("month:${ desc[barIndex][entryList.indexOf(pointValue.x)]["spmon"]}")
                                         }
+                                        if( desc[barIndex][entryList.indexOf(pointValue.x)]["year"] != null){
+                                            Text("year:${ desc[barIndex][entryList.indexOf(pointValue.x)]["year"]}")
+                                        }
+
                                         Text("value:${ data[barIndex][entryList.indexOf(pointValue.x)]}")
+                                        Text("accumulated:${ pointValue.y.end}")
+
                                     }
                                 }
                             }
