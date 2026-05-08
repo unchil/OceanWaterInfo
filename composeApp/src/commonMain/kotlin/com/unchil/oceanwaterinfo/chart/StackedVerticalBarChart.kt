@@ -93,7 +93,7 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
                         state = rememberTooltipState(),
                     ) {
                         DefaultBar(
-                            brush = SolidColor((colors[ months[barIndex] ] ?: Color.Black).copy(alpha = 0.7f) ),
+                            brush = SolidColor((colors[ months[barIndex] ] ?: Color.Black) ),
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }

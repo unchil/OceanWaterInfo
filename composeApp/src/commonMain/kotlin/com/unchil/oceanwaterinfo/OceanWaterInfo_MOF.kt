@@ -81,7 +81,6 @@ fun OceanWaterInfo_MOF(){
             yTitle =  selectedOption.unit(),
             caption = "from https://www.mof.go.kr (Ministry of Oceans and Fisheries)",
             description = selectedOption.desc(),
-            height = 560.dp,
             yRangePadding = 0.1f,
             selectedOption = selectedOption,
             legendTitle = "Observatory",

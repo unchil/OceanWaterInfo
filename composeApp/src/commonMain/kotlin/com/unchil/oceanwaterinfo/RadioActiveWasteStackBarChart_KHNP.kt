@@ -71,7 +71,6 @@ fun KHNPRadioActiveWasteStackBarChart() {
         xTitle = "Year",
         yTitle = "RadioActiveWaster",
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
-        height = 600.dp,
         chartType = ChartType.StackedVerticalBar,
         legendTitle = "Month",
         onRefresh = onRefresh

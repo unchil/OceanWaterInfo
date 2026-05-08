@@ -58,7 +58,6 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
         xTitle = "Plant",
         yTitle = "RadioActiveWaster",
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
-        height = 600.dp,
         chartType = ChartType.StackedVerticalBar,
         legendTitle = "Year",
         onRefresh = onRefresh
