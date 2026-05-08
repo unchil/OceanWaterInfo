@@ -50,6 +50,7 @@ fun main() {
                     ) {
 
  //                       OceanWaterInfo()
+                        RadioActiveWastePlantStatStackedBarChart_KHNP()
                         KHNPRadioActiveWasteStackBarChart()
                         RadioRateBarChart()
                         WasteWaterTimeSeries_KHNP()

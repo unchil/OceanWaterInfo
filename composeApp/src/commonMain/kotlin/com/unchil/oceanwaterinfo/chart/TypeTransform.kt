@@ -160,22 +160,33 @@ fun<T>List<T>.toBarChartTripleList(
     }
 }
 
+fun List<KHNPRadioActiveWaste>.toKHNPRadioActiveWastePlant():List<KHNPRadioActiveWastePlant>{
+    val  radioActiveWastePlant = mutableListOf<KHNPRadioActiveWastePlant>()
+    this.groupBy{ it.plant to it.year}.forEach {  (key, items) ->
+        val totalAmount = items.sumOf{ it.total.toLongOrNull() ?: 0L }
+        radioActiveWastePlant.add(
+            KHNPRadioActiveWastePlant(key.first.toInt(), key.second, totalAmount)
+        )
+    }
+    return radioActiveWastePlant
+}
+
 fun<T>List<T>.toStackedBarChartTripleList(
-    entrySelector: (T) -> Int,
+    entriesSelector: (T) -> Int,
     groupBySelect:(T) -> String,
     filterSelect:(T) -> Int,
     primaryValueSelector:(T) -> Long,
     secondaryValueSelector:(T) -> Map<String, Any>,
-    yAxisEntrys:() -> List<String>
+    yAxisEntries:() -> List<String>
 
 ): ChartDataIntLong {
 
-     val entryList = this.map{
-            entrySelector(it)
-        }.distinct().sorted()
+    val entries = this.map{
+        entriesSelector(it)
+    }.distinct().sorted()
 
     val data = this.groupBy { groupBySelect(it) }.map{ (_, items) ->
-        val verticalValues = entryList.map { year ->
+        val verticalValues = entries.map { year ->
             val matchedItem = items.find { filterSelect(it) == year }
             if (matchedItem != null) {
                 primaryValueSelector(matchedItem)
@@ -188,7 +199,7 @@ fun<T>List<T>.toStackedBarChartTripleList(
 
 
     val info = this.groupBy { groupBySelect(it) }.map{ (_, items) ->
-        val verticalValues = entryList.map { year ->
+        val verticalValues = entries.map { year ->
             val matchedItem = items.find { filterSelect(it) == year }
             if (matchedItem != null) {
                 secondaryValueSelector(matchedItem)
@@ -200,7 +211,7 @@ fun<T>List<T>.toStackedBarChartTripleList(
         verticalValues
     }
 
-    return  Triple(entryList, data,  mapOf("info" to info, "yAxisEntries" to yAxisEntrys()) )
+    return  Triple(entries, data,  mapOf("info" to info, "yAxisEntries" to yAxisEntries()) )
 
 
 }

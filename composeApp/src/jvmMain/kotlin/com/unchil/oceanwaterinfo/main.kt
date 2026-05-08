@@ -286,6 +286,7 @@ fun main() = application {
                                                         .verticalScroll(rememberScrollState()),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
+                                                    RadioActiveWastePlantStatStackedBarChart_KHNP()
                                                     KHNPRadioActiveWasteStackBarChart()
                                                     RadioRateBarChart()
                                                     WasteWaterTimeSeries_KHNP()
@@ -420,6 +421,8 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
+
+
 
 
 

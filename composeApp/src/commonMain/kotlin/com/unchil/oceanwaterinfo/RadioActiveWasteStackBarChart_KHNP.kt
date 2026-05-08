@@ -53,12 +53,12 @@ fun KHNPRadioActiveWasteStackBarChart() {
 
         if(filteredData.isNotEmpty()){
             chartData.value = filteredData.toStackedBarChartTripleList(
-                entrySelector = { it.year.toIntOrNull() ?: 0 },
+                entriesSelector = { it.year.toIntOrNull() ?: 0 },
                 groupBySelect = { it.month },
                 filterSelect = { it.year.toIntOrNull() ?: 0 },
                 primaryValueSelector = { it.total.toLongOrNull() ?: 0L },
                 secondaryValueSelector = { mapOf("plant" to it.plant, "genName" to it.genName, "spmon" to it.spmon) },
-                yAxisEntrys = {listOf( "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" )}
+                yAxisEntries = {listOf( "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" )}
             )
 
         }
@@ -67,7 +67,7 @@ fun KHNPRadioActiveWasteStackBarChart() {
 
     ChartDataFlow(
         chartData = ChartData.XYPlotIntLong(chartData.value),
-        title = "Power Plant Radio Active Waster",
+        title = "Power Plant Radio Active Waster (Month)",
         xTitle = "Year",
         yTitle = "RadioActiveWaster",
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
