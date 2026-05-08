@@ -200,7 +200,7 @@ fun<T>List<T>.toStackedBarChartTripleList(
         verticalValues
     }
 
-    return listOf( Triple(entryList, data,  mapOf("info" to info, "yAxisEntries" to yAxisEntrys()) ) )
+    return  Triple(entryList, data,  mapOf("info" to info, "yAxisEntries" to yAxisEntrys()) )
 
 
 }

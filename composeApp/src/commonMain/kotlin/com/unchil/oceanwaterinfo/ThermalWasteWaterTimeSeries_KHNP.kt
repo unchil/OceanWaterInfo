@@ -27,7 +27,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
     val onRefresh:()->Unit = {
         coroutineScope.launch {
             while(true){
-                delay(1 * 60 * 1000L).let{
+                delay(5 * 60 * 1000L).let{
                     viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
                 }
             }

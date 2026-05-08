@@ -35,20 +35,18 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
     when(chartData){
         is ChartData.XYPlotIntLong -> {
 
-            val entryList = chartData.data[0].first
-            val data = chartData.data[0].second
+            val entryList = chartData.data.first
+            val data = chartData.data.second
 
-            val desc = chartData.data[0].third["info"] as List<List<Map<String, Any>>>
-            val months = chartData.data[0].third["yAxisEntries"] as List<String>
+            val desc = chartData.data.third["info"] as List<List<Map<String, Any>>>
+            val months = chartData.data.third["yAxisEntries"] as List<String>
             val colors = getColors(months)
 
-            fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<Int, Long>>  =
-
+            fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<Int, Long>> =
                 entryList.mapIndexed { yearIndex, year ->
                     object : VerticalBarPlotStackedPointEntry<Int, Long> {
                         override val x: Int = year
                         override val yOrigin: Long = 0L
-
                         override val y: List<Long> = object : AbstractList<Long>() {
                             override val size: Int
                                 get() = data.size
@@ -58,7 +56,7 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
                                 }
                         }
                     }
-            }
+                }
 
             val barChartEntries = barChartEntries()
 

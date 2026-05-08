@@ -39,7 +39,7 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
     val onRefresh:()->Unit = {
         coroutineScope.launch {
             while(true){
-                delay(1 * 60 * 1000L).let{
+                delay(5 * 60 * 1000L).let{
                     viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
                 }
             }

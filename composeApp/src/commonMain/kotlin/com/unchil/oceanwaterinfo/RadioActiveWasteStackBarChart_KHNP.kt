@@ -43,7 +43,7 @@ fun KHNPRadioActiveWasteStackBarChart() {
         selectedOption = entry
     }
 
-    val chartData: MutableState< ChartDataIntLong> = remember { mutableStateOf(emptyList() ) }
+    val chartData: MutableState< ChartDataIntLong> = remember { mutableStateOf(Triple(emptyList(), emptyList(), emptyMap())) }
 
     LaunchedEffect(key1= radioActiveWasteInfo.value,  key2=selectedOption){
 
@@ -64,7 +64,7 @@ fun KHNPRadioActiveWasteStackBarChart() {
         }
     }
 
-    if(chartData.value.isNotEmpty()){
+    if(chartData.value.first.isNotEmpty()){
         ChartDataFlow(
             chartData = ChartData.XYPlotIntLong(chartData.value),
             title = "Power Plant Radio Active Waster",

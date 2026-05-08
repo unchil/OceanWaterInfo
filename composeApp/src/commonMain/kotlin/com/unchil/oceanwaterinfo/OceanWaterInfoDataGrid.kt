@@ -49,7 +49,7 @@ fun OceanWaterInfoDataGrid(){
 
     LaunchedEffect(key1 = viewModel){
         while(true){
-            delay(1 * 60 * 1000L).let{
+            delay(5 * 60 * 1000L).let{
                 viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             }
         }
