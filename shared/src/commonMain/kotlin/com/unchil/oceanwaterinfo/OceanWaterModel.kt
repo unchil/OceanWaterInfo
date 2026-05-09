@@ -311,3 +311,21 @@ data class KHNPRadioActiveWaste(
     val plant :String,
     val total: String
 )
+
+
+@Serializable
+data class KHNPPlantInfo(
+    val siteCd: String,
+    val siteNm: String,
+    val siteMm: String
+)
+@Serializable
+data class KHNPPlantOperationInfo(
+    val collectionTime: String,
+    val siteCd: String,
+    val unitCd: String,
+    val unitDttm: String,
+    val genName: String,
+    val unitNm: String,
+    val unitSt: String
+)

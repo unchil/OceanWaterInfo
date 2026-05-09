@@ -62,12 +62,35 @@ private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHN
 
 private val cacheStorage_KHNPRadioActiveWaste = ConcurrentHashMap<String, Pair<List<KHNPRadioActiveWaste>, Long>>()
 
+private val cacheStorage_KHNPPlantState = ConcurrentHashMap<String, Pair<List<KHNPPlantOperationInfo>, Long>>()
 
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
 
 
 
 class Repository {
+
+
+    fun khnp_PlantState():List<KHNPPlantOperationInfo> {
+        val key = "cache_khnp_plantstate"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KHNPPlantState[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+        val resultFromDb = fetchKHNPPlantStateFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KHNPPlantState[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+    }
+
 
     fun khnp_RadioActiveWaste():List<KHNPRadioActiveWaste> {
         val key = "cache_khnp_radioactivewaste"
@@ -358,6 +381,27 @@ class Repository {
             cacheStorage_SeaWaterInfoBoxPlot[key] = Pair(resultFromDb, now)
         }
         return resultFromDb
+    }
+
+
+    fun fetchKHNPPlantStateFromDb(): List<KHNPPlantOperationInfo> = transaction {
+        LOGGER.info("Serving from DB for : fetchKHNPPlantStateFromDb")
+
+
+        val result = KHNP_PlantOperationInfo.selectAll()
+            .map { it ->
+                KHNPPlantOperationInfo(
+                    it[KHNP_PlantOperationInfo.collectionTime],
+                    it[KHNP_PlantOperationInfo.siteCd],
+                    it[KHNP_PlantOperationInfo.unitCd],
+                    it[KHNP_PlantOperationInfo.unitDttm],
+                    it[KHNP_PlantOperationInfo.genName],
+                    it[KHNP_PlantOperationInfo.unitNm],
+                    it[KHNP_PlantOperationInfo.unitSt]
+                )
+            }
+
+        return@transaction result
     }
 
 

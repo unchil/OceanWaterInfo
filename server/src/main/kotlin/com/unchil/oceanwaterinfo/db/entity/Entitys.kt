@@ -385,3 +385,23 @@ object KHNP_RadioActiveWaste:Table("KHNP_RadioActiveWaste"){
 
     override val primaryKey = PrimaryKey(spmon, plant,   name = "primaryKey")
 }
+
+object KHNP_PlantInfo:Table("KHNP_PlantInfo"){
+    val siteCd = varchar("siteCd", length=30)
+    val siteNm = varchar("siteNm", length=30)
+    val siteMm = varchar("siteMm", length=100)
+    override val primaryKey = PrimaryKey(siteCd,   name = "primaryKey")
+
+}
+
+object KHNP_PlantOperationInfo:Table("KHNP_PlantOperationInfo"){
+    val collectionTime = varchar("collectionTime", length=30)
+    val siteCd = varchar("siteCd", length=30)
+    val genName = varchar("genName", length=30)
+    val unitCd = varchar("unitCd", length=30)
+    val unitDttm = varchar("unitDttm", length=30)
+    val unitNm = varchar("unitNm", length=30)
+    val unitSt = varchar("unitSt", length=30)
+    override val primaryKey = PrimaryKey(siteCd, unitCd , unitNm,   name = "primaryKey")
+
+}

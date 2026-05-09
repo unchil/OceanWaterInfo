@@ -128,6 +128,20 @@ fun Application.configureSerialization(repository: Repository) {
                     call.respond(HttpStatusCode.BadRequest)
                 }
             }
+
+
+            get("/plantstate"){
+                try {
+                    val result = repository.khnp_PlantState()
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
         }
 
 
