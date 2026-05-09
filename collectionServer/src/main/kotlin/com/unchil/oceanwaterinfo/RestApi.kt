@@ -31,6 +31,15 @@ class RestApi {
 
     companion object {
 
+
+
+        suspend fun callKHNP_PlantStates_xml(url:String):String{
+            client.get(url).let {
+                return it.bodyAsText(java.nio.charset.Charset.forName("UTF8"))
+            }
+
+        }
+
         suspend fun callSDoT_EnvInfo_json(url:String): String{
             client.get(url).let {
                 return it.bodyAsText(java.nio.charset.Charset.forName("EUC-KR"))
@@ -42,6 +51,8 @@ class RestApi {
                 return it.bodyAsText(java.nio.charset.Charset.forName("EUC-KR"))
             }
         }
+
+
 
         suspend fun callNifsAPI_json(id:String):String{
             client.get(urlString =  configData.NIFS_API?.endPoint ?: "") {

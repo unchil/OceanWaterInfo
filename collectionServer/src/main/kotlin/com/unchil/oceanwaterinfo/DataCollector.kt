@@ -13,6 +13,7 @@ class DataCollector {
         while(true){
             LOGGER.info("Data Collector Job Started.\nType:[${Config.jobType}], Event[${Config.jobEvent}]")
             try {
+
                 repository.getRealTimeObservation()
                 repository.getRealTimeObservatory()
                 repository.getKhoaObservation()
@@ -23,9 +24,11 @@ class DataCollector {
                 repository.getKHNP_ThermalWasteWater()
                 repository.getKHNP_RadioRate()
                 repository.getKHNP_RadioActiveWaste()
+                repository.getKHNP_PlantStates()
 
                 //jobType:["batch", "schedule"]
                 //jobEvent:["recovery", "operation"]
+
                 if(Config.jobType.equals("batch") && Config.jobEvent.equals("recovery")){
                     RecoveryCollector().getRealTimeOceanWaterQuality_Rocovery(Config.wtch_dt_start ?: "", Config.wtch_dt_end ?: "")
                 }else{

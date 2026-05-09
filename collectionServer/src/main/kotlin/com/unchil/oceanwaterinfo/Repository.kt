@@ -14,6 +14,7 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
@@ -25,14 +26,12 @@ import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.add
-import org.jetbrains.kotlinx.dataframe.api.at
 import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
 import org.jetbrains.kotlinx.dataframe.api.flatten
 import org.jetbrains.kotlinx.dataframe.api.forEach
 import org.jetbrains.kotlinx.dataframe.api.groupBy
 import org.jetbrains.kotlinx.dataframe.api.head
-import org.jetbrains.kotlinx.dataframe.api.insert
 import org.jetbrains.kotlinx.dataframe.api.pivot
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.schema
@@ -43,7 +42,6 @@ import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
-import kotlin.collections.listOf
 import kotlin.time.Clock
 
 class Repository {
@@ -54,6 +52,129 @@ class Repository {
             addLogger(StdOutSqlLogger)
         }
     }
+
+
+     suspend fun getKHNP_PlantStates() {
+
+        val url_PlantStates = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.NuclearPlantStates}?serviceKey=${configData.KHNP?.serviceKey}"
+
+        val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
+
+        val myCollectionTime = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
+
+        val plantInfo = mutableListOf<KHNPPlantInfo>()
+        val unitInfoList = mutableListOf<KHNPPlantOperationInfo>()
+
+        genNames.forEach{ genName ->
+
+            val url = "${url_PlantStates}&SITE_CD=${genName}"
+
+            try {
+                RestApi.callKHNP_PlantStates_xml(url).let {
+
+                    val element = Json.parseToJsonElement( it )
+                    val item = element.jsonObject["response"]?.jsonObject?.get("body")?.jsonObject?.get("items")?.jsonObject?.get("item")
+
+                    var siteCd = ""
+                    var siteMm = ""
+                    var siteNm = ""
+                    var unitCd = ""
+                    var unitDttm = ""
+                    var unitNm = ""
+                    var unitSt = ""
+
+                    var index = 0
+
+                    item?.jsonObject?.forEach { (key, value) ->
+
+
+                        if(key.equals("siteCd")){
+                            siteCd = value.toString().removeSurrounding("\"")
+                        }
+
+                        if(key.equals("siteMm")){
+                            siteMm = value.toString().removeSurrounding("\"")
+                        }
+
+                        if(key.equals("siteNm")){
+                            siteNm = value.toString().removeSurrounding("\"")
+                        }
+
+
+                        if(index == 2){
+                            plantInfo.add(KHNPPlantInfo(siteCd, siteNm, siteMm))
+                        }
+
+                        if(key.contains("^unit_[0-9]+Cd$".toRegex())) {
+                            unitCd = value.toString().removeSurrounding("\"")
+                        }
+                        if(key.contains("^unit_[0-9]+Dttm$".toRegex())) {
+                            unitDttm = value.toString().removeSurrounding("\"")
+                        }
+                        if(key.contains("^unit_[0-9]+Nm$".toRegex())) {
+                            unitNm = value.toString().removeSurrounding("\"")
+                        }
+                        if(key.contains("^unit_[0-9]+St$".toRegex())) {
+                            unitSt = value.toString().removeSurrounding("\"")
+                        }
+
+                        if( index > 3 && index%4 == 2   ){
+                            unitInfoList.add( KHNPPlantOperationInfo( myCollectionTime, siteCd, genName, unitCd,unitDttm, unitNm, unitSt))
+                            unitCd = ""
+                            unitDttm = ""
+                            unitNm = ""
+                            unitSt = ""
+                        }
+
+                        index++
+
+                    }
+                }
+
+            } catch(e:Exception ){
+              val msg = e.localizedMessage
+
+            }
+        }
+
+         transaction(Config.conn) {
+             SchemaUtils.create(KHNP_PlantInfo)
+             plantInfo.forEach { item  ->
+                 try{
+                     KHNP_PlantInfo.insertIgnore { it ->
+                         it[siteCd] = item.siteCd
+                         it[siteNm] = item.siteNm
+                         it[siteMm] = item.siteMm
+                     }
+                 }catch (e:Exception){
+                     LOGGER.error("Exception : [" + e.localizedMessage + "]")
+                 }
+             }
+
+             SchemaUtils.create(KHNP_PlantOperationInfo)
+             unitInfoList.forEach { item  ->
+                 try{
+                     KHNP_PlantOperationInfo.insertIgnore { it ->
+                         it[collectionTime] = item.collectionTime
+                         it[siteCd] = item.siteCd
+                         it[genName] = item.genName
+                         it[unitCd] = item.unitCd
+                         it[unitDttm] = item.unitDttm
+                         it[unitNm] = item.unitNm
+                         it[unitSt] = item.unitSt
+
+                     }
+                 }catch (e:Exception){
+                     LOGGER.error("Exception : [" + e.localizedMessage + "]")
+                 }
+             }
+
+
+         }
+
+    }
+
 
     fun loadKHNP_Service(url:String, genNames:List<String>): DataFrame<*> {
         val now = Clock.System.now()

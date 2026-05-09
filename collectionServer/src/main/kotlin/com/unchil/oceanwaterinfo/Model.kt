@@ -3,7 +3,22 @@ package com.unchil.oceanwaterinfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
+@Serializable
+data class KHNPPlantInfo(
+    val siteCd: String,
+    val siteNm: String,
+    val siteMm: String
+)
+@Serializable
+data class KHNPPlantOperationInfo(
+    val collectionTime: String,
+    val siteCd: String,
+    val genName: String,
+    val unitCd: String,
+    val unitDttm: String,
+    val unitNm: String,
+    val unitSt: String
+)
 @Serializable
 data class Observation(
     val sta_cde: String,
