@@ -80,9 +80,6 @@ fun main() = application {
     }
 
 
-
-
-
     val state = WindowState(
         size = DpSize(1400.dp, 1000.dp),
         position = WindowPosition(Alignment.Center)
@@ -113,7 +110,7 @@ fun main() = application {
 
             CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
-               // OceanWaterInfo()
+    //            OceanWaterInfo()
 
 
 
@@ -286,6 +283,7 @@ fun main() = application {
                                                         .verticalScroll(rememberScrollState()),
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                 ) {
+                                                    NuclearPlantStatePieChart_KHNP()
                                                     RadioActiveWastePlantStatStackedBarChart_KHNP()
                                                     KHNPRadioActiveWasteStackBarChart()
                                                     RadioRateBarChart()

@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 
 
+import androidx.compose.ui.graphics.Color
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -160,6 +161,9 @@ fun<T>List<T>.toBarChartTripleList(
     }
 }
 
+
+
+
 fun List<KHNPRadioActiveWaste>.toKHNPRadioActiveWastePlant():List<KHNPRadioActiveWastePlant>{
     val  radioActiveWastePlant = mutableListOf<KHNPRadioActiveWastePlant>()
     this.groupBy{ it.plant to it.year}.forEach {  (key, items) ->
@@ -169,6 +173,23 @@ fun List<KHNPRadioActiveWaste>.toKHNPRadioActiveWastePlant():List<KHNPRadioActiv
         )
     }
     return radioActiveWastePlant
+}
+
+fun List<KHNPPlantOperationInfo>.toKHNPPlantState(): Triple<List<Float>, List<Color>, Map<String,Any>>{
+
+    val weights = List(this.size) { 1.0f }
+
+    val statusColor = this.map { info ->
+        when (info.unitSt) {
+            "운전" -> Color.Red
+            "정비" -> Color.Green
+            "미운영" -> Color.Blue
+            else -> Color.Gray
+        }
+    }
+
+
+    return Triple(weights, statusColor, mapOf("info" to this))
 }
 
 fun<T>List<T>.toStackedBarChartTripleList(
