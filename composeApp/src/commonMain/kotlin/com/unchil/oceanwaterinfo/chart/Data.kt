@@ -507,10 +507,17 @@ object WATER_QUALITY {
 
 val getColors = { entries:List<String> ->
     buildMap {
-        val colors = generateHueColorPalette(entries.size)
+
+     //   val colors = generateHueColorPalette(entries.size)
+
+
         entries.sortedBy { it }.forEachIndexed { index, it ->
-            put(it, colors[index])
+            val color = Color.hsv( hue = (index * 360f / entries.size), saturation = 0.7f,  value = 0.9f   )
+            put(it, color)
+            //put(it, colors[index])
+
         }
+
     }
 }
 
