@@ -3,6 +3,7 @@ package com.unchil.oceanwaterinfo
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -73,14 +74,43 @@ fun NuclearPlantStatePieChart_KHNP(){
             horizontalAlignment = Alignment.CenterHorizontally,
         ){
 
-                Text(
-                    "Nuclear Plant States",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
+            Text(
+                "Nuclear Plant States",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
 
-                PieChart(
+
+
+            var selectedTabIndex by remember { mutableIntStateOf(0) }
+            SecondaryTabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
+                contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+            ) {
+                POWER_PLANT_AREA.POWER_PLANT.entries.forEachIndexed { index, entrie ->
+
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = {
+                            selectedTabIndex = index
+                            onSelection(entrie)
+                        },
+                        text = {
+                            Text(
+                                text = entrie.name,
+                                style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
+                            )
+                        }
+                    )
+                }
+            }
+
+            Spacer(Modifier.padding(10.dp))
+
+
+            PieChart(
                     values = filteredPlantState.value.first, // 모든 발전소를 동일한 크기로 표시
                     slice = { index ->
                         DefaultSlice(
@@ -142,30 +172,6 @@ fun NuclearPlantStatePieChart_KHNP(){
                 )
 
             }
-            var selectedTabIndex by remember { mutableIntStateOf(0) }
-            SecondaryTabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-                contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
-            ) {
-                POWER_PLANT_AREA.POWER_PLANT.entries.forEachIndexed { index, entrie ->
-
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = {
-                            selectedTabIndex = index
-                            onSelection(entrie)
-                        },
-                        text = {
-                            Text(
-                                text = entrie.name,
-                                style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
-                            )
-                        }
-                    )
-                }
-            }
-
 
 
 
