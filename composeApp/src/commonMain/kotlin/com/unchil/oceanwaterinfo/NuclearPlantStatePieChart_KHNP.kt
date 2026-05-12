@@ -74,14 +74,7 @@ fun NuclearPlantStatePieChart_KHNP(){
             horizontalAlignment = Alignment.CenterHorizontally,
         ){
 
-            Text(
-                "Nuclear Plant States",
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-            )
-
-
+            ChartTitle("Nuclear Plant States")
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }
             SecondaryTabRow(
@@ -100,7 +93,7 @@ fun NuclearPlantStatePieChart_KHNP(){
                         text = {
                             Text(
                                 text = entrie.name,
-                                style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
+                                style = MaterialTheme.typography.titleSmall
                             )
                         }
                     )
