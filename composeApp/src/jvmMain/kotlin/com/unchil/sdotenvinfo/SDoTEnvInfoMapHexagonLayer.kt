@@ -64,7 +64,7 @@ fun SDoTEnvInfoMapHexagonLayer(
     }
 
 
-    val host = "http://localhost:7878"
+    val host = "http://localhost:7272"
     val servicePage = "sDoTDeckHexagonLayer.html"
 
 

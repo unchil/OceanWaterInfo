@@ -35,7 +35,7 @@ fun SeaFlowMapTripsLayer(
 
 
 
-    val host = "http://localhost:7878"
+    val host = "http://localhost:7272"
     val servicePage = "seaFlowMapDeckTripsLayer.html"
 
 

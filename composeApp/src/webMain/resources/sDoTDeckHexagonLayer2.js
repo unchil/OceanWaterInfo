@@ -30,10 +30,8 @@ window.updateData = async function(type) {
     console.log(`[데이터 갱신] 타입: ${type}, URL: ${dataUrl}`);
 
     try {
-        // loaders.gl의 load 함수를 사용하여 데이터를 미리 가져옵니다.
-        const rawData = await load(dataUrl, JSONLoader);
 
-        // 데이터 구조 변환 (기존 dataTransform 로직을 여기로 이동)
+        const rawData = await load(dataUrl, JSONLoader);
         const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
         cachedData = rows.map(d => ({
             ...d,
@@ -154,7 +152,7 @@ async function initMap() {
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
- // [줌 변경] 데이터 요청 없이 레이어 설정만 업데이트
+
     map.addListener('zoom_changed', () => {
         renderLayer();
      //   initMapWithType(currentType);

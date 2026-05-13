@@ -54,7 +54,7 @@
 
 
     <iframe id="map-iframe"
-            src="http://192.168.35.107:7878/sDoTDeckHexagonLayer2.html"
+            src="sDoTDeckHexagonLayer2.html"
             title="Seoul/Gyonggi Air Quality Information" allow="fullscreen"></iframe>
 
 </div>
@@ -81,12 +81,11 @@
         <script type="application/javascript" src="composeApp.js"></script>
     </div>
 
-    <div id="iframe_waterInfo" style="position: absolute; display: flex; z-index: 10;">
 
-        <iframe id="map-waterInfo"
-                src="http://192.168.35.107:7878/waterInfoGoogleMap.html"
+    <div id="waterInfoMap" style="position: absolute; display: flex; z-index: 10;">
+        <iframe id="iframe_waterInfo"
+                src="waterInfoGoogleMap.html"
                 title="" style="width: 100%; height: 100%; border: none;"></iframe>
-
     </div>
 
 
@@ -182,11 +181,6 @@
             //src를 바꾸는 대신 메시지를 보냄
             iframe.contentWindow.postMessage({ action: 'CHANGE_TYPE', type: type }, '*');
 
-
-            //  const baseUrl = "http://localhost:7878/sDoTDeckHexagonLayer2";
-            // iframe.src = `${baseUrl}.html?type=${type}`;
-
-            // console.log("탭 변경:", type, "->", iframe.src);
 
         }
 

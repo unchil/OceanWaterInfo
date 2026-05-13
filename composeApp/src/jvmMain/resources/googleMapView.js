@@ -17,7 +17,7 @@ async function initMap() {
 
 
     map  = new Map(document.getElementById('un7map'), {
-        mapId: "YOUR MAP ID",
+        mapId: "",
         center: center,
         zoom: 16,
         renderingType: google.maps.RenderingType.VECTOR,
@@ -54,6 +54,23 @@ async function initMap() {
 //   addMarkerClusterer(locations, labels, contents)
 
 }
+
+//페이지 새로고침 없이 함수만 호출하고 싶을 때
+window.addEventListener("message", (event) => {
+    // 보안을 위해 event.origin 체크 권장
+  //  if (event.origin !== "http://192.168.35.107:8080/") return;
+    try {
+        const data = JSON.parse(event.data);
+        if (data.action === "FLY_TO") {
+            console.log("좌표 이동:", data.target.lat, data.target.lng);
+            // 여기에 지도 이동 로직 작성 (예: Leaflet, Google Maps 등)
+            smoothFlyTo({lat:data.target.lat, lng:data.target.lng})
+        }
+    } catch (e) {
+        console.error("메시지 파싱 에러:", e);
+    }
+}, false);
+
 
 function smoothZoom ( targetZoom, currentZoom) {
     if (currentZoom === targetZoom) return;

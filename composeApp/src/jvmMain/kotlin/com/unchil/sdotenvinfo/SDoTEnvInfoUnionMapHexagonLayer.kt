@@ -60,7 +60,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         SDoTEnvInfoUnionViewModel(coroutineScope)
     }
 
-    val host = "http://192.168.35.107:7878"
+    val host = "http://192.168.35.107:7272"
     val servicePage = "sDoTDeckHexagonLayerUnion.html"
 
     var descriptionBox by remember { mutableStateOf(false) }
