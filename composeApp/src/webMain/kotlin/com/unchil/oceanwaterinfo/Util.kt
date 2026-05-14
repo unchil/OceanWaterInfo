@@ -1,7 +1,11 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.unit.Density
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.browser.document
+import kotlinx.browser.window
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 // 1. 관측 데이터를 마커 클러스터용 문자열 데이터(Triple)로 변환하는 함수
@@ -36,4 +40,34 @@ fun postIframeMessage(iframeId: String, messageJson: String) {
     val jsString = messageJson.toJsString()
     println("Sent to ${iframeId}, jsString:[$jsString]")
     iframe?.contentWindow?.postMessage(jsString, "*")
+}
+
+
+/** Compose Box의 위치 정보를 실제 브라우저 HTML 요소의 스타일에 동기화하는 함수 */
+fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, mainHtmlElementId: String, htmlElementId: String, paddingRight: Int = 16 ) {
+// 1. Compose 내부에서의 절대 좌표 계산 (Window 기준)
+    val windowPos = coordinates.localToWindow(androidx.compose.ui.geometry.Offset.Zero)
+// 2. 부모 컨테이너(#webmain)와 브라우저 스크롤 정보 획득
+    val webmainElement = document.getElementById(mainHtmlElementId) as? HTMLElement
+    val canvasOffsetTop = webmainElement?.getBoundingClientRect()?.top ?: 0.0
+    val canvasOffsetLeft = webmainElement?.getBoundingClientRect()?.left ?: 0.0
+    val scrollY = window.scrollY
+// 3. 대상 HTML 요소의 스타일 업데이트
+    val htmlElement = document.getElementById(htmlElementId) as? HTMLElement
+    htmlElement?.let {
+        it.style.apply {
+            display = "flex"
+            zIndex ="10"
+            position = "absolute"
+
+            // Compose 좌표 + 캔버스 시작 위치 + 스크롤 위치를 합산하여 정확한 px 계산
+            val finalTop = (windowPos.y / density.density) + canvasOffsetTop + scrollY
+            val finalLeft = (windowPos.x / density.density) + canvasOffsetLeft
+
+            top = "${finalTop}px"
+            left = "${finalLeft}px"
+            width = "${(coordinates.size.width / density.density) - paddingRight}px"
+            height = "${coordinates.size.height / density.density}px"
+        }
+    }
 }

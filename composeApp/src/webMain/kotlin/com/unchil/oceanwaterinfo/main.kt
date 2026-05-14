@@ -38,7 +38,10 @@ import org.w3c.dom.HTMLIFrameElement
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalWasmJsInterop::class)
 fun main() {
 
-    ComposeViewport(viewportContainerId = "webmain") {
+    val mainHtmlElementId = "webmain"
+    val waterInfoMapHtmlElementId = "waterInfoMap"
+
+    ComposeViewport(viewportContainerId = mainHtmlElementId) {
 
 
         val coroutineScope = rememberCoroutineScope()
@@ -139,35 +142,7 @@ fun main() {
                         Box(
                             modifier = Modifier.fillMaxSize()
                                 .onGloballyPositioned { coordinates ->
-                                    // 1. Compose 내부에서의 절대 좌표 계산
-                                    val windowPos = coordinates.localToWindow(androidx.compose.ui.geometry.Offset.Zero)
-                                    // 2. [핵심] Compose가 들어있는 부모 div(#webmain)의 실제 브라우저 위치를 가져옵니다.
-                                    val webmainElement = document.getElementById("webmain") as? HTMLElement
-                                    // getBoundingClientRect().top은 뷰포트 기준 위치를, offsetTop은 부모 기준 위치를 반환합니다.
-                                    val canvasOffsetTop = webmainElement?.getBoundingClientRect()?.top ?: 0.0
-                                    val scrollY = window.scrollY // 페이지 스크롤 값 고려
-
-                                    // 브라우저 DOM 요소를 찾아 위치 동기화
-                                    val htmlElement = document.getElementById("waterInfoMap") as? HTMLElement
-
-                                    htmlElement?.let {
-                                        it.style.apply {
-                                            display = "flex"
-                                            zIndex = "10"
-                                            position = "absolute"
-
-                                            // 3. Compose 좌표 + 캔버스 시작 위치 + 스크롤 위치를 합산하여 정확한 px 계산
-                                            val finalTop = (windowPos.y / density.density) + canvasOffsetTop + scrollY
-                                            val finalLeft = (windowPos.x / density.density) + (webmainElement?.getBoundingClientRect()?.left ?: 0.0)
-                                            it.style.top = "${finalTop}px"
-                                            it.style.left = "${finalLeft}px"
-                                            width = "${(coordinates.size.width  / density.density) - paddingRight }px"
-                                            height = "${coordinates.size.height / density.density}px"
-                                        }
-
-                                    }
-
-
+                                    syncHtmlElementPosition(coordinates, density, mainHtmlElementId, waterInfoMapHtmlElementId, paddingRight)
                                 },
                             contentAlignment =Alignment.Center
                         ) {
@@ -188,7 +163,7 @@ fun main() {
 
         DisposableEffect(Unit) {
             onDispose {
-                val htmlElement = document.getElementById("waterInfoMap") as? HTMLElement
+                val htmlElement = document.getElementById(waterInfoMapHtmlElementId) as? HTMLElement
                 htmlElement?.style?.display = "none"
             }
         }
