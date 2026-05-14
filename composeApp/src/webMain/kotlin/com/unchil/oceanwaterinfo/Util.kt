@@ -71,3 +71,30 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
         }
     }
 }
+
+val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
+    val message = """
+                {
+                    "action": "FLY_TO",
+                    "target": { "lat": ${point.y}, "lng": ${point.x} }
+                }
+                """.trimIndent()
+    postIframeMessage("iframe_waterInfo", message)
+}
+
+val sendAddMarkerClusterer = { (locs, lbs, cnts) :Triple<String, String, String> ->
+    val message = """
+                {
+                    "action": "ADD_Marker_Clusterer",
+                    "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
+                }
+                """.trimIndent()
+    postIframeMessage("iframe_waterInfo", message)
+}
+
+val disposeHtmlElements = { htmlElements : List<String> ->
+    htmlElements.forEach {
+        val htmlElement = document.getElementById(it) as? HTMLElement
+        htmlElement?.style?.display = "none"
+    }
+}

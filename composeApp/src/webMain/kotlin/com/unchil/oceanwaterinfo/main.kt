@@ -16,7 +16,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -27,12 +26,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
-import io.github.koalaplot.core.xygraph.Point
-import kotlinx.browser.document
-import kotlinx.browser.window
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLIFrameElement
-
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalWasmJsInterop::class)
@@ -43,59 +36,30 @@ fun main() {
 
     ComposeViewport(viewportContainerId = mainHtmlElementId) {
 
-
         val coroutineScope = rememberCoroutineScope()
+
         val viewModel: KhoaObservationCurrentViewModel = remember {
             KhoaObservationCurrentViewModel(coroutineScope)
         }
+
         LaunchedEffect(key1 = viewModel){
             viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
         }
         val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
-        val markerData = remember { mutableStateOf<Triple<String, String, String>?>(null) }
 
         LaunchedEffect( seaWaterInfo.value){
             if (seaWaterInfo.value.isNotEmpty()) {
-                markerData.value = transformToMarkerData(seaWaterInfo.value)
+                sendAddMarkerClusterer(transformToMarkerData(seaWaterInfo.value))
             }
         }
-
-
-        LaunchedEffect(markerData.value){
-            markerData.value?.let { (locs, lbs, cnts) ->
-            val message = """
-                {
-                    "action": "ADD_Marker_Clusterer",
-                    "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
-                }
-                """.trimIndent()
-                postIframeMessage("iframe_waterInfo", message)
-            }
-        }
-
-
-        val clickPointOceanWaterInfoGeoChart = mutableStateOf(Point(126.934515, 37.385852))
-
-        val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
-            clickPointOceanWaterInfoGeoChart.value = point
-            val message = """
-                {
-                    "action": "FLY_TO",
-                    "target": { "lat": ${point.y}, "lng": ${point.x} }
-                }
-                """.trimIndent()
-            postIframeMessage("iframe_waterInfo", message)
-        }
-
 
         CompositionLocalProvider(LocalPlatform provides getPlatform()) {
+            val density = LocalDensity.current
 
             MaterialTheme(
                 typography = getTypography(),
                 colorScheme = getColorScheme(false)
             ) {
-                val density = LocalDensity.current
-
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                         .background(color = MaterialTheme.colorScheme.surface),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -156,18 +120,14 @@ fun main() {
 
             }
 
-        }
-
-
+        } //CompositionLocalProvider
 
 
         DisposableEffect(Unit) {
             onDispose {
-                val htmlElement = document.getElementById(waterInfoMapHtmlElementId) as? HTMLElement
-                htmlElement?.style?.display = "none"
+                disposeHtmlElements(listOf(waterInfoMapHtmlElementId))
             }
         }
 
-
-    }
+    }// ComposeViewport
 }
