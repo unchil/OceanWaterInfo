@@ -8,6 +8,8 @@ import kotlinx.browser.window
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
+const val IFRAME_WATER_INFO = "iframe_waterInfo"
+
 // 1. 관측 데이터를 마커 클러스터용 문자열 데이터(Triple)로 변환하는 함수
 fun transformToMarkerData(observations: List<KhoaObservation>): Triple<String, String, String> {
     if (observations.isEmpty()) return Triple("[]", "[]", "[]")
@@ -79,7 +81,7 @@ val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
                     "target": { "lat": ${point.y}, "lng": ${point.x} }
                 }
                 """.trimIndent()
-    postIframeMessage("iframe_waterInfo", message)
+    postIframeMessage(IFRAME_WATER_INFO, message)
 }
 
 val sendAddMarkerClusterer = { (locs, lbs, cnts) :Triple<String, String, String> ->
@@ -89,7 +91,7 @@ val sendAddMarkerClusterer = { (locs, lbs, cnts) :Triple<String, String, String>
                     "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
                 }
                 """.trimIndent()
-    postIframeMessage("iframe_waterInfo", message)
+    postIframeMessage(IFRAME_WATER_INFO, message)
 }
 
 val disposeHtmlElements = { htmlElements : List<String> ->
