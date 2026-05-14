@@ -97,6 +97,8 @@ val sendAddMarkerClusterer = { (locs, lbs, cnts) :Triple<String, String, String>
 val disposeHtmlElements = { htmlElements : List<String> ->
     htmlElements.forEach {
         val htmlElement = document.getElementById(it) as? HTMLElement
-        htmlElement?.style?.display = "none"
+        htmlElement?.style?.apply {
+            visibility = "hidden"
+        }
     }
 }
