@@ -42,7 +42,7 @@ object SEA_AREA {
 object POWER_PLANT_AREA {
 
     enum class POWER_PLANT {
-       KR, YK, WS, UJ, SU
+       KR, SU,  UJ,  WS, YK
     }
 
     fun POWER_PLANT.gen_name():String {
