@@ -43,7 +43,7 @@ fun KHNPRadioActiveWasteStackBarChart() {
         selectedOption = entry
     }
 
-    val chartData: MutableState< ChartDataIntLong> = remember { mutableStateOf(Triple(emptyList(), emptyList(), emptyMap())) }
+    val chartData: MutableState< ChartDataStringInt> = remember { mutableStateOf(Triple(emptyList(), emptyList(), emptyMap())) }
 
     LaunchedEffect(key1= radioActiveWasteInfo.value,  key2=selectedOption){
 
@@ -53,10 +53,10 @@ fun KHNPRadioActiveWasteStackBarChart() {
 
         if(filteredData.isNotEmpty()){
             chartData.value = filteredData.toStackedBarChartTripleList(
-                entriesSelector = { it.year.toIntOrNull() ?: 0 },
+                entriesSelector = { it.year},
                 groupBySelect = { it.month },
-                filterSelect = { it.year.toIntOrNull() ?: 0 },
-                primaryValueSelector = { it.total.toLongOrNull() ?: 0L },
+                filterSelect = { it.year },
+                primaryValueSelector = { it.total.toIntOrNull() ?: 0 },
                 secondaryValueSelector = { mapOf("plant" to it.plant, "genName" to it.genName, "spmon" to it.spmon) },
                 yAxisEntries = {listOf( "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" )}
             )
@@ -66,7 +66,7 @@ fun KHNPRadioActiveWasteStackBarChart() {
 
 
     ChartDataFlow(
-        chartData = ChartData.XYPlotIntLong(chartData.value),
+        chartData = ChartData.XYPlotStringInt(chartData.value),
         title = "Power Plant Radio Active Waster (Year)",
         xTitle = "Year",
         yTitle = "RadioActiveWaster",

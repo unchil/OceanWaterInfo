@@ -24,7 +24,7 @@ import kotlin.collections.List
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
+fun XYGraphScope<String, Int>.StackedVerticalBarChart(
     chartData: ChartData,
     usableTooltips: Boolean,
     barWidth: Float = 0.9f
@@ -32,7 +32,7 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
 
 
     when(chartData){
-        is ChartData.XYPlotIntLong -> {
+        is ChartData.XYPlotStringInt -> {
 
             val entries = chartData.data.first
             val data = chartData.data.second
@@ -41,18 +41,18 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
             val months = chartData.data.third["yAxisEntries"] as List<String>
             val colors = getColors(months)
 
-            fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<Int, Long>> =
+            fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<String, Int>> =
                 entries.mapIndexed { entriesIndex, item ->
-                    object : VerticalBarPlotStackedPointEntry<Int, Long> {
-                        override val x: Int = item
-                        override val yOrigin: Long = 0L
-                        override val y: List<Long> = object : AbstractList<Long>() {
+                    object : VerticalBarPlotStackedPointEntry<String, Int> {
+                        override val x: String = item
+                        override val yOrigin: Int = 0
+                        override val y: List<Int> = object : AbstractList<Int>() {
                             override val size: Int
                                 get() = data.size
 
-                            override fun get(index: Int): Long = data.subList(0, index + 1).fold(0L) { accumulator, element ->
-                                    accumulator + element[entriesIndex]
-                                }
+                            override fun get(index: Int): Int = data.subList(0, index + 1).fold(0) { accumulator, element ->
+                                (accumulator + element[entriesIndex])
+                            }
                         }
                     }
                 }
@@ -74,8 +74,8 @@ fun XYGraphScope<Int, Long>.StackedVerticalBarChart(
 
                                 PlainTooltip {
                                     Column{
-                                        if( desc[barIndex][entries.indexOf(pointValue.x)]["genName"] != null){
-                                            Text("plant:${ desc[barIndex][entries.indexOf(pointValue.x)]["genName"]}")
+                                        if( desc[barIndex][entries.indexOf(pointValue.x)]["plant"] != null){
+                                            Text("plant:${ desc[barIndex][entries.indexOf(pointValue.x)]["plant"]}")
                                         }
                                         if( desc[barIndex][entries.indexOf(pointValue.x)]["spmon"] != null){
                                             Text("month:${ desc[barIndex][entries.indexOf(pointValue.x)]["spmon"]}")

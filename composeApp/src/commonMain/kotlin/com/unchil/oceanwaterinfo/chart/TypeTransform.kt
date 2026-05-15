@@ -193,26 +193,26 @@ fun List<KHNPPlantOperationInfo>.toKHNPPlantState(): Triple<List<Float>, List<Co
 }
 
 fun<T>List<T>.toStackedBarChartTripleList(
-    entriesSelector: (T) -> Int,
+    entriesSelector: (T) -> String,
     groupBySelect:(T) -> String,
-    filterSelect:(T) -> Int,
-    primaryValueSelector:(T) -> Long,
+    filterSelect:(T) -> String,
+    primaryValueSelector:(T) -> Int,
     secondaryValueSelector:(T) -> Map<String, Any>,
     yAxisEntries:() -> List<String>
 
-): ChartDataIntLong {
+): ChartDataStringInt {
 
     val entries = this.map{
         entriesSelector(it)
     }.distinct().sorted()
 
     val data = this.groupBy { groupBySelect(it) }.map{ (_, items) ->
-        val verticalValues = entries.map { year ->
-            val matchedItem = items.find { filterSelect(it) == year }
+        val verticalValues = entries.map { entrie ->
+            val matchedItem = items.find { filterSelect(it) == entrie }
             if (matchedItem != null) {
                 primaryValueSelector(matchedItem)
             } else {
-                0L // 데이터가 없는 경우 0으로 처리 (중요!)
+                0 // 데이터가 없는 경우 0으로 처리 (중요!)
             }
         }
         verticalValues
@@ -220,8 +220,8 @@ fun<T>List<T>.toStackedBarChartTripleList(
 
 
     val info = this.groupBy { groupBySelect(it) }.map{ (_, items) ->
-        val verticalValues = entries.map { year ->
-            val matchedItem = items.find { filterSelect(it) == year }
+        val verticalValues = entries.map { entrie ->
+            val matchedItem = items.find { filterSelect(it) == entrie }
             if (matchedItem != null) {
                 secondaryValueSelector(matchedItem)
             } else {
