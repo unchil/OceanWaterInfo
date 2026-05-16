@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.koalaplot.core.legend.LegendLocation
@@ -127,6 +128,10 @@ enum class ChartGraphScope{
 
 enum class ChartType {
     XYGraph, Line, VerticalBar, GroupVerticalBar, BoxPlot, Geo, DegLine, Point, Area, Polar, StackedVerticalBar
+}
+
+enum class ColorPaletteType{
+    Vibrant, Pastel, Dark, Sequential
 }
 
 enum class BoxPlotRange {
@@ -503,22 +508,59 @@ object WATER_QUALITY {
 }
 
 
+fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pastel ) : Map<String, Color> {
+    return buildMap {
+        val size = entries.size
 
+        when(type){
+            ColorPaletteType.Vibrant -> {
+                val colors = generateHueColorPalette(entries.size)
+                entries.sortedBy { it }.forEachIndexed { index, it ->
+                    put(it, colors[index])
+                }
+            }
+            ColorPaletteType.Pastel -> {
+                // Color.hsv()를 이용한 커스텀 팔레트
+                entries.sortedBy { it }.forEachIndexed { index, it ->
+                    val color =
+                        Color.hsv(hue = (index * 360f / size), saturation = 0.7f, value = 0.9f)
+                    put(it, color)
+                }
+            }
+            ColorPaletteType.Dark -> {
+                entries.sortedBy { it }.forEachIndexed { index, it ->
+                    val color =
+                        Color.hsv(hue = (index * 360f / size), saturation = 0.8f, value = 0.4f)
+                    put(it, color)
+                }
+            }
+            ColorPaletteType.Sequential -> {
+                //lerp (Linear Interpolation) 그라데이션
 
-val getColors = { entries:List<String> ->
-    buildMap {
+                /*
+                val start = Color(0xFFA2FFD1)
+                val middle = Color(0xFFFFD700)
+                val end = Color(0xFFB22222)
+                entries.forEachIndexed { index, it ->
+                    // 2. 분모를 (size - 1)로 설정하여 0.0 ~ 1.0 범위를 완벽히 채움
+                    // 항목이 1개일 경우를 대비해 0.0으로 고정되도록 처리
+                    val fraction = if (size > 1) index / (size - 1).toFloat() else 0f
+                    val color = if (fraction < 0.5f) { lerp(start, middle, fraction * 2f) } else { lerp(middle, end, (fraction - 0.5f) * 2f) }
+                    put(it, color)
+                }
 
-     //   val colors = generateHueColorPalette(entries.size)
+                 */
+                val start = Color(0xFFA2FFD1)
+                val end = Color.Red
+                entries.forEachIndexed { index, it ->
+                    val fraction = if (size > 1) index / (size - 1).toFloat() else 0f
+                    val color = lerp(start, end, fraction)
+                    put(it, color)
+                }
 
-
-        entries.sortedBy { it }.forEachIndexed { index, it ->
-            val color = Color.hsv( hue = (index * 360f / entries.size), saturation = 0.7f,  value = 0.9f   )
-            put(it, color)
-            //put(it, colors[index])
-
+            }
         }
 
     }
 }
-
 
