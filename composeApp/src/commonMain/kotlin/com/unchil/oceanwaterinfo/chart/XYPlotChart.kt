@@ -19,6 +19,7 @@ import com.unchil.oceanwaterinfo.BoxPlot
 import com.unchil.oceanwaterinfo.ChartData
 import com.unchil.oceanwaterinfo.ChartTitle
 import com.unchil.oceanwaterinfo.ChartType
+import com.unchil.oceanwaterinfo.ColorPaletteType
 import com.unchil.oceanwaterinfo.GeoChart
 import com.unchil.oceanwaterinfo.LayoutData
 import com.unchil.oceanwaterinfo.Legend
@@ -112,7 +113,21 @@ fun XYPlotChart(
                 .sizeIn(minHeight = layout.size.minHeight, maxHeight = layout.size.maxHeight)
                 .background(color = MaterialTheme.colorScheme.surface),
             title = { if (layout.layout.isTitle) { ChartTitle(layout.layout.title, modifier = paddingMod)  } },
-            legend = { if(layout.legend.isUsable ) { Legend(layout, entries) }  },
+            legend = {
+                if(layout.legend.isUsable ) {
+                    when(chartData){
+                        is ChartData.XYPlotStringInt -> {
+                            Legend(layout, entries, ColorPaletteType.Sequential)
+                        }
+                        else -> {
+                            Legend(layout, entries)
+                        }
+                    }
+
+
+
+                }
+            },
             legendLocation = layout.legend.location
         ) {
 
