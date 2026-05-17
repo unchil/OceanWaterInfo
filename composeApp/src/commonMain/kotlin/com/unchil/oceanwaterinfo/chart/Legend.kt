@@ -32,7 +32,9 @@ fun Legend(
     entries:List<String>,
     type:ColorPaletteType = ColorPaletteType.Pastel
 ){
-    val colors = getColors(entries, type)
+
+    val colors = getColors(entries, type, start=layout.legend.start, end=layout.legend.end)
+
     val defaultSize = remember {  24.dp}
     val legendLocation = layout.legend.location
     val isVertical = legendLocation == LegendLocation.LEFT || legendLocation == LegendLocation.RIGHT

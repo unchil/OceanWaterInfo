@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.AxisLabel
 import com.unchil.oceanwaterinfo.BoxPlot
@@ -298,7 +299,9 @@ fun XYPlotChart(
                                     StackedVerticalBarChart(
                                         chartData,
                                         layout.tooltips.isTooltips,
-                                        layout.barConf.widthWeight
+                                        layout.barConf.widthWeight,
+                                        start = layout.legend.start,
+                                        end = layout.legend.end
                                     )
 
                                 }

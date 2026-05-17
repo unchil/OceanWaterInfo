@@ -52,7 +52,10 @@ data class LegendConfig(
     val isUsable: Boolean = false,
     val isTitle: Boolean = false,
     val title: String = "",
-    val location: LegendLocation = LegendLocation.RIGHT
+    val location: LegendLocation = LegendLocation.RIGHT,
+    val start:Color=Color(0xFFA2FFD1),
+    val middle:Color = Color(0xFFFFD700),
+    val end:Color=Color.Red
 )
 
 // 3. 축(Axis) 설정
@@ -508,7 +511,7 @@ object WATER_QUALITY {
 }
 
 
-fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pastel ) : Map<String, Color> {
+fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pastel , start:Color=Color(0xFFA2FFD1),  middle:Color = Color(0xFFFFD700), end:Color=Color.Red) : Map<String, Color> {
     return buildMap {
         val size = entries.size
 
@@ -538,9 +541,6 @@ fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pas
                 //lerp (Linear Interpolation) 그라데이션
 
                 /*
-                val start = Color(0xFFA2FFD1)
-                val middle = Color(0xFFFFD700)
-                val end = Color(0xFFB22222)
                 entries.forEachIndexed { index, it ->
                     // 2. 분모를 (size - 1)로 설정하여 0.0 ~ 1.0 범위를 완벽히 채움
                     // 항목이 1개일 경우를 대비해 0.0으로 고정되도록 처리
@@ -550,8 +550,7 @@ fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pas
                 }
 
                  */
-                val start = Color(0xFFA2FFD1)
-                val end = Color.Red
+
                 entries.forEachIndexed { index, it ->
                     val fraction = if (size > 1) index / (size - 1).toFloat() else 0f
                     val color = lerp(start, end, fraction)

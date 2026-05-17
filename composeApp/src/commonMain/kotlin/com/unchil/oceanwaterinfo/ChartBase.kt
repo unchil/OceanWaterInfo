@@ -130,6 +130,9 @@ fun prepareChartLayout(
     xTitle: String,
     yTitle: String,
     legendTitle:String = "Entry",
+    start:Color=Color(0xFFA2FFD1),
+    middle:Color = Color(0xFFFFD700),
+    end:Color=Color.Red,
     caption: String = "",
     description:String? = null,
     isTooltips: Boolean,
@@ -180,7 +183,7 @@ fun prepareChartLayout(
             LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title,  description),
-                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                legend = LegendConfig(isLegend, true, legendTitle, start=start, middle = middle, end = end), // 범례 제목
                 xAxis = AxisConfig( model = DoubleLinearAxisModel(xRange) ),
                 yAxis = AxisConfig( yTitle, model = FloatLinearAxisModel(yRange)),
                 tooltips = TooltipConfig(isTooltips = isTooltips, isSymbol = isSymbol),
@@ -198,7 +201,7 @@ fun prepareChartLayout(
              LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title, description),
-                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                legend = LegendConfig(isLegend, true, legendTitle,  start=start, middle = middle, end = end), // 범례 제목
                 xAxis = AxisConfig( xTitle,
                     model = CategoryAxisModel(chartData.data.map{ triple -> triple.first }),
                     style = AxisStyle(labelRotation = 45)
@@ -222,7 +225,7 @@ fun prepareChartLayout(
             LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title, description),
-                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                legend = LegendConfig(isLegend, true, legendTitle, start=start, middle = middle, end = end), // 범례 제목
                 xAxis = AxisConfig(title = xTitle,
                     model = CategoryAxisModel(chartData.data.keys.toList()),
                     style = AxisStyle(labelRotation = 45)
@@ -237,7 +240,7 @@ fun prepareChartLayout(
             LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title = "${chartData.data.second.first().third.first} ${title}"),
-                legend = LegendConfig(isLegend, true, legendTitle),
+                legend = LegendConfig(isLegend, true, legendTitle, start=start, middle = middle, end = end),
                 xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
                 yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
                 gridStyle = GridStyle(
@@ -254,7 +257,7 @@ fun prepareChartLayout(
             LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title),
-                legend = LegendConfig(true, true, legendTitle),
+                legend = LegendConfig(true, true, legendTitle, start=start, middle = middle, end = end),
                 size = SizeConfig(height = height),
                 caption = CaptionConfig(true, caption),
                 maxCrSp = maxCrSp
@@ -290,7 +293,7 @@ fun prepareChartLayout(
             LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title, description),
-                legend = LegendConfig(isLegend, true, legendTitle), // 범례 제목
+                legend = LegendConfig(isLegend, true, legendTitle, start=start, middle = middle, end = end), // 범례 제목
                 xAxis = AxisConfig( xTitle,
                     model = CategoryAxisModel(chartData.data.first),
                     style = AxisStyle(labelRotation = 0)
@@ -319,6 +322,9 @@ fun ChartDataFlow(
     xTitle: String,
     yTitle: String,
     legendTitle: String = "Entry",
+    start:Color=Color(0xFFA2FFD1),
+    middle:Color = Color(0xFFFFD700),
+    end:Color=Color.Red,
     caption: String = "",
     description:String? = null,
     height:Dp = 400.dp,
@@ -380,7 +386,7 @@ fun ChartDataFlow(
                     LayoutData(
                         type = chartType,
                         layout = TitleConfig(true, title),
-                        legend = LegendConfig(isLegend, true),
+                        legend = LegendConfig(isLegend, true, start=start, middle =middle, end = end),
                         xAxis = AxisConfig(xTitle),
                         yAxis = AxisConfig(yTitle),
                         size = SizeConfig(height = height),
@@ -396,6 +402,9 @@ fun ChartDataFlow(
                 xTitle = xTitle,
                 yTitle = yTitle,
                 legendTitle = legendTitle,
+                start=start,
+                middle = middle,
+                end = end,
                 caption = caption,
                 description = description,
                 isTooltips = isTooltips,

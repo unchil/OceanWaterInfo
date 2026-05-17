@@ -28,7 +28,9 @@ import kotlin.collections.List
 fun XYGraphScope<String, Int>.StackedVerticalBarChart(
     chartData: ChartData,
     usableTooltips: Boolean,
-    barWidth: Float = 0.9f
+    barWidth: Float = 0.9f,
+    start:Color=Color(0xFFA2FFD1),
+    end:Color=Color.Red
 ){
 
 
@@ -40,7 +42,7 @@ fun XYGraphScope<String, Int>.StackedVerticalBarChart(
 
             val desc = chartData.data.third["info"] as List<List<Map<String, Any>>>
             val colorEntries = chartData.data.third["yAxisEntries"] as List<String>
-            val colors = getColors(colorEntries, ColorPaletteType.Sequential)
+            val colors = getColors(colorEntries, ColorPaletteType.Sequential, start = start, end=end)
 
             fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<String, Int>> =
                 entries.mapIndexed { entriesIndex, item ->
