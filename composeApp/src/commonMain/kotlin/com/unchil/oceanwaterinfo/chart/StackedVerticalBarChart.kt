@@ -17,6 +17,7 @@ import com.unchil.oceanwaterinfo.ChartData
 import com.unchil.oceanwaterinfo.ColorPaletteType
 import com.unchil.oceanwaterinfo.LegendColor
 import com.unchil.oceanwaterinfo.getColors
+import com.unchil.oceanwaterinfo.getIntensityColor
 import io.github.koalaplot.core.bar.DefaultBar
 import io.github.koalaplot.core.bar.StackedVerticalBarPlot
 import io.github.koalaplot.core.bar.VerticalBarPlotStackedPointEntry
@@ -41,9 +42,30 @@ fun XYGraphScope<String, Int>.StackedVerticalBarChart(
             val entries = chartData.data.first
             val data = chartData.data.second
 
+            // data: List<List<Int>> (첫 번째 리스트는 연도/시리즈, 두 번째 리스트는 발전소별 값)
+            /*
+            val maxValue = if (data.isNotEmpty() && data.first().isNotEmpty()) {
+                // 1. 발전소 개수만큼 인덱스 범위를 생성 (0..N)
+                data.first().indices.maxOf { categoryIndex ->
+                    // 2. 모든 연도(series)를 돌며 해당 발전소의 값을 합산
+                    data.sumOf { series ->
+                        series[categoryIndex].toLong()
+                    }
+                }
+            } else {
+                1L // 데이터가 없을 경우 기본값
+            }
+
+             */
+
+
             val desc = chartData.data.third["info"] as List<List<Map<String, Any>>>
             val colorEntries = chartData.data.third["yAxisEntries"] as List<String>
+
             val colors = getColors(colorEntries, ColorPaletteType.Sequential, legendColor)
+         //   val colors = getColors(colorEntries, ColorPaletteType.Pastel)
+
+
 
             fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<String, Int>> =
                 entries.mapIndexed { entriesIndex, item ->
@@ -66,7 +88,7 @@ fun XYGraphScope<String, Int>.StackedVerticalBarChart(
             StackedVerticalBarPlot(
                 barChartEntries,
                 barWidth = barWidth,
-                bar = { _, barIndex, pointValue ->
+                bar = { categoryIndex, barIndex, pointValue ->
 
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
@@ -96,8 +118,17 @@ fun XYGraphScope<String, Int>.StackedVerticalBarChart(
                         }                    ,
                         state = rememberTooltipState(),
                     ) {
+                        /*
+                        val baseColor = colors[colorEntries[barIndex]] ?: Color.Black
+                        val currentValue = data[barIndex][categoryIndex]
+                        val finalColor = getIntensityColor(baseColor, pointValue.y.end.toLong(), maxValue)
+
+                         */
+
+
                         DefaultBar(
-                            brush = SolidColor((colors[ colorEntries[barIndex] ] ?: Color.Black) ),
+                         //   brush = SolidColor(finalColor ),
+                            brush = SolidColor(colors[ colorEntries[barIndex] ] ?: Color.Black ) ,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }

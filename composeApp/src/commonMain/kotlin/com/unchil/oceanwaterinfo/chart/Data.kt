@@ -567,3 +567,33 @@ fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pas
     }
 }
 
+
+/**
+ * @param baseColor 연도별 고유 색상
+ * @param value 현재 항목의 수치
+ * @param maxValue 전체 데이터 중 최대값
+ */
+fun getIntensityColor(baseColor: Color, value: Long, maxValue: Long): Color {
+    // 1. 데이터가 없거나 잘못된 경우 기본 색상 반환
+    if (maxValue <= 0L) return baseColor
+
+    // 2. 10등분 구간 계산
+    // 전체 범위를 10개 영역으로 나누고, 현재 값이 몇 번째 칸에 속하는지 인덱스를 구함
+    val steps = 10.0
+    val stepSize = maxValue.toDouble() / steps
+
+    // value가 maxValue를 약간 초과하더라도 10단계를 넘지 않도록 제한
+    val currentStep = (value.toDouble() / stepSize).toInt().coerceIn(1, 10)
+
+    // 3. 단계별 비율(ratio) 생성 (0.1 ~ 1.0)
+    // 1단계는 0.1(연함), 10단계는 1.0(진함)으로 매핑
+    val ratio = (currentStep / steps).toFloat()
+
+    // 4. 흰색에서 기준색으로 단계별 보간(Lerp) 처리
+    // 배경이 어두운 테마라면 Color.White 대신 Color.DarkGray 등을 사용할 수 있습니다.
+    return lerp(
+        start = Color.White,
+        stop = baseColor,
+        fraction = ratio
+    )
+}

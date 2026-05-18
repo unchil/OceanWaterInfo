@@ -119,6 +119,7 @@ fun XYPlotChart(
                     when(chartData){
                         is ChartData.XYPlotStringInt -> {
                             Legend(layout, entries, ColorPaletteType.Sequential)
+                           // Legend(layout, entries)
                         }
                         else -> {
                             Legend(layout, entries)
