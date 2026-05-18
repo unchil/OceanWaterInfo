@@ -54,9 +54,9 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
 
     ChartDataFlow(
         chartData = ChartData.XYPlotStringInt(chartData.value),
-        title = "Power Plant Radio Active Waster (Plant)",
+        title = "Power Plant Radio Active Waste (Plant)",
         xTitle = "Plant",
-        yTitle = "RadioActiveWaster",
+        yTitle = "RadioActiveWaste",
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
         chartType = ChartType.StackedVerticalBar,
         legendTitle = "Year",
