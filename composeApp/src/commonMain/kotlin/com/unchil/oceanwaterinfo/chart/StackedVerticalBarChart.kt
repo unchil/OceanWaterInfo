@@ -121,7 +121,7 @@ fun XYGraphScope<String, Int>.StackedVerticalBarChart(
                         /*
                         val baseColor = colors[colorEntries[barIndex]] ?: Color.Black
                         val currentValue = data[barIndex][categoryIndex]
-                        val finalColor = getIntensityColor(baseColor, pointValue.y.end.toLong(), maxValue)
+                        val finalColor = getIntensityColor(legendColor, pointValue.y.end.toLong(), maxValue)
 
                          */
 

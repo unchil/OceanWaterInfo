@@ -569,13 +569,12 @@ fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pas
 
 
 /**
- * @param baseColor 연도별 고유 색상
  * @param value 현재 항목의 수치
  * @param maxValue 전체 데이터 중 최대값
  */
-fun getIntensityColor(baseColor: Color, value: Long, maxValue: Long): Color {
+fun getIntensityColor(  legendColor: LegendColor =LegendColor(), value: Long, maxValue: Long): Color {
     // 1. 데이터가 없거나 잘못된 경우 기본 색상 반환
-    if (maxValue <= 0L) return baseColor
+    if (maxValue <= 0L) return legendColor.start
 
     // 2. 10등분 구간 계산
     // 전체 범위를 10개 영역으로 나누고, 현재 값이 몇 번째 칸에 속하는지 인덱스를 구함
@@ -592,8 +591,8 @@ fun getIntensityColor(baseColor: Color, value: Long, maxValue: Long): Color {
     // 4. 흰색에서 기준색으로 단계별 보간(Lerp) 처리
     // 배경이 어두운 테마라면 Color.White 대신 Color.DarkGray 등을 사용할 수 있습니다.
     return lerp(
-        start = Color.White,
-        stop = baseColor,
+        start = legendColor.start,
+        stop = legendColor.end,
         fraction = ratio
     )
 }
