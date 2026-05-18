@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import com.unchil.oceanwaterinfo.ChartData
 import com.unchil.oceanwaterinfo.ColorPaletteType
+import com.unchil.oceanwaterinfo.LegendColor
 import com.unchil.oceanwaterinfo.getColors
 import io.github.koalaplot.core.bar.DefaultBar
 import io.github.koalaplot.core.bar.StackedVerticalBarPlot
@@ -29,8 +30,8 @@ fun XYGraphScope<String, Int>.StackedVerticalBarChart(
     chartData: ChartData,
     usableTooltips: Boolean,
     barWidth: Float = 0.9f,
-    start:Color=Color(0xFFA2FFD1),
-    end:Color=Color.Red
+    legendColor: LegendColor =LegendColor()
+
 ){
 
 
@@ -42,7 +43,7 @@ fun XYGraphScope<String, Int>.StackedVerticalBarChart(
 
             val desc = chartData.data.third["info"] as List<List<Map<String, Any>>>
             val colorEntries = chartData.data.third["yAxisEntries"] as List<String>
-            val colors = getColors(colorEntries, ColorPaletteType.Sequential, start = start, end=end)
+            val colors = getColors(colorEntries, ColorPaletteType.Sequential, legendColor)
 
             fun barChartEntries(): List<VerticalBarPlotStackedPointEntry<String, Int>> =
                 entries.mapIndexed { entriesIndex, item ->

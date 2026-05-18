@@ -47,15 +47,19 @@ data class TitleConfig(
     val description:String? = null
 )
 
+data class LegendColor(
+    val start:Color=Color(0xFFA2FFD1),
+    val middle:Color = Color(0xFFFFD700),
+    val end:Color=Color.Red
+)
+
 // 2. 범례 설정
 data class LegendConfig(
     val isUsable: Boolean = false,
     val isTitle: Boolean = false,
     val title: String = "",
     val location: LegendLocation = LegendLocation.RIGHT,
-    val start:Color=Color(0xFFA2FFD1),
-    val middle:Color = Color(0xFFFFD700),
-    val end:Color=Color.Red
+    val legendColor:LegendColor=LegendColor()
 )
 
 // 3. 축(Axis) 설정
@@ -511,7 +515,7 @@ object WATER_QUALITY {
 }
 
 
-fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pastel , start:Color=Color(0xFFA2FFD1),  middle:Color = Color(0xFFFFD700), end:Color=Color.Red) : Map<String, Color> {
+fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pastel , legendColor: LegendColor =LegendColor()) : Map<String, Color> {
     return buildMap {
         val size = entries.size
 
@@ -553,7 +557,7 @@ fun getColors(entries:List<String>, type:ColorPaletteType = ColorPaletteType.Pas
 
                 entries.forEachIndexed { index, it ->
                     val fraction = if (size > 1) index / (size - 1).toFloat() else 0f
-                    val color = lerp(start, end, fraction)
+                    val color = lerp(legendColor.start, legendColor.end, fraction)
                     put(it, color)
                 }
 

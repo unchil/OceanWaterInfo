@@ -300,8 +300,7 @@ fun XYPlotChart(
                                         chartData,
                                         layout.tooltips.isTooltips,
                                         layout.barConf.widthWeight,
-                                        start = layout.legend.start,
-                                        end = layout.legend.end
+                                        legendColor = layout.legend.legendColor
                                     )
 
                                 }
