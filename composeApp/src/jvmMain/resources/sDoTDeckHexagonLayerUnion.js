@@ -41,7 +41,7 @@ async function initMap() {
     // Set map options.
     map.setOptions({
       scaleControl: true,
-      mapTypeId: google.maps.MapTypeId.Terrain,
+      mapTypeId: google.maps.MapTypeId.SATELLITE,
     });
 
     overlay = new GoogleMapsOverlay({layers:[]});

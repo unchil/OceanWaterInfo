@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioActiveWasteViewModel
 import kotlinx.coroutines.delay
@@ -60,6 +61,7 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
         chartType = ChartType.StackedVerticalBar,
         legendTitle = "Year",
+        legendColor = LegendColor(start=Color.Blue, end=Color.Red),
         onRefresh = onRefresh
     )
 
