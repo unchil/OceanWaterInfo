@@ -18,7 +18,7 @@
 
 
 
-<div id="section-sdot" class="tab-content" style="display: flex; visibility: visible; position: static;">
+<div id="section-sdot" class="tab-content" >
 
     <h2 class="compose-title">Seoul/Gyonggi Air Environmental Observation Information</h2>
 
@@ -55,7 +55,10 @@
 
     <iframe id="map-iframe"
             src="sDoTDeckHexagonLayer2.html"
-            title="Seoul/Gyonggi Air Quality Information" allow="fullscreen"></iframe>
+            title="Seoul/Gyonggi Air Quality Information"
+            >
+
+    </iframe>
 
 </div>
 
@@ -65,7 +68,7 @@
 
 <!-- 3. Korea Ocean 섹션 (새로 추가될 영역) -->
 
-<div id="section-ocean" class="tab-content"  style="display: flex; visibility: hidden; position:absolute;" >
+<div id="section-ocean" class="tab-content"  style=" visibility: hidden; position:relative;" >
     <h2 class="compose-title">Korea Ocean Water Information</h2>
 
     <div id="webmain" >
@@ -82,10 +85,10 @@
     </div>
 
 
-    <div id="waterInfoMap" style="position: absolute; display: flex; z-index: 10;">
+    <div id="waterInfoMap" >
         <iframe id="iframe_waterInfo"
                 src="waterInfoGoogleMap.html"
-                title="" style="width: 100%; height: 100%; border: none;"></iframe>
+                title="" style=" width: 100%; height: 100%; border: none; display: flex; "></iframe>
     </div>
 
 

@@ -2,17 +2,17 @@
 
 /* 1. 기본 배경 및 전체 높이 설정 */
 html, body {
-      width: 100vw;
-   height: 100vh;
+    width: 100vw;
+    height: 100vh;
     margin: 0;
     padding: 0;
-    overflow: hidden;/* 전체 페이지 스크롤 방지 */
 }
 
 body {
     display: flex;
     flex-direction: column; /* 세로로 배치 */
     height: 100vh;
+    overflow: hidden !important; /*  스크롤을 막고 싶다면 */
 }
 /* 사이드바 전체를 감싸는 래퍼 */
 .sidebar-wrapper {
@@ -84,7 +84,7 @@ body {
     justify-content: space-evenly;
     background-color: #fef7ff; /* Material 3 Surface */
     border-bottom: 1px solid #e6e1e5; /* HorizontalDivider */
-      width: 100vw;
+    width: 100vw;
     flex-shrink: 0; /* 높이가 줄어들지 않도록 */
 }
 
@@ -113,8 +113,6 @@ body {
     content: "";
     position: absolute;
     bottom: 0;
-    left: 20%; /* 인디케이터 너비 조절 */
-    right: 20%;
     height: 3px;
     background-color: #6750a4;
     border-radius: 3px 3px 0 0;
@@ -127,17 +125,13 @@ body {
 /* 3. 각 섹션(SDoT, Ocean) 설정 */
 .tab-content {
     flex-grow: 1; /* 남은 화면 전체를 차지 */
-    display: none; /* 기본은 숨김 */
+    display: flex;
     flex-direction: column;
-     width: 100vw;
+    width: 100vw;
     height: 100vh;
 }
 
 
-
-.compose-title, .tab-row {
-    flex-shrink: 0; /* 제목과 탭 메뉴는 자기 높이 유지 */
-}
 
 
 #map-iframe {
@@ -147,6 +141,14 @@ body {
         height: 100vh;
 }
 
+/* SDoT 섹션 설정 */
+#section-sdot {
+    display: flex;
+    flex-direction: column; /* 세로로 배치 */
+    height: 100vh; /* 화면 전체 높이 사용 */
+    width: 100%;
+    box-sizing: border-box;
+}
 
 #section-ocean > div {
     flex-grow: 1;
@@ -186,11 +188,12 @@ body {
     /* 박스 모델 설정 */
     box-sizing: border-box;
 
+
 }
 
 
 /* TabRow 컨테이너 */
-.tab-row {
+.tab-content.tab-row {
     display: flex;
     justify-content: center;
     background-color: #fef7ff; /* Material 3 Surface Color */
