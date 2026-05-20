@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,56 +45,62 @@ fun EmptyChart(layoutData: LayoutData){
             legend = {},
             legendLocation = LegendLocation.LEFT
         ) {
-            XYGraph(
-                xAxisModel = FloatLinearAxisModel(
-                    0f..10f,
-                    minimumMajorTickSpacing = 50.dp,
-                ),
-                yAxisModel = FloatLinearAxisModel(
-                    0f..10f,
-                    minimumMajorTickSpacing = 50.dp,
-                ),
-                xAxisContent =
-                    AxisContent(
-                        labels = {
-                            AxisLabel(it.toString(), Modifier.padding(top = 2.dp))
-                        },
-                        title = {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                if(layoutData.xAxis.isTitle){
-                                    AxisTitle(layoutData.xAxis.title)
-                                }
-                            }
-                        },
-                        style = rememberAxisStyle(),
-                    ),
-                yAxisContent =
-                    AxisContent(
-                        labels = {
-                            AxisLabel(it.toString(), Modifier.absolutePadding(right = 2.dp))
-                        },
-                        title = {
-                            Box(
-                                modifier = Modifier.fillMaxHeight(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                if(layoutData.yAxis.isTitle){
-                                    AxisTitle(
-                                        layoutData.yAxis.title,
-                                        modifier = Modifier
-                                            .rotateVertically(VerticalRotation.COUNTER_CLOCKWISE)
-                                            .padding(bottom = padding),
-                                    )
-                                }
-                            }
-                        },
-                        style = rememberAxisStyle(),
-                    )
-            ) {
+            Column {
 
+                if (!layoutData.layout.description.isNullOrBlank()) {
+                    description(layoutData.layout.description)
+                }
+
+                XYGraph(
+                    xAxisModel = FloatLinearAxisModel(
+                        0f..10f,
+                        minimumMajorTickSpacing = 50.dp,
+                    ),
+                    yAxisModel = FloatLinearAxisModel(
+                        0f..10f,
+                        minimumMajorTickSpacing = 50.dp,
+                    ),
+                    xAxisContent =
+                        AxisContent(
+                            labels = {
+                                AxisLabel(it.toString(), Modifier.padding(top = 2.dp))
+                            },
+                            title = {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (layoutData.xAxis.isTitle) {
+                                        AxisTitle(layoutData.xAxis.title)
+                                    }
+                                }
+                            },
+                            style = rememberAxisStyle(),
+                        ),
+                    yAxisContent =
+                        AxisContent(
+                            labels = {
+                                AxisLabel(it.toString(), Modifier.absolutePadding(right = 2.dp))
+                            },
+                            title = {
+                                Box(
+                                    modifier = Modifier.fillMaxHeight(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (layoutData.yAxis.isTitle) {
+                                        AxisTitle(
+                                            layoutData.yAxis.title,
+                                            modifier = Modifier
+                                                .rotateVertically(VerticalRotation.COUNTER_CLOCKWISE)
+                                                .padding(bottom = padding),
+                                        )
+                                    }
+                                }
+                            },
+                            style = rememberAxisStyle(),
+                        )
+                ) {
+                }
             }
         }
 

@@ -344,7 +344,7 @@ fun ChartDataFlow(
     val uiState = remember { mutableStateOf<ChartUiState>(ChartUiState.Loading) }
 
     // 3. 데이터 변경에 따른 레이아웃 및 UI 상태 업데이트 흐름
-    LaunchedEffect(chartData, isTooltips, isSymbol, isLegend) {
+    LaunchedEffect(chartData, isTooltips, isSymbol, isLegend, yTitle) {
 
 
         val isEmpty = when(chartData){
@@ -381,7 +381,7 @@ fun ChartDataFlow(
                 else -> {
                     LayoutData(
                         type = chartType,
-                        layout = TitleConfig(true, title),
+                        layout = TitleConfig(true, title, description),
                         legend = LegendConfig(isLegend, true, legendColor =legendColor),
                         xAxis = AxisConfig(xTitle),
                         yAxis = AxisConfig(yTitle),
