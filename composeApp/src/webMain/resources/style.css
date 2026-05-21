@@ -1,6 +1,3 @@
-<style>
-
-/* 1. 기본 배경 및 전체 높이 설정 */
 html, body {
     width: 100vw;
     height: 100vh;
@@ -11,9 +8,116 @@ html, body {
 body {
     display: flex;
     flex-direction: column; /* 세로로 배치 */
-    height: 100vh;
     overflow: hidden !important; /*  스크롤을 막고 싶다면 */
 }
+
+
+.main-tab-row {
+    display: flex;
+    justify-content: space-evenly;
+    width: 100vw;
+}
+
+.main-tab {
+height: 48px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 20px; /* 16.sp */
+    font-weight: 300; /* FontWeight.Light */
+    color: #49454f;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.main-tab.active {
+    color: #6750a4; /* Material 3 Primary */
+    font-weight: 700; /* FontWeight.Bold */
+}
+
+.main-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #6750a4; /* primary */
+}
+
+.main-tab:hover {
+    background-color: rgba(103, 80, 164, 0.1);
+    border-radius: 3px 3px 0 0;
+}
+
+
+.tab-content {
+    flex: 1; /* 남은 화면 전체를 차지 */
+    display: flex;
+    flex-direction: column;
+}
+
+.compose-title {
+    width: 100vw;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.tab-row {
+    display: flex;
+    justify-content: center;
+     width: 100vw;
+}
+
+
+.tab-item {
+height: 36px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px; /* titleSmall */
+    font-weight: 500;
+    color: #49454f; /* onSurfaceVariant */
+    position: relative;
+    transition: color 0.3s;
+}
+
+.tab-item.active {
+    color: #6750a4; /* primary */
+    font-weight: bold;
+}
+
+.tab-item.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #6750a4; /* primary */
+}
+
+#map-iframe {
+    flex-grow: 1; /* 남은 공간을 iframe이 모두 차지 */
+    border: none;
+}
+
+#un7map {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+}
+
+#un7map canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+
 /* 사이드바 전체를 감싸는 래퍼 */
 .sidebar-wrapper {
     position: fixed;
@@ -78,227 +182,21 @@ body {
 .low { background: #00e676; }
 
 
-/* 2. 메인 탭 로우 높이 고정 */
-.main-tab-row {
-    display: flex;
-    justify-content: space-evenly;
-    background-color: #fef7ff; /* Material 3 Surface */
-    border-bottom: 1px solid #e6e1e5; /* HorizontalDivider */
-    width: 100vw;
-    flex-shrink: 0; /* 높이가 줄어들지 않도록 */
-}
 
-.main-tab {
-    flex: 1;
-    max-width: 300px;
-    padding: 14px 0;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 16px; /* 16.sp */
-    font-weight: 300; /* FontWeight.Light */
-    color: #49454f;
-    position: relative;
-    transition: all 0.2s;
-}
-
-/* 선택된 탭 스타일 */
-.main-tab.active {
-    color: #6750a4; /* Material 3 Primary */
-    font-weight: 700; /* FontWeight.Bold */
-}
-
-/* 하단 인디케이터 (SecondaryIndicator) */
-.main-tab.active::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    height: 3px;
-    background-color: #6750a4;
-    border-radius: 3px 3px 0 0;
-}
-
-.main-tab:hover {
-    background-color: rgba(103, 80, 164, 0.04);
-}
-
-/* 3. 각 섹션(SDoT, Ocean) 설정 */
-.tab-content {
-    flex-grow: 1; /* 남은 화면 전체를 차지 */
-    display: flex;
-    flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-}
-
-
-
-
-#map-iframe {
-    flex-grow: 1; /* 남은 공간을 iframe이 모두 차지 */
-    border: none;
-    width: 100vw;
-        height: 100vh;
-}
-
-/* SDoT 섹션 설정 */
-#section-sdot {
-    display: flex;
-    flex-direction: column; /* 세로로 배치 */
-    height: 100vh; /* 화면 전체 높이 사용 */
-    width: 100%;
-    box-sizing: border-box;
-}
-
-#section-ocean > div {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
+/* 3. webmain과 하단 지도가 남은 공간을 나누어 가짐 */
 #webmain {
-    flex-grow: 1; /* 부모 내에서 남은 모든 공간 차지 */
-    width: 100vw;
-    height: 100vh;
     position: relative;
-    /* Compose가 렌더링될 때 캔버스 크기를 잡기 위해 필수 */
+      height: 100vh;
 }
 
-.compose-title {
-    /* fillMaxWidth & textAlign.Center */
-      width: 100vw;
-    text-align: center;
-
-    /* padding(vertical = 15.dp) */
-    margin: 0; /* 기본 마진 제거 */
-    padding-top: 15px;
-    padding-bottom: 15px;
-
-    /* fontSize = 20.sp & fontWeight.Bold */
-    font-size: 20px;
-    font-weight: bold;
-
-    /* color = MaterialTheme.colorScheme.onBackground */
-    /* 보통 onBackground는 아주 어두운 회색이나 검정색입니다. */
-
-
-    /* Compose 기본 폰트와 유사하게 설정 */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-    /* 박스 모델 설정 */
-    box-sizing: border-box;
-
-
+/* 2. 오션 섹션에만 스크롤 허용 */
+#section-ocean {
+    overflow-y: auto; /* 세로 스크롤 허용 */
+    /* 팁: 스크롤이 부드럽게 움직이도록 설정 */
+    -webkit-overflow-scrolling: touch;
 }
 
-
-/* TabRow 컨테이너 */
-.tab-content.tab-row {
-    display: flex;
-    justify-content: center;
-    background-color: #fef7ff; /* Material 3 Surface Color */
-    border-bottom: 1px solid #e6e1e5;
-    width: 100vw;
+/* 3. (선택 사항) 오션 섹션 내부의 높이가 100vh를 넘어야 스크롤이 생깁니다. */
+#section-ocean > div {
+    flex-shrink: 0; /* 내부 요소들이 압축되지 않고 제 높이를 갖게 함 */
 }
-
-
-/* 개별 탭 항목 */
-.tab-item {
-    padding: 12px 16px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 14px; /* titleSmall */
-    font-weight: 500;
-    color: #49454f; /* onSurfaceVariant */
-    position: relative;
-    transition: color 0.3s;
-}
-
-/* 선택된 탭 스타일 (Primary Color) */
-.tab-item.active {
-    color: #6750a4; /* primary */
-    font-weight: bold;
-}
-
-/* 선택된 탭 하단 인디케이터 (SecondaryIndicator) */
-.tab-item.active::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: #6750a4; /* primary */
-}
-
-.tab-item:hover {
-    background-color: rgba(103, 80, 164, 0.08);
-}
-
-#un7map {
-    position: relative; /* 중요: 내부 canvas가 이 위로 겹쳐지도록 함 */
-    width: 100vw;
-    height: 100vh;
-    display: block; /* Flex 영향을 받지 않도록 함 */
-}
-
-/* deck.gl이 생성하는 canvas가 지도를 밀어내지 않도록 방지 */
-#un7map canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-/* 설명 박스 컨테이너 */
-.description-container {
-    margin: 0px 0px;
-    background-color: #f7f2fa; /* Material 3 Surface Variant 느낌 */
-    border-radius: 8px;    overflow: hidden;
-    text-align: left;
-}
-
-/* 토글 클릭 영역 */
-.description-header {
-    padding: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    font-weight: bold;
-    color: #6750a4; /* Primary 색상 */
-    font-size: 14px;
-}
-
-/* 설명 내용 (AnimatedVisibility 재현) */
-.description-content {
-    max-height: 0; /* 기본적으로 닫힘 */
-    opacity: 0;
-    transition: max-height 0.4s ease, opacity 0.3s ease;
-    padding: 0 16px;
-}
-
-.description-content.show {
-    max-height: 500px; /* 열렸을 때 충분한 높이 */
-    opacity: 1;
-    padding-bottom: 30px;
-}
-
-#description-text {
-    margin: 0;
-    font-size: 14px; /* bodyMedium */
-    line-height: 1.5;
-    color: #49454f;
-    text-align: start;
-    white-space: pre-line; /* \n 개행 문자 적용 */
-}
-
-#description-icon {
-    transition: transform 0.3s;
-}
-
-#description-icon.rotate {
-    transform: rotate(180deg);
-}
-
-</style>

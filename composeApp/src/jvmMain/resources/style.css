@@ -1,24 +1,202 @@
+html, body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
 
-<style>
-    #un7map {
-        position: relative; /* 중요: 내부 canvas가 이 위로 겹쳐지도록 함 */
-        width: 100vw;
-        height: 100vh;
-        display: block; /* Flex 영향을 받지 않도록 함 */
-    }
+body {
+    display: flex;
+    flex-direction: column; /* 세로로 배치 */
+    overflow: hidden !important; /*  스크롤을 막고 싶다면 */
+}
 
-    /* deck.gl이 생성하는 canvas가 지도를 밀어내지 않도록 방지 */
-    #un7map canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
 
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-    }
-</style>
+.main-tab-row {
+    display: flex;
+    justify-content: space-evenly;
+    width: 100vw;
+}
 
+.main-tab {
+height: 48px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 20px; /* 16.sp */
+    font-weight: 300; /* FontWeight.Light */
+    color: #49454f;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.main-tab.active {
+    color: #6750a4; /* Material 3 Primary */
+    font-weight: 700; /* FontWeight.Bold */
+}
+
+.main-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #6750a4; /* primary */
+}
+
+.main-tab:hover {
+    background-color: rgba(103, 80, 164, 0.1);
+    border-radius: 3px 3px 0 0;
+}
+
+
+.tab-content {
+    flex: 1; /* 남은 화면 전체를 차지 */
+    display: flex;
+    flex-direction: column;
+}
+
+.compose-title {
+    width: 100vw;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.tab-row {
+    display: flex;
+    justify-content: center;
+     width: 100vw;
+}
+
+
+.tab-item {
+height: 36px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px; /* titleSmall */
+    font-weight: 500;
+    color: #49454f; /* onSurfaceVariant */
+    position: relative;
+    transition: color 0.3s;
+}
+
+.tab-item.active {
+    color: #6750a4; /* primary */
+    font-weight: bold;
+}
+
+.tab-item.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #6750a4; /* primary */
+}
+
+#map-iframe {
+    flex-grow: 1; /* 남은 공간을 iframe이 모두 차지 */
+    border: none;
+}
+
+#un7map {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+}
+
+#un7map canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+
+/* 사이드바 전체를 감싸는 래퍼 */
+.sidebar-wrapper {
+    position: fixed;
+    top: 50%; /* 화면 중앙 정렬 */
+    left: -520px; /* 사이드바 너비만큼 왼쪽으로 숨김 */
+    width: 520px;
+    height: 50%; /* 고정 높이 혹은 100% 선택 가능 */
+    transform: translateY(-50%); /* 중앙 정렬 보정 */
+    display: flex;
+    align-items: center;
+    transition: left 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: 2000;
+}
+
+/* 사이드바가 열렸을 때 상태 */
+.sidebar-wrapper.active {
+    left: 0;
+}
+
+/* 실제 본문 박스 */
+.sidebar-content {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 0 15px 15px 0; /* 우측 모서리만 둥글게 */
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow-y: auto;
+}
+
+/* 사이드바와 붙어있는 핸들 버튼 */
+.sidebar-handle {
+    position: absolute;
+    right: -40px; /* 사이드바 오른쪽에 딱 붙임 */
+    width: 40px;
+    height: 100px;
+    background: #4a5568; /* 포인트 컬러 (네이비/그레이 계열) */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+}
+
+.handle-text {
+    writing-mode: vertical-rl; /* 글자를 세로로 눕힘 */
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin-top: 5px;
+}
+
+/* 내부 범례 디자인 (예시) */
+.legend-list { list-style: none; padding: 0; margin-top: 15px; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+.high { background: #ff4d4d; }
+.mid { background: #ffcc00; }
+.low { background: #00e676; }
+
+
+
+/* 3. webmain과 하단 지도가 남은 공간을 나누어 가짐 */
+#webmain {
+    position: relative;
+      height: 100vh;
+}
+
+/* 2. 오션 섹션에만 스크롤 허용 */
+#section-ocean {
+    overflow-y: auto; /* 세로 스크롤 허용 */
+    /* 팁: 스크롤이 부드럽게 움직이도록 설정 */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 3. (선택 사항) 오션 섹션 내부의 높이가 100vh를 넘어야 스크롤이 생깁니다. */
+#section-ocean > div {
+    flex-shrink: 0; /* 내부 요소들이 압축되지 않고 제 높이를 갖게 함 */
+}
