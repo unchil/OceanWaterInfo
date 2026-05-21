@@ -99,6 +99,12 @@ height: 36px;
     background-color: #6750a4; /* primary */
 }
 
+.tab-item:hover {
+    background-color: rgba(103, 80, 164, 0.1);
+    border-radius: 3px 3px 0 0;
+}
+
+
 #map-iframe {
     flex-grow: 1; /* 남은 공간을 iframe이 모두 차지 */
     border: none;
