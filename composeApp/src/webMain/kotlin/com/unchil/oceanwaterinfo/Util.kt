@@ -53,7 +53,7 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
     val webmainElement = document.getElementById(mainHtmlElementId) as? HTMLElement
     val canvasOffsetTop = webmainElement?.getBoundingClientRect()?.top ?: 0.0
     val canvasOffsetLeft = webmainElement?.getBoundingClientRect()?.left ?: 0.0
-    val scrollY = window.scrollY
+
 // 3. 대상 HTML 요소의 스타일 업데이트
     val htmlElement = document.getElementById(htmlElementId) as? HTMLElement
     htmlElement?.let {
@@ -63,7 +63,7 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
             position = "absolute"
 
             // Compose 좌표 + 캔버스 시작 위치 + 스크롤 위치를 합산하여 정확한 px 계산
-            val finalTop = (windowPos.y / density.density) + canvasOffsetTop + scrollY
+            val finalTop = (windowPos.y / density.density) + canvasOffsetTop
             val finalLeft = (windowPos.x / density.density) + canvasOffsetLeft
 
             top = "${finalTop}px"
