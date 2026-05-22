@@ -60,7 +60,8 @@ fun main() {
                 typography = getTypography(),
                 colorScheme = getColorScheme(false)
             ) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                Column(modifier = Modifier.fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                         .background(color = MaterialTheme.colorScheme.surface),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -78,9 +79,6 @@ fun main() {
                     OceanWaterInfoTimeSeries()
                     OceanWaterInfoBoxPlotChart()
                     OceanWaterInfoBarChart()
-                    OceanWaterInfoDataGrid()
-                    WaterDegTimeSeries_KHOA()
-
                     Row(
                         modifier = Modifier.fillMaxWidth().height(600.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -114,6 +112,10 @@ fun main() {
                         }
 
                     }
+                    OceanWaterInfoDataGrid()
+                    WaterDegTimeSeries_KHOA()
+
+
 
 
                 }
