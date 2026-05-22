@@ -71,14 +71,6 @@ fun main() {
                     NuclearPlantStatePieChart_KHNP()
                     RadioActiveWastePlantStatStackedBarChart_KHNP()
                     KHNPRadioActiveWasteStackBarChart()
-                    RadioRateBarChart()
-                    WasteWaterTimeSeries_KHNP()
-                    ThermalWasteWaterTimeSeries_KHNP()
-                    OceanWaterInfo_MOF()
-                    WaterTempTimeSeries_KHOA()
-                    OceanWaterInfoTimeSeries()
-                    OceanWaterInfoBoxPlotChart()
-                    OceanWaterInfoBarChart()
                     Row(
                         modifier = Modifier.fillMaxWidth().height(600.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -112,6 +104,15 @@ fun main() {
                         }
 
                     }
+                    RadioRateBarChart()
+                    WasteWaterTimeSeries_KHNP()
+                    ThermalWasteWaterTimeSeries_KHNP()
+                    OceanWaterInfo_MOF()
+                    WaterTempTimeSeries_KHOA()
+                    OceanWaterInfoTimeSeries()
+                    OceanWaterInfoBoxPlotChart()
+                    OceanWaterInfoBarChart()
+
                     OceanWaterInfoDataGrid()
                     WaterDegTimeSeries_KHOA()
 
