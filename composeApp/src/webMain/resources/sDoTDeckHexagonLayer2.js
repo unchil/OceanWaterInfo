@@ -3,6 +3,7 @@
 const {GoogleMapsOverlay, HexagonLayer } = deck;
 const { load, JSONLoader } = loaders;
 let cachedData = null; // 서버에서 받은 데이터를 저장할 변수
+let dataLoadTime = null;
 const DATA_URL = 'http://192.168.35.107:7788/sdot_env_info';
 
 let map;
@@ -25,27 +26,53 @@ let currentType = 'o3';
 
 // 1. 데이터 업데이트 로직 (서버 요청)
 window.updateData = async function(type) {
-    currentType = type;
-    const dataUrl = `${DATA_URL}?t=${new Date().getTime()}`;
-    console.log(`[데이터 갱신] 타입: ${type}, URL: ${dataUrl}`);
-
-    try {
-
-        const rawData = await load(dataUrl, JSONLoader);
-        const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
-        cachedData = rows.map(d => ({
-            ...d,
-            lng: Number(d.lng),
-            lat: Number(d.lat)
-            // 각 타입별 value는 renderLayer에서 동적으로 처리하거나
-            // 여기서 미리 계산할 수 있습니다.
-        }));
-
-        // 데이터 로드 완료 후 화면 그리기
-        renderLayer();
-    } catch (error) {
-        console.error("데이터 로드 실패:", error);
+    if (animationId) {
+        cancelAnimationFrame(animationId);
     }
+    currentType = type;
+    let shouldFetch = true; // 기본적으로 서버 요청을 수행함
+
+    // 2. 캐시 데이터가 존재하면 시간 체크 수행
+    if (cachedData && cachedData.length > 0) {
+        try {
+            const now = new Date();
+            const diffMinutes = (now - dataLoadTime) / (1000 * 60);
+            console.log(`[데이터 선도 체크] 마지막 측정: ${dataLoadTime}, 경과: ${Math.round(diffMinutes)}분`);
+            // 데이터가 5분 이내의 것이라면 서버 요청을 생략 (shouldFetch = false)
+            if (diffMinutes >= 0 && diffMinutes < 5) {
+                shouldFetch = false;
+                console.log("[캐시 활용] 5분 이내의 최신 데이터가 존재하여 서버 요청을 건너뜁니다.");
+            }
+        } catch (e) {
+            console.error("시간 계산 중 오류 발생, 서버에서 새로 로드합니다.", e);
+            shouldFetch = true;
+        }
+    }
+
+    // 3. 서버 요청이 필요한 경우에만 load 수행
+    if (shouldFetch) {
+        const dataUrl = `${DATA_URL}?t=${new Date().getTime()}`;
+        console.log(`[서버 요청 실행] 타입: ${type}, URL: ${dataUrl}`);
+
+        try {
+            const rawData = await load(dataUrl, JSONLoader);
+            const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
+            cachedData = rows.map(d => ({
+                ...d,
+                lng: Number(d.lng),
+                lat: Number(d.lat)
+                // 각 타입별 value는 renderLayer에서 동적으로 처리하거나
+                // 여기서 미리 계산할 수 있습니다.
+            }));
+            dataLoadTime = new Date();
+        } catch (error) {
+            console.error("데이터 로드 실패:", error);
+        }
+
+    }
+
+    // 4. 레이어 렌더링 (캐시든 새 데이터든 호출)
+    renderLayer();
 };
 
 
@@ -146,7 +173,7 @@ async function initMap() {
     // Set map options.
     map.setOptions({
       scaleControl: true,
-       mapTypeId: google.maps.MapTypeId.SATELLITE,
+      mapTypeId: google.maps.MapTypeId.SATELLITE,
     });
 
     overlay = new GoogleMapsOverlay({layers:[]});
@@ -311,11 +338,12 @@ function startHexagonAnimation(props) {
 
     function animate() {
         // currentTime을 이용하여 사인(Sine) 곡선 생성 (0.02는 속도 조절)
-        currentTime += 0.06;
+        currentTime += 0.2;
 
         // [핵심 수정] 매 프레임마다 높이와 투명도를 새로 계산합니다.
-        const animatedScale =  currentTime  * 3;
+        const animatedScale =  currentTime  * 5;
         const currentOpacity = currentTime * 0.1;
+       //         const currentOpacity = 1;
 
         if (currentTime >= 10) {
             // 정점에서 멈출 때 마지막으로 레이어를 깨끗하게(정확히 20으로) 업데이트
@@ -397,6 +425,8 @@ window.addMarkerClusterer =  function(locations, labels, contents) {
     });
     new markerClusterer.MarkerClusterer({ map, markers });
 };
+
+
 
 initMap();
 
