@@ -78,7 +78,8 @@ fun main() {
                     KHNPRadioActiveWasteStackBarChart()
                     Row(
                         modifier = Modifier.fillMaxWidth().height(600.dp)
-                            .border(BorderStroke(1.dp, Color.LightGray)),
+                            .border(BorderStroke(1.dp, Color.LightGray)).padding(10.dp)
+                        ,
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -98,12 +99,11 @@ fun main() {
                             WaterInfoGeoChart_KHOA(onClickPointOceanWaterInfoGeoChart)
                         }
 
-                        val paddingRight = 0
+
                         Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .fillMaxHeight().padding(8.dp)
+                            modifier = Modifier.fillMaxSize()
                                 .onGloballyPositioned { coordinates ->
-                                    syncHtmlElementPosition(coordinates, density, mainHtmlElementId, waterInfoMapHtmlElementId, paddingRight)
+                                    syncHtmlElementPosition(coordinates, density, mainHtmlElementId, waterInfoMapHtmlElementId)
                                 },
                             contentAlignment =Alignment.Center
                         ) {

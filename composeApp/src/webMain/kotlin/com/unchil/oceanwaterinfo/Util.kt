@@ -46,7 +46,7 @@ fun postIframeMessage(iframeId: String, messageJson: String) {
 
 
 /** Compose Box의 위치 정보를 실제 브라우저 HTML 요소의 스타일에 동기화하는 함수 */
-fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, mainHtmlElementId: String, htmlElementId: String, paddingRight: Int = 16 ) {
+fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, mainHtmlElementId: String, htmlElementId: String ) {
 // 1. Compose 내부에서의 절대 좌표 계산 (Window 기준)
     val windowPos = coordinates.localToWindow(androidx.compose.ui.geometry.Offset.Zero)
 // 2. 부모 컨테이너(#webmain)와 브라우저 스크롤 정보 획득
@@ -68,8 +68,8 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
 
             top = "${finalTop}px"
             left = "${finalLeft}px"
-            width = "${(coordinates.size.width / density.density) - paddingRight}px"
-            height = "${coordinates.size.height / density.density}px"
+            width = "${(coordinates.size.width / density.density) }px"
+            height = "${(coordinates.size.height / density.density)  }px"
         }
     }
 }
