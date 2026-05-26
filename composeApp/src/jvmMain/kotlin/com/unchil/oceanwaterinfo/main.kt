@@ -1,7 +1,9 @@
 package com.unchil.oceanwaterinfo
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
@@ -31,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -300,7 +303,7 @@ fun main() = application {
                                                     //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
                                                     Row(
                                                         modifier = Modifier.fillMaxWidth()
-                                                            .height(600.dp)
+                                                            .height(600.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
@@ -325,9 +328,7 @@ fun main() = application {
 
                                                         CompositionLocalProvider(WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value) {
                                                             Box(
-                                                                modifier = Modifier
-                                                                    .fillMaxWidth()
-                                                                    .fillMaxHeight().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 50.dp),
+                                                                modifier = Modifier.fillMaxSize().padding(10.dp),
                                                                 contentAlignment= Alignment.Center
                                                             ) {
 
@@ -346,7 +347,7 @@ fun main() = application {
 
                                                     Row(
                                                         modifier = Modifier.fillMaxWidth()
-                                                            .height(600.dp)
+                                                            .height(600.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
@@ -372,8 +373,7 @@ fun main() = application {
                                                         CompositionLocalProvider(OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value) {
                                                             Box(
                                                                 modifier = Modifier
-                                                                    .fillMaxWidth()
-                                                                    .fillMaxHeight().padding(horizontal = 20.dp).padding(top = 10.dp, bottom = 50.dp),
+                                                                    .fillMaxSize().padding(10.dp),
                                                                 contentAlignment= Alignment.Center
                                                             ) {
 
