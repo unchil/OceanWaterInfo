@@ -59,7 +59,7 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
     htmlElement?.let {
         it.style.apply {
             display = "flex"
-            zIndex ="10"
+            zIndex ="1"
             position = "absolute"
 
             // Compose 좌표 + 캔버스 시작 위치 + 스크롤 위치를 합산하여 정확한 px 계산

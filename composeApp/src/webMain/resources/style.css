@@ -16,6 +16,10 @@ body {
     display: flex;
     justify-content: space-evenly;
     width: 100vw;
+    z-index: 100; /* 가장 높은 레이어 */
+    background-color: #fef7ff; /* 불투명한 배경색 필수 */
+    position: sticky;
+    margin: 0;
 }
 
 .main-tab {
@@ -58,6 +62,10 @@ height: 48px;
 }
 
 .compose-title {
+    position: sticky;
+    z-index: 10; /* 탭바보다는 낮고 지도보다는 높은 레이어 */
+    background-color: #ffffff; /* 불투명한 배경색 필수 */
+    margin: 0;
     width: 100vw;
     text-align: center;
     font-size: 16px;
@@ -69,6 +77,7 @@ height: 48px;
     display: flex;
     justify-content: center;
      width: 100vw;
+
 }
 
 
