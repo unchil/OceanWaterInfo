@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.ChartUiState.*
 import com.unchil.oceanwaterinfo.chart.PolarPlotChart
 import com.unchil.oceanwaterinfo.chart.XYPlotChart
+import io.github.koalaplot.core.legend.LegendLocation
 import io.github.koalaplot.core.polar.PolarPoint
 import io.github.koalaplot.core.style.LineStyle
 import io.github.koalaplot.core.util.AngularValue
@@ -238,7 +239,7 @@ fun prepareChartLayout(
             LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title = "${chartData.data.second.first().third.first} ${title}"),
-                legend = LegendConfig(isLegend, true, legendTitle, legendColor =legendColor),
+                legend = LegendConfig(isLegend, false, legendTitle, location= LegendLocation.BOTTOM, legendColor =legendColor),
                 xAxis = AxisConfig(xTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().first)),
                 yAxis = AxisConfig(yTitle, model = DoubleLinearAxisModel(chartData.data.third.first.getRange().second)),
                 gridStyle = GridStyle(
@@ -255,7 +256,7 @@ fun prepareChartLayout(
             LayoutData(
                 type = chartType,
                 layout = TitleConfig(true, title),
-                legend = LegendConfig(true, true, legendTitle, legendColor =legendColor),
+                legend = LegendConfig(true, false, legendTitle, location= LegendLocation.BOTTOM, legendColor =legendColor),
                 size = SizeConfig(height = height),
                 caption = CaptionConfig(true, caption),
                 maxCrSp = maxCrSp

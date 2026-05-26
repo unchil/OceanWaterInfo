@@ -4,6 +4,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import io.github.koalaplot.core.Symbol
@@ -39,7 +43,7 @@ fun Legend(
     val legendLocation = layout.legend.location
     val isVertical = legendLocation == LegendLocation.LEFT || legendLocation == LegendLocation.RIGHT
 
-    val modifier = paddingMod.then(
+    val modifier = Modifier.padding(6.dp).then(
         if (isVertical) {
             // 높이 제한 조건 계산
             val maxHeight = layout.size.height * 0.8f
@@ -53,10 +57,11 @@ fun Legend(
         }
     )
 
+    val bottonPadding = if (isVertical) 0.dp else 24.dp
 
     Surface(
         shadowElevation = 2.dp,
-        modifier = paddingMod,
+        modifier = Modifier.padding(bottom = bottonPadding),
         shape = RoundedCornerShape(6.dp),
 
     ) {
@@ -64,7 +69,7 @@ fun Legend(
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             if(layout.legend.isTitle){
-                LegendTitle(layout.legend.title, paddingMod)
+                LegendTitle(layout.legend.title)
             }
 
             Box(modifier = modifier) {
@@ -73,10 +78,10 @@ fun Legend(
 
                         ColumnLegend2(
                             itemCount  = entries.size,
-                            modifier = paddingMod,
+                            modifier = Modifier.padding(2.dp),
                             symbol = { i ->
                                 Symbol(
-                                    modifier = Modifier.size(padding),
+                                    modifier = Modifier.size(8.dp),
                                     fillBrush = SolidColor(colors[entries[i]] ?: Color.Black),
                                 )
                             },
@@ -92,14 +97,13 @@ fun Legend(
                             itemCount = entries.size,
                             symbol = { i ->
                                 Symbol(
-                                    modifier = Modifier.size(padding),
+                                    modifier = Modifier.size(8.dp),
                                     fillBrush = SolidColor(colors[entries[i]] ?: Color.Black),
                                 )
                             },
                             label = { i ->
                                 Text(entries[i])
                             },
-                            modifier = paddingMod,
                         )
 
 

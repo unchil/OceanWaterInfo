@@ -75,7 +75,7 @@ fun WindPolarChart_KHOA(){
             caption = "from https://www.data.go.kr/data/15155516/openapi.do (행정안전부 공공데이터포털)",
             chartType = ChartType.Polar,
             legendTitle = "Observatory",
-            height = 700.dp,
+            height = 600.dp,
             maxCrSp = maxCrSp.value,
             visibleBottomBar = false,
             onRefresh = onRefresh

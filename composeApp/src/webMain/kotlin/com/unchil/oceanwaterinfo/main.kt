@@ -1,14 +1,18 @@
 package com.unchil.oceanwaterinfo
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -72,13 +77,14 @@ fun main() {
                     RadioActiveWastePlantStatStackedBarChart_KHNP()
                     KHNPRadioActiveWasteStackBarChart()
                     Row(
-                        modifier = Modifier.fillMaxWidth().height(600.dp),
+                        modifier = Modifier.fillMaxWidth().height(600.dp)
+                            .border(BorderStroke(1.dp, Color.LightGray)),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
 
                         Box(
-                            modifier = Modifier.fillMaxWidth(0.35f),
+                            modifier = Modifier.fillMaxWidth(0.3f),
                             contentAlignment = Alignment.Center,
 
                             ){
@@ -86,15 +92,16 @@ fun main() {
                         }
 
                         Box(
-                            modifier = Modifier.fillMaxWidth(0.35f),
+                            modifier = Modifier.fillMaxWidth(0.3f),
                             contentAlignment = Alignment.Center,
                         ){
                             WaterInfoGeoChart_KHOA(onClickPointOceanWaterInfoGeoChart)
                         }
 
-                        val paddingRight = 16
+                        val paddingRight = 0
                         Box(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxWidth()
+                                .fillMaxHeight().padding(8.dp)
                                 .onGloballyPositioned { coordinates ->
                                     syncHtmlElementPosition(coordinates, density, mainHtmlElementId, waterInfoMapHtmlElementId, paddingRight)
                                 },
