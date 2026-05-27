@@ -3,15 +3,21 @@ package com.unchil.oceanwaterinfo
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleRight
@@ -48,6 +54,7 @@ import kotlinx.coroutines.delay
 // 1. 필요한 임포트 추가 (파일 상단)
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.graphics.Color
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,11 +99,14 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     val keys = remember{ mutableStateOf("" )}
     val values = remember{ mutableStateOf("" )}
     val maxValue = remember{ mutableStateOf(0f )}
+    val seriousPoint =  remember{ mutableStateOf(mutableListOf<String>())}
     val colorRange  = remember{ mutableStateOf("" )}
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
         if(sDoTEnvInfo.value.isNotEmpty()) {
+
+            seriousPoint.value.clear()
 
             values.value = sDoTEnvInfo.value.map{it}.joinToString(
                 separator = ",",
@@ -114,6 +124,16 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                     AIR_QUAlITY_UNION.QualityType.pm10 -> it.pm10.ifEmpty { "0" }
                     AIR_QUAlITY_UNION.QualityType.pm25 -> it.pm25.ifEmpty { "0" }
                 }
+
+                val level = calculateLevel( value.toFloatOrNull() ?: 0f, selectedOption)
+                if( level >= 3) {
+
+                    val seriousData =  if(level == 3) "위험:${value}:${it.addr}" else "심각:${value}:${it.addr}"
+                    seriousPoint.value.add(seriousData)
+                }
+
+
+
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
             }
 
@@ -193,14 +213,40 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text =  "Current air pollution levels ${selectedOption.name()}",
+                            text =  "Current air pollution levels\n ${selectedOption.name()}",
                             style = MaterialTheme.typography.titleSmall,
                             textAlign = TextAlign.Center
                         )
 
                         AirQualityStatusBoard(currentLevel = calculateLevel(maxValue.value, selectedOption))
 
-                        HorizontalDivider()
+                        if( seriousPoint.value.isNotEmpty()){
+                            Column(
+                                modifier = Modifier
+                                    .height(100.dp)
+                                    .background(color = Color.Red.copy(alpha = 0.1f))
+                                    .border(border = BorderStroke(2.dp, Color.Red), shape = RoundedCornerShape(2.dp))
+                                    .verticalScroll(rememberScrollState()),
+                                horizontalAlignment  = Alignment.CenterHorizontally,
+                            ){
+                                Spacer(Modifier.padding(6.dp))
+                                seriousPoint.value.forEach { it
+                                    Text(
+                                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+                                        text =  it,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        textAlign = TextAlign.Start
+                                    )
+                                }
+                                Spacer(Modifier.padding(6.dp))
+
+                            }
+                        }
+
+
+
+
+                        HorizontalDivider( modifier = Modifier.padding(vertical = 10.dp))
 
                         Text(
                             modifier = Modifier.fillMaxSize(),

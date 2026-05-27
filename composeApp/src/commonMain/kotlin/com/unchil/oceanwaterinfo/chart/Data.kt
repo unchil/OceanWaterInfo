@@ -662,12 +662,5 @@ fun calculateLevel(value: Float, type: AIR_QUAlITY_UNION.QualityType): Int {
             value <= 75f -> 3
             else -> 4
         }
-        else -> when {
-            value <= 0.03f -> 0
-            value <= 0.09f -> 1
-            value <= 0.12f -> 2
-            value <= 0.15f -> 3
-            else -> 4
-        }
     }
 }
