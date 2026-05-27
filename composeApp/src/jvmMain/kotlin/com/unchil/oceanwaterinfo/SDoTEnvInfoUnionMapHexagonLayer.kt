@@ -1,4 +1,5 @@
-package com.unchil.sdotenvinfo
+
+package com.unchil.oceanwaterinfo
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,14 +40,17 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
-import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION
 import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.desc
 import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.name
-import com.unchil.oceanwaterinfo.CaptionText
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 
+// 1. 필요한 임포트 추가 (파일 상단)
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SDoTEnvInfoUnionMapHexagonLayer(
     initialized: Boolean,
@@ -87,11 +91,13 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     val sDoTEnvInfo = viewModel._sDoTEnvInfoUnionFlow.collectAsState()
     val keys = remember{ mutableStateOf("" )}
     val values = remember{ mutableStateOf("" )}
+    val maxValue = remember{ mutableStateOf(0f )}
     val colorRange  = remember{ mutableStateOf("" )}
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
         if(sDoTEnvInfo.value.isNotEmpty()) {
+
             values.value = sDoTEnvInfo.value.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
@@ -110,6 +116,24 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                 }
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
             }
+
+            maxValue.value  =
+                if (sDoTEnvInfo.value.isEmpty()) 0f
+                else sDoTEnvInfo.value.map { sensor ->
+                    val v = when (selectedOption) {
+                        AIR_QUAlITY_UNION.QualityType.o3 -> sensor.o3
+                        AIR_QUAlITY_UNION.QualityType.no2 -> sensor.no2
+                        AIR_QUAlITY_UNION.QualityType.co -> sensor.co
+                        AIR_QUAlITY_UNION.QualityType.so2 -> sensor.so2
+                        AIR_QUAlITY_UNION.QualityType.nh3 -> sensor.nh3
+                        AIR_QUAlITY_UNION.QualityType.h2s -> sensor.h2s
+                        AIR_QUAlITY_UNION.QualityType.pm10 -> sensor.pm10
+                        AIR_QUAlITY_UNION.QualityType.pm25 -> sensor.pm25
+                    }
+                    v.toFloatOrNull() ?: 0f
+                }.max()
+
+
 
         }
     }
@@ -162,12 +186,31 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                         .verticalScroll(rememberScrollState())
 
                 ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text =  selectedOption.desc(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Start
-                    )
+
+                    Column (
+                        modifier=Modifier.fillMaxSize()
+                    ){
+
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text =  "Current air pollution levels ${selectedOption.name()}",
+                            style = MaterialTheme.typography.titleSmall,
+                            textAlign = TextAlign.Center
+                        )
+
+                        AirQualityStatusBoard(currentLevel = calculateLevel(maxValue.value, selectedOption))
+
+                        HorizontalDivider()
+
+                        Text(
+                            modifier = Modifier.fillMaxSize(),
+                            text =  selectedOption.desc(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Start
+                        )
+
+                    }
+
                 }
             }
 

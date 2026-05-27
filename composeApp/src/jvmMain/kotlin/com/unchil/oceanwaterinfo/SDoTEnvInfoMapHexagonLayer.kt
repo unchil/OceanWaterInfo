@@ -1,4 +1,4 @@
-package com.unchil.sdotenvinfo
+package com.unchil.oceanwaterinfo
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -41,10 +41,8 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
-import com.unchil.oceanwaterinfo.AIR_QUAlITY
 import com.unchil.oceanwaterinfo.AIR_QUAlITY.desc
 import com.unchil.oceanwaterinfo.AIR_QUAlITY.name
-import com.unchil.oceanwaterinfo.CaptionText
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoViewModel
 import kotlinx.coroutines.delay
 

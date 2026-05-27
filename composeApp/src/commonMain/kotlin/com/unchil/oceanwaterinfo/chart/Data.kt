@@ -596,3 +596,78 @@ fun getIntensityColor(  legendColor: LegendColor =LegendColor(), value: Long, ma
         fraction = ratio
     )
 }
+
+
+fun calculateLevel(value: Float, type: AIR_QUAlITY_UNION.QualityType): Int {
+    return when (type) {
+        AIR_QUAlITY_UNION.QualityType.o3 -> when {
+            value <= 0.03f -> 0
+            value <= 0.1f -> 1
+            value <= 0.3f -> 2
+            value <= 1.0f -> 3
+            else -> 4
+        }
+        AIR_QUAlITY_UNION.QualityType.no2 -> when {
+            value <= 0.1f -> 0
+            value <= 0.2f -> 1
+            value <= 0.5f -> 2
+            value <= 1.0f -> 3
+            else -> 4
+        }
+
+        AIR_QUAlITY_UNION.QualityType.co -> when {
+            value <= 50f -> 0
+            value <= 200f -> 1
+            value <= 400f -> 2
+            value <= 800f -> 3
+            else -> 4
+        }
+
+        AIR_QUAlITY_UNION.QualityType.so2 -> when {
+            value <= 0.1f -> 0
+            value <= 0.5f -> 1
+            value <= 1.0f -> 2
+            value <= 2.0f -> 3
+            else -> 4
+        }
+
+        AIR_QUAlITY_UNION.QualityType.nh3 -> when {
+            value <= 5f -> 0
+            value <= 20f -> 1
+            value <= 50f -> 2
+            value <= 100f -> 3
+            else -> 4
+        }
+
+        AIR_QUAlITY_UNION.QualityType.h2s -> when {
+            value <= 0.01f -> 0
+            value <= 0.3f -> 1
+            value <= 10f -> 2
+            value <= 50f -> 3
+            else -> 4
+        }
+
+
+        AIR_QUAlITY_UNION.QualityType.pm10 -> when {
+            value <= 30f -> 0
+            value <= 80f -> 1
+            value <= 120f -> 2
+            value <= 150f -> 3
+            else -> 4
+        }
+        AIR_QUAlITY_UNION.QualityType.pm25 -> when {
+            value <= 15f -> 0
+            value <= 35f -> 1
+            value <= 50f -> 2
+            value <= 75f -> 3
+            else -> 4
+        }
+        else -> when {
+            value <= 0.03f -> 0
+            value <= 0.09f -> 1
+            value <= 0.12f -> 2
+            value <= 0.15f -> 3
+            else -> 4
+        }
+    }
+}
