@@ -50,8 +50,6 @@ import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.desc
 import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.name
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
-
-// 1. 필요한 임포트 추가 (파일 상단)
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.graphics.Color
@@ -99,14 +97,17 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     val keys = remember{ mutableStateOf("" )}
     val values = remember{ mutableStateOf("" )}
     val maxValue = remember{ mutableStateOf(0f )}
-    val seriousPoint =  remember{ mutableStateOf(mutableListOf<String>())}
+    val seriousPoint =  remember{ mutableListOf<Triple<String,Float, String>>()}
+
+    val sDoTEnvInfoStat = remember{ mutableStateOf(emptyList<Pair<Int, Int>>())}
+
     val colorRange  = remember{ mutableStateOf("" )}
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
         if(sDoTEnvInfo.value.isNotEmpty()) {
 
-            seriousPoint.value.clear()
+            seriousPoint.clear()
 
             values.value = sDoTEnvInfo.value.map{it}.joinToString(
                 separator = ",",
@@ -127,15 +128,14 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
                 val level = calculateLevel( value.toFloatOrNull() ?: 0f, selectedOption)
                 if( level >= 3) {
-
-                    val seriousData =  if(level == 3) "위험:${value}:${it.addr}" else "심각:${value}:${it.addr}"
-                    seriousPoint.value.add(seriousData)
+                    val label =  if(level == 3) "위험" else "심각"
+                    seriousPoint.add( Triple(label, value.toFloatOrNull() ?: 0f, it.addr))
                 }
-
 
 
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
             }
+
 
             maxValue.value  =
                 if (sDoTEnvInfo.value.isEmpty()) 0f
@@ -154,6 +154,23 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                 }.max()
 
 
+            sDoTEnvInfoStat.value  = sDoTEnvInfo.value.groupBy { it ->
+                val value = when (selectedOption) {
+                    AIR_QUAlITY_UNION.QualityType.o3 -> it.o3.ifEmpty { "0" }
+                    AIR_QUAlITY_UNION.QualityType.no2 -> it.no2.ifEmpty { "0" }
+                    AIR_QUAlITY_UNION.QualityType.co -> it.co.ifEmpty { "0" }
+                    AIR_QUAlITY_UNION.QualityType.so2 -> it.so2.ifEmpty { "0" }
+                    AIR_QUAlITY_UNION.QualityType.nh3 -> it.nh3.ifEmpty { "0" }
+                    AIR_QUAlITY_UNION.QualityType.h2s -> it.h2s.ifEmpty { "0" }
+                    AIR_QUAlITY_UNION.QualityType.pm10 -> it.pm10.ifEmpty { "0" }
+                    AIR_QUAlITY_UNION.QualityType.pm25 -> it.pm25.ifEmpty { "0" }
+                }
+                calculateLevel( value.toFloatOrNull() ?: 0f, selectedOption)
+            }.map{ ( level, group) ->
+                Pair( level ,  group.size)
+            }.sortedBy{
+                it.first
+            }
 
         }
     }
@@ -218,9 +235,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                             textAlign = TextAlign.Center
                         )
 
-                        AirQualityStatusBoard(currentLevel = calculateLevel(maxValue.value, selectedOption))
+                        AirQualityStatusBoard(currentLevel = calculateLevel(maxValue.value, selectedOption), sDoTEnvInfoStat.value)
 
-                        if( seriousPoint.value.isNotEmpty()){
+
+                        if( seriousPoint.isNotEmpty()){
                             Column(
                                 modifier = Modifier
                                     .height(100.dp)
@@ -230,20 +248,21 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                 horizontalAlignment  = Alignment.CenterHorizontally,
                             ){
                                 Spacer(Modifier.padding(6.dp))
-                                seriousPoint.value.forEach { it
+
+                                seriousPoint.sortedWith(compareByDescending { it.second }).forEach {
+                                    val text = "${it.first}:${it.second}:${it.third}"
                                     Text(
                                         modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
-                                        text =  it,
+                                        text =  text,
                                         style = MaterialTheme.typography.titleSmall,
                                         textAlign = TextAlign.Start
                                     )
                                 }
+
                                 Spacer(Modifier.padding(6.dp))
 
                             }
                         }
-
-
 
 
                         HorizontalDivider( modifier = Modifier.padding(vertical = 10.dp))

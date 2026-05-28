@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun AirQualityStatusBoard(currentLevel: Int) {
+fun AirQualityStatusBoard(currentLevel: Int, stat:List<Pair<Int,Int>>) {
 
     val statusList = listOf(
         "안전" to Color(0xFF4CAF50),      // Green
@@ -52,7 +52,13 @@ fun AirQualityStatusBoard(currentLevel: Int) {
             .padding(4.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
     ) {
+
         statusList.forEachIndexed { index, (label, color) ->
+
+            val count = stat.firstOrNull{ it.first.equals(index) }?.second ?: 0
+
+            val text = if(count == 0) label else "${label}:${count}"
+
             val isSelected = index == currentLevel
             Box(
                 modifier = Modifier
@@ -68,7 +74,7 @@ fun AirQualityStatusBoard(currentLevel: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = label,
+                    text = text,
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isSelected) {
                         if (index == 1) Color.Black else Color.White
