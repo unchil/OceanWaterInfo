@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.QualityType
 import io.github.koalaplot.core.legend.LegendLocation
 import io.github.koalaplot.core.util.generateHueColorPalette
 import io.github.koalaplot.core.xygraph.AxisStyle
@@ -170,6 +171,374 @@ const val WasteWaterDescription = "해양 산성화(Ocean Acidification):\n" +
         "\t\t\t현재와 같은 추세로 이산화탄소가 배출된다면, 2100년경에는 pH가 7.7~7.8까지 떨어질 것으로 예측됩니다. 이는 지난 수천만 년 동안 겪어보지 못한 급격한 변화로, 해양 생물들이 적응하기에는 시간이 턱없이 부족한 상황입니다.\n" +
         "\t\t\t참고: 해양 산성화를 막는 근본적인 해결책은 탄소 배출을 줄이는 것뿐입니다. 더불어 해조류(미역, 다시마 등) 양식을 통해 국소적으로 CO_2를 흡수하거나, 해양 보호 구역을 설정하여 생태계의 복원력을 높이는 노력이 병행되고 있습니다.\n " +
         "\nGemini's answer to the question, \"Tell me more about ocean acidification.\""
+
+
+
+
+
+
+/**
+ * 공기질 단계를 판단하는 매니저 Object
+ */
+object AirQualityManager {
+
+    /**
+     * 미국 EPA AQI 기준 공기질 단계 정의 (6단계)
+     * 명칭, 한글 설명, 32-bit ARGB 색상 정보 포함
+     */
+    enum class AirQualityStage(
+        val level: Int,
+        val titleEn: String,
+        val titleKo: String,
+        val argbColor: Color
+    ) {
+        GOOD(1, "Good", "좋음", Color(0xFF00E400)),
+        MODERATE(2, "Moderate", "보통", Color(0xFFFFFF00)),
+        UNHEALTHY_FOR_SENSITIVE(3, "Unhealthy for Sensitive Groups", "민감군 영향", Color(0xFFFF7E00)),
+        UNHEALTHY(4, "Unhealthy", "나쁨", Color(0xFFFF0000)),
+        VERY_UNHEALTHY(5, "Very Unhealthy", "매우 나쁨", Color(0xFF8F3F97)),
+        HAZARDOUS(6, "Hazardous", "위험", Color(0xFF7E0023))
+    }
+
+    val caption =  "https://data.seoul.go.kr https://data.gg.go.kr"
+
+    /**
+     * 공기질 데이터를 담는 데이터 클래스 (단위: 수치 입력 기준)
+     * - pm25, pm10: µg/m³
+     * - o3, no2, so2, nh3, h2s: ppm 또는 ppb (여기서는 대중적인 ppm 기준 적용)
+     * - co: ppm
+     */
+    enum class ChemicalElement{
+        o3, no2, co, so2, nh3, h2s, pm10, pm25
+    }
+
+    fun ChemicalElement.nameEn():String{
+        return when (this) {
+            ChemicalElement.no2 -> "Nitrogen dioxide(NO2)" //이산화질소
+            ChemicalElement.co -> "Carbon monoxide(CO)" // 일산화탄소
+            ChemicalElement.so2 -> "Sulfur dioxide(SO2)"  // 이산화황
+            ChemicalElement.nh3 -> "Ammonia/Hydrogen Nitride(NH3)" // 암모니아
+            ChemicalElement.h2s -> "Hydrogen sulfide(H2S)" // 황화수소
+            ChemicalElement.o3 -> "Ozone(O3)" // 오존
+            ChemicalElement.pm10 -> "Particulate Matter(PM10)"
+            ChemicalElement.pm25 -> "Particulate Matter(PM2.5)"
+        }
+    }
+
+    fun ChemicalElement.nameKr():String{
+        return when (this) {
+            ChemicalElement.no2 -> "이산화질소"
+            ChemicalElement.co -> "일산화탄소"
+            ChemicalElement.so2 -> "이산화황"
+            ChemicalElement.nh3 -> "암모니아"
+            ChemicalElement.h2s -> "황화수소"
+            ChemicalElement.o3 -> "오존"
+            ChemicalElement.pm10 -> "미세먼지(PM10)"
+            ChemicalElement.pm25 -> "미세먼지(PM2.5)"
+        }
+    }
+
+    fun ChemicalElement.information():String{
+        return when (this) {
+            ChemicalElement.no2 -> """
+[특징]:
+ 매연 또는 찌릿한 염소(수영장) 냄새.
+    
+[좋음]: 
+ 가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.
+[보통]: 
+ 오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.
+[민감군 영향]: 
+ 기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.
+[나쁨]: 
+ 기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.
+[매우 나쁨]: 
+ 심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.
+[위험]: 
+ 호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.
+
+[폐질환자에게 미치는 피해]:
+천식 환자: 
+ 기도의 과민성을 높입니다. 
+ 즉, 평소에는 괜찮았던 꽃가루나 먼지 같은 알레르기 유발 물질에 폐가 훨씬 더 격렬하게 반응하게 만듭니다. 
+ 0.2~0.3ppm 정도의 낮은 농도에서도 천식 발작 빈도가 높아질 수 있습니다.
+만성폐쇄성폐질환(COPD): 
+ 기도의 가래 배출 능력을 저하시키고 세균 감염에 대한 저항력을 약화시킵니다. 
+ 이는 감기나 폐렴 같은 2차 감염으로 이어져 병세가 급격히 악화되는 원인이 됩니다.
+어린이 및 영유아: 
+ 폐가 완전히 발달하지 않은 상태에서 이산화질소에 지속적으로 노출되면 성인이 된 후에도 폐 기능이 정상보다 낮아지는 '폐 성장 저해'가 발생할 수 있습니다.
+                """.trimMargin()
+            ChemicalElement.co -> """
+[특징]: 
+ 무색, 무취, 무미의 특성.
+
+[좋음]: 
+ 혈액 내 산소 운반에 아무런 지장을 주지 않습니다.
+[보통]: 
+ 건강한 성인에게는 무해하나 심각한 심장 질환자는 주의가 필요할 수 있습니다.
+[민감군 영향]: 
+ 심장 질환(협심증 등) 환자의 경우 산소 공급 부족으로 가슴 통증이 유발될 수 있어 중노동을 피해야 합니다.
+[나쁨]: 
+ 일상 활동 중에도 혈중 산소 농도가 감소하여 두통, 어지러움, 피로감이 나타날 수 있습니다.
+[매우 나쁨]: 
+ 뇌에 공급되는 산소가 줄어들어 집중력 저하, 심한 두통, 시력 흐려짐, 판단력 장애가 발생합니다.
+[위험]: 
+ 메스꺼움과 구토를 유발하고, 노출 시간이 길어지면 의식 상실 및 중독으로 인한 생명 위협이 발생합니다.
+    
+[폐질환자에게 미치는 피해]:
+산소 부족의 가속화: 
+ 만성폐쇄성폐질환(COPD)이나 폐기종 환자는 이미 혈중 산소 포화도가 낮습니다. 
+ 여기에 CO가 유입되면 남아있는 산소 운반 능력마저 마비되어 급성 호흡 부전이 올 수 있습니다.
+심장 과부하: 
+ 산소가 부족해지면 심장은 더 많은 혈액을 보내기 위해 과하게 뜁니다. 
+ 폐가 약해 심장에 무리가 가 있는 상태(폐성심 등)에서 CO에 노출되면 심근경색이나 부정맥이 발생할 위험이 매우 높습니다.
+낮은 농도에서의 민감성: 
+ 건강한 성인은 50ppm에서 큰 증상을 느끼지 못할 수 있지만, 폐 질환자는 같은 농도에서도 심한 가슴 통증이나 호흡 곤란을 겪을 수 있습니다.
+                """.trimMargin()
+            ChemicalElement.so2 -> """
+[특징]: 
+ 금방 끈 성냥의 탄내 또는 화약 냄새.
+
+[좋음]: 
+ 가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.
+[보통]:
+ 오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.
+[민감군 영향]:
+ 기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.
+[나쁨]:
+ 기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.
+[매우 나쁨]:
+ 심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.
+[위험]:
+ 호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.
+ 
+[폐질환자에게 미치는 피해]:
+기도 수축(Bronchoconstriction):
+ 이산화황은 기도를 둘러싼 근육을 수축시킵니다. 
+ 천식 환자는 일반인보다 10~20배 더 민감하게 반응하며, 단 5~10분간의 짧은 노출(0.5ppm 수준)만으로도 심한 호흡 곤란을 겪을 수 있습니다.
+만성기관지염 환자:
+ 점액(가래) 분비를 비정상적으로 증가시켜 기도를 폐쇄합니다. 
+ 이로 인해 기침이 멈추지 않고 산소 공급이 원활하지 않아 심부전으로 이어질 위험이 있습니다.
+                """.trimMargin()
+            ChemicalElement.nh3 -> """
+[특징]:
+ 오래 방치된 공중화장실 또는 삭힌 홍어 냄새.
+
+[좋음]:
+ 악취가 전혀 느껴지지 않고 호흡기 점막이 안전하게 보호됩니다.
+[보통]:
+ 예민한 사람이 미세한 냄새를 감지할 수 있으나 생리적 부작용은 없습니다.
+[민감군 영향]:
+ 불쾌한 악취가 명확히 감지되며 눈과 상기도에 약한 자극(따가움)을 줄 수 있습니다.
+[나쁨]:
+ 지속적인 흡입 시 메스꺼움, 두통이 발생하며 기후 점막에 강한 화학적 자극을 유발합니다.
+[매우 나쁨]:
+ 강한 부식성 자극으로 후두 경련이나 기관지염을 유발할 수 있으며, 호흡 시 강한 통증을 느낍니다.
+[위험]:
+ 고농도 가스로 인한 폐수종(폐에 물이 참), 의식 불명, 심하면 호흡 중추 마비 등의 치명적인 손상을 입힙니다.
+ 
+[폐질환자에게 미치는 피해]:
+화학적 폐렴의 위험:
+ 암모니아가 폐포까지 도달하면 상피 세포를 파괴하여 '화학적 폐렴'을 유발합니다. 
+ 폐기종이나 결핵 병력이 있는 환자는 조직 재생 능력이 떨어져 일반인보다 훨씬 심각한 염증 반응을 겪게 됩니다.
+급성 기도 폐쇄:
+ 천식이나 COPD 환자는 암모니아 가스의 자극에 반응하여 기도가 급격히 부어오릅니다. 
+ 이는 공기 통로를 즉각적으로 차단하여 급성 호흡 부전을 일으키는 주요 원인이 됩니다.
+이차 감염 취약성:
+ 암모니아 노출로 인해 기도의 점막과 섬모(먼지를 걸러내는 털)가 손상되면 외부 세균이나 바이러스에 대한 방어막이 사라집니다. 
+ 폐질환자는 이로 인해 치명적인 2차 세균성 폐렴으로 이어질 확률이 매우 높습니다.
+                """.trimMargin()
+            ChemicalElement.h2s -> """
+[특징]:
+ 상한 달걀(썩은 달걀) 냄새로 저농도에서는 냄새로 감지되지만, 농도가 높아지면 후각 신경을 마비시켜 냄새를 맡지 못함.
+ 
+[좋음]:
+ 악취가 전혀 느껴지지 않고 호흡기 점막이 안전하게 보호됩니다.
+[보통]:
+ 예민한 사람이 미세한 냄새를 감지할 수 있으나 생리적 부작용은 없습니다.
+[민감군 영향]:
+ 불쾌한 악취가 명확히 감지되며 눈과 상기도에 약한 자극(따가움)을 줄 수 있습니다.
+[나쁨]:
+ 지속적인 흡입 시 메스꺼움, 두통이 발생하며 기후 점막에 강한 화학적 자극을 유발합니다.
+[매우 나쁨]:
+ 강한 부식성 자극으로 후두 경련이나 기관지염을 유발할 수 있으며, 호흡 시 강한 통증을 느낍니다.
+[위험]:
+ 고농도 가스로 인한 폐수종(폐에 물이 참), 의식 불명, 심하면 호흡 중추 마비 등의 치명적인 손상을 입힙니다.
+
+[폐질환자에게 미치는 피해]:
+급성 폐수종 유발:
+ 황화수소는 폐혈관의 투과성을 높여 폐에 물이 차게 만듭니다. 
+ 만성폐쇄성폐질환(COPD)이나 심부전이 있는 환자는 혈액 내 산소가 이미 부족한 상태에서 폐수종이 겹치면 급격한 질식 상태에 빠집니다.
+기도 과민성 증폭: 
+ 천식 환자의 경우, 매우 낮은 농도(2~5ppm)에서도 기도가 경련을 일으키며 수축할 수 있습니다. 
+ 이는 일반적인 대기 오염 물질보다 훨씬 강력한 기폭제가 됩니다.
+조직 재생 저해: 
+ 황화수소의 독성은 폐 조직의 미토콘드리아 기능을 억제합니다. 
+ 이미 폐 섬유화가 진행 중이거나 조직이 약해진 환자는 노출 후 폐 기능 회복이 거의 불가능할 정도로 손상될 수 있습니다.
+                """.trimMargin()
+            ChemicalElement.o3 -> """
+[특징]:
+ 복사기/프린터 근처의 비릿한 냄새 또는 소나기 직후의 상쾌한 듯 비릿한 풀내음.
+
+[좋음]:
+ 가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.
+[보통]:
+ 오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.
+[민감군 영향]:
+ 기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.
+[나쁨]:
+ 기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.
+[매우 나쁨]:
+ 심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.
+[위험]:
+ 호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.
+
+[폐질환자에게 미치는 피해]:
+천식 환자: 
+ 오존은 기도를 수축시키고 염증 반응을 일으킵니다. 
+ 일반인에게는 무해한 0.05ppm 수준에서도 천식 환자는 기침과 쌕쌕거림(천명)이 심해지며, 평소 복용하는 약물의 효과가 떨어질 수 있습니다.
+만성폐쇄성폐질환(COPD) 환자: 
+ 오존 노출 시 폐의 산소 교환 능력이 급격히 떨어집니다. 
+ 이는 호흡 곤란을 심화시켜 응급실 방문이나 입원 가능성을 크게 높입니다.
+영구적인 손상 위험:
+ 반복적인 고농도 노출은 폐 조직의 섬유화(딱딱해짐)를 초래할 수 있는데, 기저 질환이 있는 경우 이러한 구조적 변화가 더 빠르게 진행될 수 있습니다.
+""".trimMargin()
+            ChemicalElement.pm10 -> """
+[특징]:
+ 1차적 발생은 공장, 자동차, 건설 현장에서 직접 배출되거나 흙먼지, 꽃가루와 같이 자연적으로 발생.
+
+[좋음]:
+ 호흡기에 자극이 없고 폐 기능이 원활하게 유지됩니다.
+[보통]:
+ 만성 호흡기 질환자 중 극일부가 가벼운 기침을 느낄 수 있습니다.
+[민감군 영향]:
+ 미세 입자가 민감군의 기도를 자극하여 기침, 호흡 곤란, 천식 증상을 악화시킵니다.
+[나쁨]:
+ 일반인도 목 멂, 기침 등의 증상이 나타나며 초미세먼지가 혈관에 침투해 심혈관계에 압박을 줍니다.
+[매우 나쁨]:
+ 일반인도 심폐 기능 저하를 겪으며, 기저질환자의 급성 심장마비나 호흡 부전 위험이 급격히 증가합니다.
+[위험]:
+ 건강한 사람도 장시간 노출 시 영구적인 폐 손상을 입을 수 있으며 환자군의 사망률에 직접적 영향을 줍니다.
+
+[폐질환자에게 미치는 피해]:
+ 상기도 염증, 기침, 천식을 유발할 수 있습니다.
+                """.trimIndent()
+            ChemicalElement.pm25 -> """
+[특징]:
+ 수도권 초미세먼지의 상당 부분이 2차적 발생으로 대기 중으로 배출된 황산화물(SO_x), 질소산화물(NO_x), 암모니아(NH_3) 등이 화학 반응을 일으켜 미세먼지로 변함.
+
+[좋음]:
+ 호흡기에 자극이 없고 폐 기능이 원활하게 유지됩니다.
+[보통]:
+ 만성 호흡기 질환자 중 극일부가 가벼운 기침을 느낄 수 있습니다.
+[민감군 영향]:
+ 미세 입자가 민감군의 기도를 자극하여 기침, 호흡 곤란, 천식 증상을 악화시킵니다.
+[나쁨]:
+ 일반인도 목 멂, 기침 등의 증상이 나타나며 초미세먼지가 혈관에 침투해 심혈관계에 압박을 줍니다.
+[매우 나쁨]:
+ 일반인도 심폐 기능 저하를 겪으며, 기저질환자의 급성 심장마비나 호흡 부전 위험이 급격히 증가합니다.
+[위험]:
+ 건강한 사람도 장시간 노출 시 영구적인 폐 손상을 입을 수 있으며 환자군의 사망률에 직접적 영향을 줍니다.
+
+[폐질환자에게 미치는 피해]:
+ 심혈관계 질환, 뇌졸중, 암(1군 발암물질)의 원인이 되기도 합니다.
+                """.trimIndent()
+        }
+    }
+
+
+    fun calculateTotalStage(value: Double, element: ChemicalElement): AirQualityStage {
+        return when (element){
+            ChemicalElement.o3 -> getO3Stage(value)
+            ChemicalElement.no2 -> getNo2Stage(value)
+            ChemicalElement.co -> getCoStage(value)
+            ChemicalElement.so2 -> getSo2Stage(value)
+            ChemicalElement.nh3 -> getNh3Stage(value)
+            ChemicalElement.h2s -> getH2sStage(value)
+            ChemicalElement.pm10 -> getPm10Stage(value)
+            ChemicalElement.pm25 -> getPm25Stage(value)
+        }
+    }
+
+    // --- 각 성분별 범위 분류 함수 (EPA Breakpoints 기준 기반) ---
+
+    private fun getPm25Stage(value: Double): AirQualityStage = when {
+        value <= 9.0 -> AirQualityStage.GOOD
+        value <= 35.4 -> AirQualityStage.MODERATE
+        value <= 55.4 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 125.4 -> AirQualityStage.UNHEALTHY
+        value <= 225.4 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+    private fun getPm10Stage(value: Double): AirQualityStage = when {
+        value <= 54.0 -> AirQualityStage.GOOD
+        value <= 154.0 -> AirQualityStage.MODERATE
+        value <= 254.0 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 354.0 -> AirQualityStage.UNHEALTHY
+        value <= 424.0 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+    private fun getO3Stage(value: Double): AirQualityStage = when {
+        value <= 0.054 -> AirQualityStage.GOOD
+        value <= 0.070 -> AirQualityStage.MODERATE
+        value <= 0.085 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 0.105 -> AirQualityStage.UNHEALTHY
+        value <= 0.200 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+    private fun getNo2Stage(value: Double): AirQualityStage = when {
+        value <= 0.053 -> AirQualityStage.GOOD
+        value <= 0.100 -> AirQualityStage.MODERATE
+        value <= 0.360 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 0.649 -> AirQualityStage.UNHEALTHY
+        value <= 1.249 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+    private fun getCoStage(value: Double): AirQualityStage = when {
+        value <= 4.4 -> AirQualityStage.GOOD
+        value <= 9.4 -> AirQualityStage.MODERATE
+        value <= 12.4 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 15.4 -> AirQualityStage.UNHEALTHY
+        value <= 30.4 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+    private fun getSo2Stage(value: Double): AirQualityStage = when {
+        value <= 0.035 -> AirQualityStage.GOOD
+        value <= 0.075 -> AirQualityStage.MODERATE
+        value <= 0.185 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 0.304 -> AirQualityStage.UNHEALTHY
+        value <= 0.604 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+    // NH3 (화학안전 규격 환산 기준치 매핑)
+    private fun getNh3Stage(value: Double): AirQualityStage = when {
+        value <= 0.25 -> AirQualityStage.GOOD
+        value <= 0.70 -> AirQualityStage.MODERATE
+        value <= 1.50 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 5.00 -> AirQualityStage.UNHEALTHY
+        value <= 25.00 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+    // H2S (산업 및 악취 환경 기준치 매핑)
+    private fun getH2sStage(value: Double): AirQualityStage = when {
+        value <= 0.01 -> AirQualityStage.GOOD
+        value <= 0.05 -> AirQualityStage.MODERATE
+        value <= 0.10 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
+        value <= 1.00 -> AirQualityStage.UNHEALTHY
+        value <= 10.00 -> AirQualityStage.VERY_UNHEALTHY
+        else -> AirQualityStage.HAZARDOUS
+    }
+
+}
+
+
 
 
 object AIR_QUAlITY_UNION {

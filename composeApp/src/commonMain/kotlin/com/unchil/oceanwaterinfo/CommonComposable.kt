@@ -29,7 +29,56 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 
+@Composable
+fun AirQualityStatusBoard2(
+    airQualityStage: AirQualityManager.AirQualityStage,
+    stat:List<Pair<AirQualityManager.AirQualityStage,Int>>
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
+            .padding(4.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
+    ) {
 
+        AirQualityManager.AirQualityStage.entries.forEach { airQS ->
+
+            val count = stat.firstOrNull{
+                it.first.level == airQS.level
+            }?.second ?: 0
+
+            val text = if(count == 0) airQS.titleKo else "${airQS.titleKo}:${count}"
+            val isSelected = airQS.equals(airQualityStage)
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(36.dp)
+                    .clip(MaterialTheme.shapes.small)
+                    .background(if (isSelected) airQS.argbColor else airQS.argbColor.copy(alpha = 0.15f))
+                    .border(
+                        width = if (isSelected) 2.dp else 0.dp,
+                        color = if (isSelected) MaterialTheme.colorScheme.outline else Color.Transparent,
+                        shape = MaterialTheme.shapes.small
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isSelected) {
+                        if(airQS.level == 6 || airQS.level == 4) Color.White else Color.Black
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    }
+                )
+            }
+        }
+
+    }
+}
 
 @Composable
 fun AirQualityStatusBoard(currentLevel: Int, stat:List<Pair<Int,Int>>) {
