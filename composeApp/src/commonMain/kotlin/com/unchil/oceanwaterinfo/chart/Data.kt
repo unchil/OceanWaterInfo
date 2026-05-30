@@ -192,9 +192,10 @@ object AirQualityManager {
         val titleKo: String,
         val argbColor: Color
     ) {
+        UNKNOWN(0, "Unknown", "모름", Color.LightGray),
         GOOD(1, "Good", "좋음", Color(0xFF00E400)),
         MODERATE(2, "Moderate", "보통", Color(0xFFFFFF00)),
-        UNHEALTHY_FOR_SENSITIVE(3, "Unhealthy for Sensitive Groups", "민감군 영향", Color(0xFFFF7E00)),
+        UNHEALTHY_FOR_SENSITIVE(3, "Unhealthy for Sensitive Groups", "민감군", Color(0xFFFF7E00)),
         UNHEALTHY(4, "Unhealthy", "나쁨", Color(0xFFFF0000)),
         VERY_UNHEALTHY(5, "Very Unhealthy", "매우 나쁨", Color(0xFF8F3F97)),
         HAZARDOUS(6, "Hazardous", "위험", Color(0xFF7E0023))
@@ -466,6 +467,7 @@ object AirQualityManager {
     // --- 각 성분별 범위 분류 함수 (EPA Breakpoints 기준 기반) ---
 
     private fun getPm25Stage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 9.0 -> AirQualityStage.GOOD
         value <= 35.4 -> AirQualityStage.MODERATE
         value <= 55.4 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
@@ -475,6 +477,7 @@ object AirQualityManager {
     }
 
     private fun getPm10Stage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 54.0 -> AirQualityStage.GOOD
         value <= 154.0 -> AirQualityStage.MODERATE
         value <= 254.0 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
@@ -484,6 +487,7 @@ object AirQualityManager {
     }
 
     private fun getO3Stage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 0.054 -> AirQualityStage.GOOD
         value <= 0.070 -> AirQualityStage.MODERATE
         value <= 0.085 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
@@ -493,6 +497,7 @@ object AirQualityManager {
     }
 
     private fun getNo2Stage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 0.053 -> AirQualityStage.GOOD
         value <= 0.100 -> AirQualityStage.MODERATE
         value <= 0.360 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
@@ -502,6 +507,7 @@ object AirQualityManager {
     }
 
     private fun getCoStage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 4.4 -> AirQualityStage.GOOD
         value <= 9.4 -> AirQualityStage.MODERATE
         value <= 12.4 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
@@ -511,6 +517,7 @@ object AirQualityManager {
     }
 
     private fun getSo2Stage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 0.035 -> AirQualityStage.GOOD
         value <= 0.075 -> AirQualityStage.MODERATE
         value <= 0.185 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
@@ -521,6 +528,7 @@ object AirQualityManager {
 
     // NH3 (화학안전 규격 환산 기준치 매핑)
     private fun getNh3Stage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 0.25 -> AirQualityStage.GOOD
         value <= 0.70 -> AirQualityStage.MODERATE
         value <= 1.50 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE
@@ -531,6 +539,7 @@ object AirQualityManager {
 
     // H2S (산업 및 악취 환경 기준치 매핑)
     private fun getH2sStage(value: Double): AirQualityStage = when {
+        value <= 0.0 -> AirQualityStage.UNKNOWN
         value <= 0.01 -> AirQualityStage.GOOD
         value <= 0.05 -> AirQualityStage.MODERATE
         value <= 0.10 -> AirQualityStage.UNHEALTHY_FOR_SENSITIVE

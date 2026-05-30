@@ -112,16 +112,21 @@ fun SDoTEnvInfoUnionMapHexagonLayer2(
                     AirQualityManager.ChemicalElement.pm25 -> it.pm25.toFloatOrNull() ?: 0f
                 }
 
-                val airQualityStage = AirQualityManager.calculateTotalStage(value.toDouble(), selectedOption)
+                if(value > 0f) {
+                    val airQualityStage =
+                        AirQualityManager.calculateTotalStage(value.toDouble(), selectedOption)
 
-                when(airQualityStage){
-                    AirQualityManager.AirQualityStage.VERY_UNHEALTHY -> {
-                        veryUnHealthy.add( Triple(airQualityStage, value, it.addr))
+                    when (airQualityStage) {
+                        AirQualityManager.AirQualityStage.VERY_UNHEALTHY -> {
+                            veryUnHealthy.add(Triple(airQualityStage, value, it.addr))
+                        }
+
+                        AirQualityManager.AirQualityStage.HAZARDOUS -> {
+                            hazardous.add(Triple(airQualityStage, value, it.addr))
+                        }
+
+                        else -> {}
                     }
-                    AirQualityManager.AirQualityStage.HAZARDOUS -> {
-                        hazardous.add( Triple(airQualityStage, value, it.addr))
-                    }
-                    else -> {}
                 }
 
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
@@ -144,6 +149,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer2(
                 }.max()
 
             sDoTEnvInfoStat.value = sDoTEnvInfo.value.groupBy { sensor ->
+
                 val v = when (selectedOption) {
                     AirQualityManager.ChemicalElement.o3 -> sensor.o3
                     AirQualityManager.ChemicalElement.no2 -> sensor.no2
@@ -154,7 +160,6 @@ fun SDoTEnvInfoUnionMapHexagonLayer2(
                     AirQualityManager.ChemicalElement.pm10 -> sensor.pm10
                     AirQualityManager.ChemicalElement.pm25 -> sensor.pm25
                 }.toDoubleOrNull() ?: 0.0
-
                 AirQualityManager.calculateTotalStage(v, selectedOption)
             }.map{ ( airQualityStage, group) ->
                 Pair( airQualityStage ,  group.size)
