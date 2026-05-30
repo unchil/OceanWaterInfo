@@ -17,6 +17,43 @@ let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
 let title;
 let colorRange = [[255, 255, 255],[0, 200, 255],[0, 255, 100],[0, 255, 100],[255, 116, 0], [255, 0, 0]];
 
+// Data.kt의 AirQualityStage 색상과 매칭 (RGB 형식)
+const airQualityColorRange = [
+    [0, 228, 0],    // 1: GOOD (Green)
+    [255, 255, 0],  // 2: MODERATE (Yellow)
+    [255, 126, 0],  // 3: UNHEALTHY_FOR_SENSITIVE (Orange)
+    [255, 0, 0],    // 4: UNHEALTHY (Red)
+    [143, 63, 151], // 5: VERY_UNHEALTHY (Purple)
+    [126, 0, 35]    // 6: HAZARDOUS (Maroon)
+];
+
+
+/**
+ * Data.kt의 get...Stage 함수들과 동일한 로직의 JS 구현
+ */
+function getAirQualityLevel(value, type) {
+    if (value <= 0) return 0;
+
+    const thresholds = {
+        pm25: [0, 9.0, 35.4, 55.4, 125.4, 225.4],
+        pm10: [0, 54.0, 154.0, 254.0, 354.0, 424.0],
+        o3:   [0, 0.054, 0.070, 0.085, 0.105, 0.200],
+        no2:  [0, 0.053, 0.100, 0.360, 0.649, 1.249],
+        co:   [0, 4.4, 9.4, 12.4, 15.4, 30.4],
+        so2:  [0, 0.035, 0.075, 0.185, 0.304, 0.604],
+        nh3:  [0, 0.25, 0.70, 1.50, 5.00, 25.00],
+        h2s:  [0, 0.01, 0.05, 0.10, 1.00, 10.00]
+    };
+
+    const limits = thresholds[type] || thresholds['pm10']; // 기본값 pm10
+
+    if (value <= limits[1]) return 1;
+    if (value <= limits[2]) return 2;
+    if (value <= limits[3]) return 3;
+    if (value <= limits[4]) return 4;
+    if (value <= limits[5]) return 5;
+    return 6;
+}
 
 let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
@@ -81,19 +118,18 @@ window.renderLayer = function() {
     if (!cachedData) return;
 
     let title;
-    let maxDomain;
 
     // 타입에 따른 설정값 결정
     switch(currentType) {
-        case 'o3': title = "Ozone(O3)"; maxDomain = 0.15; break;
-        case 'no2': title = "Nitrogen dioxide(NO2)"; maxDomain = 0.2; break;
-        case 'co': title = "Carbon monoxide(CO)"; maxDomain = 50; break;
-        case 'so2': title = "Sulfur dioxide(SO2)"; maxDomain = 0.15; break;
-        case 'nh3': title = "Ammonia(NH3)"; maxDomain = 0.15; break;
-        case 'h2s': title = "Hydrogen sulfide(H2S)"; maxDomain = 0.3; break;
-        case 'pm10': title = "Particulate Matter(PM10)"; maxDomain = 81; break;
-        case 'pm25': title = "Particulate Matter(PM2.5)"; maxDomain = 36; break;
-        default: title = "Ozone(O3)"; maxDomain = 0.15;
+        case 'o3': title = "Ozone(O3)"; break;
+        case 'no2': title = "Nitrogen dioxide(NO2)";  break;
+        case 'co': title = "Carbon monoxide(CO)";  break;
+        case 'so2': title = "Sulfur dioxide(SO2)";  break;
+        case 'nh3': title = "Ammonia(NH3)";  break;
+        case 'h2s': title = "Hydrogen sulfide(H2S)";  break;
+        case 'pm10': title = "Particulate Matter(PM10)"; break;
+        case 'pm25': title = "Particulate Matter(PM2.5)";  break;
+        default: title = "Ozone(O3)";
     }
     /*
     공식 설명 (Math.pow 활용)
@@ -104,8 +140,8 @@ window.renderLayer = function() {
     const currentZoom = map.getZoom();
     const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
     const dynamicMaxElevation =   currentZoom >= zoomLevel ? 20 : (100 * Math.pow(2, zoomLevel - currentZoom))
-//  const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
-//  const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
+    let values = cachedData.map(d => parseFloat(d[currentType]) || 0 )
+    const maxDomain = Math.max(...values);
 
     // ID는 타입이 바뀔 때만 변경되도록 하여 줌 변경 시 불필요한 전체 리렌더링 방지
     const layerId = `hexagon-layer-${currentType}`;
@@ -115,14 +151,14 @@ window.renderLayer = function() {
         data: cachedData, // 미리 로드된 데이터(Array)를 직접 전달 (네트워크 요청 없음)
         dataTransform: (data) => data.map(d => ({
             ...d,
-            value: Number(d[currentType] || 0) // 선택된 타입에 따른 가중치 설정
+            value: (parseFloat(d[currentType]) || 0 ) // 선택된 타입에 따른 가중치 설정
         })),
         gpuAggregation: true,
         extruded: true,
         getPosition: d => [d.lng, d.lat],
-        colorRange: colorRange,
-        colorDomain: [0, maxDomain],
-        getColorWeight: d => Math.min(d.value, maxDomain),
+        colorRange: airQualityColorRange,
+        colorDomain: [1, 6],
+        getColorWeight: d => getAirQualityLevel(Number(d.value), currentType),
         colorAggregation: 'MAX',
         elevationRange: [0, dynamicMaxElevation],
         elevationDomain: [0, maxDomain],
@@ -182,13 +218,11 @@ async function initMap() {
 
     map.addListener('zoom_changed', () => {
         renderLayer();
-     //   initMapWithType(currentType);
     });
 
     // [최초 로드] 데이터 요청 포함
     google.maps.event.addListenerOnce(map, 'idle', () => {
         updateData(currentType);
-      //  initMapWithType(currentType);
     });
 
 
@@ -198,135 +232,10 @@ async function initMap() {
 window.addEventListener("message", (event) => {
     if (event.data.action === 'CHANGE_TYPE') {
         currentType = event.data.type;
-      //  initMapWithType(currentType);
         updateData(event.data.type);
     }
 });
 
-
-window.initMapWithType =  function( type) {
-    let title;
-    let maxDomain;
-
-    // 1. 타입에 따른 타이틀 및 도메인 범위 설정
-    switch(type) {
-        case 'o3':
-            title = "Ozone(O3)";
-            maxDomain = 0.15;
-            break;
-        case 'no2':
-            title = "Nitrogen dioxide(NO2)";
-            maxDomain = 0.2;
-            break;
-        case 'co':
-            title = "Carbon monoxide(CO)";
-            maxDomain = 50;
-            break;
-        case 'so2':
-            title = "Sulfur dioxide(SO2)";
-            maxDomain = 0.15;
-            break;
-        case 'nh3':
-            title = "Ammonia(NH3)";
-            maxDomain = 0.15;
-            break;
-        case 'h2s':
-            title = "Hydrogen sulfide(H2S)";
-            maxDomain = 0.3;
-            break;
-        case 'pm10':
-            title = "Particulate Matter(PM10)";
-            maxDomain = 81;
-            break;
-        case 'pm25':
-            title = "Particulate Matter(PM2.5)";
-            maxDomain = 36;
-            break;
-        default:
-            title = "Ozone(O3)";
-            type = 'o3';
-            maxDomain = 0.15;
-    }
-    let id =  'hexagon-layer-' + type + '_' + Date.now();
-    let dataUrl = DATA_URL + "?t=" + new Date().getTime();
-    console.log(`[자동 갱신] ${id} - ${dataUrl} 데이터를 새로 고침합니다.`);
-
-    // [추가] 줌 레벨에 따른 동적 radius 계산
-    // 공식: 기준반경 * 2^(기준줌 - 현재줌)
-    // 줌이 커지면(확대) radius는 작아지고, 줌이 작아지면(축소) radius는 커집니다.
-    //공식 설명 (Math.pow 활용)
-    //•줌 레벨 12: 90 * Math.pow(2, 12 - 12) = 90 * 1 = 90m
-    //•줌 레벨 14 (확대): 90 * Math.pow(2, 12 - 14) = 90 * 0.25 = 22.5m (육각형이 너무 커지는 것을 방지)
-    //•줌 레벨 10 (축소): 90 * Math.pow(2, 12 - 10) = 90 * 4 = 360m (육각형이 너무 작아져서 안 보이는 것을 방지)
-
-    const currentZoom = map.getZoom();
-    const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
-
-    // [추가] 줌 레벨에 따른 동적 elevationRange 최대값 계산
-    // 기준 줌 12에서 최대 높이를 100으로 설정하고, 줌 레벨에 따라 지수적으로 변경합니다.
-    // 줌 확대(숫자 커짐) -> 최대 높이 감소 (세밀하게 보기 위함)
-    // 줌 축소(숫자 작아짐) -> 최대 높이 증가 (멀리서도 잘 보이기 위함)
-
-    const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
-
-    let props = {
-        id: id,
-        data: dataUrl,
-        loaders: [JSONLoader],
-        //  [중요] 모든 데이터(...d)를 유지해야 툴팁에서 addr, serial을 쓸 수 있음
-        dataTransform: (rawData) => {
-            // SDoT API 특유의 계층 구조 대응
-            const rows = rawData.sDoTEnv ? rawData.sDoTEnv.row : (Array.isArray(rawData) ? rawData : []);
-            return rows.map(d => ({
-                ...d,
-                  lng: Number(d.lng),
-                  lat: Number(d.lat),
-                // d[type]을 통해 'max_o3', 'max_no2' 등의 필드값에 동적 접근
-                    value: Number(d[type] || 0)
-            }));
-        },
-        gpuAggregation: true,
-        extruded: true,
-        getPosition: d => [d.lng, d.lat],
-
-        colorRange:colorRange,
-        colorDomain: [0, maxDomain],
-        getColorWeight: d => Math.min(d.value, maxDomain),
-        colorAggregation: 'MAX',
-        // <selection> [수정] 고정값 100 대신 계산된 dynamicMaxElevation 적용 </selection>
-        elevationRange: [0, dynamicMaxElevation],
-        elevationDomain: [0, maxDomain],
-        getElevationWeight: d => Math.min(d.value, maxDomain),
-        elevationAggregation: 'MAX',
-        // [수정] 고정값 90 대신 계산된 dynamicRadius 적용
-        radius: dynamicRadius,
-        pickable: true,
-        onHover: info => {
-            const tooltip = document.getElementById('tooltip');
-            if (info.object) {
-              const count = info.object.points.length;
-              const source = info.object.points[0].source;
-              const maxValue = Math.max(...info.object.points.map(p => p.source.value));
-
-              tooltip.innerHTML = `
-                  <div style="font-weight:bold; margin-bottom:5px;">${source.addr}</div>
-                  <div>${source.sensing_time}</div>
-                  <div>SerialID: ${source.obs}</div>
-                  <div>${title}:${source.value}</div>
-                  <div>측정 지점 수: ${count}개</div>
-                  <div>최대값: ${maxValue}</div>
-              `;
-              tooltip.style.display = 'block';
-              tooltip.style.left = `${info.x + 15}px`;
-              tooltip.style.top = `${info.y + 15}px`;
-            } else {
-              tooltip.style.display = 'none';
-            }
-        },
-  }
-
-    startHexagonAnimation(props);
-}
 
 
 function startHexagonAnimation(props) {
