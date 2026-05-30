@@ -23,6 +23,43 @@ const animatedOpacity = 1.0 ;
 let currentType = 'o3';
 let currentValue;
 
+// Data.kt의 AirQualityStage 색상과 매칭 (RGB 형식)
+const airQualityColorRange = [
+    [0, 228, 0],    // 1: GOOD (Green)
+    [255, 255, 0],  // 2: MODERATE (Yellow)
+    [255, 126, 0],  // 3: UNHEALTHY_FOR_SENSITIVE (Orange)
+    [255, 0, 0],    // 4: UNHEALTHY (Red)
+    [143, 63, 151], // 5: VERY_UNHEALTHY (Purple)
+    [126, 0, 35]    // 6: HAZARDOUS (Maroon)
+];
+
+
+/**
+ * Data.kt의 get...Stage 함수들과 동일한 로직의 JS 구현
+ */
+function getAirQualityLevel(value, type) {
+    if (value <= 0) return 0;
+
+    const thresholds = {
+        pm25: [0, 9.0, 35.4, 55.4, 125.4, 225.4],
+        pm10: [0, 54.0, 154.0, 254.0, 354.0, 424.0],
+        o3:   [0, 0.054, 0.070, 0.085, 0.105, 0.200],
+        no2:  [0, 0.053, 0.100, 0.360, 0.649, 1.249],
+        co:   [0, 4.4, 9.4, 12.4, 15.4, 30.4],
+        so2:  [0, 0.035, 0.075, 0.185, 0.304, 0.604],
+        nh3:  [0, 0.25, 0.70, 1.50, 5.00, 25.00],
+        h2s:  [0, 0.01, 0.05, 0.10, 1.00, 10.00]
+    };
+
+    const limits = thresholds[type] || thresholds['pm10']; // 기본값 pm10
+
+    if (value <= limits[1]) return 1;
+    if (value <= limits[2]) return 2;
+    if (value <= limits[3]) return 3;
+    if (value <= limits[4]) return 4;
+    if (value <= limits[5]) return 5;
+    return 6;
+}
 
 async function initMap() {
 
@@ -63,49 +100,41 @@ async function initMap() {
 
 
 window.initMapWithData =  function( values, type) {
+
     currentValue = values
     currentType = type
     let title;
-    let maxDomain;
+
 
     // 1. 타입에 따른 타이틀 및 도메인 범위 설정
     switch(type) {
         case 'o3':
             title = "Ozone(O3)";
-            maxDomain = 0.15;
             break;
         case 'no2':
             title = "Nitrogen dioxide(NO2)";
-            maxDomain = 0.2;
             break;
         case 'co':
             title = "Carbon monoxide(CO)";
-            maxDomain = 50;
             break;
         case 'so2':
             title = "Sulfur dioxide(SO2)";
-            maxDomain = 0.15;
             break;
         case 'nh3':
             title = "Ammonia(NH3)";
-            maxDomain = 0.15;
             break;
         case 'h2s':
             title = "Hydrogen sulfide(H2S)";
-            maxDomain = 0.3;
             break;
         case 'pm10':
             title = "Particulate Matter(PM10)";
-            maxDomain = 81;
             break;
         case 'pm25':
             title = "Particulate Matter(PM2.5)";
-            maxDomain = 36;
             break;
         default:
             title = "Ozone(O3)";
             type = 'o3';
-            maxDomain = 0.15;
     }
     let id =  'hexagon-layer-' + type + '_' + Date.now();
     let dataUrl = DATA_URL + "?t=" + new Date().getTime();
@@ -120,8 +149,8 @@ window.initMapWithData =  function( values, type) {
     const currentZoom = map.getZoom();
     const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
     const dynamicMaxElevation =   currentZoom >= zoomLevel ? 20 : (100 * Math.pow(2, zoomLevel - currentZoom))
-//  const dynamicRadius = 90 * Math.pow(2, 12 - currentZoom);
-//  const dynamicMaxElevation = 100 * Math.pow(2, 12 - currentZoom);
+    const maxDomain = Math.max(...values.map(d => Number(d.value || 0)));
+
 
     let props = {
         id: id,
@@ -131,14 +160,17 @@ window.initMapWithData =  function( values, type) {
         extruded: true,
         getPosition: d => [d.lng, d.lat],
 
-        colorRange:colorRange,
-        colorDomain: [0, maxDomain],
-        getColorWeight: d => Math.min(d.value, maxDomain),
+    // 1. 색상 범위 설정 (위에서 만든 6단계 색상)
+        colorRange: airQualityColorRange,
+    // 2. 색상 도메인 고정 (1단계부터 6단계까지)
+        colorDomain: [1, 6],
+        getColorWeight: d => getAirQualityLevel(Number(d.value), currentType),
+      // 4. 동일 지역에 여러 센서가 있을 경우 가장 높은 단계를 대표색으로 사용
         colorAggregation: 'MAX',
         // <selection> [수정] 고정값 100 대신 계산된 dynamicMaxElevation 적용 </selection>
         elevationRange: [0, dynamicMaxElevation],
         elevationDomain: [0, maxDomain],
-        getElevationWeight: d => Math.min(d.value, maxDomain),
+        getElevationWeight: d => Number(d.value),
         elevationAggregation: 'MAX',
         // [수정] 고정값 90 대신 계산된 dynamicRadius 적용
         radius: dynamicRadius,
