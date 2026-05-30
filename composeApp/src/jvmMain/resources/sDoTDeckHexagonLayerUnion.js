@@ -14,8 +14,6 @@ let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
 let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
 
 let title;
-let colorRange = [[255, 255, 255],[0, 200, 255],[0, 255, 100],[0, 255, 100],[255, 116, 0], [255, 0, 0]];
-
 
 let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
@@ -148,7 +146,7 @@ window.initMapWithData =  function( values, type) {
     */
     const currentZoom = map.getZoom();
     const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
-    const dynamicMaxElevation =   currentZoom >= zoomLevel ? 20 : (100 * Math.pow(2, zoomLevel - currentZoom))
+    const dynamicMaxElevation =   currentZoom >= zoomLevel ? 50 : (200 * Math.pow(2, zoomLevel - currentZoom))
     const maxDomain = Math.max(...values.map(d => Number(d.value || 0)));
 
 
@@ -169,11 +167,14 @@ window.initMapWithData =  function( values, type) {
         colorAggregation: 'MAX',
         // <selection> [수정] 고정값 100 대신 계산된 dynamicMaxElevation 적용 </selection>
         elevationRange: [0, dynamicMaxElevation],
-        elevationDomain: [0, maxDomain],
-        getElevationWeight: d => Number(d.value),
+       // elevationDomain: [0, maxDomain],
+       elevationDomain: [1, 6],
+       // getElevationWeight: d => Number(d.value),
+        getElevationWeight: d => getAirQualityLevel(Number(d.value), currentType),
         elevationAggregation: 'MAX',
         // [수정] 고정값 90 대신 계산된 dynamicRadius 적용
         radius: dynamicRadius,
+        extruded: true,
         pickable: true,
         onHover: info => {
             const tooltip = document.getElementById('tooltip');

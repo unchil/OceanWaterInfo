@@ -15,7 +15,6 @@ let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
 let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
 
 let title;
-let colorRange = [[255, 255, 255],[0, 200, 255],[0, 255, 100],[0, 255, 100],[255, 116, 0], [255, 0, 0]];
 
 // Data.kt의 AirQualityStage 색상과 매칭 (RGB 형식)
 const airQualityColorRange = [
@@ -139,7 +138,7 @@ window.renderLayer = function() {
     */
     const currentZoom = map.getZoom();
     const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
-    const dynamicMaxElevation =   currentZoom >= zoomLevel ? 20 : (100 * Math.pow(2, zoomLevel - currentZoom))
+    const dynamicMaxElevation =   currentZoom >= zoomLevel ? 50 : (200 * Math.pow(2, zoomLevel - currentZoom))
     let values = cachedData.map(d => parseFloat(d[currentType]) || 0 )
     const maxDomain = Math.max(...values);
 
@@ -161,10 +160,11 @@ window.renderLayer = function() {
         getColorWeight: d => getAirQualityLevel(Number(d.value), currentType),
         colorAggregation: 'MAX',
         elevationRange: [0, dynamicMaxElevation],
-        elevationDomain: [0, maxDomain],
-        getElevationWeight: d => Math.min(d.value, maxDomain),
+        elevationDomain: [1, 6],
+        getElevationWeight: d => getAirQualityLevel(Number(d.value), currentType),
         elevationAggregation: 'MAX',
         radius: dynamicRadius,
+        extruded: true,
         pickable: true,
         onHover: info => {
             const tooltip = document.getElementById('tooltip');
@@ -248,9 +248,10 @@ function startHexagonAnimation(props) {
     function animate() {
         // currentTime을 이용하여 사인(Sine) 곡선 생성 (0.02는 속도 조절)
         currentTime += 0.2;
-
+      //  currentTime += 0.06;
         // [핵심 수정] 매 프레임마다 높이와 투명도를 새로 계산합니다.
         const animatedScale =  currentTime  * 5;
+        //        const animatedScale =  currentTime  * 3;
         const currentOpacity = currentTime * 0.1;
        //         const currentOpacity = 1;
 
