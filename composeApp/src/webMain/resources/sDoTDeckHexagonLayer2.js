@@ -107,6 +107,18 @@ window.updateData = async function(type) {
 
     }
 
+
+    deckData = cachedData.map(d => ({
+            sensing_time: d.sensing_time,
+            obs:d.obs,
+            addr:d.addr,
+            lng: Number(d.lng),
+            lat: Number(d.lat),
+            value: (parseFloat(d[currentType]) || 0 )
+        })
+    );
+
+
     // 4. 레이어 렌더링 (캐시든 새 데이터든 호출)
     renderLayer();
 };
@@ -114,7 +126,7 @@ window.updateData = async function(type) {
 
 // 2. 레이어 렌더링 로직 (시각적 설정 및 애니메이션 시작)
 window.renderLayer = function() {
-    if (!cachedData) return;
+    if (!deckData) return;
 
     let title;
 
@@ -139,7 +151,7 @@ window.renderLayer = function() {
     const currentZoom = map.getZoom();
     const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
     const dynamicMaxElevation =   currentZoom >= zoomLevel ? 50 : (200 * Math.pow(2, zoomLevel - currentZoom))
-    let values = cachedData.map(d => parseFloat(d[currentType]) || 0 )
+    let values = deckData.map(d => d.value || 0 )
     const maxDomain = Math.max(...values);
 
     // ID는 타입이 바뀔 때만 변경되도록 하여 줌 변경 시 불필요한 전체 리렌더링 방지
@@ -147,10 +159,10 @@ window.renderLayer = function() {
 
     const props = {
         id: layerId,
-        data: cachedData, // 미리 로드된 데이터(Array)를 직접 전달 (네트워크 요청 없음)
+        data: deckData, // 미리 로드된 데이터(Array)를 직접 전달 (네트워크 요청 없음)
         dataTransform: (data) => data.map(d => ({
             ...d,
-            value: (parseFloat(d[currentType]) || 0 ) // 선택된 타입에 따른 가중치 설정
+            value: d.value
         })),
         gpuAggregation: true,
         extruded: true,
