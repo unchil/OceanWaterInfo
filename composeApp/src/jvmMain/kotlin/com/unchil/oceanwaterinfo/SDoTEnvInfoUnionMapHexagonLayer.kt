@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.copy
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,9 +28,14 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.multiplatform.webview.web.LoadingState
@@ -52,6 +59,7 @@ import com.unchil.oceanwaterinfo.AirQualityManager.information
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
+import javax.swing.tree.DefaultTreeCellEditor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,8 +90,11 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     val values = remember{ mutableStateOf("" )}
     val maxValue = remember{ mutableStateOf(0.0 )}
 
+    val unHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val veryUnHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val hazardous =  remember{ mutableListOf<Triple<AirQualityManager.AirQualityStage, Float, String>>()}
+
+
     val sDoTEnvInfoStat = remember{ mutableStateOf(emptyList<Pair<AirQualityManager.AirQualityStage, Int>>())}
 
     var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
@@ -91,6 +102,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
+        unHealthy.clear()
         veryUnHealthy.clear()
         hazardous.clear()
 
@@ -117,10 +129,12 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                         AirQualityManager.calculateTotalStage(value.toDouble(), selectedOption)
 
                     when (airQualityStage) {
+                        AirQualityManager.AirQualityStage.UNHEALTHY -> {
+                            unHealthy.add(Triple(airQualityStage, value, it.addr))
+                        }
                         AirQualityManager.AirQualityStage.VERY_UNHEALTHY -> {
                             veryUnHealthy.add(Triple(airQualityStage, value, it.addr))
                         }
-
                         AirQualityManager.AirQualityStage.HAZARDOUS -> {
                             hazardous.add(Triple(airQualityStage, value, it.addr))
                         }
@@ -230,8 +244,11 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                 textAlign = TextAlign.Center
                             )
 
+
                             val airQualityStage =
                                 AirQualityManager.calculateTotalStage(maxValue.value, selectedOption)
+
+                            Spacer(Modifier.padding(2.dp))
 
                             AirQualityStatusBoard(airQualityStage, sDoTEnvInfoStat.value)
                             caption(caption, Alignment.Center)
@@ -239,77 +256,104 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
                             AnimatedVisibility(hazardous.isNotEmpty()) {
                                 val color = AirQualityManager.AirQualityStage.HAZARDOUS.argbColor
-                                Column(
-                                    modifier = Modifier
-                                        .height(100.dp)
-                                        .background(color = color.copy(alpha = 0.05f))
-                                        .border(
-                                            border = BorderStroke(1.dp, color),
-                                            shape = RoundedCornerShape(1.dp)
-                                        )
-                                        .verticalScroll(rememberScrollState()),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                ) {
-                                    Spacer(Modifier.padding(2.dp))
 
-                                    hazardous.sortedWith(compareByDescending { it.second }).forEach {
-                                        val text = "[${it.first.titleKo}][${it.second}][${it.third}]"
-                                        Text(
-                                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
-                                            text = text,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            textAlign = TextAlign.Start
-                                        )
+                                val hazardousText = hazardous.sortedWith(compareByDescending { it.second })
+                                    .mapIndexed { index, triple ->
+                                        val number = (index + 1).toString().padStart(2, '0') // 01, 02... 형태
+                                        "$number | ${triple.second} | ${triple.third}"
                                     }
+                                    .joinToString("\n")
 
-                                    Spacer(Modifier.padding(2.dp))
+                                OutlinedTextField(
+                                    value = hazardousText,
+                                    onValueChange = {}, // 읽기 전용
+                                    readOnly = true,
+                                    textStyle = MaterialTheme.typography.bodySmall,
+                                    label = { Text("위험" )   },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                         unfocusedBorderColor = color.copy(0.3f),
+                                         focusedBorderColor = color,
+                                         focusedLabelColor = color,
+                                        unfocusedLabelColor = color.copy(0.3f),
+                                    ),
+                                    modifier = Modifier.fillMaxWidth().height(80.dp)
+                                )
 
-                                }
+
                             }
 
                             Spacer(Modifier.padding(2.dp))
 
                             AnimatedVisibility(veryUnHealthy.isNotEmpty()) {
                                 val color = AirQualityManager.AirQualityStage.VERY_UNHEALTHY.argbColor
-                                Column(
-                                    modifier = Modifier
-                                        .height(100.dp)
-                                        .background(color = color.copy(alpha = 0.05f))
-                                        .border(
-                                            border = BorderStroke(1.dp, color),
-                                            shape = RoundedCornerShape(1.dp)
-                                        )
-                                        .verticalScroll(rememberScrollState()),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                ) {
-                                    Spacer(Modifier.padding(2.dp))
 
-                                    veryUnHealthy.sortedWith(compareByDescending { it.second })
-                                        .forEach {
-                                            val text =
-                                                "[${it.first.titleKo}][${it.second}][${it.third}]"
-                                            Text(
-                                                modifier = Modifier.fillMaxWidth()
-                                                    .padding(start = 16.dp),
-                                                text = text,
-                                                style = MaterialTheme.typography.titleSmall,
-                                                textAlign = TextAlign.Start
-                                            )
-                                        }
+                                val veryUnhealthyText = veryUnHealthy.sortedWith(compareByDescending { it.second })
+                                    .mapIndexed { index, triple ->
+                                        val number = (index + 1).toString().padStart(2, '0') // 01, 02... 형태
+                                        "$number | ${triple.second} | ${triple.third}"
+                                    }
+                                    .joinToString("\n")
 
-                                    Spacer(Modifier.padding(2.dp))
-
-                                }
+                                OutlinedTextField(
+                                    value = veryUnhealthyText,
+                                    onValueChange = {}, // 읽기 전용
+                                    readOnly = true,
+                                    textStyle = MaterialTheme.typography.bodySmall,
+                                    label = { Text("매우 나쁨") },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = color.copy(0.3f),
+                                        focusedBorderColor = color,
+                                        focusedLabelColor = color,
+                                        unfocusedLabelColor = color.copy(0.3f),
+                                    ),
+                                    modifier = Modifier.fillMaxWidth().height(80.dp)
+                                )
                             }
 
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+                            Spacer(Modifier.padding(2.dp))
 
-                            Text(
-                                modifier = Modifier.fillMaxSize(),
-                                text = selectedOption.information(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Start
+                            AnimatedVisibility(unHealthy.isNotEmpty()) {
+                                val color = AirQualityManager.AirQualityStage.UNHEALTHY.argbColor
+
+                                val unhealthyText = unHealthy.sortedWith(compareByDescending { it.second })
+                                    .mapIndexed { index, triple ->
+                                        val number = (index + 1).toString().padStart(2, '0') // 01, 02... 형태
+                                        "$number | ${triple.second} | ${triple.third}"
+                                    }
+                                    .joinToString("\n")
+
+                                OutlinedTextField(
+                                    value = unhealthyText,
+                                    onValueChange = {}, // 읽기 전용
+                                    readOnly = true,
+                                    textStyle = MaterialTheme.typography.bodySmall,
+                                    label = { Text("나쁨") },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = color.copy(0.3f),
+                                        focusedBorderColor = color,
+                                        focusedLabelColor = color,
+                                        unfocusedLabelColor = color.copy(0.3f),
+                                    ),
+                                    modifier = Modifier.fillMaxWidth().height(80.dp)
+                                )
+                            }
+
+                            Spacer(Modifier.padding(2.dp))
+
+                            OutlinedTextField(
+                                value = selectedOption.information(),
+                                onValueChange = {}, // 읽기 전용
+                                readOnly = true,
+                                textStyle = MaterialTheme.typography.bodySmall,
+                                label = { Text("정보") },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth().height(600.dp)
                             )
+
+
 
                         }
                     }

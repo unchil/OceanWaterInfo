@@ -195,7 +195,7 @@ object AirQualityManager {
         UNKNOWN(0, "Unknown", "모름", Color.LightGray),
         GOOD(1, "Good", "좋음", Color(0xFF00E400)),
         MODERATE(2, "Moderate", "보통", Color(0xFFFFFF00)),
-        UNHEALTHY_FOR_SENSITIVE(3, "Unhealthy for Sensitive Groups", "민감군", Color(0xFFFF7E00)),
+        UNHEALTHY_FOR_SENSITIVE(3, "Unhealthy for Sensitive Groups", "민감군 영향", Color(0xFFFF7E00)),
         UNHEALTHY(4, "Unhealthy", "나쁨", Color(0xFFFF0000)),
         VERY_UNHEALTHY(5, "Very Unhealthy", "매우 나쁨", Color(0xFF8F3F97)),
         HAZARDOUS(6, "Hazardous", "위험", Color(0xFF7E0023))
