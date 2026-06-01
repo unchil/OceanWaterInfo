@@ -90,6 +90,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     val values = remember{ mutableStateOf("" )}
     val maxValue = remember{ mutableStateOf(0.0 )}
 
+    val unHealthyForSensitive =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val unHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val veryUnHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val hazardous =  remember{ mutableListOf<Triple<AirQualityManager.AirQualityStage, Float, String>>()}
@@ -102,6 +103,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
+        unHealthyForSensitive.clear()
         unHealthy.clear()
         veryUnHealthy.clear()
         hazardous.clear()
@@ -129,6 +131,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                         AirQualityManager.calculateTotalStage(value.toDouble(), selectedOption)
 
                     when (airQualityStage) {
+                        AirQualityManager.AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> {
+                            unHealthyForSensitive.add(Triple(airQualityStage, value, it.addr))
+                        }
+
                         AirQualityManager.AirQualityStage.UNHEALTHY -> {
                             unHealthy.add(Triple(airQualityStage, value, it.addr))
                         }
@@ -340,6 +346,38 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                     modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
                             }
+
+                            Spacer(Modifier.padding(2.dp))
+
+                            AnimatedVisibility(unHealthyForSensitive.isNotEmpty()) {
+                                val color = AirQualityManager.AirQualityStage.UNHEALTHY_FOR_SENSITIVE.argbColor
+
+                                val unHealthyForSensitiveText = unHealthyForSensitive.sortedWith(compareByDescending { it.second })
+                                    .mapIndexed { index, triple ->
+                                        val number = (index + 1).toString().padStart(2, '0') // 01, 02... 형태
+                                        "$number | ${triple.second} | ${triple.third}"
+                                    }
+                                    .joinToString("\n")
+
+                                OutlinedTextField(
+                                    value = unHealthyForSensitiveText,
+                                    onValueChange = {}, // 읽기 전용
+                                    readOnly = true,
+                                    textStyle = MaterialTheme.typography.bodySmall,
+                                    label = { Text("민감군 영향") },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = color.copy(0.3f),
+                                        focusedBorderColor = color,
+                                        focusedLabelColor = color,
+                                        unfocusedLabelColor = color.copy(0.3f),
+                                    ),
+                                    modifier = Modifier.fillMaxWidth().height(100.dp)
+                                )
+                            }
+
+
+
 
                             Spacer(Modifier.padding(2.dp))
 
