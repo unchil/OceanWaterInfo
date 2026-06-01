@@ -180,7 +180,7 @@ fun main() = application {
                                         textAlign = TextAlign.Center
                                     )
 
-                                        SDoTEnvInfoUnionMapHexagonLayer2(initialized, download, errorMessage)
+                                        SDoTEnvInfoUnionMapHexagonLayer(initialized, download, errorMessage)
 
                                 }
                             }

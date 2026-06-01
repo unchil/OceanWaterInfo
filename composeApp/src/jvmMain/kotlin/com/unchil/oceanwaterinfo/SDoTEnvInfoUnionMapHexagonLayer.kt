@@ -1,4 +1,3 @@
-
 package com.unchil.oceanwaterinfo
 
 import androidx.compose.animation.AnimatedVisibility
@@ -7,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,14 +48,10 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
-import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.desc
-import com.unchil.oceanwaterinfo.AIR_QUAlITY_UNION.name
+import com.unchil.oceanwaterinfo.AirQualityManager.information
+import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.graphics.Color
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,25 +60,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     download:Int,
     errorMessage:String,
 ){
-
-
     val coroutineScope = rememberCoroutineScope()
     val viewModel: SDoTEnvInfoUnionViewModel = remember {
         SDoTEnvInfoUnionViewModel(coroutineScope)
     }
-
-    val host = "http://192.168.35.107:7272"
-    val servicePage = "sDoTDeckHexagonLayerUnion.html"
-
-    var descriptionBox by remember { mutableStateOf(false) }
-
-    val localUrl = "${host}/${servicePage}"
-  //  val localUrl = "http://localhost:63342/OceanWaterInfo/sDoTDeckHexagonLayerUnion.html?_ijt=3edaf4su5b43e54kmglkl4jseh&_ij_reload=RELOAD_ON_SAVE"
-    val remoteUrl = "https://www.google.com/maps/"
-
-    val webViewState = rememberWebViewState(localUrl)
-    val navigator = rememberWebViewNavigator()
-
     LaunchedEffect(key1 = viewModel){
         while(true){
             delay(5 * 60 * 1000L).let{
@@ -89,93 +72,103 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         }
     }
 
-
-    var selectedOption by remember { mutableStateOf(AIR_QUAlITY_UNION.QualityType.entries[0]) }
-
-
-    val sDoTEnvInfo = viewModel._sDoTEnvInfoUnionFlow.collectAsState()
-    val keys = remember{ mutableStateOf("" )}
+    val host = "http://192.168.35.107:7272"
+    val servicePage = "sDoTDeckHexagonLayerUnion.html"
+    val caption = "미국 환경보호청(US EPA)의 공식 가이드라인을 바탕으로, 공기질 항목(EPA 기준 오염물질 6종 + 산업/안전 가스 2종)을 6단계로 분류"
+    var descriptionBox by remember { mutableStateOf(false) }
+    val localUrl = "${host}/${servicePage}"
+    val webViewState = rememberWebViewState(localUrl)
+    val navigator = rememberWebViewNavigator()
     val values = remember{ mutableStateOf("" )}
-    val maxValue = remember{ mutableStateOf(0f )}
-    val seriousPoint =  remember{ mutableListOf<Triple<String,Float, String>>()}
+    val maxValue = remember{ mutableStateOf(0.0 )}
 
-    val sDoTEnvInfoStat = remember{ mutableStateOf(emptyList<Pair<Int, Int>>())}
+    val veryUnHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
+    val hazardous =  remember{ mutableListOf<Triple<AirQualityManager.AirQualityStage, Float, String>>()}
+    val sDoTEnvInfoStat = remember{ mutableStateOf(emptyList<Pair<AirQualityManager.AirQualityStage, Int>>())}
 
-    val colorRange  = remember{ mutableStateOf("" )}
+    var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
+    val sDoTEnvInfo = viewModel._sDoTEnvInfoUnionFlow.collectAsState()
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
-        if(sDoTEnvInfo.value.isNotEmpty()) {
+        veryUnHealthy.clear()
+        hazardous.clear()
 
-            seriousPoint.clear()
+        if(sDoTEnvInfo.value.isNotEmpty()) {
 
             values.value = sDoTEnvInfo.value.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
                 postfix = "]"
             ) { it ->
-
                 val value = when (selectedOption) {
-                    AIR_QUAlITY_UNION.QualityType.o3 -> it.o3.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.no2 -> it.no2.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.co -> it.co.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.so2 -> it.so2.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.nh3 -> it.nh3.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.h2s -> it.h2s.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.pm10 -> it.pm10.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.pm25 -> it.pm25.ifEmpty { "0" }
+                    AirQualityManager.ChemicalElement.o3 -> it.o3.toFloatOrNull() ?: 0f
+                    AirQualityManager.ChemicalElement.no2 -> it.no2.toFloatOrNull() ?: 0f
+                    AirQualityManager.ChemicalElement.co -> it.co.toFloatOrNull() ?: 0f
+                    AirQualityManager.ChemicalElement.so2 -> it.so2.toFloatOrNull() ?: 0f
+                    AirQualityManager.ChemicalElement.nh3 -> it.nh3.toFloatOrNull() ?: 0f
+                    AirQualityManager.ChemicalElement.h2s -> it.h2s.toFloatOrNull() ?: 0f
+                    AirQualityManager.ChemicalElement.pm10 -> it.pm10.toFloatOrNull() ?: 0f
+                    AirQualityManager.ChemicalElement.pm25 -> it.pm25.toFloatOrNull() ?: 0f
                 }
 
-                val level = calculateLevel( value.toFloatOrNull() ?: 0f, selectedOption)
-                if( level >= 3) {
-                    val label =  if(level == 3) "위험" else "심각"
-                    seriousPoint.add( Triple(label, value.toFloatOrNull() ?: 0f, it.addr))
-                }
+                if(value > 0f) {
+                    val airQualityStage =
+                        AirQualityManager.calculateTotalStage(value.toDouble(), selectedOption)
 
+                    when (airQualityStage) {
+                        AirQualityManager.AirQualityStage.VERY_UNHEALTHY -> {
+                            veryUnHealthy.add(Triple(airQualityStage, value, it.addr))
+                        }
+
+                        AirQualityManager.AirQualityStage.HAZARDOUS -> {
+                            hazardous.add(Triple(airQualityStage, value, it.addr))
+                        }
+
+                        else -> {}
+                    }
+                }
 
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
             }
 
-
             maxValue.value  =
-                if (sDoTEnvInfo.value.isEmpty()) 0f
+                if (sDoTEnvInfo.value.isEmpty()) 0.0
                 else sDoTEnvInfo.value.map { sensor ->
                     val v = when (selectedOption) {
-                        AIR_QUAlITY_UNION.QualityType.o3 -> sensor.o3
-                        AIR_QUAlITY_UNION.QualityType.no2 -> sensor.no2
-                        AIR_QUAlITY_UNION.QualityType.co -> sensor.co
-                        AIR_QUAlITY_UNION.QualityType.so2 -> sensor.so2
-                        AIR_QUAlITY_UNION.QualityType.nh3 -> sensor.nh3
-                        AIR_QUAlITY_UNION.QualityType.h2s -> sensor.h2s
-                        AIR_QUAlITY_UNION.QualityType.pm10 -> sensor.pm10
-                        AIR_QUAlITY_UNION.QualityType.pm25 -> sensor.pm25
+                        AirQualityManager.ChemicalElement.o3 -> sensor.o3
+                        AirQualityManager.ChemicalElement.no2 -> sensor.no2
+                        AirQualityManager.ChemicalElement.co -> sensor.co
+                        AirQualityManager.ChemicalElement.so2 -> sensor.so2
+                        AirQualityManager.ChemicalElement.nh3 -> sensor.nh3
+                        AirQualityManager.ChemicalElement.h2s -> sensor.h2s
+                        AirQualityManager.ChemicalElement.pm10 -> sensor.pm10
+                        AirQualityManager.ChemicalElement.pm25 -> sensor.pm25
                     }
-                    v.toFloatOrNull() ?: 0f
+                    v.toDoubleOrNull() ?: 0.0
                 }.max()
 
+            sDoTEnvInfoStat.value = sDoTEnvInfo.value.groupBy { sensor ->
 
-            sDoTEnvInfoStat.value  = sDoTEnvInfo.value.groupBy { it ->
-                val value = when (selectedOption) {
-                    AIR_QUAlITY_UNION.QualityType.o3 -> it.o3.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.no2 -> it.no2.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.co -> it.co.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.so2 -> it.so2.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.nh3 -> it.nh3.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.h2s -> it.h2s.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.pm10 -> it.pm10.ifEmpty { "0" }
-                    AIR_QUAlITY_UNION.QualityType.pm25 -> it.pm25.ifEmpty { "0" }
-                }
-                calculateLevel( value.toFloatOrNull() ?: 0f, selectedOption)
-            }.map{ ( level, group) ->
-                Pair( level ,  group.size)
+                val v = when (selectedOption) {
+                    AirQualityManager.ChemicalElement.o3 -> sensor.o3
+                    AirQualityManager.ChemicalElement.no2 -> sensor.no2
+                    AirQualityManager.ChemicalElement.co -> sensor.co
+                    AirQualityManager.ChemicalElement.so2 -> sensor.so2
+                    AirQualityManager.ChemicalElement.nh3 -> sensor.nh3
+                    AirQualityManager.ChemicalElement.h2s -> sensor.h2s
+                    AirQualityManager.ChemicalElement.pm10 -> sensor.pm10
+                    AirQualityManager.ChemicalElement.pm25 -> sensor.pm25
+                }.toDoubleOrNull() ?: 0.0
+                AirQualityManager.calculateTotalStage(v, selectedOption)
+            }.map{ ( airQualityStage, group) ->
+                Pair( airQualityStage ,  group.size)
             }.sortedBy{
-                it.first
+                it.first.level
             }
 
         }
     }
-
-
 
     LaunchedEffect( values.value, webViewState.loadingState, key3 = selectedOption){
         if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
@@ -183,27 +176,27 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         }
     }
 
+
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
 
         var selectedTabIndex by remember { mutableIntStateOf(0) }
-
         SecondaryTabRow(
             selectedTabIndex = selectedTabIndex,
             containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
             contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
         ) {
-            AIR_QUAlITY_UNION.QualityType.entries.forEachIndexed { index, entrie ->
+            AirQualityManager.ChemicalElement.entries.forEachIndexed { index, element ->
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = {
                         selectedTabIndex = index
-                        selectedOption = entrie
+                        selectedOption = element
                     },
                     text = {
                         Text(
-                            text = entrie.name(),
+                            text = element.nameEn(),
                             style = MaterialTheme.typography.titleSmall
                         )
                     }
@@ -211,123 +204,166 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
             }
         }
 
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
-        Row(modifier=Modifier.fillMaxSize())
-        {
-            AnimatedVisibility(descriptionBox){
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.2f)
-                        .fillMaxHeight()
-                        .padding(10.dp)
-                        .verticalScroll(rememberScrollState())
+            val totalWidth = constraints.maxWidth.toFloat()
 
-                ) {
+            Row(modifier = Modifier.fillMaxSize()) {
 
-                    Column (
-                        modifier=Modifier.fillMaxSize()
-                    ){
+                var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text =  "Current air pollution levels\n ${selectedOption.name()}",
-                            style = MaterialTheme.typography.titleSmall,
-                            textAlign = TextAlign.Center
-                        )
+                AnimatedVisibility(descriptionBox){
+                    Box(
+                        modifier = Modifier.fillMaxWidth(
+                            if(descriptionBox) splitFractionVertical else 0.0f
+                        ).fillMaxHeight()
+                            .padding(10.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
 
-                        AirQualityStatusBoard(currentLevel = calculateLevel(maxValue.value, selectedOption), sDoTEnvInfoStat.value)
+                        Column(modifier = Modifier.fillMaxSize()) {
 
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = selectedOption.nameEn(),
+                                style = MaterialTheme.typography.titleSmall,
+                                textAlign = TextAlign.Center
+                            )
 
-                        if( seriousPoint.isNotEmpty()){
-                            Column(
-                                modifier = Modifier
-                                    .height(100.dp)
-                                    .background(color = Color.Red.copy(alpha = 0.1f))
-                                    .border(border = BorderStroke(2.dp, Color.Red), shape = RoundedCornerShape(2.dp))
-                                    .verticalScroll(rememberScrollState()),
-                                horizontalAlignment  = Alignment.CenterHorizontally,
-                            ){
-                                Spacer(Modifier.padding(6.dp))
+                            val airQualityStage =
+                                AirQualityManager.calculateTotalStage(maxValue.value, selectedOption)
 
-                                seriousPoint.sortedWith(compareByDescending { it.second }).forEach {
-                                    val text = "${it.first}:${it.second}:${it.third}"
-                                    Text(
-                                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
-                                        text =  text,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        textAlign = TextAlign.Start
-                                    )
+                            AirQualityStatusBoard(airQualityStage, sDoTEnvInfoStat.value)
+                            caption(caption, Alignment.Center)
+                            Spacer(Modifier.padding(2.dp))
+
+                            AnimatedVisibility(hazardous.isNotEmpty()) {
+                                val color = AirQualityManager.AirQualityStage.HAZARDOUS.argbColor
+                                Column(
+                                    modifier = Modifier
+                                        .height(100.dp)
+                                        .background(color = color.copy(alpha = 0.05f))
+                                        .border(
+                                            border = BorderStroke(1.dp, color),
+                                            shape = RoundedCornerShape(1.dp)
+                                        )
+                                        .verticalScroll(rememberScrollState()),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Spacer(Modifier.padding(2.dp))
+
+                                    hazardous.sortedWith(compareByDescending { it.second }).forEach {
+                                        val text = "[${it.first.titleKo}][${it.second}][${it.third}]"
+                                        Text(
+                                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+                                            text = text,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            textAlign = TextAlign.Start
+                                        )
+                                    }
+
+                                    Spacer(Modifier.padding(2.dp))
+
                                 }
-
-                                Spacer(Modifier.padding(6.dp))
-
                             }
+
+                            Spacer(Modifier.padding(2.dp))
+
+                            AnimatedVisibility(veryUnHealthy.isNotEmpty()) {
+                                val color = AirQualityManager.AirQualityStage.VERY_UNHEALTHY.argbColor
+                                Column(
+                                    modifier = Modifier
+                                        .height(100.dp)
+                                        .background(color = color.copy(alpha = 0.05f))
+                                        .border(
+                                            border = BorderStroke(1.dp, color),
+                                            shape = RoundedCornerShape(1.dp)
+                                        )
+                                        .verticalScroll(rememberScrollState()),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Spacer(Modifier.padding(2.dp))
+
+                                    veryUnHealthy.sortedWith(compareByDescending { it.second })
+                                        .forEach {
+                                            val text =
+                                                "[${it.first.titleKo}][${it.second}][${it.third}]"
+                                            Text(
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .padding(start = 16.dp),
+                                                text = text,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                textAlign = TextAlign.Start
+                                            )
+                                        }
+
+                                    Spacer(Modifier.padding(2.dp))
+
+                                }
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+
+                            Text(
+                                modifier = Modifier.fillMaxSize(),
+                                text = selectedOption.information(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Start
+                            )
+
                         }
-
-
-                        HorizontalDivider( modifier = Modifier.padding(vertical = 10.dp))
-
-                        Text(
-                            modifier = Modifier.fillMaxSize(),
-                            text =  selectedOption.desc(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Start
-                        )
-
                     }
-
                 }
-            }
 
-            Box( modifier = Modifier.width(24.dp).fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ){
-                val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+                Box( modifier = Modifier.width(24.dp).fillMaxHeight()
+                    ,contentAlignment = Alignment.Center ){
 
-                IconButton(
-                    onClick = { descriptionBox = !descriptionBox },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowCircleRight,
-                        contentDescription = "Toggle Description",
-                        modifier = Modifier.rotate(rotation) // 회전 애니메이션 적용
-                    )
+                    val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
 
+                    IconButton( onClick = { descriptionBox = !descriptionBox }
+                        ,modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon( imageVector = Icons.Default.ArrowCircleRight
+                            ,contentDescription = "Toggle Description"
+                            ,modifier = Modifier.rotate(rotation)
+                        )
+                    }
                 }
-            }
+
+                DraggableVerticalDivider(
+                    onDrag = { deltaPx ->
+                        val deltaWeight = deltaPx / totalWidth
+                        splitFractionVertical =
+                            (splitFractionVertical + deltaWeight).coerceIn(
+                                0.1f,
+                                0.9f
+                            )
+                    }
+                )
 
 
-            when {
+                when {
                 initialized -> {
-
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
-
                         CaptionText(
                             AIR_QUAlITY_UNION.caption,
                             textAlign = TextAlign.Center
                         )
-
-
-
                         WebView(
                             state = webViewState,
                             navigator = navigator,
                             modifier = Modifier.fillMaxSize()
                         )
-
-
-
                     }
-
                 }
+
                 errorMessage.isNotEmpty() -> {
                     Text(errorMessage)
                 }
+
                 else -> {
                     if (download > -1) {
                         Text("Downloading: $download%")
@@ -339,13 +375,9 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                 }
             }
 
+            }
+
         }
 
-
-
-
     }
-
-
-
 }
