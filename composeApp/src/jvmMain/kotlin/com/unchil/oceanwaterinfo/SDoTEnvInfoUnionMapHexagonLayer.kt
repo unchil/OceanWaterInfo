@@ -284,10 +284,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                     label = { Text("위험" )   },
                                     shape = RoundedCornerShape(12.dp),
                                     colors = OutlinedTextFieldDefaults.colors(
-                                         unfocusedBorderColor = color.copy(0.3f),
+                                         unfocusedBorderColor = color,
                                          focusedBorderColor = color,
                                          focusedLabelColor = color,
-                                        unfocusedLabelColor = color.copy(0.3f),
+                                        unfocusedLabelColor = color,
                                     ),
                                     modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
@@ -315,10 +315,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                     label = { Text("매우 나쁨") },
                                     shape = RoundedCornerShape(12.dp),
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        unfocusedBorderColor = color.copy(0.3f),
+                                        unfocusedBorderColor = color,
                                         focusedBorderColor = color,
                                         focusedLabelColor = color,
-                                        unfocusedLabelColor = color.copy(0.3f),
+                                        unfocusedLabelColor = color,
                                     ),
                                     modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
@@ -344,10 +344,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                     label = { Text("나쁨") },
                                     shape = RoundedCornerShape(12.dp),
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        unfocusedBorderColor = color.copy(0.3f),
+                                        unfocusedBorderColor = color,
                                         focusedBorderColor = color,
                                         focusedLabelColor = color,
-                                        unfocusedLabelColor = color.copy(0.3f),
+                                        unfocusedLabelColor = color,
                                     ),
                                     modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
@@ -373,10 +373,10 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                     label = { Text("민감군 영향") },
                                     shape = RoundedCornerShape(12.dp),
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        unfocusedBorderColor = color.copy(0.3f),
+                                        unfocusedBorderColor = color,
                                         focusedBorderColor = color,
                                         focusedLabelColor = color,
-                                        unfocusedLabelColor = color.copy(0.3f),
+                                        unfocusedLabelColor = color,
                                     ),
                                     modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
