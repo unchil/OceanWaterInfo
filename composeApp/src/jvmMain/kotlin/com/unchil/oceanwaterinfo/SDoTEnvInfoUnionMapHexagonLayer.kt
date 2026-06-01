@@ -277,7 +277,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                          focusedLabelColor = color,
                                         unfocusedLabelColor = color.copy(0.3f),
                                     ),
-                                    modifier = Modifier.fillMaxWidth().height(80.dp)
+                                    modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
 
 
@@ -308,7 +308,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                         focusedLabelColor = color,
                                         unfocusedLabelColor = color.copy(0.3f),
                                     ),
-                                    modifier = Modifier.fillMaxWidth().height(80.dp)
+                                    modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
                             }
 
@@ -337,7 +337,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                         focusedLabelColor = color,
                                         unfocusedLabelColor = color.copy(0.3f),
                                     ),
-                                    modifier = Modifier.fillMaxWidth().height(80.dp)
+                                    modifier = Modifier.fillMaxWidth().height(100.dp)
                                 )
                             }
 
