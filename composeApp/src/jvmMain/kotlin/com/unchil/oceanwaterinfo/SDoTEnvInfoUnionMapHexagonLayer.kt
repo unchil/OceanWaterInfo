@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleRight
@@ -55,8 +56,12 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
+import com.unchil.oceanwaterinfo.AirQualityManager.airQualityStageComment
+import com.unchil.oceanwaterinfo.AirQualityManager.airQualityStageRange
 import com.unchil.oceanwaterinfo.AirQualityManager.information
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
+import com.unchil.oceanwaterinfo.AirQualityManager.specialFeature
+import com.unchil.oceanwaterinfo.AirQualityManager.unHealthyForSensitiveGroups
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 import javax.swing.tree.DefaultTreeCellEditor
@@ -94,7 +99,6 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     val unHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val veryUnHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val hazardous =  remember{ mutableListOf<Triple<AirQualityManager.AirQualityStage, Float, String>>()}
-
 
     val sDoTEnvInfoStat = remember{ mutableStateOf(emptyList<Pair<AirQualityManager.AirQualityStage, Int>>())}
 
@@ -257,7 +261,9 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                             Spacer(Modifier.padding(2.dp))
 
                             AirQualityStatusBoard(airQualityStage, sDoTEnvInfoStat.value)
+
                             caption(caption, Alignment.Center)
+
                             Spacer(Modifier.padding(2.dp))
 
                             AnimatedVisibility(hazardous.isNotEmpty()) {
@@ -377,19 +383,77 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                             }
 
 
-
-
                             Spacer(Modifier.padding(2.dp))
 
-                            OutlinedTextField(
-                                value = selectedOption.information(),
-                                onValueChange = {}, // 읽기 전용
+
+                            BasicTextField(
+                                value = "Information",
+                                onValueChange = { },
                                 readOnly = true,
-                                textStyle = MaterialTheme.typography.bodySmall,
-                                label = { Text("정보") },
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth().height(600.dp)
+                                decorationBox = { innerTextField ->
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth()
+                                            .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
+                                            .padding(10.dp)
+                                    ) {
+
+                                        Box( modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ){
+                                            innerTextField()
+                                        }
+
+
+                                        Spacer(Modifier.padding(2.dp))
+
+                                        OutlinedTextField(
+                                            value = selectedOption.specialFeature(),
+                                            onValueChange = {}, // 읽기 전용
+                                            readOnly = true,
+                                            textStyle = MaterialTheme.typography.bodySmall,
+                                            label = { Text("특징") },
+                                            shape = RoundedCornerShape(6.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        AirQualityManager.AirQualityStage.entries.forEachIndexed { index, stage ->
+                                            val range = selectedOption.airQualityStageRange()[index]
+                                            val comment = selectedOption.airQualityStageComment()[index]
+
+                                            if(index > 0 ){
+                                                OutlinedTextField(
+                                                    value = "${range}\n${comment}",
+                                                    onValueChange = {}, // 읽기 전용
+                                                    readOnly = true,
+                                                    textStyle = MaterialTheme.typography.bodySmall,
+                                                    label = { Text(stage.titleKo) },
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+
+                                        }
+
+                                        Spacer(Modifier.padding(2.dp))
+
+                                        OutlinedTextField(
+                                            value = selectedOption.unHealthyForSensitiveGroups(),
+                                            onValueChange = {}, // 읽기 전용
+                                            readOnly = true,
+                                            textStyle = MaterialTheme.typography.bodySmall,
+                                            label = { Text("폐질환자에게 미치는 피해") },
+                                            shape = RoundedCornerShape(6.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+
+
+                                    }
+                                }
                             )
+
+
+
 
 
 

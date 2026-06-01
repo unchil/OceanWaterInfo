@@ -213,6 +213,230 @@ object AirQualityManager {
         o3, no2, co, so2, nh3, h2s, pm10, pm25
     }
 
+    fun ChemicalElement.airQualityStageRange():List<String>{
+        val airQualityStageRange = mutableListOf<String>()
+        when (this) {
+            ChemicalElement.no2 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 0.053")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 0.100")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 0.360")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 0.649")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 1.249")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+            ChemicalElement.o3 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 0.054")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 0.070")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 0.085")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 0.105")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 0.200")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+            ChemicalElement.co -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 4.4")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 9.4")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 12.4")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 15.4")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 30.4")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+            ChemicalElement.so2 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 0.035")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 0.075")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 0.185")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 0.304")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 0.604")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+            ChemicalElement.nh3 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 0.25")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 0.70")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 1.50")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 5.00")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 25.00")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+            ChemicalElement.h2s -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 0.01")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 0.05")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 0.10")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 1.00")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 10.00")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+            ChemicalElement.pm10 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 54.0")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 154.0")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 254.0")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 354.0")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 424.0")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+            ChemicalElement.pm25 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageRange.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageRange.add(" ~ 9.0")
+                        AirQualityStage.MODERATE -> airQualityStageRange.add(" ~ 35.4")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageRange.add(" ~ 55.4")
+                        AirQualityStage.UNHEALTHY -> airQualityStageRange.add(" ~ 125.4")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageRange.add(" ~ 225.4")
+                        AirQualityStage.HAZARDOUS -> airQualityStageRange.add(" ~ ")
+                    }
+                }
+            }
+        }
+        return airQualityStageRange
+    }
+
+    fun ChemicalElement.airQualityStageComment():List<String>{
+        val airQualityStageComments = mutableListOf<String>()
+        when (this) {
+            ChemicalElement.no2 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+            ChemicalElement.o3 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+            ChemicalElement.co -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+            ChemicalElement.so2 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+            ChemicalElement.nh3 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+            ChemicalElement.h2s -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+            ChemicalElement.pm10 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+            ChemicalElement.pm25 -> {
+                AirQualityStage.entries.forEach { it
+                    when(it){
+                        AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                    }
+                }
+            }
+        }
+
+        return airQualityStageComments
+    }
+
+
     fun ChemicalElement.nameEn():String{
         return when (this) {
             ChemicalElement.no2 -> "Nitrogen dioxide(NO2)" //이산화질소
@@ -238,6 +462,79 @@ object AirQualityManager {
             ChemicalElement.pm25 -> "미세먼지(PM2.5)"
         }
     }
+
+    fun ChemicalElement.specialFeature():String{
+        return when (this) {
+            ChemicalElement.no2 -> "매연 또는 찌릿한 염소(수영장) 냄새"
+            ChemicalElement.co -> "무색, 무취, 무미의 특성"
+            ChemicalElement.so2 -> "금방 끈 성냥의 탄내 또는 화약 냄새"
+            ChemicalElement.nh3 -> "오래 방치된 공중화장실 또는 삭힌 홍어 냄새"
+            ChemicalElement.h2s -> "상한 달걀(썩은 달걀) 냄새로 저농도에서는 냄새로 감지되지만, 농도가 높아지면 후각 신경을 마비시켜 냄새를 맡지 못함"
+            ChemicalElement.o3 -> "복사기/프린터 근처의 비릿한 냄새 또는 소나기 직후의 상쾌한 듯 비릿한 풀내음"
+            ChemicalElement.pm10 -> "1차적 발생은 공장, 자동차, 건설 현장에서 직접 배출되거나 흙먼지, 꽃가루와 같이 자연적으로 발생"
+            ChemicalElement.pm25 -> "수도권 초미세먼지의 상당 부분이 2차적 발생으로 대기 중으로 배출된 황산화물(SO_x), 질소산화물(NO_x), 암모니아(NH_3) 등이 화학 반응을 일으켜 미세먼지로 변함"
+        }
+    }
+
+    fun ChemicalElement.unHealthyForSensitiveGroups():String{
+        return when (this) {
+            ChemicalElement.no2 -> """천식 환자: 
+ 기도의 과민성을 높입니다. 
+ 즉, 평소에는 괜찮았던 꽃가루나 먼지 같은 알레르기 유발 물질에 폐가 훨씬 더 격렬하게 반응하게 만듭니다. 
+ 0.2~0.3ppm 정도의 낮은 농도에서도 천식 발작 빈도가 높아질 수 있습니다.
+만성폐쇄성폐질환(COPD): 
+ 기도의 가래 배출 능력을 저하시키고 세균 감염에 대한 저항력을 약화시킵니다. 
+ 이는 감기나 폐렴 같은 2차 감염으로 이어져 병세가 급격히 악화되는 원인이 됩니다.
+어린이 및 영유아: 
+ 폐가 완전히 발달하지 않은 상태에서 이산화질소에 지속적으로 노출되면 성인이 된 후에도 폐 기능이 정상보다 낮아지는 '폐 성장 저해'가 발생할 수 있습니다."""
+            ChemicalElement.co -> """산소 부족의 가속화: 
+ 만성폐쇄성폐질환(COPD)이나 폐기종 환자는 이미 혈중 산소 포화도가 낮습니다. 
+ 여기에 CO가 유입되면 남아있는 산소 운반 능력마저 마비되어 급성 호흡 부전이 올 수 있습니다.
+심장 과부하: 
+ 산소가 부족해지면 심장은 더 많은 혈액을 보내기 위해 과하게 뜁니다. 
+ 폐가 약해 심장에 무리가 가 있는 상태(폐성심 등)에서 CO에 노출되면 심근경색이나 부정맥이 발생할 위험이 매우 높습니다.
+낮은 농도에서의 민감성: 
+ 건강한 성인은 50ppm에서 큰 증상을 느끼지 못할 수 있지만, 폐 질환자는 같은 농도에서도 심한 가슴 통증이나 호흡 곤란을 겪을 수 있습니다."""
+            ChemicalElement.so2 -> """기도 수축(Bronchoconstriction):
+ 이산화황은 기도를 둘러싼 근육을 수축시킵니다. 
+ 천식 환자는 일반인보다 10~20배 더 민감하게 반응하며, 단 5~10분간의 짧은 노출(0.5ppm 수준)만으로도 심한 호흡 곤란을 겪을 수 있습니다.
+만성기관지염 환자:
+ 점액(가래) 분비를 비정상적으로 증가시켜 기도를 폐쇄합니다. 
+ 이로 인해 기침이 멈추지 않고 산소 공급이 원활하지 않아 심부전으로 이어질 위험이 있습니다."""
+            ChemicalElement.nh3 -> """화학적 폐렴의 위험:
+ 암모니아가 폐포까지 도달하면 상피 세포를 파괴하여 '화학적 폐렴'을 유발합니다. 
+ 폐기종이나 결핵 병력이 있는 환자는 조직 재생 능력이 떨어져 일반인보다 훨씬 심각한 염증 반응을 겪게 됩니다.
+급성 기도 폐쇄:
+ 천식이나 COPD 환자는 암모니아 가스의 자극에 반응하여 기도가 급격히 부어오릅니다. 
+ 이는 공기 통로를 즉각적으로 차단하여 급성 호흡 부전을 일으키는 주요 원인이 됩니다.
+이차 감염 취약성:
+ 암모니아 노출로 인해 기도의 점막과 섬모(먼지를 걸러내는 털)가 손상되면 외부 세균이나 바이러스에 대한 방어막이 사라집니다. 
+ 폐질환자는 이로 인해 치명적인 2차 세균성 폐렴으로 이어질 확률이 매우 높습니다."""
+            ChemicalElement.h2s -> """급성 폐수종 유발:
+ 황화수소는 폐혈관의 투과성을 높여 폐에 물이 차게 만듭니다. 
+ 만성폐쇄성폐질환(COPD)이나 심부전이 있는 환자는 혈액 내 산소가 이미 부족한 상태에서 폐수종이 겹치면 급격한 질식 상태에 빠집니다.
+기도 과민성 증폭: 
+ 천식 환자의 경우, 매우 낮은 농도(2~5ppm)에서도 기도가 경련을 일으키며 수축할 수 있습니다. 
+ 이는 일반적인 대기 오염 물질보다 훨씬 강력한 기폭제가 됩니다.
+조직 재생 저해: 
+ 황화수소의 독성은 폐 조직의 미토콘드리아 기능을 억제합니다. 
+ 이미 폐 섬유화가 진행 중이거나 조직이 약해진 환자는 노출 후 폐 기능 회복이 거의 불가능할 정도로 손상될 수 있습니다."""
+            ChemicalElement.o3 -> """천식 환자: 
+ 오존은 기도를 수축시키고 염증 반응을 일으킵니다. 
+ 일반인에게는 무해한 0.05ppm 수준에서도 천식 환자는 기침과 쌕쌕거림(천명)이 심해지며, 평소 복용하는 약물의 효과가 떨어질 수 있습니다.
+만성폐쇄성폐질환(COPD) 환자: 
+ 오존 노출 시 폐의 산소 교환 능력이 급격히 떨어집니다. 
+ 이는 호흡 곤란을 심화시켜 응급실 방문이나 입원 가능성을 크게 높입니다.
+영구적인 손상 위험:
+ 반복적인 고농도 노출은 폐 조직의 섬유화(딱딱해짐)를 초래할 수 있는데, 기저 질환이 있는 경우 이러한 구조적 변화가 더 빠르게 진행될 수 있습니다."""
+            ChemicalElement.pm10 -> """상기도 염증, 기침, 천식을 유발할 수 있습니다."""
+            ChemicalElement.pm25 -> """심혈관계 질환, 뇌졸중, 암(1군 발암물질)의 원인이 되기도 합니다."""
+        }
+    }
+
+
+
+
 
     fun ChemicalElement.information():String{
         return when (this) {
