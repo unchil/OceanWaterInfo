@@ -139,7 +139,7 @@ height: 36px;
     top: 50%; /* 화면 중앙 정렬 */
     left: -520px; /* 사이드바 너비만큼 왼쪽으로 숨김 */
     width: 520px;
-    height: 50%; /* 고정 높이 혹은 100% 선택 가능 */
+    height: 70%; /* 고정 높이 혹은 100% 선택 가능 */
     transform: translateY(-50%); /* 중앙 정렬 보정 */
     display: flex;
     align-items: center;
@@ -211,7 +211,7 @@ height: 36px;
     font-size: 0.75rem;
     font-weight: bold;
     color: #000000 !important;
-    opacity: 0.6; /* 비활성 상태는 투명하게 */
+    opacity: 0.3; /* 비활성 상태는 투명하게 */
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 부드러운 확장 애니메이션 */
     cursor: default;
     overflow: hidden;
@@ -237,7 +237,7 @@ height: 36px;
 * 상단 라벨 스타일 */
 .status-column .label { font-size: 0.7rem; color: #000; font-weight: 800; }
 /* 하단 수치 스타일 */
-.status-column .value { font-size: 0.6rem; color: #333; font-weight: 400; }
+.status-column .value { font-size: 0.7rem; color: #000; font-weight: 800; }
 
 
 

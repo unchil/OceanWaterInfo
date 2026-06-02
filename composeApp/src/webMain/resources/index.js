@@ -24,14 +24,8 @@ document.addEventListener( "DOMContentLoaded", function() {
 
     startAutoRefresh();
 
-    console.log("1단계: 상황판 UI 생성");
-    const textElem = document.getElementById('description-text');
-    const sidebarTitle = document.querySelector('.sidebar-header h3');
 
-    if (qualityDescriptions['o3']) {
-        textElem.innerText = qualityDescriptions['o3'];
-        if (sidebarTitle) sidebarTitle.innerText = "Ozone(O3)";
-    }
+
     initStatusBoard();
 
 });
@@ -42,6 +36,11 @@ document.addEventListener( "DOMContentLoaded", function() {
  * 7단계 수평형 상황판을 사이드바 내에 생성합니다.
  */
 function initStatusBoard() {
+    console.log("1단계: 상황판 UI 생성");
+
+    const sidebarTitle = document.querySelector('.sidebar-header h3');
+    if (sidebarTitle) sidebarTitle.innerText = "Ozone(O3)";
+
     const container = document.getElementById('description-text');
     if (!container) return;
 
@@ -89,6 +88,10 @@ function toggleSidebar() {
     } else {
         icon.innerText = 'ⓘ';
     }
+
+    const iframe = document.getElementById('map-iframe');
+    iframe.contentWindow.postMessage({ action: 'UPDATE-STATE' }, '*');
+
 }
 
 
@@ -144,18 +147,8 @@ function changeTab(element, type) {
         sidebarTitle.innerText = element.innerText;
     }
 
-    const textElem = document.getElementById('description-text');
-
-    if (qualityDescriptions[type]) {
-        textElem.innerText = qualityDescriptions[type];
-    }
-
-
     // 3. iframe의 ID를 가져와서 src 변경
     const iframe = document.getElementById('map-iframe');
-
-    //페이지 새로고침 없이 함수만 호출하고 싶을 때
-    //src를 바꾸는 대신 메시지를 보냄
     iframe.contentWindow.postMessage({ action: 'CHANGE_TYPE', type: type }, '*');
 
 
