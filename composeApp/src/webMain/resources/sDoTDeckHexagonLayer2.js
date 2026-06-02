@@ -13,8 +13,13 @@ let zoomLevel = 12
 let center = { lat: 37.385852, lng: 126.934515 };
 let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
 let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
-
 let title;
+let elevationBase = 0; // 기본 높이 배율
+const animatedOpacity = 1.0 ;
+
+let currentType = 'o3';
+
+
 
 // Data.kt의 AirQualityStage 색상과 매칭 (RGB 형식)
 const airQualityColorRange = [
@@ -54,14 +59,76 @@ function getAirQualityLevel(value, type) {
     return 6;
 }
 
-let elevationBase = 0; // 기본 높이 배율
-const animatedOpacity = 1.0 ;
 
-let currentType = 'o3';
+
+
+/**
+ * jvmMain의 sDoTEnvInfoStat.value 로직을 이식한 함수
+ * 현재 로드된 데이터(cachedData)를 7단계로 분류하여 집계합니다.
+ */
+function updateAirQualityStatistics() {
+
+    // 1. 0~6단계 카운터를 0으로 초기화 (Map 역할)
+    const stats = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+
+    if (!cachedData || cachedData.length === 0) {
+        console.warn("집계할 데이터가 없습니다.");
+        return stats;
+    }
+
+    // 2. 전체 데이터를 순회하며 단계별 개수 계산
+    cachedData.forEach(d => {
+        // 데이터 정제 (공백 제거 및 숫자 변환)
+        const rawValue = d[currentType]?.toString().trim() || "";
+        const value = rawValue === "" ? -1 : (parseFloat(rawValue) || 0);
+
+        // 레벨 계산 (이전에 정의한 getAirQualityLevel 함수 사용)
+        // 값이 -1(공백)이면 0(UNKNOWN)으로 처리
+        const level = value === -1 ? 0 : getAirQualityLevel(value, currentType);
+
+        // 해당 단계 카운트 증가
+        stats[level]++;
+    });
+
+    // 3. 계산된 통계를 사이드바 상황판 UI에 반영
+    for (let i = 0; i < 7; i++) {
+        const targetElement = document.getElementById(`status-level-${i}`);
+        if (targetElement) {
+            // 이전에 만든 Column 구조 내의 .value 클래스를 찾음
+            const valueDisplay = targetElement.querySelector('.value');
+            if (valueDisplay) {
+                // 부드러운 업데이트를 위해 텍스트 교체
+                valueDisplay.innerText = stats[i];
+            }
+        }
+    }
+
+
+    console.log(`[통계 업데이트 완료] 타입: ${currentType}, 데이터수: ${cachedData.length}`);
+    return stats;
+}
+
+/**
+ * 특정 레벨(0~6)을 활성화 상태로 변경합니다.
+ */
+function updateSidebarStatusBoard(level) {
+    // 모든 항목에서 active 제거
+    document.querySelectorAll('.status-item-h').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 해당되는 단계만 활성화
+    const target = document.getElementById(`status-level-${level}`);
+    if (target) {
+        target.classList.add('active');
+    }
+}
+
+
 
 
 // 1. 데이터 업데이트 로직 (서버 요청)
-window.updateData = async function(type) {
+async function updateData(type) {
     if (animationId) {
         cancelAnimationFrame(animationId);
     }
@@ -119,13 +186,14 @@ window.updateData = async function(type) {
     );
 
 
+
     // 4. 레이어 렌더링 (캐시든 새 데이터든 호출)
     renderLayer();
 };
 
 
 // 2. 레이어 렌더링 로직 (시각적 설정 및 애니메이션 시작)
-window.renderLayer = function() {
+function renderLayer() {
     if (!deckData) return;
 
     let title;
@@ -240,7 +308,7 @@ async function initMap() {
 
 };
 
-//페이지 새로고침 없이 함수만 호출하고 싶을 때
+
 window.addEventListener("message", (event) => {
     if (event.data.action === 'CHANGE_TYPE') {
         currentType = event.data.type;

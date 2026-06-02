@@ -20,6 +20,11 @@ document.addEventListener( "DOMContentLoaded", function() {
         composeContainer.appendChild(script);
     }, { once: true });
 
+
+
+    startAutoRefresh();
+
+    console.log("1단계: 상황판 UI 생성");
     const textElem = document.getElementById('description-text');
     const sidebarTitle = document.querySelector('.sidebar-header h3');
 
@@ -27,10 +32,49 @@ document.addEventListener( "DOMContentLoaded", function() {
         textElem.innerText = qualityDescriptions['o3'];
         if (sidebarTitle) sidebarTitle.innerText = "Ozone(O3)";
     }
-
-    startAutoRefresh();
+    initStatusBoard();
 
 });
+
+
+
+/**
+ * 7단계 수평형 상황판을 사이드바 내에 생성합니다.
+ */
+function initStatusBoard() {
+    const container = document.getElementById('description-text');
+    if (!container) return;
+
+    // 단계별 명칭 (Data.kt의 AirQualityStage와 매칭)
+    const labels = ["모름", "좋음", "보통", "민감군영향", "나쁨", "매우나쁨", "위험"];
+
+    let itemsHtml = "";
+    for (let i = 0; i < 7; i++) {
+        itemsHtml += `
+            <div id="status-level-${i}" class="status-item-h status-${i}">
+               <!-- Column 구조를 위한 컨테이너 -->
+                <div class="status-column">
+                  <span class="label">${labels[i]}</span>
+                  <span class="value"></span>
+                </div>
+            </div>
+        `;
+    }
+
+    const boardHtml = `
+        <div id="air-quality-board" style="padding: 10px 0;">
+            <p style="font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; color: #555;">
+                <i class="fas fa-wind"></i> 실시간 대기질 지수 (AQI)
+            </p>
+            <div class="status-board-horizontal">
+                ${itemsHtml}
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforebegin', boardHtml);
+
+}
 
 
 function toggleSidebar() {
@@ -106,12 +150,15 @@ function changeTab(element, type) {
         textElem.innerText = qualityDescriptions[type];
     }
 
+
     // 3. iframe의 ID를 가져와서 src 변경
     const iframe = document.getElementById('map-iframe');
 
     //페이지 새로고침 없이 함수만 호출하고 싶을 때
     //src를 바꾸는 대신 메시지를 보냄
     iframe.contentWindow.postMessage({ action: 'CHANGE_TYPE', type: type }, '*');
+
+
 
 }
 
@@ -135,5 +182,7 @@ function startAutoRefresh() {
         }
     }, THIRTY_MINUTES);
 }
+
+
 
 

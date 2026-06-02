@@ -189,6 +189,78 @@ height: 36px;
     margin-top: 5px;
 }
 
+/* 7단계 수평형 상태 보드 컨테이너 */
+.status-board-horizontal {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 40px;
+    gap: 3px;
+    margin-top: 15px;
+    background-color: transparent;
+}
+
+/* 각 단계별 기본 스타일 */
+.status-item-h {
+    flex: 1; /* 평소에는 동일한 너비 */
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #000000 !important;
+    opacity: 0.6; /* 비활성 상태는 투명하게 */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 부드러운 확장 애니메이션 */
+    cursor: default;
+    overflow: hidden;
+}
+
+/* 활성화된 단계: 너비가 넓어지고 뚜렷하게 표시 */
+.status-item-h.active {
+    opacity: 1;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    z-index: 5;
+}
+
+/* Column 구조 컨테이너 */
+.status-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content:
+    center;
+    line-height: 1.2;
+}
+
+* 상단 라벨 스타일 */
+.status-column .label { font-size: 0.7rem; color: #000; font-weight: 800; }
+/* 하단 수치 스타일 */
+.status-column .value { font-size: 0.6rem; color: #333; font-weight: 400; }
+
+
+
+/* 활성 상태일 때만 Column 보이기 */
+.status-item-h.active .status-column { display: flex; }
+
+/* 텍스트 제어: 활성 상태가 아니면 숨김 */
+.status-item-h span {
+    display: block;
+    white-space: nowrap;
+}
+
+
+/* AirQualityStage 색상 매핑 (Data.kt 기준) */
+.status-0 { background-color: #D3D3D3; color: #555 !important; } /* Unknown */
+.status-1 { background-color: #00E400; }                         /* Good */
+.status-2 { background-color: #FFFF00; color: black !important; } /* Moderate */
+.status-3 { background-color: #FF7E00; }                         /* Sensitive */
+.status-4 { background-color: #FF0000; }                         /* Unhealthy */
+.status-5 { background-color: #8F3F97; }                         /* Very Unhealthy */
+.status-6 { background-color: #7E0023; }                         /* Hazardous */
+
+
 /* 내부 범례 디자인 (예시) */
 .legend-list { list-style: none; padding: 0; margin-top: 15px; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
