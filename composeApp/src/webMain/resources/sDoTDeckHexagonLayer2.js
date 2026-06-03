@@ -60,6 +60,66 @@ function getAirQualityLevel(value, type) {
 }
 
 
+/**
+ * 3단계(민감군 주의) ~ 6단계(위험)까지 레벨별 리스트를 생성 및 업데이트합니다.
+ */
+function updateLevelStatusLists() {
+    const sidebarContent = parent.document.getElementById('description-text');
+    if (!sidebarContent) return;
+
+    // 단계별 정보 정의
+    const levelInfo = {
+        3: { label: "민감군 주의 (UNHEALTHY_FOR_SENSITIVE)", class: "level-3" },
+        4: { label: "나쁨 (UNHEALTHY)", class: "level-4" },
+        5: { label: "매우 나쁨 (VERY_UNHEALTHY)", class: "level-5" },
+        6: { label: "위험 (HAZARDOUS)", class: "level-6" }
+    };
+
+    // 3단계부터 6단계까지 순회
+    for (let level = 6; level >= 3; level--) {
+        const containerId = `status-container-${level}`;
+        let container = parent.document.getElementById(containerId);
+        // 1. 기존 컨테이너가 있다면 아예 삭제하여 초기화
+        if (container) {
+            container.remove();
+            container = null; // 참조 초기화
+        }
+
+        // 1. 해당 레벨 데이터 필터링 및 정렬
+        const filteredEntries = deckData.filter(d => {
+            return getAirQualityLevel(d.value, currentType) === level;
+        }).sort((a, b) => b.value - a.value);
+
+        // 2. 데이터가 없으면 기존 UI 숨기고 다음 레벨로 이동
+        if (filteredEntries.length === 0) {
+            continue;
+        }
+
+        const html = `
+            <div id="${containerId}" class="air-quality-list-container">
+                <span class="air-quality-label ${levelInfo[level].class}">${levelInfo[level].label}</span>
+                <textarea id="text-area-${level}" class="air-quality-textarea ${levelInfo[level].class}" readonly></textarea>
+            </div>
+        `;
+        sidebarContent.insertAdjacentHTML('beforeend', html);
+        container = parent.document.getElementById(containerId);
+
+
+        // 4. 텍스트 내용 생성
+        const listText = filteredEntries.map((d, index) => {
+            const val = d.value.toFixed(3);
+            const addr = d.addr || "주소 정보 없음";
+            return `${index + 1}. [${val}] ${addr}`;
+        }).join('\n');
+
+        // 5. 값 업데이트 및 화면 표시
+        const textArea = parent.document.getElementById(`text-area-${level}`);
+        if (textArea) {
+            textArea.value = listText;
+            container.style.display = 'block';
+        }
+    }
+}
 
 
 /**
@@ -110,7 +170,7 @@ window.updateAirQualityStatistics = function() {
     }
 
     updateSidebarStatusBoard(level);
-
+    updateLevelStatusLists();
     console.log(`[통계 업데이트 완료] 타입: ${currentType}, 데이터수: ${cachedData.length}`);
 
 }
@@ -285,7 +345,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "",
+      mapId: "9038a0505ac4349baf8c6048",
       center:{ lat: 37.55267, lng: 126.98136 },
        zoom: zoomLevel,
        tilt: 45,

@@ -71,11 +71,10 @@ fun main() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-//                       OceanWaterInfo()
-
                     NuclearPlantStatePieChart_KHNP()
                     RadioActiveWastePlantStatStackedBarChart_KHNP()
                     KHNPRadioActiveWasteStackBarChart()
+
                     Row(
                         modifier = Modifier.fillMaxWidth().height(600.dp)
                             .border(BorderStroke(1.dp, Color.LightGray)).padding(10.dp)
@@ -111,6 +110,7 @@ fun main() {
                         }
 
                     }
+
                     RadioRateBarChart()
                     WasteWaterTimeSeries_KHNP()
                     ThermalWasteWaterTimeSeries_KHNP()
@@ -122,9 +122,6 @@ fun main() {
 
                     OceanWaterInfoDataGrid()
                     WaterDegTimeSeries_KHOA()
-
-
-
 
                 }
 
