@@ -62,12 +62,12 @@ function initStatusBoard() {
 
     const boardHtml = `
         <div id="air-quality-board" style="padding: 10px 0;">
-            <p style="font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; color: #555;">
-                <i class="fas fa-wind"></i> 실시간 대기질 지수 (AQI)
-            </p>
             <div class="status-board-horizontal">
                 ${itemsHtml}
             </div>
+            <p style="font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; color: #555;">
+                미국 환경보호청(US EPA)의 공식 가이드라인을 바탕으로, 공기질 항목(EPA 기준 오염물질 6종 + 산업/안전 가스 2종)을 6단계로 분류
+            </p>
         </div>
     `;
 
@@ -158,7 +158,7 @@ function changeTab(element, type) {
 // --- [추가] 30분 간격 자동 리프레시 로직 ---
 function startAutoRefresh() {
     //const THIRTY_MINUTES = 5 * 60 * 1000; // 5분을 밀리초로 계산
-    const THIRTY_MINUTES = 1 * 60 * 1000; // 1분을 밀리초로 계산
+    const THIRTY_MINUTES = 30 * 60 * 1000; // 1분을 밀리초로 계산
     setInterval(() => {
         const iframe = document.getElementById('map-iframe');
         if (iframe) {

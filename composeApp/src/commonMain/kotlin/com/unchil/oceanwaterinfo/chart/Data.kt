@@ -331,12 +331,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }
@@ -344,12 +344,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }
@@ -357,12 +357,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }
@@ -370,12 +370,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }
@@ -383,12 +383,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }
@@ -396,12 +396,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }
@@ -409,12 +409,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }
@@ -422,12 +422,12 @@ object AirQualityManager {
                 AirQualityStage.entries.forEach { it
                     when(it){
                         AirQualityStage.UNKNOWN -> airQualityStageComments.add("데이터가 존재하지 않음.")
-                        AirQualityStage.GOOD -> airQualityStageComments.add("가스 성분의 농도가 극히 낮아 안구, 코, 목 등의 점막 자극이 없습니다.")
-                        AirQualityStage.MODERATE -> airQualityStageComments.add("오존 등에 유독 민감한 천식 환자가 장시간 실외 활동 시 약한 호흡 불편을 겪을 수 있습니다.")
-                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("기도 염증 유발 가능성이 커지며, 민감군은 흡입 시 가슴 답답함을 느낄 수 있습니다.")
-                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("기침과 가래가 증가하고 폐 기능이 일시적으로 저하됩니다. 안구 건조 및 통증을 유발합니다.")
-                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("심한 폐 자극으로 인해 일반인도 숨이 차고 호흡기 감염 저항력이 크게 떨어집니다.")
-                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("호흡기 상피 세포가 손상되어 급성 천식 발작 및 만성 폐질환의 급격한 악화를 초래합니다.")
+                        AirQualityStage.GOOD -> airQualityStageComments.add("대기 오염으로 인한 건강 위험이 없거나 거의 없는 상태입니다. 모든 인구 집단이 야외 활동을 하기에 안전합니다.")
+                        AirQualityStage.MODERATE -> airQualityStageComments.add("대기질이 수용 가능한 수준이지만, 일부 오염 물질(특히 오존이나 미세먼지)에 극도로 민감한 극소수의 사람들에게는 가벼운 호흡기 증상이 나타날 수 있습니다.")
+                        AirQualityStage.UNHEALTHY_FOR_SENSITIVE -> airQualityStageComments.add("일반 대중에게는 큰 영향이 없으나, **민감군(어린이, 노인, 천식 등 호흡기/심장 질환자, 임산부)**은 건강에 직접적인 영향을 받기 시작합니다. 미세먼지/황산화물(또는 이산화황)/질소 가스: 민감군의 기침, 호흡 곤란, 가슴 답답함 유발. 일산화탄소: 협심증 등 심장 질환 환자의 운동 능력 저하 및 가슴 통증 유발.")
+                        AirQualityStage.UNHEALTHY -> airQualityStageComments.add("건강한 성인도 신체적 증상(눈 따가움, 기침, 두통)을 느끼기 시작하며, 민감군의 경우 심각한 건강 문제가 발생할 수 있습니다. 오존/이산화질소: 기도 점막에 염증이 생겨 깊은 숨을 들이쉴 때 통증을 유발하고 폐 기능이 일시적으로 감소합니다. 암모니아/황화수소 : 자극적인 악취가 강해지며 눈물, 콧물, 메스꺼움을 유발합니다.")
+                        AirQualityStage.VERY_UNHEALTHY -> airQualityStageComments.add("건강 경보가 발령되는 수준입니다. 모든 사람이 장시간 노출 시 심각한 호흡기 및 심혈관 유해 영향을 받을 위험이 매우 높습니다. 미세먼지: 혈관으로 침투해 심장마비, 뇌졸중 위험을 급격히 높이고 천식 환자의 급성 발작을 유발합니다. 일산화탄소: 헤모글로빈 산소 운반 저하로 가벼운 두통, 어지러움, 판단력 저하가 시작됩니다. 황화수소: 후각 신경이 점차 마비되어 오히려 썩은 달걀 냄새를 인지하지 못하게 되므로 매우 위험한 단계입니다.")
+                        AirQualityStage.HAZARDOUS -> airQualityStageComments.add("비상 사태 수준입니다. 전 인구 집단에게 심각한 건강 손상을 초래하거나 치명적일 수 있습니다. 이산화황/이산화질소: 화학적 자극으로 인해 폐수종(폐에 물이 참)이나 만성 폐쇄성 폐질환(COPD) 환자의 급성 사망 위험이 증가합니다. 일산화탄소: 중추신경계 마비, 구토, 의식 상실을 유발합니다. 암모니아/황화수소: 기도의 화학적 화상, 후두 부종으로 인한 질식, 신경계 마비로 인한 급성 '노크다운(의식 상실)' 및 심정지를 일으킬 수 있는 치명적인 농도입니다.")
                     }
                 }
             }

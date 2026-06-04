@@ -416,6 +416,18 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                             modifier = Modifier.fillMaxWidth()
                                         )
 
+                                        Spacer(Modifier.padding(2.dp))
+
+                                        OutlinedTextField(
+                                            value = selectedOption.unHealthyForSensitiveGroups(),
+                                            onValueChange = {}, // 읽기 전용
+                                            readOnly = true,
+                                            textStyle = MaterialTheme.typography.bodySmall,
+                                            label = { Text("폐질환자에게 미치는 피해") },
+                                            shape = RoundedCornerShape(6.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
                                         AirQualityManager.AirQualityStage.entries.forEachIndexed { index, stage ->
                                             val range = selectedOption.airQualityStageRange()[index]
                                             val comment = selectedOption.airQualityStageComment()[index]
@@ -433,20 +445,6 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                             }
 
                                         }
-
-                                        Spacer(Modifier.padding(2.dp))
-
-                                        OutlinedTextField(
-                                            value = selectedOption.unHealthyForSensitiveGroups(),
-                                            onValueChange = {}, // 읽기 전용
-                                            readOnly = true,
-                                            textStyle = MaterialTheme.typography.bodySmall,
-                                            label = { Text("폐질환자에게 미치는 피해") },
-                                            shape = RoundedCornerShape(6.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
-
-
 
                                     }
                                 }

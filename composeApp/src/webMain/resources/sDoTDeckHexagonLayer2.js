@@ -1,5 +1,7 @@
 //import {valuesHexagon } from './valuesHexagonLayer.js';
 
+import { qualityDetails } from './descriptions.js';
+
 const {GoogleMapsOverlay, HexagonLayer } = deck;
 const { load, JSONLoader } = loaders;
 let cachedData = null; // 서버에서 받은 데이터를 저장할 변수
@@ -171,6 +173,7 @@ window.updateAirQualityStatistics = function() {
 
     updateSidebarStatusBoard(level);
     updateLevelStatusLists();
+    updateSidebarInfoDisplay();
     console.log(`[통계 업데이트 완료] 타입: ${currentType}, 데이터수: ${cachedData.length}`);
 
 }
@@ -189,6 +192,36 @@ function updateSidebarStatusBoard(level) {
     if (target) {
         target.classList.add('active');
     }
+}
+
+
+function updateSidebarInfoDisplay() {
+    const container = parent.document.getElementById('description-text');
+    if (!container) return;
+
+    let elementId = 'stats-info-box'
+
+// 1. 기존에 생성된 박스가 있다면 제거 (갱신을 위해)
+    const oldBox = parent.document.getElementById(elementId);
+    if (oldBox) oldBox.remove();
+
+    const detail = qualityDetails[currentType];
+    if (!detail) return;
+
+    const labels = ["모름", "좋음", "보통", "민감군 영향", "나쁨", "매우 나쁨", "위험"];
+
+    let detailHtml = `<div id=${elementId} class="info-display-box"> <div class="info-header">정보</div><p><strong>[특징]</strong><br>${detail.specialFeature}</p><p style="color: #d32f2f;"><strong>[민감군 영향]</strong><br>${detail.sensitiveInfo}</p><div style="margin: 10px 0;"><strong>[단계별 기준 및 코멘트]</strong><ul style="padding-left: 15px; margin-top: 5px;">`;
+
+    for (let i = 1; i <= 6; i++) {
+        detailHtml += `<li style="margin-bottom: 5px;"><span style="font-weight: bold; color: #555;">${labels[i]}</span>: ${detail.ranges[i-1]}<br><span style="font-size: 0.8rem; color: #777;">&nbsp;&nbsp;→ ${detail.comments[i-1]}</span> </li>`;
+    }
+
+    detailHtml += `</ul></div></div>`;
+
+
+
+     container.insertAdjacentHTML('beforeend', detailHtml);
+
 }
 
 
@@ -345,7 +378,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "9038a0505ac4349baf8c6048",
+      mapId: "",
       center:{ lat: 37.55267, lng: 126.98136 },
        zoom: zoomLevel,
        tilt: 45,

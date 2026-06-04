@@ -152,6 +152,8 @@ height: 36px;
     left: 0;
 }
 
+.sidebar-header h3 { margin-top: 0; margin-bottom: 0px;}
+
 /* 실제 본문 박스 */
 .sidebar-content {
     width: 100%;
@@ -210,7 +212,7 @@ height: 36px;
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: bold;
-    color: #000000 !important;
+    color: #000000 ;
     opacity: 0.3; /* 비활성 상태는 투명하게 */
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 부드러운 확장 애니메이션 */
     cursor: default;
@@ -235,14 +237,16 @@ height: 36px;
 }
 
 * 상단 라벨 스타일 */
-.status-column .label { font-size: 0.7rem; color: #000; font-weight: 800; }
+.status-column .label { font-size: 0.7rem; color: inherit ; font-weight: 800; }
 /* 하단 수치 스타일 */
-.status-column .value { font-size: 0.7rem; color: #000; font-weight: 800; }
+.status-column .value { font-size: 0.7rem; color: inherit ; font-weight: 800; }
 
 
 
 /* 활성 상태일 때만 Column 보이기 */
 .status-item-h.active .status-column { display: flex; }
+
+
 
 /* 텍스트 제어: 활성 상태가 아니면 숨김 */
 .status-item-h span {
@@ -252,13 +256,13 @@ height: 36px;
 
 
 /* AirQualityStage 색상 매핑 (Data.kt 기준) */
-.status-0 { background-color: #D3D3D3; color: #555 !important; } /* Unknown */
-.status-1 { background-color: #00E400; }                         /* Good */
-.status-2 { background-color: #FFFF00; color: black !important; } /* Moderate */
-.status-3 { background-color: #FF7E00; }                         /* Sensitive */
-.status-4 { background-color: #FF0000; }                         /* Unhealthy */
-.status-5 { background-color: #8F3F97; }                         /* Very Unhealthy */
-.status-6 { background-color: #7E0023; }                         /* Hazardous */
+.status-0 { background-color: #D3D3D3; color: #555 ; } /* Unknown */
+.status-1 { background-color: #00E400; color: black ;}                         /* Good */
+.status-2 { background-color: #FFFF00; color: black ; } /* Moderate */
+.status-3 { background-color: #FF7E00; color: black ;}                         /* Sensitive */
+.status-4 { background-color: #FF0000; color:white !important; }                         /* Unhealthy */
+.status-5 { background-color: #8F3F97;  color:white !important; }                         /* Very Unhealthy */
+.status-6 { background-color: #7E0023;  color:white !important; }                         /* Hazardous */
 
 
 /* 레벨별 공통 컨테이너 스타일 */
@@ -296,6 +300,32 @@ height: 36px;
 .level-4 { border-color: #FF0000; color: #FF0000; } /* 나쁨 */
 .level-5 { border-color: #8F3F97; color: #8F3F97; } /* 매우 나쁨 */
 .level-6 { border-color: #7E0023; color: #7E0023; } /* 위험 */
+
+
+.info-display-box {
+ width: 450px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.info-header {
+    font-weight: bold;
+    color: #1a73e8;
+    border-bottom: 2px solid #1a73e8;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+}
+
+.info-display-box ul { list-style-type: none; padding: 0; }
+.info-display-box p { margin: 10px 0px; }
+
 
 
 
