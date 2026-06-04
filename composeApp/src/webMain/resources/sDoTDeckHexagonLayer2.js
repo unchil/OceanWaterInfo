@@ -88,9 +88,20 @@ function updateLevelStatusLists() {
         }
 
         // 1. 해당 레벨 데이터 필터링 및 정렬
-        const filteredEntries = deckData.filter(d => {
-            return getAirQualityLevel(d.value, currentType) === level;
-        }).sort((a, b) => b.value - a.value);
+
+
+        const filteredEntries = cachedData.map(d => ({
+                sensing_time: d.sensing_time,
+                obs:d.obs,
+                addr:d.addr,
+                lng: Number(d.lng),
+                lat: Number(d.lat),
+                value: (parseFloat(d[currentType]) || 0 )
+            })
+        ).filter(d => {
+          return getAirQualityLevel(d.value, currentType) === level;
+      }).sort((a, b) => b.value - a.value);
+
 
         // 2. 데이터가 없으면 기존 UI 숨기고 다음 레벨로 이동
         if (filteredEntries.length === 0) {
@@ -377,7 +388,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "",
+      mapId: "9038a0505ac4349baf8c6048",
       center:{ lat: 37.55267, lng: 126.98136 },
        zoom: zoomLevel,
        tilt: 45,
