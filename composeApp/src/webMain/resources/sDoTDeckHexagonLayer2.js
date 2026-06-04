@@ -333,7 +333,6 @@ function renderLayer() {
             value: d.value
         })),
         gpuAggregation: true,
-        extruded: true,
         getPosition: d => [d.lng, d.lat],
         colorRange: airQualityColorRange,
         colorDomain: [1, 6],

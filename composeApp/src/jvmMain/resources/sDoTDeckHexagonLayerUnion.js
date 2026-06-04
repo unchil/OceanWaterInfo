@@ -155,7 +155,6 @@ window.initMapWithData =  function( values, type) {
         data: values,
 
         gpuAggregation: true,
-        extruded: true,
         getPosition: d => [d.lng, d.lat],
 
     // 1. 색상 범위 설정 (위에서 만든 6단계 색상)
