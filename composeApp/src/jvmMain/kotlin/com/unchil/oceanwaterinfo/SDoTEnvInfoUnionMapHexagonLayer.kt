@@ -423,7 +423,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                                             onValueChange = {}, // 읽기 전용
                                             readOnly = true,
                                             textStyle = MaterialTheme.typography.bodySmall,
-                                            label = { Text("폐질환자에게 미치는 피해") },
+                                            label = { Text("민감군 영향") },
                                             shape = RoundedCornerShape(6.dp),
                                             modifier = Modifier.fillMaxWidth()
                                         )
