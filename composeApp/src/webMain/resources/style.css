@@ -283,6 +283,7 @@ height: 36px;
     line-height: 1.5;
     resize: none;
     border: 2px solid #ccc;
+    outline: none; /* 포커스 시 생기는 외곽선 제거 */
 }
 
 .air-quality-label {
