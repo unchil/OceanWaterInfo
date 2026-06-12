@@ -95,6 +95,13 @@ class RestApi {
             return client.get(urlString = url)
         }
 
+        val commonJson = Json {
+            encodeDefaults = true
+            isLenient = true
+            coerceInputValues = true
+            ignoreUnknownKeys = true // 여기서 설정한 것이 적용됨
+        }
+
 
         val client = HttpClient(CIO) {
 
@@ -104,15 +111,9 @@ class RestApi {
             }
 
             install(ContentNegotiation) {
-
-                json(Json {
-                    encodeDefaults = true
-                    isLenient = true
-                    coerceInputValues = true
-                    ignoreUnknownKeys = true
-                })
-
+                json(commonJson)
             }
+
             install(HttpTimeout) {
                 requestTimeoutMillis = 10000
                 connectTimeoutMillis = 3000

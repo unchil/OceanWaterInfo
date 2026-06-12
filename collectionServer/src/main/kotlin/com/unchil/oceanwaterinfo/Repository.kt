@@ -492,7 +492,7 @@ class Repository {
             var receiveData: MutableList<SDoTEnvInformation> = mutableListOf()
 
             RestApi.callSDoT_EnvInfo_json(url+"1/1000/").let{
-                val response = Json.decodeFromString<SDoTEnvResponse>(it)
+                val response = RestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
                 LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
                 receiveData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
                 uniqueSensingTimeCount = receiveData.map { it.SENSING_TIME }.distinct().size
@@ -500,7 +500,7 @@ class Repository {
 
             if(uniqueSensingTimeCount == 1){
                 RestApi.callSDoT_EnvInfo_json(url+"1001/1200/").let{
-                    val response = Json.decodeFromString<SDoTEnvResponse>(it)
+                    val response = RestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
                     LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
                     receiveData.addAll(response.sDoTEnv.row as MutableList<SDoTEnvInformation>)
                 }
@@ -623,7 +623,7 @@ class Repository {
             try {
                 RestApi.callKhoaAPI_json(url).let {
 
-                    val response = Json.decodeFromString<KhonTidalCurrentInfoResponse>(it)
+                    val response = RestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
 
                     LOGGER.info("${::getKhoaTidalCurrent.name} [receive count[${response.result.meta.sch_time}]]")
 
@@ -689,7 +689,7 @@ class Repository {
 
                      try {
                             RestApi.callKhoaAPI_json(pageUrl).let {
-                             val recvData = Json.decodeFromString<KhoaObservationResponse>(it)
+                             val recvData = RestApi.commonJson.decodeFromString<KhoaObservationResponse>(it)
 
                              if(recvData.header.resultCode.equals("00")) {
                              //    requestPage += 1
@@ -821,8 +821,9 @@ class Repository {
     @Suppress("DefaultLocale")
     suspend fun getRealTimeObservation(){
         try{
+
             RestApi.callNifsAPI_json("list").let {
-                val recvData = Json.decodeFromString<ObservationResponse>(it)
+                val recvData = RestApi.commonJson.decodeFromString<ObservationResponse>(it)
                 if(recvData.header.resultCode.equals("00")){
                     LOGGER.info( "${::getRealTimeObservation.name} [receive count[${recvData.body.item.size}]]")
                     transaction (Config.conn){
@@ -870,7 +871,7 @@ class Repository {
     suspend fun getRealTimeObservatory(){
         try{
             RestApi.callNifsAPI_json("code").let {
-                val recvData = Json.decodeFromString<ObservatoryResponse>(it)
+                val recvData = RestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
                 if(recvData.header.resultCode.equals("00")) {
 
                     LOGGER.info( "${::getRealTimeObservatory.name} [receive count[${recvData.body.item.size}]]")
