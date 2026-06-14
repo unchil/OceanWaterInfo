@@ -1,0 +1,17 @@
+@reqDate = 20260309
+@min = 5
+@pageNo = 1
+@numOfRows = 300
+@obsCode = HB_0001
+
+###
+GET {{host}}/{{suburl}}
+    ?serviceKey={{key}}
+    &type={{type}}
+    &reqDate={{reqDate}}
+    &min={{min}}
+    &pageNo={{pageNo}}
+    &numOfRows={{numOfRows}}
+    &obsCode={{obsCode}}
+
+

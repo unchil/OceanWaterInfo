@@ -1,0 +1,34 @@
+GET {{host}}/OpenAPI_json
+    ?key={{key}}&id=risaList
+Accept: application/json
+
+<> 2026-06-12T095341.200.json
+
+
+
+
+
+
+
+###
+# 서버가 잘못된 인코딩을 알려줄 때 (ISO-8859-1 -> EUC-KR)
+# 예시: 이 URL은 Content-Type으로 ISO-8859-1을 보내지만, 실제 내용은 EUC-KR이라고 가정
+###
+
+GET {{host}}/OpenAPI_json
+    ?key={{key}}&id=risaList
+Accept: application/json
+
+> {%
+    console.log(response.status);
+    console.log(response.contentType);
+    console.log(response.headers);
+    console.log(response.body);
+
+    client.test("Manually decode response and verify content", function() {
+        console.log("--- Decoded as EUC-KR ---");
+        console.log(response.bodyBytes);
+    });
+
+%}
+

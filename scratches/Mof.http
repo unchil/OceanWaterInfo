@@ -1,0 +1,12 @@
+@wtch_dt_start = "20260612 000000"
+@wtch_dt_end = "20260612 100000"
+###
+GET {{host}}/{{suburl}}
+    ?ServiceKey={{key}}
+    &numOfRows=1000
+    &pageNo=1
+    &wtch_dt_start={{wtch_dt_start}}
+    &wtch_dt_end={{wtch_dt_end}}
+
+<> 2026-06-12T105423.200.xml
+

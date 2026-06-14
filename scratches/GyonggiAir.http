@@ -1,0 +1,19 @@
+//2026-04-13 19:00
+// space = %20
+// : = %3A
+@MESURE_DAY_TM=2026-04-15%2008%3A00
+@key=7e54f9752dc34412a3b65df90ffe71a5
+
+### 경기도 대기오염 정보 조회
+GET https://openapi.gg.go.kr/Sidoatmospolutnmesure
+    ?KEY={{key}}
+    &Type=json
+    &MESURE_DAY_TM={{MESURE_DAY_TM}}
+
+<> 2026-04-15T092013.200.html
+<> 2026-04-15T090330.200.html
+
+
+
+
+

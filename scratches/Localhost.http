@@ -1,0 +1,74 @@
+### 서울 대기오염 정보 조회 로컬서비스
+GET {{host}}/seoul/sdot_env_info
+Accept: application/json
+
+
+
+### 경기 대기오염 정보 조회 로컬서비스
+GET {{host}}/gyonggi/sdot_env_info
+Accept: application/json
+
+
+
+
+### 서울/경기 대기오염 정보 조회 로컬서비스
+GET {{host}}/sdot_env_info
+Accept: application/json
+
+<> 2026-04-15T092439.200.json
+
+
+
+###
+GET {{host}}/khoa/tidal_current_info
+Accept: application/json
+
+###
+GET {{host}}/khoa/observationinfo_current
+Accept: application/json
+
+
+
+###
+GET {{host}}/khoa/observationinfo
+Accept: application/json
+
+
+
+###
+GET {{host}}/khoa/observatoryinfo
+Accept: application/json
+
+
+
+###
+GET {{host}}/{{seawaterinfo}}/oneDayBoxPlot
+
+
+
+###
+GET {{host}}/{{swi}}/mof_oneday
+
+
+###
+GET {{host}}/{{seawaterinfo}}/current
+
+
+
+###
+GET {{host}}/{{seawaterinfo}}/oneday
+
+
+###
+GET {{host}}/{{seawaterinfo}}/grid
+
+
+###
+GET {{host}}/{{stat}}
+
+
+###
+GET {{host}}/{{observatory}}
+
+
+

@@ -1,0 +1,8 @@
+
+@genName = WS
+
+###
+GET {{host}}/{{ThermalWasteWater}}?serviceKey={{key}}&genName={{genName}}
+
+<> 2026-06-14T110904.200.xml
+
