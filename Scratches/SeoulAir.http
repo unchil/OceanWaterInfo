@@ -1,0 +1,10 @@
+### GET request to example server
+### 서울 대기오염 정보 조회
+
+@subPath = 1/1000/
+
+GET {{host}}/{{key}}/{{type}}/{{suburl}}/{{subPath}}
+
+<> 2026-06-14T124311.200.json
+
+
