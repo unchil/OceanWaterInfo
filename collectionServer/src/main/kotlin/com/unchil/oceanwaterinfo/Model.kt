@@ -393,6 +393,7 @@ data class CollectionConfig(
     val event: String,
     val interval: String,
     val wtch_dt_start: String? = null, // JSON에 없을 수도 있는 값은 nullable로 처리
-    val wtch_dt_end: String? = null
+    val wtch_dt_end: String? = null,
+    val allowedIntervals:List<Int> = emptyList()
 )
 
