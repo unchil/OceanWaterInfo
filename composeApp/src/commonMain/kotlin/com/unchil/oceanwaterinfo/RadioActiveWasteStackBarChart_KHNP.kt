@@ -30,7 +30,7 @@ fun KHNPRadioActiveWasteStackBarChart() {
     }
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
         }
@@ -71,6 +71,8 @@ fun KHNPRadioActiveWasteStackBarChart() {
         }
     }
 
+    // [Reload, Tooltips, Symbol, Legend]
+    val bottomBarOpt = listOf(true, true, false, true)
 
     ChartDataFlow(
         chartData = ChartData.XYPlotStringInt(chartData.value),
@@ -79,7 +81,9 @@ fun KHNPRadioActiveWasteStackBarChart() {
         yTitle = "RadioActiveWaste",
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
         chartType = ChartType.StackedVerticalBar,
-        legendTitle = "Month"
+        legendTitle = "Month",
+        onReload = onReload,
+        bottomBarOpt = bottomBarOpt
     ) {
 
         var selectedTabIndex by remember { mutableIntStateOf(0) }

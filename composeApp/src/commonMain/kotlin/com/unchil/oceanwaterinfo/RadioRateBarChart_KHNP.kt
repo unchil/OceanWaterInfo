@@ -29,7 +29,7 @@ fun RadioRateBarChart(){
 
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(KhnpRadioRateViewModel.Event.Refresh)
         }
@@ -64,8 +64,11 @@ fun RadioRateBarChart(){
         }
     }
 
+    // [Reload, Tooltips, Symbol, Legend]
+    val bottomBarOpt = listOf(true, true, false, true)
 
-        ChartDataFlow(
+
+    ChartDataFlow(
             chartData = ChartData.XYPlotStringFloat(chartData.value),
             title = "Power Plant Radio Rate",
             xTitle = "Name",
@@ -73,7 +76,9 @@ fun RadioRateBarChart(){
             caption = "from https://www.data.go.kr/data/15157701/openapi.do",
             chartType = ChartType.VerticalBar,
             yRangePadding = 0.05f,
-            legendTitle = "Name"
+            legendTitle = "Name",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }

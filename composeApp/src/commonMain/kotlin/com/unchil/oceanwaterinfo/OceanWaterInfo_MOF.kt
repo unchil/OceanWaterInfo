@@ -31,7 +31,7 @@ fun OceanWaterInfo_MOF(){
         MofSeaWaterInfoViewModel( coroutineScope )
     }
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
         }
@@ -77,6 +77,9 @@ fun OceanWaterInfo_MOF(){
 
 
 
+    // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, true, true, true)
+
 
         ChartDataFlow(
             chartType = ChartType.Line,
@@ -88,7 +91,9 @@ fun OceanWaterInfo_MOF(){
             description = selectedOption.desc(),
             yRangePadding = 0.1f,
             selectedOption = selectedOption,
-            legendTitle = "Observatory"
+            legendTitle = "Observatory",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }

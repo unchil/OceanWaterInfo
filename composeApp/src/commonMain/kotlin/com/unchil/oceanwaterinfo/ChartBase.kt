@@ -62,15 +62,17 @@ sealed class ChartData {
 
 @Composable
 fun ChartFeatureControls(
-    isTooltips: Boolean? = null, onTooltipsChange: (Boolean) -> Unit = {},
-    isSymbol: Boolean? = null, onSymbolChange: (Boolean) -> Unit = {},
-    isLegend: Boolean? = null, onLegendChange: (Boolean) -> Unit = {}
+    onChangeFlag:(String, Boolean) -> Unit ,
+    bottomBarOpt: List<Boolean> = listOf(true, true, true, true)
 ) {
+    var isReloadFlag by remember { mutableStateOf(true)}
+
     val options = remember {
         mutableListOf<String>().apply {
-            if (isTooltips != null) add("Tooltips")
-            if (isSymbol != null) add("Symbol")
-            if (isLegend != null) add("Legend")
+            if (bottomBarOpt[0]) add("Reload")
+            if (bottomBarOpt[1]) add("Tooltips")
+            if (bottomBarOpt[2]) add("Symbol")
+            if (bottomBarOpt[3]) add("Legend")
         }
     }
     if (options.isEmpty()) return
@@ -80,21 +82,29 @@ fun ChartFeatureControls(
     }
 
     MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+
         options.forEachIndexed { index, label ->
             SegmentedButton(
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
                 onCheckedChange = { checked ->
-                    if (checked) selectedOptions.add(index) else selectedOptions.remove(index)
-                    when (label) {
-                        "Tooltips" -> onTooltipsChange(checked)
-                        "Symbol" -> onSymbolChange(checked)
-                        "Legend" -> onLegendChange(checked)
+                    if (label == "Reload") {
+                        isReloadFlag = !isReloadFlag
+                        onChangeFlag(label, isReloadFlag)
+                    } else {
+                        if (checked) {
+                            selectedOptions.add(index)
+                        } else {
+                            selectedOptions.remove(index)
+                        }
+                        onChangeFlag(label, checked)
                     }
                 },
-                checked = index in selectedOptions
+                checked = if (label == "Reload") false else index in selectedOptions
             ) {
                 Text(label)
             }
+
+
         }
     }
 }
@@ -330,12 +340,13 @@ fun ChartDataFlow(
     selectedOption: WATER_QUALITY.QualityType? = null,
     secondaryKey: String? = null,
     visibleBottomBar: Boolean = true,
-    onRefresh: (() -> Unit)? = null,
+    onReload: (() -> Unit)? = null,
+    bottomBarOpt:List<Boolean> = listOf(true, true, true, true),
     topBar: @Composable (() -> Unit) = {}
 ){
 
 
-    // 2. 내부 상태 관ChartPeriodicRefresh리 (레이아웃 및 UI 옵션)
+    var isReload by remember { mutableStateOf(true)}
     var isTooltips by remember { mutableStateOf(true) }
     var isSymbol by remember { mutableStateOf(true) }
     var isLegend by remember { mutableStateOf(true) }
@@ -343,8 +354,8 @@ fun ChartDataFlow(
 
     val uiState = remember { mutableStateOf<ChartUiState>(ChartUiState.Loading) }
 
-    // 3. 데이터 변경에 따른 레이아웃 및 UI 상태 업데이트 흐름
-    LaunchedEffect(chartData, isTooltips, isSymbol, isLegend, yTitle) {
+
+    LaunchedEffect(chartData, isReload, isTooltips, isSymbol, isLegend, yTitle) {
 
 
         val isEmpty = when(chartData){
@@ -455,11 +466,20 @@ fun ChartDataFlow(
         topBar = topBar,
         bottomBar = {
             if(visibleBottomBar){
-                // onRefresh 를 사용할수 있도록 수정.
+                // onReload 를 사용할수 있도록 수정.
                 ChartFeatureControls(
-                    isTooltips = isTooltips, onTooltipsChange = { isTooltips = it },
-                    isSymbol = isSymbol, onSymbolChange = { isSymbol = it },
-                    isLegend = isLegend, onLegendChange = { isLegend = it }
+                    onChangeFlag = { label, value ->
+                        when(label){
+                            "Reload" -> {
+                                isReload = value // ReComposable 을 위해
+                                onReload?.invoke()
+                            }
+                            "Tooltips" -> isTooltips = value
+                            "Symbol" -> isSymbol = value
+                            "Legend" -> isLegend = value
+                        }
+                    },
+                    bottomBarOpt = bottomBarOpt
                 )
             }
         },

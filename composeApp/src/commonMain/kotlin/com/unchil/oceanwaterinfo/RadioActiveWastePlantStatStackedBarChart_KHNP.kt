@@ -23,7 +23,7 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
     }
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
         }
@@ -57,7 +57,8 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
 
     }
 
-
+    // [Reload, Tooltips, Symbol, Legend]
+    val bottomBarOpt = listOf(true, true, false, true)
 
     ChartDataFlow(
         chartData = ChartData.XYPlotStringInt(chartData.value),
@@ -67,7 +68,9 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
         chartType = ChartType.StackedVerticalBar,
         legendTitle = "Year",
-        legendColor = LegendColor(start=Color.Blue, end=Color.Red)
+        legendColor = LegendColor(start=Color.Blue, end=Color.Red),
+        onReload = onReload,
+        bottomBarOpt = bottomBarOpt
     )
 
 

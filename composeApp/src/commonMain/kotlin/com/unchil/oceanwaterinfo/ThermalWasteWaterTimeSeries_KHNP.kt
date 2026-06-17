@@ -27,7 +27,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
 
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
         }
@@ -75,6 +75,8 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
         }
     }
 
+        // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, true, false, true)
 
 
         ChartDataFlow(
@@ -87,7 +89,9 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             yRangePadding = 1.0f,
             legendTitle = "Power Plant",
             // YAxis min/max 에 함께 사용될 secondaryKey
-            secondaryKey = "rm005"
+            secondaryKey = "rm005",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         )
 
 

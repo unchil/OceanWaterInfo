@@ -50,7 +50,7 @@ fun WasteWaterTimeSeries_KHNP() {
     val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel(coroutineScope) }
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
         }
@@ -100,8 +100,12 @@ fun WasteWaterTimeSeries_KHNP() {
 
     var description by remember { mutableStateOf(false) }
 
+    // [Reload, Tooltips, Symbol, Legend]
+    val bottomBarOpt = listOf(true, true, true, true)
 
-        ChartDataFlow(
+
+
+    ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
             title = "3-hour WasteWater Current",
             xTitle = "DateTime",
@@ -110,6 +114,8 @@ fun WasteWaterTimeSeries_KHNP() {
             chartType = ChartType.Point,
             yRangePadding = 0.1f,
             legendTitle = "Power Plant",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         ) {
 
             Box(

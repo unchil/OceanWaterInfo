@@ -29,7 +29,7 @@ fun OceanWaterInfoTimeSeries(){
     }
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
         }
@@ -67,6 +67,9 @@ fun OceanWaterInfoTimeSeries(){
         }
     }
 
+    // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, true, true, true)
+
 
         ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
@@ -76,7 +79,9 @@ fun OceanWaterInfoTimeSeries(){
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.Line,
             yRangePadding = 1.0f,
-            legendTitle = "Observatory"
+            legendTitle = "Observatory",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }

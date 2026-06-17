@@ -29,7 +29,7 @@ fun OceanWaterInfoBarChart(){
         NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
     }
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
         }
@@ -63,8 +63,11 @@ fun OceanWaterInfoBarChart(){
         }
     }
 
+    // [Reload, Tooltips, Symbol, Legend]
+    val bottomBarOpt = listOf(true, true, false, true)
 
-        ChartDataFlow(
+
+    ChartDataFlow(
             chartData = ChartData.XYPlotStringFloat(chartData.value),
             title = "Surface Temperature",
             xTitle = "DateTime",
@@ -72,7 +75,9 @@ fun OceanWaterInfoBarChart(){
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.VerticalBar,
             yRangePadding = 1.0f,
-            legendTitle = "Observatory"
+            legendTitle = "Observatory",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }

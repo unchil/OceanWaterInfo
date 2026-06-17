@@ -30,7 +30,7 @@ fun WaterDegTimeSeries_KHOA(){
 
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
         }
@@ -72,6 +72,8 @@ fun WaterDegTimeSeries_KHOA(){
     }
 
 
+    // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, true, true, true)
 
         ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
@@ -82,6 +84,8 @@ fun WaterDegTimeSeries_KHOA(){
             chartType = ChartType.DegLine,
             yRangePadding = 1.0f,
             legendTitle = "Observatory",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         )
 
 
