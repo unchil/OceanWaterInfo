@@ -330,11 +330,10 @@ fun ChartDataFlow(
     selectedOption: WATER_QUALITY.QualityType? = null,
     secondaryKey: String? = null,
     visibleBottomBar: Boolean = true,
-    onRefresh: () -> Unit,
+    onRefresh: (() -> Unit)? = null,
     topBar: @Composable (() -> Unit) = {}
 ){
-    // 1. 주기적 데이터 갱신 로직 (1분 단위)
-    onRefresh()
+
 
     // 2. 내부 상태 관ChartPeriodicRefresh리 (레이아웃 및 UI 옵션)
     var isTooltips by remember { mutableStateOf(true) }
@@ -456,6 +455,7 @@ fun ChartDataFlow(
         topBar = topBar,
         bottomBar = {
             if(visibleBottomBar){
+                // onRefresh 를 사용할수 있도록 수정.
                 ChartFeatureControls(
                     isTooltips = isTooltips, onTooltipsChange = { isTooltips = it },
                     isSymbol = isSymbol, onSymbolChange = { isSymbol = it },

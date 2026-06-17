@@ -26,13 +26,19 @@ fun WindPolarChart_KHOA(){
 
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
+        }
+    }
+
+
+    LaunchedEffect(Unit){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
             }
         }
     }
+
 
     val windInfo = viewModel._observationStateFlow.collectAsState()
 
@@ -77,8 +83,7 @@ fun WindPolarChart_KHOA(){
             legendTitle = "Observatory",
             height = 600.dp,
             maxCrSp = maxCrSp.value,
-            visibleBottomBar = false,
-            onRefresh = onRefresh
+            visibleBottomBar = false
         )
 
 

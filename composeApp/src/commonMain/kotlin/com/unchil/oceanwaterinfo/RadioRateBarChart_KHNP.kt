@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioRateViewModel
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -26,12 +27,18 @@ fun RadioRateBarChart(){
         KhnpRadioRateViewModel(  coroutineScope  )
     }
 
+
+
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(KhnpRadioRateViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(KhnpRadioRateViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(KhnpRadioRateViewModel.Event.Refresh)
             }
         }
     }
@@ -66,8 +73,7 @@ fun RadioRateBarChart(){
             caption = "from https://www.data.go.kr/data/15157701/openapi.do",
             chartType = ChartType.VerticalBar,
             yRangePadding = 0.05f,
-            legendTitle = "Name",
-            onRefresh = onRefresh
+            legendTitle = "Name"
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }

@@ -27,12 +27,19 @@ fun WaterDegTimeSeries_KHOA(){
         KhoaObservationViewModel(  coroutineScope  )
     }
 
+
+
+
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
             }
         }
     }
@@ -75,9 +82,6 @@ fun WaterDegTimeSeries_KHOA(){
             chartType = ChartType.DegLine,
             yRangePadding = 1.0f,
             legendTitle = "Observatory",
-            // YAxis min/max 에 함께 사용될 secondaryKey
-          //  secondaryKey = ,
-            onRefresh = onRefresh
         )
 
 

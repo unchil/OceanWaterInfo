@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioActiveWasteViewModel
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -21,12 +22,17 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
         KhnpRadioActiveWasteViewModel(  coroutineScope  )
     }
 
+
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(24 * 60 * 60 * 1000L).let{
-                    viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(24 * 60 * 60 * 1000L).let{
+                viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
             }
         }
     }
@@ -61,8 +67,7 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
         caption = "from https://www.data.go.kr/data/15157707/openapi.do",
         chartType = ChartType.StackedVerticalBar,
         legendTitle = "Year",
-        legendColor = LegendColor(start=Color.Blue, end=Color.Red),
-        onRefresh = onRefresh
+        legendColor = LegendColor(start=Color.Blue, end=Color.Red)
     )
 
 

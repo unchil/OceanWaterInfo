@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
@@ -37,12 +38,17 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
         KhoaObservationCurrentViewModel(coroutineScope)
     }
 
+
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             }
         }
     }
@@ -123,8 +129,7 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
             yRangePadding = 0.0f,
             legendTitle = "Observatory",
             height = 600.dp,
-            visibleBottomBar = false,
-            onRefresh = onRefresh
+            visibleBottomBar = false
         )
 
 

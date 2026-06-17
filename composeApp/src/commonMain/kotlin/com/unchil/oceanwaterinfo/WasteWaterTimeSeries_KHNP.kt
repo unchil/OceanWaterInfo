@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
@@ -47,12 +48,18 @@ import kotlin.time.Duration.Companion.minutes
 fun WasteWaterTimeSeries_KHNP() {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel(coroutineScope) }
+
+
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
             }
         }
     }
@@ -103,10 +110,6 @@ fun WasteWaterTimeSeries_KHNP() {
             chartType = ChartType.Point,
             yRangePadding = 0.1f,
             legendTitle = "Power Plant",
-
-            // YAxis min/max 에 함께 사용될 secondaryKey
-        //    secondaryKey = "tm001",
-            onRefresh = onRefresh
         ) {
 
             Box(

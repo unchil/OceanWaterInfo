@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.WATER_QUALITY.desc
 import com.unchil.oceanwaterinfo.WATER_QUALITY.name
 import com.unchil.oceanwaterinfo.WATER_QUALITY.unit
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -32,10 +33,14 @@ fun OceanWaterInfo_MOF(){
 
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
             }
         }
     }
@@ -83,8 +88,7 @@ fun OceanWaterInfo_MOF(){
             description = selectedOption.desc(),
             yRangePadding = 0.1f,
             selectedOption = selectedOption,
-            legendTitle = "Observatory",
-            onRefresh = onRefresh
+            legendTitle = "Observatory"
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }

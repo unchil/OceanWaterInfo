@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -30,10 +31,14 @@ fun OceanWaterInfoBoxPlotChart(){
 
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
             }
         }
     }
@@ -64,8 +69,7 @@ fun OceanWaterInfoBoxPlotChart(){
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.BoxPlot,
             yRangePadding = 1.0f,
-            legendTitle = "Observatory",
-            onRefresh = onRefresh
+            legendTitle = "Observatory"
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }

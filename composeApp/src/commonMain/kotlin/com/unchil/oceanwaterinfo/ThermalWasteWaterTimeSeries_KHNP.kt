@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.unchil.oceanwaterinfo.viewmodel.KhnpThermalWasteWaterViewModel
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
@@ -24,12 +25,18 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpThermalWasteWaterViewModel = remember { KhnpThermalWasteWaterViewModel(coroutineScope) }
 
+
+
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
             }
         }
     }
@@ -80,8 +87,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             yRangePadding = 1.0f,
             legendTitle = "Power Plant",
             // YAxis min/max 에 함께 사용될 secondaryKey
-            secondaryKey = "rm005",
-            onRefresh = onRefresh
+            secondaryKey = "rm005"
         )
 
 

@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
+import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -30,10 +31,14 @@ fun OceanWaterInfoBarChart(){
 
     val onRefresh:()->Unit = {
         coroutineScope.launch {
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
-                }
+            viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             }
         }
     }
@@ -67,10 +72,7 @@ fun OceanWaterInfoBarChart(){
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.VerticalBar,
             yRangePadding = 1.0f,
-            legendTitle = "Observatory",
-            // YAxis min/max 에 함께 사용될 secondaryKey
-            //    secondaryKey = "tm001",
-            onRefresh = onRefresh
+            legendTitle = "Observatory"
         ){
 
             var selectedTabIndex by remember { mutableIntStateOf(0) }
