@@ -299,9 +299,9 @@ fun main() = application {
                                                     WindPolarChart_KHOA()
 
                                                     //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
+                                                    // 그리고 그 값은 WaterInfoGeoChart_KHOA  의 height 값 보다 커야됨
                                                     Row(
-                                                        modifier = Modifier.fillMaxWidth()
-                                                            .height(600.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
+                                                        modifier = Modifier.fillMaxWidth().height(700.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
@@ -324,10 +324,13 @@ fun main() = application {
                                                             }
                                                         )
 
+
                                                         CompositionLocalProvider(WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value) {
+
+                                                            //WaterInfoGeoChart_KHOA_MapScreen 은 항상 height 값이 fix 되어야 표시됨.
                                                             Box(
-                                                                modifier = Modifier.fillMaxSize().padding(10.dp),
-                                                                contentAlignment= Alignment.Center
+                                                                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                                                contentAlignment = Alignment.Center
                                                             ) {
 
                                                                 WaterInfoGeoChart_KHOA_MapScreen(
@@ -335,18 +338,14 @@ fun main() = application {
                                                                     download,
                                                                     errorMessage
                                                                 )
-
-
                                                             }
-
                                                         }
 
                                                     }
 
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth()
-                                                            .height(600.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
-                                                    ) {
+
+
+                                                    Row(   modifier = Modifier.fillMaxSize().height(700.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp) ) {
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxWidth(splitFractionVertical2)
@@ -355,6 +354,7 @@ fun main() = application {
                                                         ) {
                                                             OceanWaterInfoGeoChart(onClickPointOceanWaterInfoGeoChart)
                                                         }
+
 
                                                         DraggableVerticalDivider(
                                                             onDrag = { deltaPx ->
@@ -368,10 +368,11 @@ fun main() = application {
                                                             }
                                                         )
 
+
                                                         CompositionLocalProvider(OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value) {
                                                             Box(
                                                                 modifier = Modifier
-                                                                    .fillMaxSize().padding(10.dp),
+                                                                    .fillMaxWidth().padding(12.dp),
                                                                 contentAlignment= Alignment.Center
                                                             ) {
 
@@ -388,7 +389,7 @@ fun main() = application {
                                                     }
 
 
-                                                    OceanWaterInfoDataGrid()
+                                                  OceanWaterInfoDataGrid()
                                                 }
 
                                             }

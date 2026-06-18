@@ -18,7 +18,7 @@ fun WaterTempTimeSeries_KHOA(){
         KhoaObservationViewModel(  coroutineScope  )
     }
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
              viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
         }
@@ -50,6 +50,8 @@ fun WaterTempTimeSeries_KHOA(){
 
     }
 
+    // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, true, true, true)
 
 
         ChartDataFlow(
@@ -60,7 +62,9 @@ fun WaterTempTimeSeries_KHOA(){
             caption = "from https://www.data.go.kr/data/15155516/openapi.do (행정안전부 공공데이터포털)",
             chartType = ChartType.Line,
             yRangePadding = 1.0f,
-            legendTitle = "Observatory"
+            legendTitle = "Observatory",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         )
 
 

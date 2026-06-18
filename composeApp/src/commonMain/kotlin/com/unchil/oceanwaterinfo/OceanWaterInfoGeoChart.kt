@@ -31,7 +31,7 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
         NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
     }
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
         }
@@ -109,6 +109,9 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
         }
     }
 
+    // [Reload, Tooltips, Symbol, Legend]
+    val bottomBarOpt = listOf(true, false, false, false)
+
     ChartDataFlow(
         chartData = ChartData.XYPlotGeoPlot(chartData.value),
         title = "Surface Temperature",
@@ -119,7 +122,9 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
         yRangePadding = 0.0f,
         legendTitle = "Observatory",
         height = 600.dp,
-        visibleBottomBar = false
+        visibleBottomBar = true,
+        onReload = onReload,
+        bottomBarOpt = bottomBarOpt
     )
 
 

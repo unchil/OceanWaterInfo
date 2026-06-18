@@ -39,7 +39,7 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
     }
 
 
-    val onRefresh:()->Unit = {
+    val onReload:()->Unit = {
         coroutineScope.launch {
             viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
         }
@@ -117,6 +117,8 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
         }
     }
 
+    // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, false, false, false)
 
 
         ChartDataFlow(
@@ -129,7 +131,9 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
             yRangePadding = 0.0f,
             legendTitle = "Observatory",
             height = 600.dp,
-            visibleBottomBar = false
+            visibleBottomBar = true,
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         )
 
 

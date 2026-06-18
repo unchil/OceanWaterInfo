@@ -76,7 +76,7 @@ fun main() {
                     KHNPRadioActiveWasteStackBarChart()
 
                     Row(
-                        modifier = Modifier.fillMaxWidth().height(600.dp)
+                        modifier = Modifier.fillMaxWidth().height(700.dp)
                             .border(BorderStroke(1.dp, Color.LightGray)).padding(10.dp)
                         ,
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -84,15 +84,14 @@ fun main() {
                     ) {
 
                         Box(
-                            modifier = Modifier.fillMaxWidth(0.3f),
+                            modifier = Modifier.fillMaxWidth(0.3f).fillMaxHeight(),
                             contentAlignment = Alignment.Center,
-
-                            ){
+                        ){
                             WindPolarChart_KHOA()
                         }
 
                         Box(
-                            modifier = Modifier.fillMaxWidth(0.3f),
+                            modifier = Modifier.fillMaxWidth(0.5f).fillMaxHeight(),
                             contentAlignment = Alignment.Center,
                         ){
                             WaterInfoGeoChart_KHOA(onClickPointOceanWaterInfoGeoChart)
