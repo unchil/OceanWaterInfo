@@ -1,5 +1,9 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -14,6 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.WATER_QUALITY.desc
 import com.unchil.oceanwaterinfo.WATER_QUALITY.name
@@ -31,9 +38,19 @@ fun OceanWaterInfo_MOF(){
         MofSeaWaterInfoViewModel( coroutineScope )
     }
 
+    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
     val onReload:()->Unit = {
+        visibleProgressIndicator.value = true
         coroutineScope.launch {
             viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(visibleProgressIndicator.value){
+        if(visibleProgressIndicator.value){
+            delay(2000)
+            visibleProgressIndicator.value = false
         }
     }
 
@@ -76,10 +93,11 @@ fun OceanWaterInfo_MOF(){
     }
 
 
+    Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
+
 
     // [Reload, Tooltips, Symbol, Legend]
         val bottomBarOpt = listOf(true, true, true, true)
-
 
         ChartDataFlow(
             chartType = ChartType.Line,
@@ -122,6 +140,13 @@ fun OceanWaterInfo_MOF(){
 
         }
 
+        AnimatedVisibility(visibleProgressIndicator.value){
+            CircularProgressIndicator(
+                color = Color.DarkGray,
+            )
+        }
+
+    } //Box
 
 
 

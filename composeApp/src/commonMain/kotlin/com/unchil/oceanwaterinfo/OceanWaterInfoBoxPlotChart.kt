@@ -1,5 +1,9 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -15,6 +19,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
@@ -29,9 +36,19 @@ fun OceanWaterInfoBoxPlotChart(){
         NifsSeaWaterInfoViewModel( coroutineScope )
     }
 
+    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
     val onReload:()->Unit = {
+        visibleProgressIndicator.value = true
         coroutineScope.launch {
             viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(visibleProgressIndicator.value){
+        if(visibleProgressIndicator.value){
+            delay(2000)
+            visibleProgressIndicator.value = false
         }
     }
 
@@ -60,9 +77,10 @@ fun OceanWaterInfoBoxPlotChart(){
         }
     }
 
+
+    Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
     // [Reload, Tooltips, Symbol, Legend]
         val bottomBarOpt = listOf(true, true, false, true)
-
 
         ChartDataFlow(
             chartData = ChartData.XYPlotBoxPlot(chartData.value),
@@ -103,6 +121,13 @@ fun OceanWaterInfoBoxPlotChart(){
 
         }
 
+    AnimatedVisibility(visibleProgressIndicator.value){
+        CircularProgressIndicator(
+            color = Color.DarkGray,
+        )
+    }
+
+} //Box
 
 
 

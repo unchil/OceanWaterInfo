@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
@@ -50,9 +53,18 @@ fun WasteWaterTimeSeries_KHNP() {
     val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel(coroutineScope) }
 
 
+    val visibleProgressIndicator = remember { mutableStateOf(false) }
     val onReload:()->Unit = {
+        visibleProgressIndicator.value = true
         coroutineScope.launch {
             viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
+        }
+    }
+
+    LaunchedEffect(visibleProgressIndicator.value){
+        if(visibleProgressIndicator.value){
+            delay(2000)
+            visibleProgressIndicator.value = false
         }
     }
 
@@ -100,10 +112,10 @@ fun WasteWaterTimeSeries_KHNP() {
 
     var description by remember { mutableStateOf(false) }
 
+    Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
+
     // [Reload, Tooltips, Symbol, Legend]
     val bottomBarOpt = listOf(true, true, true, true)
-
-
 
     ChartDataFlow(
             chartData = ChartData.TimeSeries(chartData.value),
@@ -164,6 +176,13 @@ fun WasteWaterTimeSeries_KHNP() {
 
         }
 
+        AnimatedVisibility(visibleProgressIndicator.value){
+            CircularProgressIndicator(
+                color = Color.DarkGray,
+            )
+        }
+
+    } //Box
 
 
 
