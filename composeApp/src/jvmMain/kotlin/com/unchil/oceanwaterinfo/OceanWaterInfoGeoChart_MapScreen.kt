@@ -1,8 +1,13 @@
 package com.unchil.oceanwaterinfo
 
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,12 +18,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -26,12 +35,18 @@ fun OceanWaterInfoGeoChart_MapScreen(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
-    isReloadMapScreen:Boolean = false
+    height: Dp = 400.dp
 ){
     val coroutineScope = rememberCoroutineScope()
+
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
         NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
     }
+
+    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
+    val isReload = remember { mutableStateOf(false) }
+    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = viewModel){
         viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
     }
@@ -43,7 +58,8 @@ fun OceanWaterInfoGeoChart_MapScreen(
     val viewModelObservatory: ObservatoryViewModel = remember {
         ObservatoryViewModel(  coroutineScope  )
     }
-    LaunchedEffect(key1 = viewModel, isReloadMapScreen){
+
+    LaunchedEffect(key1 = viewModelObservatory){
         viewModelObservatory.onEvent(ObservatoryViewModel.Event.Refresh)
     }
 
@@ -149,7 +165,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
     }
 
 
-    LaunchedEffect( OceanWaterInfoGeoChartPoint.current, isReloadMapScreen){
+    LaunchedEffect( OceanWaterInfoGeoChartPoint.current){
         if (webViewState.loadingState is LoadingState.Finished) {
             //   navigator.evaluateJavaScript("alert(\"What a Wonderful World.\");" )
 
@@ -158,32 +174,73 @@ fun OceanWaterInfoGeoChart_MapScreen(
         }
     }
 
+    LaunchedEffect(isReload.value){
+        if(isReload.value){
+            viewModelObservatory.onEvent(ObservatoryViewModel.Event.Refresh)
+            visibleProgressIndicator.value = true
+            delay(1000)
+            visibleProgressIndicator.value = false
+            val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
+            navigator.evaluateJavaScript(flyTo )
+            isReload.value = false
+        }
+    }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    val bottomBarHeight = remember{100.dp}
+
+    Column(
+        modifier=Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        when {
-            initialized -> {
-                WebView(
-                    state = webViewState,
-                    navigator = navigator,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            errorMessage.isNotEmpty() -> {
-                Text(errorMessage)
-            }
-            else -> {
-                if (download > -1) {
-                    Text("Downloading: $download%")
-                } else {
-                    Text("Initializing please wait...")
-                }
-                CircularProgressIndicator()
 
+        Box(
+            modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight).padding(12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                initialized -> {
+                    WebView(
+                        state = webViewState,
+                        navigator = navigator,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                errorMessage.isNotEmpty() -> {
+                    Text(errorMessage)
+                }
+                else -> {
+                    if (download > -1) {
+                        Text("Downloading: $download%")
+                    } else {
+                        Text("Initializing please wait...")
+                    }
+                    CircularProgressIndicator()
+
+                }
             }
         }
+
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ){// [Reload, Tooltips, Symbol, Legend]
+            val bottomBarOpt = listOf(true, false, false, false)
+            ChartFeatureControls(
+                onChangeFlag = { label, value ->
+                    when(label){
+                        "Reload" ->  isReload.value = !isReload.value
+                    }
+                },
+                bottomBarOpt = bottomBarOpt
+            )
+            if(visibleProgressIndicator.value){
+                CircularProgressIndicator(
+                    color = Color.DarkGray,
+                )
+            }
+        }
+
     }
 
 

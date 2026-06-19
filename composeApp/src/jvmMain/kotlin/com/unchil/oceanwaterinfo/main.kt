@@ -1,13 +1,11 @@
 package com.unchil.oceanwaterinfo
 
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -19,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -32,7 +29,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,10 +46,7 @@ import androidx.compose.ui.window.application
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 val WaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
@@ -64,14 +57,6 @@ fun main() = application {
     var initialized by remember { mutableStateOf(false) }
     var download by remember { mutableStateOf(-1) }
     var errorMessage by remember {mutableStateOf("")}
-
-    val isReloadWaterInfoGeoChart_KHOA_MapScreen = remember { mutableStateOf(false) }
-
-    val isRelaodOceanWaterInfoGeoChart_MapScreen  = remember { mutableStateOf(false) }
-
-
-    val visibleProgressIndicatorWaterInfoGeoChart_KHOA_MapScreen = remember { mutableStateOf(false) }
-    val visibleProgressIndicatorOceanWaterInfoGeoChart_MapScreen = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -116,9 +101,6 @@ fun main() = application {
 
     var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
     val tabTitles = listOf("Seoul/Gyonggi  Air Quality", "Korea Ocean Water")
-
-    val coroutineScope = rememberCoroutineScope()
-
 
 
     Window(
@@ -296,6 +278,8 @@ fun main() = application {
                                                 val totalWidth2 =
                                                     with(LocalDensity.current) { maxWidth.toPx() }
 
+                                                val mapScreenHeight = remember{700.dp}
+
                                                 Column(
                                                     modifier = Modifier.fillMaxSize()
                                                         .verticalScroll(rememberScrollState()),
@@ -318,7 +302,7 @@ fun main() = application {
                                                     //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
                                                     // 그리고 그 값은 WaterInfoGeoChart_KHOA  의 height 값 보다 커야됨
                                                     Row(
-                                                        modifier = Modifier.fillMaxWidth().height(700.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
+                                                        modifier = Modifier.fillMaxWidth().height(mapScreenHeight).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
@@ -341,74 +325,24 @@ fun main() = application {
                                                             }
                                                         )
 
-                                                        Column(
-                                                            modifier=Modifier.fillMaxSize(),
-                                                            verticalArrangement = Arrangement.Center,
-                                                            horizontalAlignment = Alignment.CenterHorizontally
+
+                                                        CompositionLocalProvider(
+                                                            WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value
                                                         ) {
-
-
-                                                            CompositionLocalProvider(
-                                                                WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value
-                                                            ) {
-
-                                                                //WaterInfoGeoChart_KHOA_MapScreen 은 항상 height 값이 fix 되어야 표시됨.
-                                                                Box(
-                                                                    modifier = Modifier.fillMaxWidth().height(600.dp)
-                                                                        .padding(12.dp),
-                                                                    contentAlignment = Alignment.Center
-                                                                ) {
-
-                                                                    WaterInfoGeoChart_KHOA_MapScreen(
-                                                                        initialized,
-                                                                        download,
-                                                                        errorMessage,
-                                                                        isReloadWaterInfoGeoChart_KHOA_MapScreen.value
-                                                                    )
-
-                                                                }
-                                                            }
-
-                                                            Box(
-                                                                modifier = Modifier.fillMaxSize(),
-                                                                contentAlignment = Alignment.Center,
-                                                            ){
-                                                                // [Reload, Tooltips, Symbol, Legend]
-                                                                val bottomBarOpt = listOf(true, false, false, false)
-                                                                ChartFeatureControls(
-                                                                    onChangeFlag = { label, value ->
-                                                                        when(label){
-                                                                            "Reload" -> {
-                                                                                clickPointWaterInfoGeoChart_KHOA.value = initCenterPoint
-                                                                                isReloadWaterInfoGeoChart_KHOA_MapScreen.value = !isReloadWaterInfoGeoChart_KHOA_MapScreen.value
-                                                                                visibleProgressIndicatorWaterInfoGeoChart_KHOA_MapScreen.value = true
-                                                                                coroutineScope.launch {
-                                                                                    delay(2000)
-                                                                                    visibleProgressIndicatorWaterInfoGeoChart_KHOA_MapScreen.value = false
-                                                                                }
-
-                                                                            }
-                                                                        }
-                                                                    },
-                                                                    bottomBarOpt = bottomBarOpt
-                                                                )
-
-
-                                                                if(visibleProgressIndicatorWaterInfoGeoChart_KHOA_MapScreen.value){
-                                                                    CircularProgressIndicator(
-                                                                        color = Color.DarkGray,
-                                                                    )
-                                                                }
-
-                                                            }
-
+                                                            //WaterInfoGeoChart_KHOA_MapScreen 은 항상 height 값이 fix 되어야 표시됨.
+                                                            WaterInfoGeoChart_KHOA_MapScreen(
+                                                                initialized,
+                                                                download,
+                                                                errorMessage,
+                                                                height = mapScreenHeight
+                                                            )
                                                         }
 
                                                     }
 
 
 
-                                                    Row(   modifier = Modifier.fillMaxSize().height(700.dp).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp) ) {
+                                                    Row(   modifier = Modifier.fillMaxSize().height(mapScreenHeight).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp) ) {
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxWidth(splitFractionVertical2)
@@ -419,7 +353,6 @@ fun main() = application {
                                                                 onClickPointOceanWaterInfoGeoChart
                                                             )
                                                         }
-
 
                                                         DraggableVerticalDivider(
                                                             onDrag = { deltaPx ->
@@ -433,74 +366,16 @@ fun main() = application {
                                                             }
                                                         )
 
-
-                                                        Column(
-                                                            modifier = Modifier.fillMaxSize(),
-                                                            verticalArrangement = Arrangement.Center,
-                                                            horizontalAlignment = Alignment.CenterHorizontally
+                                                        CompositionLocalProvider(
+                                                            OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value
                                                         ) {
-
-
-                                                            CompositionLocalProvider(
-                                                                OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value
-                                                            ) {
-                                                                Box(
-                                                                    modifier = Modifier
-                                                                        .fillMaxWidth().height(600.dp).padding(12.dp),
-                                                                    contentAlignment = Alignment.Center
-                                                                ) {
-
-                                                                    OceanWaterInfoGeoChart_MapScreen(
-                                                                        initialized,
-                                                                        download,
-                                                                        errorMessage,
-                                                                        isRelaodOceanWaterInfoGeoChart_MapScreen.value
-                                                                    )
-
-
-                                                                }
-                                                            }
-
-
-                                                            Box(
-                                                                modifier = Modifier.fillMaxSize(),
-                                                                contentAlignment = Alignment.Center,
-                                                            ){
-                                                                // [Reload, Tooltips, Symbol, Legend]
-                                                                val bottomBarOpt = listOf(true, false, false, false)
-                                                                ChartFeatureControls(
-                                                                    onChangeFlag = { label, value ->
-                                                                        when(label){
-                                                                            "Reload" -> {
-                                                                                clickPointOceanWaterInfoGeoChart.value = initCenterPoint
-                                                                                isRelaodOceanWaterInfoGeoChart_MapScreen.value = !isRelaodOceanWaterInfoGeoChart_MapScreen.value
-
-                                                                                visibleProgressIndicatorOceanWaterInfoGeoChart_MapScreen.value = true
-                                                                                coroutineScope.launch {
-                                                                                    delay(2000)
-                                                                                    visibleProgressIndicatorOceanWaterInfoGeoChart_MapScreen.value = false
-                                                                                }
-
-                                                                            }
-                                                                        }
-                                                                    },
-                                                                    bottomBarOpt = bottomBarOpt
-                                                                )
-
-
-                                                                if(visibleProgressIndicatorOceanWaterInfoGeoChart_MapScreen.value){
-                                                                    CircularProgressIndicator(
-                                                                        color = Color.DarkGray,
-                                                                    )
-                                                                }
-
-                                                            }
-
+                                                            OceanWaterInfoGeoChart_MapScreen(
+                                                                initialized,
+                                                                download,
+                                                                errorMessage,
+                                                                mapScreenHeight
+                                                            )
                                                         }
-
-
-
-
 
                                                     }
 
