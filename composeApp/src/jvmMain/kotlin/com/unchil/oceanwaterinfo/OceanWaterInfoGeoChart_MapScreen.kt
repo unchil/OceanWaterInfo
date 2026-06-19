@@ -26,6 +26,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
+    isReloadMapScreen:Boolean = false
 ){
     val coroutineScope = rememberCoroutineScope()
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
@@ -42,7 +43,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
     val viewModelObservatory: ObservatoryViewModel = remember {
         ObservatoryViewModel(  coroutineScope  )
     }
-    LaunchedEffect(key1 = viewModel){
+    LaunchedEffect(key1 = viewModel, isReloadMapScreen){
         viewModelObservatory.onEvent(ObservatoryViewModel.Event.Refresh)
     }
 
