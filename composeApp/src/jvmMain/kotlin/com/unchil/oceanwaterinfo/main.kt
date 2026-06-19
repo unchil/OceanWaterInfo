@@ -100,13 +100,15 @@ fun main() = application {
         position = WindowPosition(Alignment.Center)
     )
 
-    val clickPointWaterInfoGeoChart_KHOA = mutableStateOf(Point(126.934515, 37.385852))
+    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
+
+    val clickPointWaterInfoGeoChart_KHOA = mutableStateOf(initCenterPoint )
 
     val onClickPointWaterInfoGeoChart_KHOA = { point:Point<Double, Double> ->
         clickPointWaterInfoGeoChart_KHOA.value = point
     }
 
-    val clickPointOceanWaterInfoGeoChart = mutableStateOf(Point(126.934515, 37.385852))
+    val clickPointOceanWaterInfoGeoChart = mutableStateOf(initCenterPoint )
 
     val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
         clickPointOceanWaterInfoGeoChart.value = point
@@ -377,6 +379,7 @@ fun main() = application {
                                                                     onChangeFlag = { label, value ->
                                                                         when(label){
                                                                             "Reload" -> {
+                                                                                clickPointWaterInfoGeoChart_KHOA.value = initCenterPoint
                                                                                 isReloadWaterInfoGeoChart_KHOA_MapScreen.value = !isReloadWaterInfoGeoChart_KHOA_MapScreen.value
                                                                                 visibleProgressIndicatorWaterInfoGeoChart_KHOA_MapScreen.value = true
                                                                                 coroutineScope.launch {
@@ -469,7 +472,9 @@ fun main() = application {
                                                                     onChangeFlag = { label, value ->
                                                                         when(label){
                                                                             "Reload" -> {
+                                                                                clickPointOceanWaterInfoGeoChart.value = initCenterPoint
                                                                                 isRelaodOceanWaterInfoGeoChart_MapScreen.value = !isRelaodOceanWaterInfoGeoChart_MapScreen.value
+
                                                                                 visibleProgressIndicatorOceanWaterInfoGeoChart_MapScreen.value = true
                                                                                 coroutineScope.launch {
                                                                                     delay(2000)

@@ -149,7 +149,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
     }
 
 
-    LaunchedEffect( OceanWaterInfoGeoChartPoint.current){
+    LaunchedEffect( OceanWaterInfoGeoChartPoint.current, isReloadMapScreen){
         if (webViewState.loadingState is LoadingState.Finished) {
             //   navigator.evaluateJavaScript("alert(\"What a Wonderful World.\");" )
 

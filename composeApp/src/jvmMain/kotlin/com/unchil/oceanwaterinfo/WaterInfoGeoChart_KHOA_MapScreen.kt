@@ -128,7 +128,7 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
     }
 
 
-    LaunchedEffect( WaterInfoGeoChartPoint.current){
+    LaunchedEffect( WaterInfoGeoChartPoint.current, isReloadMapScreen){
         if (webViewState.loadingState is LoadingState.Finished) {
             //   navigator.evaluateJavaScript("alert(\"What a Wonderful World.\");" )
 
