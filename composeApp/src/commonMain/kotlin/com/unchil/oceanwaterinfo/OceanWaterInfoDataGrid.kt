@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SnackbarHost
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import com.unchil.un7datagrid.Un7KCMPDataGrid
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -42,6 +44,9 @@ val LocalPlatform = compositionLocalOf<Platform> { error("No Platform found!") }
 fun OceanWaterInfoDataGrid(){
 
     val coroutineScope = rememberCoroutineScope()
+
+    val isReload = remember { mutableStateOf(false) }
+    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
         NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
@@ -58,9 +63,15 @@ fun OceanWaterInfoDataGrid(){
     val snackbarHostState = remember { SnackbarHostState() }
     var isVisible by remember { mutableStateOf(false) }
 
-    val reloadData :()->Unit = {
-        coroutineScope.launch{
+
+
+    LaunchedEffect(isReload.value){
+        if(isReload.value){
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
+            visibleProgressIndicator.value = true
+            delay(1000)
+            visibleProgressIndicator.value = false
+            isReload.value = false
         }
     }
 
@@ -127,6 +138,26 @@ fun OceanWaterInfoDataGrid(){
                         fontStyle = FontStyle.Italic,
                         textAlign = TextAlign.Right
                     )
+
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ){// [Reload, Tooltips, Symbol, Legend]
+                        val bottomBarOpt = listOf(true, false, false, false)
+                        ChartFeatureControls(
+                            onChangeFlag = { label, value ->
+                                when(label){
+                                    "Reload" ->  isReload.value = !isReload.value
+                                }
+                            },
+                            bottomBarOpt = bottomBarOpt
+                        )
+                        if(visibleProgressIndicator.value){
+                            CircularProgressIndicator(
+                                color = Color.DarkGray,
+                            )
+                        }
+                    }
                 }
 
             }//--- Column
