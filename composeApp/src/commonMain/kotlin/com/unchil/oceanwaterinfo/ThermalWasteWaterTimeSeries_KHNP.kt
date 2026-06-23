@@ -76,6 +76,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
                 val rm05 = LocalDateTime.parse(item.rm005_time.replace(" ", "T")).toInstant(TimeZone.UTC)
 
                 //          time >= previousHour &&
+
                 (time - rm01).absoluteValue <= checkTime_Wastewater &&
                         (time - rm05).absoluteValue <= checkTime_Wastewater
 
@@ -83,8 +84,20 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
                 nameSelector = { it.genName },
                 timeSelector = { it.time },
                 timePattern = "yyyy-MM-dd HH:mm",
-                primaryValueSelector = { it.rm001.trim().toFloatOrNull() ?: 0f },
-                secondaryValueSelector = { it.rm005.trim().toFloatOrNull() ?: 0f },
+                primaryValueSelector = {
+                    if(it.genName.equals("WS")){
+                        it.rm005.trim().toFloatOrNull() ?: 0f
+                    }else{
+                        it.rm001.trim().toFloatOrNull() ?: 0f
+                    }
+                },
+                secondaryValueSelector = {
+                    if(it.genName.equals("WS")){
+                        it.rm001.trim().toFloatOrNull() ?: 0f
+                    }else{
+                        it.rm005.trim().toFloatOrNull() ?: 0f
+                    }
+                },
                 secondaryKey = "rm005"
             )
         }
