@@ -80,6 +80,8 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
                 (time - rm01).absoluteValue <= checkTime_Wastewater &&
                         (time - rm05).absoluteValue <= checkTime_Wastewater
 
+
+                // WS 의 경우 취수 와 배수의 온도가 바뀐것 같음
             }.toChartTripleList(
                 nameSelector = { it.genName },
                 timeSelector = { it.time },
