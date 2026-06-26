@@ -25,8 +25,10 @@ class KhoaObservationCurrentViewModel(scope: CoroutineScope){
         scope.launch {
             getObservationInfoCurrent()
             repository._khoaObservationInfoCurrent.collectLatest {
-                _observationStateFlow.value = it
-                _refreshEvent.emit(Unit)
+                if(it.isNotEmpty()){
+                    _observationStateFlow.value = it
+                    _refreshEvent.emit(Unit)
+                }
             }
         }
     }
