@@ -21,13 +21,18 @@ class NifsSeaWaterInfoCurrentViewModel ( scope:  CoroutineScope){
 
     init {
         scope.launch {
-            getSeaWaterInfoCurrent()
             repository._seaWaterInfoCurrentStateFlow.collectLatest {
-                if(it.isNotEmpty()){
-                    _seaWaterInfo.value = it
+                if(it.values.isNotEmpty() && it.values.elementAt(0).isNotEmpty()){
+                    _seaWaterInfo.value = it.values.elementAt(0)
+
+                    delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
                     _refreshEvent.emit(Unit)
                 }
             }
+        }
+
+        scope.launch {
+            getSeaWaterInfoCurrent()
         }
     }
 
@@ -43,8 +48,6 @@ class NifsSeaWaterInfoCurrentViewModel ( scope:  CoroutineScope){
 
     suspend fun getSeaWaterInfoCurrent(){
         repository.getSeaWaterInfo(DATA_DIVISION.current)
-        delay(500)
-        _refreshEvent.emit(Unit)
     }
 
     sealed class Event {

@@ -16,27 +16,33 @@ class KhoaObservationCurrentViewModel(scope: CoroutineScope){
     val _observationStateFlow: MutableStateFlow<List<KhoaObservation>>
             = MutableStateFlow(emptyList())
 
+
     // 업데이트 완료를 알리는 이벤트 스트림
     private val _refreshEvent = MutableSharedFlow<Unit>()
     val refreshEvent = _refreshEvent.asSharedFlow()
 
 
     init {
+
         scope.launch {
-            getObservationInfoCurrent()
             repository._khoaObservationInfoCurrent.collectLatest {
-                if(it.isNotEmpty()){
-                    _observationStateFlow.value = it
+                if(it.values.isNotEmpty() && it.values.elementAt(0).isNotEmpty()){
+                    _observationStateFlow.value = it.values.elementAt(0)
+
+                    delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
                     _refreshEvent.emit(Unit)
                 }
             }
         }
+
+        scope.launch {
+            getObservationInfoCurrent()
+        }
+
     }
 
     suspend fun getObservationInfoCurrent(){
         repository.getKhoaObservationInfoCurrent()
-        delay(500)
-        _refreshEvent.emit(Unit)
     }
 
 

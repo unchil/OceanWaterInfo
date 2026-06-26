@@ -2,7 +2,7 @@ package com.unchil.oceanwaterinfo
 
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.flow.MutableStateFlow
-
+import kotlin.time.Clock
 
 
 class OceanWaterRepository {
@@ -17,8 +17,9 @@ class OceanWaterRepository {
     val _seaWaterInfoOneDayGridStateFlow: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
             = MutableStateFlow(emptyList())
 
-    val _seaWaterInfoCurrentStateFlow: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
-            = MutableStateFlow(emptyList())
+
+    val _seaWaterInfoCurrentStateFlow: MutableStateFlow<Map<Long,List<SeawaterInformationByObservationPoint>>>
+            = MutableStateFlow(emptyMap())
 
     val _seaWaterInfoStatStateFlow: MutableStateFlow<List<SeaWaterInfoByOneHourStat>>
             = MutableStateFlow(emptyList())
@@ -32,8 +33,10 @@ class OceanWaterRepository {
     val _khoaObservationInfo: MutableStateFlow<List<KhoaObservation>>
         = MutableStateFlow(emptyList())
 
-    val _khoaObservationInfoCurrent: MutableStateFlow<List<KhoaObservation>>
-            = MutableStateFlow(emptyList())
+
+
+    val _khoaObservationInfoCurrent: MutableStateFlow<Map<Long, List<KhoaObservation>>>
+            = MutableStateFlow(emptyMap() )
 
     val _khoaTidalCurrentInfo: MutableStateFlow<List<TidalCurrentInfo>>
             = MutableStateFlow(emptyList())
@@ -171,7 +174,8 @@ class OceanWaterRepository {
     suspend fun getKhoaObservationInfoCurrent(){
         try {
             oceanWaterApi.getKhoaObservationInfoCurrent().let {
-                _khoaObservationInfoCurrent.value = it
+                val timestamp = Clock.System.now().epochSeconds
+                _khoaObservationInfoCurrent.value = mapOf( timestamp to it)
                 LOGGER.debug("getKhoaObservationInfoCurrent() called[${it.count()}]")
             }
         }catch (e:Exception){
@@ -197,7 +201,8 @@ class OceanWaterRepository {
                 }
                 DATA_DIVISION.current -> {
                     oceanWaterApi.getSeaWaterInfo(DATA_DIVISION.current.name)?.let { it ->
-                        _seaWaterInfoCurrentStateFlow.value = it
+                        val timestamp = Clock.System.now().epochSeconds
+                        _seaWaterInfoCurrentStateFlow.value = mapOf(timestamp to it)
                         LOGGER.debug("getSeaWaterInfo() called[${it.count()}]")
                     }
                 }
@@ -208,7 +213,9 @@ class OceanWaterRepository {
                     }
                 }
                 else -> {
-                    _seaWaterInfoCurrentStateFlow.value =emptyList()
+
+                    val timestamp = Clock.System.now().epochSeconds
+                    _seaWaterInfoCurrentStateFlow.value = mapOf(timestamp to emptyList())
                 }
             }
 

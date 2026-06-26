@@ -59,6 +59,13 @@ fun OceanWaterInfoGeoChart_MapScreen(
         }
     }
 
+    LaunchedEffect(viewModel) {
+        viewModel.refreshEvent.collect {
+            visibleProgressIndicator.value = false
+        }
+    }
+
+
 
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
@@ -69,7 +76,6 @@ fun OceanWaterInfoGeoChart_MapScreen(
     val viewModelObservatory: ObservatoryViewModel = remember {
         ObservatoryViewModel(  coroutineScope  )
     }
-
     LaunchedEffect(key1 = viewModelObservatory){
         viewModelObservatory.onEvent(ObservatoryViewModel.Event.Refresh)
     }
@@ -78,8 +84,8 @@ fun OceanWaterInfoGeoChart_MapScreen(
 
 
     LaunchedEffect(observatorys.value, seaWaterInfo.value){
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
+
+
             if (observatorys.value.isNotEmpty() && seaWaterInfo.value.isNotEmpty()) {
 
                 val filteredData = seaWaterInfo.value.filter {
@@ -155,7 +161,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
                 }
                 updateTrigger.value = System.currentTimeMillis()
             }
-        }
+
     }
 
 
@@ -196,6 +202,10 @@ fun OceanWaterInfoGeoChart_MapScreen(
             visibleProgressIndicator.value = true
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             isReload.value = false
+
+
+            val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
+            navigator.evaluateJavaScript(flyTo )
         }
     }
 

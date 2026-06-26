@@ -66,6 +66,10 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
     LaunchedEffect(viewModel) {
         viewModel.refreshEvent.collect {
             visibleProgressIndicator.value = false
+        }
+    }
+
+    LaunchedEffect(seaWaterInfo.value) {
             if(seaWaterInfo.value.isNotEmpty()) {
                 val data = seaWaterInfo.value.map {
                     Triple(
@@ -121,7 +125,7 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
                 }
                 updateTrigger.value = System.currentTimeMillis()
             }
-        }
+
     }
 
     val center = WaterInfoGeoChartPoint.current
@@ -155,6 +159,9 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
             visibleProgressIndicator.value = true
             viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             isReload.value = false
+
+            val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
+            navigator.evaluateJavaScript(flyTo)
         }
     }
 
