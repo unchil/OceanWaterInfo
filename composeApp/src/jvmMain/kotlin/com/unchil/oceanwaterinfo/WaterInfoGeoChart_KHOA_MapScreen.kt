@@ -28,6 +28,7 @@ import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 
+
 @Composable
 fun WaterInfoGeoChart_KHOA_MapScreen(
     initialized: Boolean,
@@ -45,101 +46,105 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
     val isReload = remember { mutableStateOf(false) }
     val visibleProgressIndicator = remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = viewModel){
-        viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
-    }
-
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
     val locations = remember{ mutableStateOf( "" )}
     val labels = remember{ mutableStateOf("" )}
     val content = remember{ mutableStateOf("" )}
 
+    val updateTrigger = remember { mutableStateOf(0L) }
 
 
-    LaunchedEffect( seaWaterInfo.value){
-
-        if( seaWaterInfo.value.size > 0 ) {
-
-            val data = seaWaterInfo.value.map {
-                Triple(
-                    it.obsvtrNm,
-                    Point(it.lot, it.lat),
-                    Pair(
-                        it.obsrvnDt,
-                        Triple(
-                            it.wtem ?: "0" ,
-                            it.crdir ?: "0",
-                            it.crsp ?: "0"
-                        )
-                    )
-                )
-            }
-
-            locations.value = data.map { triple ->
-                triple.second
-            }.joinToString(
-                separator = ",",
-                prefix = "[",
-                postfix = "]"
-            ) { point ->
-                "{ lat: ${point.y}, lng: ${point.x} }"
-            }
-
-            labels.value = data.map { triple ->
-                triple.first
-            }.joinToString(
-                separator = ",",
-                prefix = "[",
-                postfix = "]"
-            ) { sta_nam_kor ->
-                "\"${sta_nam_kor}\""
-            }
-
-            content.value = data.map { triple ->
-                triple
-            }.joinToString(
-                separator = ",",
-                prefix = "[",
-                postfix = "]"
-            ) { triple ->
-                // 2. buildString을 사용하여 문자열 조립 (가독성 및 안전성)
-                val desc = buildString {
-                    append("\"DateTime :${triple.third.first}<br>")
-                    append("Temperature: ${triple.third.second.first } °C<br>")
-                    append("Direction  : ${triple.third.second.second} \u00B0<br>")
-                    append("Speed      : ${triple.third.second.third} (cm/sec)<br>")
-                    append("\"")
-                }
-                desc
-
+    LaunchedEffect(viewModel){
+        while(true){
+            delay(5 * 60 * 1000L).let{
+                visibleProgressIndicator.value = true
+                viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             }
         }
     }
 
+    LaunchedEffect(viewModel) {
+        viewModel.refreshEvent.collect {
+            visibleProgressIndicator.value = false
+            if(seaWaterInfo.value.isNotEmpty()) {
+                val data = seaWaterInfo.value.map {
+                    Triple(
+                        it.obsvtrNm,
+                        Point(it.lot, it.lat),
+                        Pair(
+                            it.obsrvnDt,
+                            Triple(
+                                it.wtem ?: "0" ,
+                                it.crdir ?: "0",
+                                it.crsp ?: "0"
+                            )
+                        )
+                    )
+                }
+
+                locations.value = data.map { triple ->
+                    triple.second
+                }.joinToString(
+                    separator = ",",
+                    prefix = "[",
+                    postfix = "]"
+                ) { point ->
+                    "{ lat: ${point.y}, lng: ${point.x} }"
+                }
+
+                labels.value = data.map { triple ->
+                    triple.first
+                }.joinToString(
+                    separator = ",",
+                    prefix = "[",
+                    postfix = "]"
+                ) { sta_nam_kor ->
+                    "\"${sta_nam_kor}\""
+                }
+
+                content.value = data.map { triple ->
+                    triple
+                }.joinToString(
+                    separator = ",",
+                    prefix = "[",
+                    postfix = "]"
+                ) { triple ->
+                    // 2. buildString을 사용하여 문자열 조립 (가독성 및 안전성)
+                    val desc = buildString {
+                        append("\"DateTime :${triple.third.first}<br>")
+                        append("Temperature: ${triple.third.second.first } °C<br>")
+                        append("Direction  : ${triple.third.second.second} \u00B0<br>")
+                        append("Speed      : ${triple.third.second.third} (cm/sec)<br>")
+                        append("\"")
+                    }
+                    desc
+                }
+                updateTrigger.value = System.currentTimeMillis()
+            }
+        }
+    }
 
     val center = WaterInfoGeoChartPoint.current
     val host = "http://192.168.35.107:7272"
     val servicePage = "waterInfoGoogleMap.html"
-
-
     val localUrl = "${host}/${servicePage}"
     val remoteUrl = "https://www.google.com/maps/"
-
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
 
-    LaunchedEffect(locations.value, labels.value, webViewState.loadingState){
-        if(locations.value.isNotEmpty() && labels.value.isNotEmpty() && webViewState.loadingState is LoadingState.Finished){
+    LaunchedEffect(updateTrigger.value, webViewState.loadingState){
+        if(updateTrigger.value > 0L && webViewState.loadingState is LoadingState.Finished){
             // navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
-            navigator.evaluateJavaScript("addMarkerClusterer(${locations.value}, ${labels.value}, ${content.value})")
+            val markerClusterer =  "addMarkerClusterer(${locations.value}, ${labels.value}, ${content.value})"
+            navigator.evaluateJavaScript(markerClusterer)
+
+            val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
+            navigator.evaluateJavaScript(flyTo)
         }
     }
 
-
     LaunchedEffect( WaterInfoGeoChartPoint.current){
         if (webViewState.loadingState is LoadingState.Finished) {
-            //   navigator.evaluateJavaScript("alert(\"What a Wonderful World.\");" )
-
             val flyTo = "smoothFlyTo({lat: ${center.y}, lng: ${center.x}})"
             navigator.evaluateJavaScript(flyTo )
         }
@@ -147,12 +152,8 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
 
     LaunchedEffect(isReload.value){
         if(isReload.value){
-            viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             visibleProgressIndicator.value = true
-            delay(1000)
-            visibleProgressIndicator.value = false
-            val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
-            navigator.evaluateJavaScript(flyTo )
+            viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             isReload.value = false
         }
     }
@@ -171,13 +172,11 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
         ) {
             when {
                 initialized -> {
-
                     WebView(
                         state = webViewState,
                         navigator = navigator,
                         modifier = Modifier.fillMaxSize()
                     )
-
                 }
 
                 errorMessage.isNotEmpty() -> {
