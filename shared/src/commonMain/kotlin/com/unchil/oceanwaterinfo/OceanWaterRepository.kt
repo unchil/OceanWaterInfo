@@ -54,8 +54,8 @@ class OceanWaterRepository {
     val _khnpThermalWasteWater: MutableStateFlow<List<KHNPThermalWasteWater>>
             = MutableStateFlow(emptyList())
 
-    val _khnpRadioRate: MutableStateFlow<List<KHNPRadioRate>>
-            = MutableStateFlow(emptyList())
+    val _khnpRadioRate: MutableStateFlow<Map<Long, List<KHNPRadioRate>>>
+            = MutableStateFlow(emptyMap())
 
     val _khnpRadioActiveWaste: MutableStateFlow<List<KHNPRadioActiveWaste>>
             = MutableStateFlow(emptyList())
@@ -90,7 +90,7 @@ class OceanWaterRepository {
     suspend fun getKhnpRadioRate(){
         try {
             oceanWaterApi.getKhnpRadioRate().let {
-                _khnpRadioRate.value = it
+                _khnpRadioRate.value = mapOf( Clock.System.now().epochSeconds to it)
                 LOGGER.debug("getKhnpRadioRate() called[${it.count()}]")
             }
         }catch (e:Exception){
