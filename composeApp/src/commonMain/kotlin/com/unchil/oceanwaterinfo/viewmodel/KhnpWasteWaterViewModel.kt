@@ -3,7 +3,10 @@ package com.unchil.oceanwaterinfo.viewmodel
 import com.unchil.oceanwaterinfo.KHNPWasteWater
 import com.unchil.oceanwaterinfo.getPlatform
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -13,13 +16,25 @@ class KhnpWasteWaterViewModel(scope: CoroutineScope){
     val _khnpWasteWaterStateFlow: MutableStateFlow<List<KHNPWasteWater>>
             = MutableStateFlow(emptyList())
 
+    private val _refreshEvent = MutableSharedFlow<Unit>()
+    val refreshEvent = _refreshEvent.asSharedFlow()
+
 
     init {
         scope.launch {
-            getKhnpWasteWater()
             repository._khnpWasteWater.collectLatest {
-                _khnpWasteWaterStateFlow.value = it
+
+                if(it.values.isNotEmpty() && it.values.first().isNotEmpty()){
+                    _khnpWasteWaterStateFlow.value =  it.values.first()
+
+                    delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
+                    _refreshEvent.emit(Unit)
+                }
             }
+        }
+
+        scope.launch {
+            getKhnpWasteWater()
         }
     }
 

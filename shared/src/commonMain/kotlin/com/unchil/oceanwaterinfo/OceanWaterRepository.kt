@@ -47,8 +47,8 @@ class OceanWaterRepository {
     val _sDoTEnvInfoUnion: MutableStateFlow<List<SDoTEnvInfoUnion>>
             = MutableStateFlow(emptyList())
 
-    val _khnpWasteWater: MutableStateFlow<List<KHNPWasteWater>>
-            = MutableStateFlow(emptyList())
+    val _khnpWasteWater: MutableStateFlow<Map<Long,List<KHNPWasteWater>>>
+            = MutableStateFlow(emptyMap())
 
 
     val _khnpThermalWasteWater: MutableStateFlow<List<KHNPThermalWasteWater>>
@@ -113,7 +113,7 @@ class OceanWaterRepository {
     suspend fun getKhnpWasteWater(){
         try {
             oceanWaterApi.getKhnpWasteWater().let {
-                _khnpWasteWater.value = it
+                _khnpWasteWater.value = mapOf( Clock.System.now().epochSeconds to it)
                 LOGGER.debug("getKhnpWasteWater() called[${it.count()}]")
             }
         }catch (e:Exception){

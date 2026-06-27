@@ -14,11 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioActiveWasteViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioRateViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -23,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioRateViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -31,10 +29,10 @@ import kotlinx.coroutines.launch
 fun RadioRateBarChart(){
 
     val coroutineScope = rememberCoroutineScope()
+
     val viewModel: KhnpRadioRateViewModel = remember {
         KhnpRadioRateViewModel(  coroutineScope  )
     }
-
 
     val visibleProgressIndicator = remember { mutableStateOf(false) }
 
