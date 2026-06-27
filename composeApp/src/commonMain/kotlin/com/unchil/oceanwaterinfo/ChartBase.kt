@@ -177,12 +177,18 @@ fun prepareChartLayout(
                 (yMin - yRangePadding)..(yMax + yRangePadding)
             } else {
 
+                // 1. 먼저 옵션에 따른 상한선(Cap)을 정합니다.
                 val max = when (selectedOption) {
                     WATER_QUALITY.QualityType.rtmWqTu -> yMax.coerceAtMost(20f)
                     WATER_QUALITY.QualityType.rtmWqChpla -> yMax.coerceAtMost(10f)
                     else -> yMax
                 }
-                (yMin - yRangePadding)..(max + yRangePadding)
+
+                // 2. 제한된 값이 yMin보다 작아지지 않도록 보정합니다.
+                // yMin과 동일하면 그래프가 선으로 나오므로, 아주 작은 여유값(예: 0.1f)을 더하는 것이 좋습니다.
+                val finalMax = max.coerceAtLeast(yMin + 0.1f)
+
+                (yMin - yRangePadding)..(finalMax + yRangePadding)
             }
 
             // X축(시간): 데이터 전후로 5분(300,000ms)의 여유를 둠
