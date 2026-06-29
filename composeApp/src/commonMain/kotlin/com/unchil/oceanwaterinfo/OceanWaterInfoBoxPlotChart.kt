@@ -45,16 +45,17 @@ fun OceanWaterInfoBoxPlotChart(){
         }
     }
 
-    LaunchedEffect(visibleProgressIndicator.value){
-        if(visibleProgressIndicator.value){
-            delay(2000)
+    LaunchedEffect(viewModel) {
+        viewModel.refreshEvent.collect {
             visibleProgressIndicator.value = false
         }
     }
 
+
     LaunchedEffect(viewModel){
         while(true){
             delay(5 * 60 * 1000L).let{
+                visibleProgressIndicator.value = true
                 viewModel.onEvent(NifsSeaWaterInfoViewModel.Event.Refresh)
             }
         }

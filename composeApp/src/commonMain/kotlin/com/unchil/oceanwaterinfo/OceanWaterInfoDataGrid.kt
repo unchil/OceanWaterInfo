@@ -55,6 +55,7 @@ fun OceanWaterInfoDataGrid(){
     LaunchedEffect(key1 = viewModel){
         while(true){
             delay(5 * 60 * 1000L).let{
+                visibleProgressIndicator.value = true
                 viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             }
         }
@@ -67,11 +68,15 @@ fun OceanWaterInfoDataGrid(){
 
     LaunchedEffect(isReload.value){
         if(isReload.value){
-            viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             visibleProgressIndicator.value = true
-            delay(1000)
-            visibleProgressIndicator.value = false
+            viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             isReload.value = false
+        }
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.refreshEvent.collect {
+            visibleProgressIndicator.value = false
         }
     }
 
