@@ -11,8 +11,8 @@ class OceanWaterRepository {
 
     val oceanWaterApi = OceanWaterApi()
 
-    val _seaWaterInfoOneDayStateFlow: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
-            = MutableStateFlow(emptyList())
+    val _seaWaterInfoOneDayStateFlow: MutableStateFlow<Map<Long,List<SeawaterInformationByObservationPoint>>>
+            = MutableStateFlow(emptyMap())
 
     val _seaWaterInfoOneDayGridStateFlow: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
             = MutableStateFlow(emptyList())
@@ -27,11 +27,11 @@ class OceanWaterRepository {
     val _observatoryStateFlow: MutableStateFlow<List<Observatory>>
             = MutableStateFlow(emptyList())
 
-    val _seaWaterInfoOneDayMofStateFlow: MutableStateFlow<List<SeaWaterInformation>>
-            = MutableStateFlow(emptyList())
+    val _seaWaterInfoOneDayMofStateFlow: MutableStateFlow<Map<Long,List<SeaWaterInformation>>>
+            = MutableStateFlow(emptyMap() )
 
-    val _khoaObservationInfo: MutableStateFlow<List<KhoaObservation>>
-        = MutableStateFlow(emptyList())
+    val _khoaObservationInfo: MutableStateFlow<Map<Long,List<KhoaObservation>>>
+        = MutableStateFlow(emptyMap() )
 
 
 
@@ -151,7 +151,7 @@ class OceanWaterRepository {
     suspend fun getKhoaObservationInfo(){
         try {
             oceanWaterApi.getKhoaObservationInfo().let {
-                _khoaObservationInfo.value = it
+                _khoaObservationInfo.value = mapOf( Clock.System.now().epochSeconds to it)
                 LOGGER.debug("getKhoaObservationInfo() called[${it.count()}]")
             }
         }catch (e:Exception){
@@ -174,8 +174,8 @@ class OceanWaterRepository {
     suspend fun getKhoaObservationInfoCurrent(){
         try {
             oceanWaterApi.getKhoaObservationInfoCurrent().let {
-                val timestamp = Clock.System.now().epochSeconds
-                _khoaObservationInfoCurrent.value = mapOf( timestamp to it)
+
+                _khoaObservationInfoCurrent.value = mapOf( Clock.System.now().epochSeconds to it)
                 LOGGER.debug("getKhoaObservationInfoCurrent() called[${it.count()}]")
             }
         }catch (e:Exception){
@@ -189,7 +189,7 @@ class OceanWaterRepository {
             when(division) {
                 DATA_DIVISION.oneday -> {
                     oceanWaterApi.getSeaWaterInfo(DATA_DIVISION.oneday.name)?.let { it ->
-                        _seaWaterInfoOneDayStateFlow.value = it
+                        _seaWaterInfoOneDayStateFlow.value = mapOf(Clock.System.now().epochSeconds to it)
                         LOGGER.debug("getSeaWaterInfo() called[${it.count()}]")
                     }
                 }
@@ -201,21 +201,18 @@ class OceanWaterRepository {
                 }
                 DATA_DIVISION.current -> {
                     oceanWaterApi.getSeaWaterInfo(DATA_DIVISION.current.name)?.let { it ->
-                        val timestamp = Clock.System.now().epochSeconds
-                        _seaWaterInfoCurrentStateFlow.value = mapOf(timestamp to it)
+                        _seaWaterInfoCurrentStateFlow.value = mapOf(Clock.System.now().epochSeconds to it)
                         LOGGER.debug("getSeaWaterInfo() called[${it.count()}]")
                     }
                 }
                 DATA_DIVISION.mof_oneday -> {
                     oceanWaterApi.getSeaWaterInfoMof(DATA_DIVISION.mof_oneday.name)?.let { it ->
-                        _seaWaterInfoOneDayMofStateFlow.value = it
+                        _seaWaterInfoOneDayMofStateFlow.value = mapOf(Clock.System.now().epochSeconds to it)
                         LOGGER.debug("getSeaWaterInfo() called[${it.count()}]")
                     }
                 }
                 else -> {
-
-                    val timestamp = Clock.System.now().epochSeconds
-                    _seaWaterInfoCurrentStateFlow.value = mapOf(timestamp to emptyList())
+                    _seaWaterInfoCurrentStateFlow.value = mapOf(Clock.System.now().epochSeconds to emptyList())
                 }
             }
 

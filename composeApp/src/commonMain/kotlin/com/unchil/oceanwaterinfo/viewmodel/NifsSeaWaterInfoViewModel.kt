@@ -2,7 +2,9 @@ package com.unchil.oceanwaterinfo
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.text.trim
@@ -14,13 +16,25 @@ class NifsSeaWaterInfoViewModel ( scope:  CoroutineScope){
     val _seaWaterInfo: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
             = MutableStateFlow(emptyList())
 
+    private val _refreshEvent = MutableSharedFlow<Unit>()
+    val refreshEvent = _refreshEvent.asSharedFlow()
 
     init {
         scope.launch {
-            getSeaWaterInfo()
+
             repository._seaWaterInfoOneDayStateFlow.collectLatest {
-                _seaWaterInfo.value = it
+
+                if(it.values.isNotEmpty() && it.values.first().isNotEmpty()){
+                    _seaWaterInfo.value = it.values.first()
+
+                    delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
+                    _refreshEvent.emit(Unit)
+                }
             }
+        }
+
+        scope.launch {
+            getSeaWaterInfo()
         }
     }
 
