@@ -87,18 +87,10 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
                 timeSelector = { it.time },
                 timePattern = "yyyy-MM-dd HH:mm",
                 primaryValueSelector = {
-                    if(it.genName.equals("WS")){
-                        it.rm005.trim().toFloatOrNull() ?: 0f
-                    }else{
-                        it.rm001.trim().toFloatOrNull() ?: 0f
-                    }
+                    it.rm001.trim().toFloatOrNull() ?: 0f
                 },
                 secondaryValueSelector = {
-                    if(it.genName.equals("WS")){
-                        it.rm001.trim().toFloatOrNull() ?: 0f
-                    }else{
-                        it.rm005.trim().toFloatOrNull() ?: 0f
-                    }
+                    it.rm005.trim().toFloatOrNull() ?: 0f
                 },
                 secondaryKey = "rm005"
             )
