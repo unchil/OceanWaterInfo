@@ -12,7 +12,6 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.FloatColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.avg
 import org.jetbrains.exposed.v1.core.castTo
@@ -21,12 +20,10 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.min
-import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.core.substring
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.jetbrains.exposed.v1.jdbc.unionAll
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
@@ -34,42 +31,24 @@ import kotlin.time.ExperimentalTime
 
 // 캐시를 저장할 ConcurrentHashMap. 스레드 안전성을 보장합니다.
 private val cacheStorage_SeawaterInfo = ConcurrentHashMap<String, Pair<List<SeawaterInformationByObservationPoint>, Long>>()
-
 private val cacheStorage_SeawaterInfo_Mof = ConcurrentHashMap<String, Pair<List<SeaWaterInformation>, Long>>()
 private val cacheStorage_SeaWaterInfoStatistics = ConcurrentHashMap<String, Pair<List<SeaWaterInfoByOneHourStat>, Long>>()
-
 private val cacheStorage_SeaWaterInfoBoxPlot = ConcurrentHashMap<String, Pair<List<SeaWaterBoxPlotStat>, Long>>()
-
 private val cacheStorage_KhoaObservationInfo = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
-
 private val cacheStorage_KhoaObservationInfoCurrent = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
-
 private val cacheStorage_KhoaObservatoryInfo = ConcurrentHashMap<String, Pair<List<KhonObservatory>, Long>>()
-
 private val cacheStorage_KhoaTidalCurrentInfo = ConcurrentHashMap<String, Pair<List<TidalCurrentInfo>, Long>>()
-
 private val cacheStorage_SDoTEnvInfo = ConcurrentHashMap<String, Pair<List<SDoTEnvInformation>, Long>>()
-
 private val cacheStorage_SDoTEnvInfoGyonggi = ConcurrentHashMap<String, Pair<List<SDoTEnvInformationGyonggi>, Long>>()
-
 private val cacheStorage_SDoTEnvInfoUnion = ConcurrentHashMap<String, Pair<List<SDoTEnvInfoUnion>, Long>>()
-
 private val cacheStorage_KHNPWasteWater = ConcurrentHashMap<String, Pair<List<KHNPWasteWater>, Long>>()
-
 private val cacheStorage_KHNPThermalWasteWater = ConcurrentHashMap<String, Pair<List<KHNPThermalWasteWater>, Long>>()
-
 private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHNPRadioRate>, Long>>()
-
 private val cacheStorage_KHNPRadioActiveWaste = ConcurrentHashMap<String, Pair<List<KHNPRadioActiveWaste>, Long>>()
-
 private val cacheStorage_KHNPPlantState = ConcurrentHashMap<String, Pair<List<KHNPPlantOperationInfo>, Long>>()
-
-private const val CACHE_EXPIRY_SECONDS =  1 * 60L  // 10분
-
-
+private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 
 class Repository {
-
 
     fun khnp_PlantState():List<KHNPPlantOperationInfo> {
         val key = "cache_khnp_plantstate"
