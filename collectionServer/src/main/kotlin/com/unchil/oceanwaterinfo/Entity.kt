@@ -1,8 +1,6 @@
 package com.unchil.oceanwaterinfo
 
 
-import com.unchil.oceanwaterinfo.KHNP_RadioActiveWaste.plant
-import com.unchil.oceanwaterinfo.KHNP_RadioActiveWaste.spmon
 import org.jetbrains.exposed.v1.core.Table
 
 object ObservationTable: Table("Observation"){

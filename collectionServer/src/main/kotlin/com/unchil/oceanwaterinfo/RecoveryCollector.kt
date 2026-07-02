@@ -35,10 +35,9 @@ import kotlin.use
 class RecoveryCollector {
 
 
-    fun getRealTimeObservation( ){
+    fun getRealTimeObservationUseDataFrame( ){
 
-
-        val urlString = makeUrl(::getRealTimeObservation.name)
+        val urlString = makeUrl("getRealTimeObservation")
         val response = java.net.URI(urlString).toURL().openStream().use { inputStream ->
             InputStreamReader(inputStream, Charset.forName("EUC-KR")).readText()
         }
@@ -96,9 +95,9 @@ class RecoveryCollector {
 
     }
 
-    fun getRealTimeObservatory(){
+    fun getRealTimeObservatoryUseDataFrame(){
 
-        val urlString = makeUrl(::getRealTimeObservatory.name)
+        val urlString = makeUrl("getRealTimeObservatory")
         val response = java.net.URI(urlString).toURL().openStream().use { inputStream ->
             InputStreamReader(inputStream, Charset.forName("EUC-KR")).readText()
         }
@@ -288,26 +287,28 @@ class RecoveryCollector {
 
 
         val urlString = when (funcName) {
-            ::getRealTimeObservation.name -> {
+            "getRealTimeObservation" -> {
                 "${Config.configData.NIFS_API?.endPoint}/${Config.configData.NIFS_API?.subPath}" +
                         "?id=${Config.configData.NIFS_API?.id?.list}&key=${Config.configData.NIFS_API?.apikey}"
             }
-            ::getRealTimeObservatory.name -> {
+            "getRealTimeObservatory" -> {
                 "${Config.configData.NIFS_API?.endPoint}/${Config.configData.NIFS_API?.subPath}" +
                         "?id=${Config.configData.NIFS_API?.id?.code}&key=${Config.configData.NIFS_API?.apikey}"
             }
             ::getRealTimeOceanWaterQuality_Rocovery.name -> {
-                val now = Clock.System.now()
+
                 @OptIn(FormatStringsInDatetimeFormats::class)
-                val currentTime = now
+                val currentTime = kotlin.time.Clock.System.now()
                     .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                     .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm:ss")})
 
                 @OptIn(FormatStringsInDatetimeFormats::class)
-                val previous24Hour = now
-                    .minus(2, DateTimeUnit.HOUR)
-                    .toLocalDateTime(TimeZone.of("Asia/Seoul"))
-                    .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm:ss")})
+                val previous24Hour =
+                    kotlin.time.Clock.System.now()
+                        .minus(2, DateTimeUnit.HOUR)
+                        .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+                        .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
+
 
 
                 LOGGER.debug("Current time : ${currentTime}, Previous time : ${previous24Hour}")

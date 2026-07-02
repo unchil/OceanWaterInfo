@@ -1,13 +1,7 @@
 package com.unchil.oceanwaterinfo
 
-import kotlinx.coroutines.delay
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
-
 class DataCollector {
 
-    private val collectionInterval = Config.interval?.toInt()?.toDuration(DurationUnit.MINUTES) ?: 0.toDuration(
-        DurationUnit.MINUTES)
     val repository = Repository()
 
     fun batchJob(startDate:String, endDate:String){
@@ -87,48 +81,6 @@ class DataCollector {
             LOGGER.info("Schedule job for 1440 Minutes finished.")
         } catch (e: Exception) {
             LOGGER.error(e.stackTrace.toString())
-        }
-
-    }
-
-
-
-
-
-    suspend fun startCollecting() {
-        while(true){
-            LOGGER.info("Data Collector Job Started.\nType:[${Config.jobType}], Event[${Config.jobEvent}]")
-            try {
-
-                repository.getRealTimeObservation()
-                repository.getRealTimeObservatory()
-                repository.getKhoaObservation()
-                repository.getKhoaTidalCurrent()
-                repository.getSDoTEnvInfo()
-                repository.getSDoTEnvInfoGyonggi()
-                repository.getKHNP_WasteWater()
-                repository.getKHNP_ThermalWasteWater()
-                repository.getKHNP_RadioRate()
-                repository.getKHNP_RadioActiveWaste()
-                repository.getKHNP_PlantStates()
-
-                //jobType:["batch", "schedule"]
-                //jobEvent:["recovery", "operation"]
-
-                if(Config.jobType.equals("batch") && Config.jobEvent.equals("recovery")){
-                    RecoveryCollector().getRealTimeOceanWaterQuality_Rocovery(Config.wtch_dt_start ?: "", Config.wtch_dt_end ?: "")
-                }else{
-                    repository.getRealTimeOceanWaterQuality()
-                }
-
-            } catch (e: Exception) {
-                LOGGER.error(e.stackTrace.toString())
-            }
-
-            if(Config.jobType.equals("batch")) break
-
-            LOGGER.info("Data Collector Started. Collecting every ${collectionInterval} minutes...")
-            delay(collectionInterval)
         }
 
     }

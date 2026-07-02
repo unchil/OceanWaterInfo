@@ -14,7 +14,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.appendPathSegments
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -30,14 +29,10 @@ import java.nio.charset.StandardCharsets
 class RestApi {
 
     companion object {
-
-
-
         suspend fun callKHNP_PlantStates_xml(url:String):String{
             client.get(url).let {
                 return it.bodyAsText(java.nio.charset.Charset.forName("UTF8"))
             }
-
         }
 
         suspend fun callSDoT_EnvInfo_json(url:String): String{
@@ -51,8 +46,6 @@ class RestApi {
                 return it.bodyAsText(java.nio.charset.Charset.forName("EUC-KR"))
             }
         }
-
-
 
         suspend fun callNifsAPI_json(id:String):String{
             client.get(urlString =  configData.NIFS_API?.endPoint ?: "") {
@@ -71,14 +64,14 @@ class RestApi {
         }
 
         suspend fun callMofAPI_xml():HttpResponse {
-            val now = Clock.System.now()
+
             @OptIn(FormatStringsInDatetimeFormats::class)
-            val currentTime = now
+            val currentTime =  kotlin.time.Clock.System.now()
                 .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm:ss")})
 
             @OptIn(FormatStringsInDatetimeFormats::class)
-            val previous2Hour = now
+            val previous2Hour =  kotlin.time.Clock.System.now()
                 .minus(2, DateTimeUnit.HOUR)
                 .toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd  HH:mm:ss")})

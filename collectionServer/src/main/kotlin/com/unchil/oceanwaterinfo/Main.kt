@@ -3,7 +3,6 @@ package com.unchil.oceanwaterinfo
 import com.unchil.oceanwaterinfo.Config.Companion.configData
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 
 val LOGGER = KtorSimpleLogger( "CollectionServer")
 
