@@ -138,8 +138,7 @@ fun BoxPlotTooltips(
             text,
             style = textStyle ?: TextStyle.Default,
             modifier = Modifier
-                .padding(horizontal = 6.dp).padding(vertical = 2.dp),
-            color = Color.White
+                .padding(horizontal = 6.dp).padding(vertical = 2.dp)
         )
 
     }

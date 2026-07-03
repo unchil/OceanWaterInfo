@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -173,10 +174,15 @@ fun XYGraphScope<Double, Float>.VerticalTooltipBar(
                                         }.sortedByDescending { it.second.first }
 
                                         sortedEntries.forEach {  (observatory, value) ->
+
+                                            val bgColor = colors[observatory] as Color
+                                            // 배경 밝기에 따라 텍스트 색상 결정
+                                            val contentColor = if (bgColor.luminance() > 0.5f) Color.Black else Color.White
+
                                             BoxPlotTooltips(
                                                 "${observatory} : ${value.first} ~ ${value.second}",
-                                                textStyle,
-                                                modifier.background( color = colors[observatory] as Color, shape = ShapeDefaults.Small),
+                                                textStyle.copy(color = contentColor), // 대비 색상 적용
+                                                modifier.background( color = bgColor, shape = ShapeDefaults.Small),
                                             )
                                         }
                                     }
@@ -186,10 +192,15 @@ fun XYGraphScope<Double, Float>.VerticalTooltipBar(
                                         }.sortedByDescending { it.second }
 
                                         sortedEntries.forEach {  (observatory, value) ->
+                                            val bgColor = colors[observatory] as Color
+
+                                            val contentColor = if (bgColor.luminance() > 0.5f) Color.Black else Color.White
+
+
                                             BoxPlotTooltips(
                                                 "${observatory} : ${value}",
-                                                textStyle,
-                                                modifier.background( color = colors[observatory] as Color, shape = ShapeDefaults.Small),
+                                                textStyle.copy(color = contentColor), // 대비 색상 적용
+                                                modifier.background( color = bgColor, shape = ShapeDefaults.Small),
                                             )
                                         }
                                     }
