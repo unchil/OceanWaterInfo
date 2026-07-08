@@ -38,7 +38,7 @@ import kotlinx.coroutines.delay
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalWasmJsInterop::class)
-fun main() {
+fun mainOld() {
 
     val mainHtmlElementId = "webmain"
     val waterInfoMapHtmlElementId = "waterInfoMap"

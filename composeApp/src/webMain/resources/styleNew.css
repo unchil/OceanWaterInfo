@@ -1,0 +1,30 @@
+
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* 스크롤이 필요하다면 auto */
+}
+
+#webmain {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#iframe_airInfoMap {
+    flex-grow: 1;
+    border: none;
+    display: flex;
+}
+
+#iframe_waterInfo {
+    flex-grow: 1;
+    border: none;
+    display: flex;
+}
+

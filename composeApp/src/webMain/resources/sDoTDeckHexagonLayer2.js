@@ -388,7 +388,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "9038a0505ac4349baf8c6048",
+      mapId: "",
       center:{ lat: 37.55267, lng: 126.98136 },
        zoom: zoomLevel,
        tilt: 45,
@@ -420,13 +420,25 @@ async function initMap() {
 
 
 window.addEventListener("message", (event) => {
-    if (event.data.action === 'CHANGE_TYPE') {
-        currentType = event.data.type;
-        updateData(event.data.type);
+
+    let data = event.data;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.error("메시지 데이터 파싱 중 오류 발생:", e);
+            return; // 파싱 실패 시 함수 종료
+        }
+    }
+
+
+    if (data.action === 'CHANGE_TYPE') {
+        currentType = data.type;
+        updateData(data.type);
         updateAirQualityStatistics()
     }
 
-    if (event.data.action === 'UPDATE-STATE') {
+    if (data.action === 'UPDATE-STATE') {
         updateAirQualityStatistics()
     }
 

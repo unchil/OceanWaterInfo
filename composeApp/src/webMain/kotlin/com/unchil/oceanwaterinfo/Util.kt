@@ -4,11 +4,13 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.browser.document
-import kotlinx.browser.window
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 const val IFRAME_WATER_INFO = "iframe_waterInfo"
+const val DIV_WATER_INFO = "waterInfoMap"
+const val DIV_AIR_INFO = "airInfoMap"
+const val IFRAME_AIR_INFO = "iframe_airInfoMap"
 
 // 1. 관측 데이터를 마커 클러스터용 문자열 데이터(Triple)로 변환하는 함수
 fun transformToMarkerData(observations: List<KhoaObservation>): Triple<String, String, String> {
@@ -65,13 +67,18 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
             // Compose 좌표 + 캔버스 시작 위치 + 스크롤 위치를 합산하여 정확한 px 계산
             val finalTop = (windowPos.y / density.density) + canvasOffsetTop
             val finalLeft = (windowPos.x / density.density) + canvasOffsetLeft
-
             top = "${finalTop}px"
             left = "${finalLeft}px"
             width = "${(coordinates.size.width / density.density) }px"
             height = "${(coordinates.size.height / density.density)  }px"
         }
     }
+}
+
+val onClickTabPositionAirInfo = {  element:String->
+    val message = "{ \"action\": \"CHANGE_TYPE\", \"type\": \"${element}\"}"
+
+    postIframeMessage(IFRAME_AIR_INFO, message)
 }
 
 val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
@@ -99,6 +106,26 @@ val disposeHtmlElements = { htmlElements : List<String> ->
         val htmlElement = document.getElementById(it) as? HTMLElement
         htmlElement?.style?.apply {
             visibility = "hidden"
+        }
+    }
+}
+
+val changeSelectedTab = { selectedTabIndex :Int ->
+
+    val airHtmlElement = document.getElementById(DIV_AIR_INFO) as? HTMLElement
+    val waterHtmlElement = document.getElementById(DIV_WATER_INFO) as? HTMLElement
+
+    airHtmlElement?.let {
+        when(selectedTabIndex){
+            0 -> it.style.visibility = "visible"
+            else -> it.style.visibility = "hidden"
+        }
+    }
+
+    waterHtmlElement?.let {
+        when(selectedTabIndex){
+            0 -> it.style.visibility = "hidden"
+            else -> it.style.visibility = "visible"
         }
     }
 }

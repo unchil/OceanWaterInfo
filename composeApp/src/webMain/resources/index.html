@@ -4,80 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OceanWaterInformation</title>
-    <link rel="stylesheet"  href="style.css" />
+    <link rel="stylesheet"  href="styleNew.css" />
 
-    <script src="index.js"></script>
+    <script src="indexNew.js"></script>
 </head>
 <body >
 
+<div id="webmain" ></div>
 
 
-<div class="main-tab-row">
-    <button class="main-tab active" onclick="switchMainTab(this, 0)">Seoul/Gyonggi SDoT Information</button>
-    <button class="main-tab " onclick="switchMainTab(this, 1)">Korea Ocean Information</button>
-
+<div id="airInfoMap" >
+    <iframe id="iframe_airInfoMap" src="sDoTDeckHexagonLayer2.html" title="Seoul/Gyonggi Air Quality Information"  ></iframe>
 </div>
 
 
-
-<div id="section-sdot" class="tab-content" >
-
-    <h2 class="compose-title">Seoul/Gyonggi Air Environmental Observation Information</h2>
-
-
-    <div class="tab-row">
-        <button class="tab-item active" onclick="changeTab(this, 'o3')">Ozone(O3)</button>
-        <button class="tab-item" onclick="changeTab(this, 'no2')">Nitrogen dioxide(NO2)</button>
-        <button class="tab-item" onclick="changeTab(this, 'co')">Carbon monoxide(CO)</button>
-        <button class="tab-item" onclick="changeTab(this, 'so2')">Sulfur dioxide(SO2)</button>
-        <button class="tab-item" onclick="changeTab(this, 'nh3')">Ammonia(NH3)</button>
-        <button class="tab-item" onclick="changeTab(this, 'h2s')">Hydrogen sulfide(H2S)</button>
-        <button class="tab-item" onclick="changeTab(this, 'pm10')">Particulate Matter(PM10)</button>
-        <button class="tab-item" onclick="changeTab(this, 'pm25')">Particulate Matter(PM2.5)</button>
-    </div>
-
-
-    <div id="info-sidebar" class="sidebar-wrapper">
-        <div class="sidebar-handle" onclick="toggleSidebar()">
-            <span id="handle-icon">ⓘ</span>
-            <span class="handle-text">INFO</span>
-        </div>
-
-        <div class="sidebar-content">
-            <div class="sidebar-header"><h3>Information</h3></div>
-            <div id="description-text"></div>
-        </div>
-    </div>
-
-
-
-    <iframe id="map-iframe"
-            src="sDoTDeckHexagonLayer2.html"
-            title="Seoul/Gyonggi Air Quality Information"
-            >
-
-    </iframe>
-
+<div id="waterInfoMap" >
+    <iframe id="iframe_waterInfo" src="waterInfoGoogleMap.html" title="" ></iframe>
 </div>
-
-
-
-
-<div id="section-ocean" class="tab-content"  style="visibility: hidden; display:none;" >
-
-    <h2 class="compose-title">Korea Ocean Water Information</h2>
-
-    <div id="webmain" >
-            <!-- 여기에 나중에 composeApp.js가 들어갑니다 -->
-            <!--   <script type="application/javascript" src="composeApp.js"></script> -->
-    </div>
-
-    <div id="waterInfoMap" >
-        <iframe id="iframe_waterInfo" src="waterInfoGoogleMap.html" title="" style="flex-grow: 1; border: none; display: flex; "></iframe>
-    </div>
-
-</div>
-
-
-</body>
-</html>

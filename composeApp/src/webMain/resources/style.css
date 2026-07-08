@@ -341,7 +341,7 @@ height: 36px;
 
 /* 3. webmain과 하단 지도가 남은 공간을 나누어 가짐 */
 #webmain {
-    position: relative;
+
       height: 100vh;
 }
 
