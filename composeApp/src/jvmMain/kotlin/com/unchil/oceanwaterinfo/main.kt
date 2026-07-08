@@ -100,7 +100,7 @@ fun main() = application {
     }
 
     var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
-    val tabTitles = listOf("Seoul/Gyonggi  Air Quality", "Korea Ocean Water")
+    val tabTitles = listOf("Seoul/Gyonggi  Air Quality", "Korea Ocean Water Quality")
 
 
     Window(
@@ -179,7 +179,7 @@ fun main() = application {
                                         textAlign = TextAlign.Center
                                     )
 
-                                        SDoTEnvInfoUnionMapHexagonLayer(initialized, download, errorMessage)
+                                    SDoTEnvInfoUnionMapHexagonLayer(initialized, download, errorMessage)
 
                                 }
                             }
