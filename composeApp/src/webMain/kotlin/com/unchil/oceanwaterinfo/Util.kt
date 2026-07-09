@@ -81,6 +81,14 @@ val onClickTabPositionAirInfo = {  element:String->
     postIframeMessage(IFRAME_AIR_INFO, message)
 }
 
+
+val onClickTabPositionAirInfo2 = {  values:String, element:String->
+    val message = "{ \"action\": \"CHANGE_DATA\", \"type\": \"${element}\", \"values\":${values}}"
+
+    postIframeMessage(IFRAME_AIR_INFO, message)
+}
+
+
 val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
     val message = """
                 {

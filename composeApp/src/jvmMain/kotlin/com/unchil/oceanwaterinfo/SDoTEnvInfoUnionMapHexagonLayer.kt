@@ -98,7 +98,6 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
-
         if(sDoTEnvInfo.value.isNotEmpty()) {
 
             values.value = sDoTEnvInfo.value.map{it}.joinToString(
@@ -119,12 +118,13 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
             }
+
         }
     }
 
 
 
-    LaunchedEffect( values.value, webViewState.loadingState, key3 = selectedOption){
+    LaunchedEffect( values.value, webViewState.loadingState){
         if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
             navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
         }
@@ -167,7 +167,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                 var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
                 AnimatedVisibility(descriptionBox){
-                    SDoTDescription(selectedOption, splitFractionVertical)
+                    SDoTDescription(sDoTEnvInfo.value, selectedOption, splitFractionVertical)
                 }
 
                 Box( modifier = Modifier.width(24.dp).fillMaxHeight()

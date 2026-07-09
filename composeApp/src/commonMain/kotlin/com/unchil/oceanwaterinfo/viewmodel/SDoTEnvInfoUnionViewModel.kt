@@ -17,10 +17,12 @@ class SDoTEnvInfoUnionViewModel  (scope: CoroutineScope){
 
     init {
         scope.launch {
-            getSDoTEnvInfoUnion()
             repository._sDoTEnvInfoUnion.collectLatest {
                 _sDoTEnvInfoUnionFlow.value = it
             }
+        }
+        scope.launch {
+            getSDoTEnvInfoUnion()
         }
     }
 

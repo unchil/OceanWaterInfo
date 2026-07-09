@@ -235,7 +235,15 @@ function updateSidebarInfoDisplay() {
 
 }
 
+function updateData2(values){
 
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+    }
+
+    deckData = values;
+    renderLayer();
+}
 
 
 // 1. 데이터 업데이트 로직 (서버 요청)
@@ -388,7 +396,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "",
+      mapId: "9038a0505ac4349baf8c6048",
       center:{ lat: 37.55267, lng: 126.98136 },
        zoom: zoomLevel,
        tilt: 45,
@@ -412,7 +420,7 @@ async function initMap() {
 
     // [최초 로드] 데이터 요청 포함
     google.maps.event.addListenerOnce(map, 'idle', () => {
-        updateData(currentType);
+       // updateData(currentType);
     });
 
 
@@ -435,11 +443,16 @@ window.addEventListener("message", (event) => {
     if (data.action === 'CHANGE_TYPE') {
         currentType = data.type;
         updateData(data.type);
-        updateAirQualityStatistics()
+      //  updateAirQualityStatistics()
+    }
+
+    if(data.action == 'CHANGE_DATA'){
+        currentType = data.type;
+        updateData2(data.values)
     }
 
     if (data.action === 'UPDATE-STATE') {
-        updateAirQualityStatistics()
+   //     updateAirQualityStatistics()
     }
 
 });

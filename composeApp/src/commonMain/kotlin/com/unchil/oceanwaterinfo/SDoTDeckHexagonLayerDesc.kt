@@ -39,26 +39,13 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SDoTDescription(
+    sDoTEnvInfo: List<SDoTEnvInfoUnion>,
     selectedOption: AirQualityManager.ChemicalElement,
      splitFractionVertical: Float
 ){
 
-    val coroutineScope = rememberCoroutineScope()
-
-    val viewModel: SDoTEnvInfoUnionViewModel = remember {
-        SDoTEnvInfoUnionViewModel(coroutineScope)
-    }
-
-    LaunchedEffect(key1 = viewModel){
-        while(true){
-            delay(5 * 60 * 1000L).let{
-                viewModel.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
-            }
-        }
-    }
 
     val caption = "미국 환경보호청(US EPA)의 공식 가이드라인을 바탕으로, 공기질 항목(EPA 기준 오염물질 6종 + 산업/안전 가스 2종)을 6단계로 분류"
-
     val unHealthyForSensitive =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val unHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
     val veryUnHealthy =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
@@ -67,17 +54,15 @@ fun SDoTDescription(
     val maxValue = remember{ mutableStateOf(0.0 )}
     val sDoTEnvInfoStat = remember{ mutableStateOf(emptyList<Pair<AirQualityManager.AirQualityStage, Int>>())}
 
-    val sDoTEnvInfo = viewModel._sDoTEnvInfoUnionFlow.collectAsState()
-
-    LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
+    LaunchedEffect( sDoTEnvInfo, key2=selectedOption){
 
         unHealthyForSensitive.clear()
         unHealthy.clear()
         veryUnHealthy.clear()
         hazardous.clear()
 
-        if(sDoTEnvInfo.value.isNotEmpty()) {
-            values.value = sDoTEnvInfo.value.map{it}.joinToString(
+        if(sDoTEnvInfo.isNotEmpty()) {
+            values.value = sDoTEnvInfo.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
                 postfix = "]"
@@ -120,8 +105,8 @@ fun SDoTDescription(
             }
 
             maxValue.value  =
-                if (sDoTEnvInfo.value.isEmpty()) 0.0
-                else sDoTEnvInfo.value.map { sensor ->
+                if (sDoTEnvInfo.isEmpty()) 0.0
+                else sDoTEnvInfo.map { sensor ->
                     val v = when (selectedOption) {
                         AirQualityManager.ChemicalElement.o3 -> sensor.o3
                         AirQualityManager.ChemicalElement.no2 -> sensor.no2
@@ -135,7 +120,7 @@ fun SDoTDescription(
                     v.toDoubleOrNull() ?: 0.0
                 }.max()
 
-            sDoTEnvInfoStat.value = sDoTEnvInfo.value.groupBy { sensor ->
+            sDoTEnvInfoStat.value = sDoTEnvInfo.groupBy { sensor ->
 
                 val v = when (selectedOption) {
                     AirQualityManager.ChemicalElement.o3 -> sensor.o3
