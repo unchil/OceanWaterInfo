@@ -141,7 +141,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
     map  = new Map(document.getElementById('un7map'), {
-      mapId: "9038a0505ac4349baf8c6048",
+      mapId: "",
       center: center,
        zoom: zoomLevel,
        tilt: 45,
