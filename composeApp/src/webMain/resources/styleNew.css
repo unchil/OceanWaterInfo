@@ -28,3 +28,9 @@ html, body {
     display: flex;
 }
 
+#iframe_oceanWaterInfo {
+    flex-grow: 1;
+    border: none;
+    display: flex;
+}
+

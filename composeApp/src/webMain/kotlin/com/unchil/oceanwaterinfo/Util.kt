@@ -8,7 +8,9 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 const val IFRAME_WATER_INFO = "iframe_waterInfo"
+const val IFRAME_OCEAN_WATER_INFO = "iframe_oceanWaterInfo"
 const val DIV_WATER_INFO = "waterInfoMap"
+const val DIV_OCEAN_WATER_INFO = "oceanWaterInfoMap"
 const val DIV_AIR_INFO = "airInfoMap"
 const val IFRAME_AIR_INFO = "iframe_airInfoMap"
 
@@ -99,6 +101,17 @@ val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
     postIframeMessage(IFRAME_WATER_INFO, message)
 }
 
+
+val onClickPointOceanWaterInfoGeoChart2 = { point:Point<Double, Double> ->
+    val message = """
+                {
+                    "action": "FLY_TO",
+                    "target": { "lat": ${point.y}, "lng": ${point.x} }
+                }
+                """.trimIndent()
+    postIframeMessage(IFRAME_OCEAN_WATER_INFO, message)
+}
+
 val sendAddMarkerClusterer = { (locs, lbs, cnts) :Triple<String, String, String> ->
     val message = """
                 {
@@ -108,6 +121,19 @@ val sendAddMarkerClusterer = { (locs, lbs, cnts) :Triple<String, String, String>
                 """.trimIndent()
     postIframeMessage(IFRAME_WATER_INFO, message)
 }
+
+val sendAddMarkerClusterer2 = { seaWaterInfo:List<KhoaObservation> ->
+
+    val (locs, lbs, cnts) = transformToMarkerData(seaWaterInfo)
+    val message = """
+                {
+                    "action": "ADD_Marker_Clusterer",
+                    "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
+                }
+                """.trimIndent()
+    postIframeMessage(IFRAME_WATER_INFO, message)
+}
+
 
 val disposeHtmlElements = { htmlElements : List<String> ->
     htmlElements.forEach {
@@ -122,6 +148,7 @@ val changeSelectedTab = { selectedTabIndex :Int ->
 
     val airHtmlElement = document.getElementById(DIV_AIR_INFO) as? HTMLElement
     val waterHtmlElement = document.getElementById(DIV_WATER_INFO) as? HTMLElement
+    val oceanWaterHtmlElement = document.getElementById(DIV_OCEAN_WATER_INFO) as? HTMLElement
 
     airHtmlElement?.let {
         when(selectedTabIndex){
@@ -130,10 +157,19 @@ val changeSelectedTab = { selectedTabIndex :Int ->
         }
     }
 
-    waterHtmlElement?.let {
+    oceanWaterHtmlElement?.let{
         when(selectedTabIndex){
-            0 -> it.style.visibility = "hidden"
-            else -> it.style.visibility = "visible"
+            1 -> it.style.visibility = "visible"
+            else -> it.style.visibility = "hidden"
         }
     }
+
+    waterHtmlElement?.let {
+        when(selectedTabIndex){
+            2 -> it.style.visibility = "visible"
+            else -> it.style.visibility = "hidden"
+        }
+    }
+
+
 }

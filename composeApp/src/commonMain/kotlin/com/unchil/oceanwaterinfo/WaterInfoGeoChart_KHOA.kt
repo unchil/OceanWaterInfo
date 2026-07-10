@@ -39,7 +39,15 @@ import org.maplibre.spatialk.geojson.Position
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -> }  ){
+fun WaterInfoGeoChart_KHOA(
+    onClickPoint:(Point<Double,Double>)->Unit = { point -> }  ,
+    sendAddMarkerClusterer:(seaWaterInfo:List<KhoaObservation>)-> Unit = {seaWaterInfo ->},
+    onClickPointOceanWaterInfoGeoChart:( point:Point<Double, Double>) -> Unit = {},
+    isReload: Int = 0
+){
+
+    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
+
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaObservationCurrentViewModel = remember {
         KhoaObservationCurrentViewModel(coroutineScope)
@@ -54,6 +62,11 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
         }
     }
 
+    LaunchedEffect(isReload){
+        if(isReload > 0 ) {
+            onReload()
+        }
+    }
 
     LaunchedEffect(viewModel){
         while(true){
@@ -67,6 +80,8 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
     LaunchedEffect(viewModel) {
         viewModel.refreshEvent.collect {
             visibleProgressIndicator.value = false
+            onClickPointOceanWaterInfoGeoChart(initCenterPoint)
+
         }
     }
 
@@ -115,12 +130,18 @@ fun WaterInfoGeoChart_KHOA(onClickPoint:(Point<Double,Double>)->Unit = { point -
     val data = remember { mutableStateOf(emptyList<ChartValuesGeo>() ) }
 
     LaunchedEffect(seaWaterInfo.value){
-        data.value = seaWaterInfo.value.map {
-            Triple(
-                it.obsvtrNm ,
-                Point(it.lot, it.lat) ,
-                Pair(it.obsrvnDt,it.wtem ?: "")
-            )
+
+        if (seaWaterInfo.value.isNotEmpty()) {
+
+            sendAddMarkerClusterer(seaWaterInfo.value)
+
+            data.value = seaWaterInfo.value.map {
+                Triple(
+                    it.obsvtrNm ,
+                    Point(it.lot, it.lat) ,
+                    Pair(it.obsrvnDt,it.wtem ?: "")
+                )
+            }
         }
     }
 
