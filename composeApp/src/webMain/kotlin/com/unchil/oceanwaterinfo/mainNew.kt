@@ -80,7 +80,7 @@ fun main(){
 
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
         val tabTitles = listOf("Seoul/Gyonggi  Air Quality", "Korea Ocean Water Quality", "Korea Hydro & Nuclear Power")
-        var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
+
 
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
@@ -153,6 +153,49 @@ fun main(){
                     when (selectedTabIndex) {
                         0 -> {
 
+                            var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
+
+                            val viewModelSDoTEnvInfoUnion: SDoTEnvInfoUnionViewModel = remember {
+                                SDoTEnvInfoUnionViewModel()
+                            }
+                            LaunchedEffect(key1 = viewModelSDoTEnvInfoUnion){
+                                while(true){
+                                    viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+                                    delay(5 * 60 * 1000L)
+                                }
+                            }
+
+                            val sDoTEnvInfo = viewModelSDoTEnvInfoUnion._sDoTEnvInfoUnionFlow.collectAsState()
+
+                            LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
+
+                                if(sDoTEnvInfo.value.isNotEmpty()) {
+                                    val values = sDoTEnvInfo.value.map{it}.joinToString(
+                                        separator = ",",
+                                        prefix = "[",
+                                        postfix = "]"
+                                    ) { it ->
+                                        val value = when (selectedOption) {
+                                            AirQualityManager.ChemicalElement.o3 -> it.o3.toFloatOrNull() ?: 0f
+                                            AirQualityManager.ChemicalElement.no2 -> it.no2.toFloatOrNull() ?: 0f
+                                            AirQualityManager.ChemicalElement.co -> it.co.toFloatOrNull() ?: 0f
+                                            AirQualityManager.ChemicalElement.so2 -> it.so2.toFloatOrNull() ?: 0f
+                                            AirQualityManager.ChemicalElement.nh3 -> it.nh3.toFloatOrNull() ?: 0f
+                                            AirQualityManager.ChemicalElement.h2s -> it.h2s.toFloatOrNull() ?: 0f
+                                            AirQualityManager.ChemicalElement.pm10 -> it.pm10.toFloatOrNull() ?: 0f
+                                            AirQualityManager.ChemicalElement.pm25 -> it.pm25.toFloatOrNull() ?: 0f
+                                        }
+                                        "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
+                                    }
+
+                                    onClickTabPositionAirInfo2.invoke(values, selectedOption.name)
+
+                                }
+
+
+                            }
+
+
                             Column(modifier = Modifier.fillMaxSize()) {
 
                                 Text(
@@ -206,7 +249,7 @@ fun main(){
                                             var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
                                             AnimatedVisibility(descriptionBox){
-                                                SDoTDescription(selectedOption= selectedOption, splitFractionVertical = splitFractionVertical)
+                                                SDoTDescription(sDoTEnvInfo = sDoTEnvInfo.value, selectedOption= selectedOption, splitFractionVertical = splitFractionVertical)
                                             }
 
                                             Box( modifier = Modifier.width(24.dp).fillMaxHeight()
@@ -252,48 +295,6 @@ fun main(){
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
-
-                                                val viewModelSDoTEnvInfoUnion: SDoTEnvInfoUnionViewModel = remember {
-                                                    SDoTEnvInfoUnionViewModel()
-                                                }
-                                                LaunchedEffect(key1 = viewModelSDoTEnvInfoUnion){
-                                                    while(true){
-                                                        viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
-                                                        delay(5 * 60 * 1000L)
-                                                    }
-                                                }
-
-                                                val sDoTEnvInfo = viewModelSDoTEnvInfoUnion._sDoTEnvInfoUnionFlow.collectAsState()
-
-                                                LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
-
-                                                    if(sDoTEnvInfo.value.isNotEmpty()) {
-                                                        val values = sDoTEnvInfo.value.map{it}.joinToString(
-                                                            separator = ",",
-                                                            prefix = "[",
-                                                            postfix = "]"
-                                                        ) { it ->
-                                                            val value = when (selectedOption) {
-                                                                AirQualityManager.ChemicalElement.o3 -> it.o3.toFloatOrNull() ?: 0f
-                                                                AirQualityManager.ChemicalElement.no2 -> it.no2.toFloatOrNull() ?: 0f
-                                                                AirQualityManager.ChemicalElement.co -> it.co.toFloatOrNull() ?: 0f
-                                                                AirQualityManager.ChemicalElement.so2 -> it.so2.toFloatOrNull() ?: 0f
-                                                                AirQualityManager.ChemicalElement.nh3 -> it.nh3.toFloatOrNull() ?: 0f
-                                                                AirQualityManager.ChemicalElement.h2s -> it.h2s.toFloatOrNull() ?: 0f
-                                                                AirQualityManager.ChemicalElement.pm10 -> it.pm10.toFloatOrNull() ?: 0f
-                                                                AirQualityManager.ChemicalElement.pm25 -> it.pm25.toFloatOrNull() ?: 0f
-                                                            }
-                                                            "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
-                                                        }
-
-                                                        onClickTabPositionAirInfo2.invoke(values, selectedOption.name)
-
-                                                    }
-
-
-                                                }
-
-
 
                                             }
 
