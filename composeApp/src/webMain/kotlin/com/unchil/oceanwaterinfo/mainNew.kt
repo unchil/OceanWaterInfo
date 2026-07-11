@@ -81,7 +81,7 @@ fun main(){
 
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
-        var descriptionBox by remember { mutableStateOf(true) }
+        var descriptionBox by remember { mutableStateOf(false) }
 
 
 
