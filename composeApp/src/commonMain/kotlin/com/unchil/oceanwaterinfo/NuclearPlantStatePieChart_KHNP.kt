@@ -12,7 +12,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -23,20 +22,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpPlantStateViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhnpThermalWasteWaterViewModel
-import io.github.koalaplot.core.ChartLayout
 import io.github.koalaplot.core.pie.BezierLabelConnector
 import io.github.koalaplot.core.pie.DefaultSlice
 import io.github.koalaplot.core.pie.PieChart
-import io.github.koalaplot.core.style.KoalaPlotTheme.legendLocation
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
@@ -45,7 +39,7 @@ import kotlin.time.Instant
 @Composable
 fun NuclearPlantStatePieChart_KHNP(){
     val coroutineScope = rememberCoroutineScope()
-    val viewModel: KhnpPlantStateViewModel = remember { KhnpPlantStateViewModel(coroutineScope) }
+    val viewModel: KhnpPlantStateViewModel = remember { KhnpPlantStateViewModel() }
 
     val plantstates = viewModel._khnpPlantState.collectAsState()
 
@@ -55,6 +49,13 @@ fun NuclearPlantStatePieChart_KHNP(){
     var selectedOption by remember { mutableStateOf(POWER_PLANT_AREA.POWER_PLANT.entries[0]) }
     val onSelection: ( POWER_PLANT_AREA.POWER_PLANT ) -> Unit = { entry ->
         selectedOption = entry
+    }
+
+    LaunchedEffect(viewModel){
+        while(true){
+            viewModel.onEvent(KhnpPlantStateViewModel.Event.Refresh)
+            delay(24 * 60 * 60 * 1000L)
+        }
     }
 
     LaunchedEffect(key1= plantstates.value,  key2=selectedOption){

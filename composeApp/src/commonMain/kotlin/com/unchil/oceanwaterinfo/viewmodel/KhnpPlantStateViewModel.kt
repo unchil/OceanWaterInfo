@@ -7,30 +7,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class KhnpPlantStateViewModel (scope: CoroutineScope) {
+class KhnpPlantStateViewModel (){
     private val repository = getPlatform().repository
 
     val _khnpPlantState: MutableStateFlow<List<KHNPPlantOperationInfo>>
-            = MutableStateFlow(emptyList())
-
-    init {
-        scope.launch {
-            getKhnpPlantState()
-            repository._khnpPlantState.collectLatest {
-                _khnpPlantState.value = it
-            }
-        }
-    }
-
-    suspend fun getKhnpPlantState(){
-        repository.getKhnpPlantState()
-    }
+            = repository._khnpPlantState
 
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                getKhnpPlantState()
+                repository.getKhnpPlantState()
             }
         }
     }
