@@ -55,10 +55,9 @@ fun OceanWaterInfo_MOF(){
 
     LaunchedEffect(viewModel){
         while(true){
-            delay(5 * 60 * 1000L).let{
-                visibleProgressIndicator.value = true
-                viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
-            }
+            visibleProgressIndicator.value = true
+            viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
         }
     }
 

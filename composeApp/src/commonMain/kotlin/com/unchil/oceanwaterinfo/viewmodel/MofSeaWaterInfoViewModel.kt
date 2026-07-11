@@ -33,22 +33,16 @@ class MofSeaWaterInfoViewModel( scope:  CoroutineScope){
             }
         }
 
-        scope.launch {
-            getSeaWaterInfo()
-        }
     }
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                getSeaWaterInfo()
+                repository.getSeaWaterInfo(DATA_DIVISION.mof_oneday)
             }
         }
     }
 
-    suspend fun getSeaWaterInfo(){
-        repository.getSeaWaterInfo(DATA_DIVISION.mof_oneday)
-    }
 
 
     sealed class Event {
