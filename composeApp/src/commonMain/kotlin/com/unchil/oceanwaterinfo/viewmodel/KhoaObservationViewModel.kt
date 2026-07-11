@@ -33,20 +33,17 @@ class KhoaObservationViewModel(scope: CoroutineScope){
             }
         }
 
-        scope.launch {
-            getObservationInfo()
-        }
+
     }
 
-    suspend fun getObservationInfo(){
-        repository.getKhoaObservationInfo()
-    }
+
+
 
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                getObservationInfo()
+                repository.getKhoaObservationInfo()
             }
         }
     }
