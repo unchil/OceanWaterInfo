@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 fun KHNPRadioActiveWasteStackBarChart() {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpRadioActiveWasteViewModel = remember {
-        KhnpRadioActiveWasteViewModel(  coroutineScope  )
+        KhnpRadioActiveWasteViewModel(    )
     }
 
 
@@ -34,9 +34,8 @@ fun KHNPRadioActiveWasteStackBarChart() {
 
     LaunchedEffect(viewModel){
         while(true){
-            delay(24 * 60 * 60 * 1000L).let{
-                viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
-            }
+            viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
+            delay(24 * 60 * 60 * 1000L)
         }
     }
 

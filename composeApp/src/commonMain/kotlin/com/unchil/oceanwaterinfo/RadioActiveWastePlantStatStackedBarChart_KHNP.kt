@@ -19,7 +19,7 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpRadioActiveWasteViewModel = remember {
-        KhnpRadioActiveWasteViewModel(  coroutineScope  )
+        KhnpRadioActiveWasteViewModel(    )
     }
 
 
@@ -31,9 +31,8 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
 
     LaunchedEffect(viewModel){
         while(true){
-            delay(24 * 60 * 60 * 1000L).let{
-                viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
-            }
+            viewModel.onEvent(KhnpRadioActiveWasteViewModel.Event.Refresh)
+            delay(24 * 60 * 60 * 1000L)
         }
     }
 
