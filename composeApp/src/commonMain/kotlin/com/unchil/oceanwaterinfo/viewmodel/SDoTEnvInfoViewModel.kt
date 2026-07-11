@@ -7,31 +7,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class SDoTEnvInfoViewModel (scope: CoroutineScope){
+class SDoTEnvInfoViewModel (){
 
     private val repository = getPlatform().repository
 
     val _sDoTEnvInfotateFlow: MutableStateFlow<List<SDoTEnvInformation>>
-            = MutableStateFlow(emptyList())
+            = repository._sDoTEnvInfo
 
-    init {
-        scope.launch {
-            getSDoTEnvInfo()
-            repository._sDoTEnvInfo.collectLatest {
-                _sDoTEnvInfotateFlow.value = it
-            }
-        }
-    }
-
-    suspend fun getSDoTEnvInfo(){
-        repository.getSDoTEnvInfo()
-    }
 
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                getSDoTEnvInfo()
+                repository.getSDoTEnvInfo()
             }
         }
     }
