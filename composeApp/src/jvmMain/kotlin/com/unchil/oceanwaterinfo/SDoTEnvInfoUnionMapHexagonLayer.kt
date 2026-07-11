@@ -74,14 +74,14 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     errorMessage:String,
 ){
     val coroutineScope = rememberCoroutineScope()
+
     val viewModel: SDoTEnvInfoUnionViewModel = remember {
         SDoTEnvInfoUnionViewModel(coroutineScope)
     }
     LaunchedEffect(key1 = viewModel){
         while(true){
-            delay(5 * 60 * 1000L).let{
-                viewModel.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
-            }
+            viewModel.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
         }
     }
 
@@ -119,6 +119,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
             }
 
+
         }
     }
 
@@ -129,6 +130,8 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
             navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
         }
     }
+
+
 
 
     Column(
