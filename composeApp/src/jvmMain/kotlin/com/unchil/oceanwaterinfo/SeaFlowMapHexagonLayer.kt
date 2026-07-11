@@ -30,7 +30,7 @@ fun SeaFlowMapHexagonLayer(
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaTidalCurrentViewModel = remember {
-        KhoaTidalCurrentViewModel(coroutineScope)
+        KhoaTidalCurrentViewModel()
     }
 
     val host = "http://localhost:7272"
@@ -47,9 +47,8 @@ fun SeaFlowMapHexagonLayer(
 
     LaunchedEffect(key1 = viewModel){
         while(true){
-            delay(5 * 60 * 1000L).let{
-                viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
-            }
+            viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
         }
     }
 

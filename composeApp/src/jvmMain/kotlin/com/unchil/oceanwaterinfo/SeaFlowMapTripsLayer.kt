@@ -30,7 +30,7 @@ fun SeaFlowMapTripsLayer(
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaTidalCurrentViewModel = remember {
-        KhoaTidalCurrentViewModel(coroutineScope)
+        KhoaTidalCurrentViewModel()
     }
 
 
@@ -49,9 +49,8 @@ fun SeaFlowMapTripsLayer(
 
     LaunchedEffect(key1 = viewModel){
         while(true){
-            delay(5 * 60 * 1000L).let{
-                viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
-            }
+            viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
         }
     }
 
