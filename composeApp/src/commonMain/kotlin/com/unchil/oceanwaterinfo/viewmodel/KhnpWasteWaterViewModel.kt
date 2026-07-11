@@ -33,20 +33,13 @@ class KhnpWasteWaterViewModel(scope: CoroutineScope){
             }
         }
 
-        scope.launch {
-            getKhnpWasteWater()
-        }
     }
-
-    suspend fun getKhnpWasteWater(){
-        repository.getKhnpWasteWater()
-    }
-
+    
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                getKhnpWasteWater()
+                repository.getKhnpWasteWater()
             }
         }
     }
