@@ -40,9 +40,9 @@ import org.maplibre.spatialk.geojson.Position
 )
 @Composable
 fun WaterInfoGeoChart_KHOA(
-    onClickPoint:(Point<Double,Double>)->Unit = { point -> }  ,
-    sendAddMarkerClusterer:(seaWaterInfo:List<KhoaObservation>)-> Unit = {seaWaterInfo ->},
-    onClickPointOceanWaterInfoGeoChart:( point:Point<Double, Double>) -> Unit = {},
+    onClickPoint:(Point<Double,Double>)->Unit = { }  ,
+    sendAddMarkerClusterer:((seaWaterInfo:List<KhoaObservation>)-> Unit)? = null,
+    onClickPointOceanWaterInfoGeoChart: (( point:Point<Double, Double>) -> Unit)? = null,
     isReload: Int = 0
 ){
 
@@ -63,24 +63,21 @@ fun WaterInfoGeoChart_KHOA(
     }
 
     LaunchedEffect(isReload){
-        if(isReload > 0 ) {
-            onReload()
-        }
+        if(isReload > 0 ) onReload()
     }
 
     LaunchedEffect(viewModel){
         while(true){
-            delay(5 * 60 * 1000L).let{
-                visibleProgressIndicator.value = true
-                viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
-            }
+            visibleProgressIndicator.value = true
+            viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
         }
     }
 
     LaunchedEffect(viewModel) {
         viewModel.refreshEvent.collect {
             visibleProgressIndicator.value = false
-            onClickPointOceanWaterInfoGeoChart(initCenterPoint)
+            onClickPointOceanWaterInfoGeoChart?.invoke(initCenterPoint)
 
         }
     }
@@ -133,7 +130,7 @@ fun WaterInfoGeoChart_KHOA(
 
         if (seaWaterInfo.value.isNotEmpty()) {
 
-            sendAddMarkerClusterer(seaWaterInfo.value)
+            sendAddMarkerClusterer?.invoke(seaWaterInfo.value)
 
             data.value = seaWaterInfo.value.map {
                 Triple(
