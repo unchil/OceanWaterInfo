@@ -31,24 +31,17 @@ class NifsSeaWaterInfoCurrentViewModel ( scope:  CoroutineScope){
             }
         }
 
-        scope.launch {
-            getSeaWaterInfoCurrent()
-        }
     }
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                getSeaWaterInfoCurrent()
+                repository.getSeaWaterInfo(DATA_DIVISION.current)
 
             }
         }
     }
 
-
-    suspend fun getSeaWaterInfoCurrent(){
-        repository.getSeaWaterInfo(DATA_DIVISION.current)
-    }
 
     sealed class Event {
         object Refresh : Event()
