@@ -32,6 +32,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +52,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
+import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import io.github.koalaplot.core.xygraph.Point
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 
@@ -81,9 +84,7 @@ fun main(){
 
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
-        var descriptionBox by remember { mutableStateOf(true) }
-
-
+        var descriptionBox by remember { mutableStateOf(false) }
 
 
         LaunchedEffect(selectedTabIndex) {
@@ -205,7 +206,7 @@ fun main(){
                                             var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
                                             AnimatedVisibility(descriptionBox){
-                                                SDoTDescription(selectedOption, splitFractionVertical, onClickTabPositionAirInfo2)
+                                                SDoTDescription(selectedOption= selectedOption, splitFractionVertical = splitFractionVertical)
                                             }
 
                                             Box( modifier = Modifier.width(24.dp).fillMaxHeight()
@@ -251,6 +252,49 @@ fun main(){
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+
+                                                val viewModelSDoTEnvInfoUnion: SDoTEnvInfoUnionViewModel = remember {
+                                                    SDoTEnvInfoUnionViewModel()
+                                                }
+                                                LaunchedEffect(key1 = viewModelSDoTEnvInfoUnion){
+                                                    while(true){
+                                                        viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+                                                        delay(5 * 60 * 1000L)
+                                                    }
+                                                }
+
+                                                val sDoTEnvInfo = viewModelSDoTEnvInfoUnion._sDoTEnvInfoUnionFlow.collectAsState()
+
+                                                LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
+
+                                                    if(sDoTEnvInfo.value.isNotEmpty()) {
+                                                        val values = sDoTEnvInfo.value.map{it}.joinToString(
+                                                            separator = ",",
+                                                            prefix = "[",
+                                                            postfix = "]"
+                                                        ) { it ->
+                                                            val value = when (selectedOption) {
+                                                                AirQualityManager.ChemicalElement.o3 -> it.o3.toFloatOrNull() ?: 0f
+                                                                AirQualityManager.ChemicalElement.no2 -> it.no2.toFloatOrNull() ?: 0f
+                                                                AirQualityManager.ChemicalElement.co -> it.co.toFloatOrNull() ?: 0f
+                                                                AirQualityManager.ChemicalElement.so2 -> it.so2.toFloatOrNull() ?: 0f
+                                                                AirQualityManager.ChemicalElement.nh3 -> it.nh3.toFloatOrNull() ?: 0f
+                                                                AirQualityManager.ChemicalElement.h2s -> it.h2s.toFloatOrNull() ?: 0f
+                                                                AirQualityManager.ChemicalElement.pm10 -> it.pm10.toFloatOrNull() ?: 0f
+                                                                AirQualityManager.ChemicalElement.pm25 -> it.pm25.toFloatOrNull() ?: 0f
+                                                            }
+                                                            "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
+                                                        }
+
+                                                        onClickTabPositionAirInfo2.invoke(values, selectedOption.name)
+
+                                                    }
+
+
+                                                }
+
+
+
                                             }
 
                                         }
