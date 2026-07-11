@@ -58,7 +58,7 @@ fun SDoTEnvInfoMapHexagonLayer(
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: SDoTEnvInfoViewModel = remember {
-        SDoTEnvInfoViewModel(coroutineScope)
+        SDoTEnvInfoViewModel()
     }
 
 
@@ -76,9 +76,8 @@ fun SDoTEnvInfoMapHexagonLayer(
 
     LaunchedEffect(key1 = viewModel){
         while(true){
-            delay(5 * 60 * 1000L).let{
-                viewModel.onEvent(SDoTEnvInfoViewModel.Event.Refresh)
-            }
+            viewModel.onEvent(SDoTEnvInfoViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
         }
     }
     var hoveredDescription by remember { mutableStateOf<String?>(null) }

@@ -25,7 +25,6 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
 import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
@@ -73,7 +72,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
     val content = remember{ mutableStateOf("" )}
 
     val viewModelObservatory: ObservatoryViewModel = remember {
-        ObservatoryViewModel(  coroutineScope  )
+        ObservatoryViewModel(    )
     }
     LaunchedEffect(key1 = viewModelObservatory){
         viewModelObservatory.onEvent(ObservatoryViewModel.Event.Refresh)

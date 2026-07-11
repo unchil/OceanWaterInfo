@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
+import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,7 +32,14 @@ import org.maplibre.spatialk.geojson.Polygon
 import org.maplibre.spatialk.geojson.Position
 
 @Composable
-fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point -> }  ){
+fun OceanWaterInfoGeoChart(
+    onClickPoint:(Point<Double, Double>)->Unit = { point -> }  ,
+    sendAddMarkerClusterer:((observatorys: List<Observatory>, observations: List<SeawaterInformationByObservationPoint> )-> Unit)? = null,
+    onClickPointOceanWaterInfoGeoChart: (( point:Point<Double, Double>) -> Unit)? = null,
+    isReload: Int = 0
+){
+
+    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
@@ -39,6 +47,8 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
     }
 
     val visibleProgressIndicator = remember { mutableStateOf(false) }
+
+
     val onReload:()->Unit = {
         visibleProgressIndicator.value = true
         coroutineScope.launch {
@@ -46,18 +56,30 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
         }
     }
 
+    LaunchedEffect(isReload){
+        if(isReload > 0 ) onReload()
+    }
+
+    val viewModelObservatory: ObservatoryViewModel = remember {
+        ObservatoryViewModel(    )
+    }
+    LaunchedEffect(key1 = viewModelObservatory){
+        viewModelObservatory.onEvent(ObservatoryViewModel.Event.Refresh)
+    }
+
+
 
     LaunchedEffect(viewModel){
         while(true){
-            delay(5 * 60 * 1000L).let{
-                viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
-            }
+            viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
         }
     }
 
     LaunchedEffect(viewModel) {
         viewModel.refreshEvent.collect {
             visibleProgressIndicator.value = false
+            onClickPointOceanWaterInfoGeoChart?.invoke(initCenterPoint)
         }
     }
 
@@ -101,29 +123,42 @@ fun OceanWaterInfoGeoChart(onClickPoint:(Point<Double, Double>)->Unit = { point 
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
 
+    val observatorys = viewModelObservatory._observatoryStateFlow.collectAsState()
+
     val data = remember { mutableStateOf(emptyList<ChartValuesGeo>() ) }
 
-    LaunchedEffect(seaWaterInfo.value){
-        data.value = seaWaterInfo.value.filter {
-            it.obs_lay == "1"
-        }.map {
-            Triple(
-                it.sta_nam_kor ,
-                Point(it.lon, it.lat) ,
-                Pair(it.obs_datetime,it.wtr_tmp )
-            )
+    LaunchedEffect(seaWaterInfo.value, observatorys.value, geoData.value){
+
+        if ( seaWaterInfo.value.isNotEmpty() && geoData.value.isNotEmpty()) {
+
+            val filteredData = seaWaterInfo.value.filter {
+                it.obs_lay == "1"
+            }
+
+            if(filteredData.isNotEmpty()){
+                data.value = filteredData.map {
+                    Triple(
+                        it.sta_nam_kor ,
+                        Point(it.lon, it.lat) ,
+                        Pair(it.obs_datetime,it.wtr_tmp )
+                    )
+                }
+
+                chartData.value = Triple(
+                    data.value.map{ triple -> triple.first },
+                    data.value,
+                    Pair(geoData.value, onClickPoint)
+                )
+
+                if(observatorys.value.isNotEmpty()){
+                    sendAddMarkerClusterer?.invoke(observatorys.value, filteredData)
+                }
+            }
+
         }
     }
 
-    LaunchedEffect(data.value,geoData.value ){
-        if(data.value.isNotEmpty() && geoData.value.isNotEmpty()){
-            chartData.value = Triple(
-                data.value.map{ triple -> triple.first },
-                data.value,
-                Pair(geoData.value, onClickPoint)
-            )
-        }
-    }
+
 
     Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
 

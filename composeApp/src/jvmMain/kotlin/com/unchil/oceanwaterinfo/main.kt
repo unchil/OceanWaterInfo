@@ -231,7 +231,7 @@ fun main() = application {
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     OceanWaterInfoGeoChart(
-                                                        onClickPointOceanWaterInfoGeoChart
+                                                        onClickPoint = onClickPointOceanWaterInfoGeoChart
                                                     )
                                                 }
 

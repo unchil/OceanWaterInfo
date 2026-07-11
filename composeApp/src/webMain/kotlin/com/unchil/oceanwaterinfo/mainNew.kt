@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,8 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleRight
@@ -30,15 +27,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,17 +50,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
-import com.unchil.oceanwaterinfo.AirQualityManager.airQualityStageComment
-import com.unchil.oceanwaterinfo.AirQualityManager.airQualityStageRange
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
-import com.unchil.oceanwaterinfo.AirQualityManager.specialFeature
-import com.unchil.oceanwaterinfo.AirQualityManager.unHealthyForSensitiveGroups
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
-import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import io.github.koalaplot.core.xygraph.Point
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.datetime.Clock
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalWasmJsInterop::class)
@@ -331,7 +316,12 @@ fun main(){
                                                     .fillMaxHeight(),
                                                 contentAlignment= Alignment.Center
                                             ) {
-                                                OceanWaterInfoGeoChart(onClickPointOceanWaterInfoGeoChart2)
+                                                OceanWaterInfoGeoChart(
+                                                    onClickPoint = onClickPointOceanWaterInfoGeoChart2,
+                                                    sendAddMarkerClusterer = sendAddMarkerClusterer3,
+                                                    onClickPointOceanWaterInfoGeoChart = onClickPointOceanWaterInfoGeoChart2,
+                                                    isReload = isReloadOceanWaterInfoMap.value
+                                                )
                                             }
 
                                             DraggableVerticalDivider(
@@ -380,8 +370,7 @@ fun main(){
                                                         ChartFeatureControls(
                                                             onChangeFlag = { label, value ->
                                                                 when (label) {
-                                                                    "Reload" -> isReload.value =
-                                                                        !isReload.value
+                                                                    "Reload" -> isReloadOceanWaterInfoMap.value = kotlin.time.Clock.System.now().nanosecondsOfSecond
                                                                 }
                                                             },
                                                             bottomBarOpt = bottomBarOpt
@@ -465,10 +454,10 @@ fun main(){
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 WaterInfoGeoChart_KHOA(
-                                                    onClickPointOceanWaterInfoGeoChart,
-                                                    sendAddMarkerClusterer2,
-                                                    onClickPointOceanWaterInfoGeoChart,
-                                                    isReloadWaterInfoMap.value
+                                                    onClickPoint = onClickPointOceanWaterInfoGeoChart,
+                                                    sendAddMarkerClusterer = sendAddMarkerClusterer2,
+                                                    onClickPointOceanWaterInfoGeoChart = onClickPointOceanWaterInfoGeoChart,
+                                                    isReload = isReloadWaterInfoMap.value
                                                 )
                                             }
 
