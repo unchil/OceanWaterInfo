@@ -33,20 +33,14 @@ class KhnpRadioRateViewModel (scope: CoroutineScope) {
             }
         }
 
-        scope.launch {
-            getKhnpRadioRate()
-        }
-    }
 
-    suspend fun getKhnpRadioRate(){
-        repository.getKhnpRadioRate()
     }
 
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                getKhnpRadioRate()
+                repository.getKhnpRadioRate()
             }
         }
     }
