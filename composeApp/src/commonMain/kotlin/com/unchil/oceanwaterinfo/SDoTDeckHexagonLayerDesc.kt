@@ -39,11 +39,22 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SDoTDescription(
-    sDoTEnvInfo: List<SDoTEnvInfoUnion>,
     selectedOption: AirQualityManager.ChemicalElement,
-     splitFractionVertical: Float
-){
+     splitFractionVertical: Float,
+    onClickTabPositionAirInfo: ((String, String) -> Unit)? = null
+    ){
 
+    val viewModelSDoTEnvInfoUnion: SDoTEnvInfoUnionViewModel = remember {
+        SDoTEnvInfoUnionViewModel()
+    }
+    LaunchedEffect(key1 = viewModelSDoTEnvInfoUnion){
+        while(true){
+            viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+            delay(5 * 60 * 1000L)
+        }
+    }
+
+    val sDoTEnvInfo = viewModelSDoTEnvInfoUnion._sDoTEnvInfoUnionFlow.collectAsState()
 
     val caption = "미국 환경보호청(US EPA)의 공식 가이드라인을 바탕으로, 공기질 항목(EPA 기준 오염물질 6종 + 산업/안전 가스 2종)을 6단계로 분류"
     val unHealthyForSensitive =  remember{ mutableListOf<Triple< AirQualityManager.AirQualityStage, Float, String>>()}
@@ -54,15 +65,15 @@ fun SDoTDescription(
     val maxValue = remember{ mutableStateOf(0.0 )}
     val sDoTEnvInfoStat = remember{ mutableStateOf(emptyList<Pair<AirQualityManager.AirQualityStage, Int>>())}
 
-    LaunchedEffect( sDoTEnvInfo, key2=selectedOption){
+    LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
         unHealthyForSensitive.clear()
         unHealthy.clear()
         veryUnHealthy.clear()
         hazardous.clear()
 
-        if(sDoTEnvInfo.isNotEmpty()) {
-            values.value = sDoTEnvInfo.map{it}.joinToString(
+        if(sDoTEnvInfo.value.isNotEmpty()) {
+            values.value = sDoTEnvInfo.value.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
                 postfix = "]"
@@ -101,12 +112,14 @@ fun SDoTDescription(
                     }
                 }
 
-                "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
+                "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
             }
 
+            onClickTabPositionAirInfo?.invoke(values.value, selectedOption.name)
+
             maxValue.value  =
-                if (sDoTEnvInfo.isEmpty()) 0.0
-                else sDoTEnvInfo.map { sensor ->
+                if (sDoTEnvInfo.value.isEmpty()) 0.0
+                else sDoTEnvInfo.value.map { sensor ->
                     val v = when (selectedOption) {
                         AirQualityManager.ChemicalElement.o3 -> sensor.o3
                         AirQualityManager.ChemicalElement.no2 -> sensor.no2
@@ -120,7 +133,7 @@ fun SDoTDescription(
                     v.toDoubleOrNull() ?: 0.0
                 }.max()
 
-            sDoTEnvInfoStat.value = sDoTEnvInfo.groupBy { sensor ->
+            sDoTEnvInfoStat.value = sDoTEnvInfo.value.groupBy { sensor ->
 
                 val v = when (selectedOption) {
                     AirQualityManager.ChemicalElement.o3 -> sensor.o3

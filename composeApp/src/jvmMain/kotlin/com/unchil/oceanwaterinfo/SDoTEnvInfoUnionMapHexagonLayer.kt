@@ -63,7 +63,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
 
     val host = "http://192.168.35.107:7272"
     val servicePage = "sDoTDeckHexagonLayerUnion.html"
-    var descriptionBox by remember { mutableStateOf(false) }
+    var descriptionBox by remember { mutableStateOf(true) }
     val localUrl = "${host}/${servicePage}"
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
@@ -146,7 +146,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                 var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
                 AnimatedVisibility(descriptionBox){
-                    SDoTDescription(sDoTEnvInfo.value, selectedOption, splitFractionVertical)
+                    SDoTDescription(selectedOption, splitFractionVertical)
                 }
 
                 Box( modifier = Modifier.width(24.dp).fillMaxHeight()

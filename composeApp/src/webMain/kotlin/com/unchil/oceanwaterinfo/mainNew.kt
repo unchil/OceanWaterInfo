@@ -96,54 +96,8 @@ fun main(){
 
         val density = LocalDensity.current
         val coroutineScope = rememberCoroutineScope()
-        var descriptionBox by remember { mutableStateOf(false) }
+        var descriptionBox by remember { mutableStateOf(true) }
 
-
-
-        val viewModelSDoTEnvInfoUnion: SDoTEnvInfoUnionViewModel = remember {
-            SDoTEnvInfoUnionViewModel(coroutineScope)
-        }
-
-        LaunchedEffect(key1 = viewModelSDoTEnvInfoUnion){
-            while(true){
-                delay(5 * 60 * 1000L).let{
-                    viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
-                }
-            }
-        }
-
-        val sDoTEnvInfo = viewModelSDoTEnvInfoUnion._sDoTEnvInfoUnionFlow.collectAsState()
-
-        val values = remember{ mutableStateOf("" )}
-
-        LaunchedEffect(sDoTEnvInfo.value,selectedOption) {
-
-          //  onClickTabPositionAirInfo(selectedOption.name)
-
-            if(sDoTEnvInfo.value.isNotEmpty()) {
-                values.value = sDoTEnvInfo.value.map{it}.joinToString(
-                    separator = ",",
-                    prefix = "[",
-                    postfix = "]"
-                ) { it ->
-                    val value = when (selectedOption) {
-                        AirQualityManager.ChemicalElement.o3 -> it.o3.toFloatOrNull() ?: 0f
-                        AirQualityManager.ChemicalElement.no2 -> it.no2.toFloatOrNull() ?: 0f
-                        AirQualityManager.ChemicalElement.co -> it.co.toFloatOrNull() ?: 0f
-                        AirQualityManager.ChemicalElement.so2 -> it.so2.toFloatOrNull() ?: 0f
-                        AirQualityManager.ChemicalElement.nh3 -> it.nh3.toFloatOrNull() ?: 0f
-                        AirQualityManager.ChemicalElement.h2s -> it.h2s.toFloatOrNull() ?: 0f
-                        AirQualityManager.ChemicalElement.pm10 -> it.pm10.toFloatOrNull() ?: 0f
-                        AirQualityManager.ChemicalElement.pm25 -> it.pm25.toFloatOrNull() ?: 0f
-                    }
-
-                    "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
-                }
-
-                onClickTabPositionAirInfo2(values.value, selectedOption.name)
-
-            }
-        }
 
 
 
@@ -266,7 +220,7 @@ fun main(){
                                             var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
                                             AnimatedVisibility(descriptionBox){
-                                                SDoTDescription(sDoTEnvInfo.value, selectedOption, splitFractionVertical)
+                                                SDoTDescription(selectedOption, splitFractionVertical, onClickTabPositionAirInfo2)
                                             }
 
                                             Box( modifier = Modifier.width(24.dp).fillMaxHeight()
