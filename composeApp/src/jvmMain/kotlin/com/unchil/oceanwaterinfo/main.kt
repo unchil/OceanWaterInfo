@@ -314,7 +314,7 @@ fun main() = application {
 
                                             var splitFractionVertical by remember {
                                                 mutableStateOf(
-                                                    0.5f
+                                                    0.35f
                                                 )
                                             }
                                             val mapScreenHeight = remember{700.dp}
@@ -322,13 +322,17 @@ fun main() = application {
                                             Row(
                                                 modifier = Modifier.fillMaxWidth().height(mapScreenHeight).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
                                             ) {
+
+
                                                 Box(
                                                     modifier = Modifier
                                                         .fillMaxWidth(splitFractionVertical)
                                                         .fillMaxHeight(),
                                                     contentAlignment= Alignment.Center
                                                 ) {
-                                                    WaterInfoGeoChart_KHOA(onClickPointWaterInfoGeoChart_KHOA)
+
+                                                    WindPolarChart_KHOA()
+
                                                 }
 
                                                 DraggableVerticalDivider(
@@ -342,22 +346,38 @@ fun main() = application {
                                                     }
                                                 )
 
+                                                Row(modifier=Modifier.fillMaxSize()){
 
-                                                CompositionLocalProvider(
-                                                    WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value
-                                                ) {
-                                                    //WaterInfoGeoChart_KHOA_MapScreen 은 항상 height 값이 fix 되어야 표시됨.
-                                                    WaterInfoGeoChart_KHOA_MapScreen(
-                                                        initialized,
-                                                        download,
-                                                        errorMessage,
-                                                        height = mapScreenHeight
-                                                    )
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth(0.5f)
+                                                            .fillMaxHeight(),
+                                                        contentAlignment= Alignment.Center
+                                                    ) {
+
+                                                        WaterInfoGeoChart_KHOA(
+                                                            onClickPointWaterInfoGeoChart_KHOA
+                                                        )
+                                                    }
+
+                                                    CompositionLocalProvider(
+                                                        WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value
+                                                    ) {
+                                                        //WaterInfoGeoChart_KHOA_MapScreen 은 항상 height 값이 fix 되어야 표시됨.
+                                                        WaterInfoGeoChart_KHOA_MapScreen(
+                                                            initialized,
+                                                            download,
+                                                            errorMessage,
+                                                            height = mapScreenHeight
+                                                        )
+                                                    }
                                                 }
+
+
 
                                             }
 
-                                            WindPolarChart_KHOA()
+
                                             WaterDegTimeSeries_KHOA()
 
 

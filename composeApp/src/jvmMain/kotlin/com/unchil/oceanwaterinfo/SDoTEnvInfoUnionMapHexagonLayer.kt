@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleRight
@@ -32,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.multiplatform.webview.web.LoadingState
@@ -41,6 +45,7 @@ import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,8 +112,8 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         }
     }
 
-
-
+    val bottomBarHeight = remember{60.dp}
+    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -140,76 +145,128 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
             val totalWidth = constraints.maxWidth.toFloat()
+            val height = this.maxHeight - bottomBarHeight
 
-            Row(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier= Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
 
-                var splitFractionVertical by remember { mutableStateOf(0.3f) }
+                Row(modifier = Modifier.fillMaxWidth().height(height)) {
 
-                AnimatedVisibility(descriptionBox){
-                    SDoTDescription(sDoTEnvInfo= sDoTEnvInfo.value, selectedOption = selectedOption, splitFractionVertical= splitFractionVertical)
-                }
+                    var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
-                Box( modifier = Modifier.width(24.dp).fillMaxHeight()
-                    ,contentAlignment = Alignment.Center ){
-
-                    val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
-
-                    IconButton( onClick = { descriptionBox = !descriptionBox }
-                        ,modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon( imageVector = Icons.Default.ArrowCircleRight
-                            ,contentDescription = "Toggle Description"
-                            ,modifier = Modifier.rotate(rotation)
+                    AnimatedVisibility(descriptionBox) {
+                        SDoTDescription(
+                            sDoTEnvInfo = sDoTEnvInfo.value,
+                            selectedOption = selectedOption,
+                            splitFractionVertical = splitFractionVertical
                         )
                     }
-                }
 
-                DraggableVerticalDivider(
-                    onDrag = { deltaPx ->
-                        val deltaWeight = deltaPx / totalWidth
-                        splitFractionVertical =
-                            (splitFractionVertical + deltaWeight).coerceIn(
-                                0.1f,
-                                0.9f
+                    Box(
+                        modifier = Modifier.width(24.dp).fillMaxHeight(),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+
+                        IconButton(onClick = { descriptionBox = !descriptionBox },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowCircleRight,
+                                contentDescription = "Toggle Description",
+                                modifier = Modifier.rotate(rotation)
                             )
+                        }
                     }
-                )
+
+                    DraggableVerticalDivider(
+                        onDrag = { deltaPx ->
+                            val deltaWeight = deltaPx / totalWidth
+                            splitFractionVertical =
+                                (splitFractionVertical + deltaWeight).coerceIn(
+                                    0.1f,
+                                    0.9f
+                                )
+                        }
+                    )
 
 
-                when {
-                initialized -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CaptionText(
-                            AIR_QUAlITY_UNION.caption,
-                            textAlign = TextAlign.Center
+                    when {
+                        initialized -> {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CaptionText(
+                                    AIR_QUAlITY_UNION.caption,
+                                    textAlign = TextAlign.Center
+                                )
+                                WebView(
+                                    state = webViewState,
+                                    navigator = navigator,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+
+                        errorMessage.isNotEmpty() -> {
+                            Text(errorMessage)
+                        }
+
+                        else -> {
+                            if (download > -1) {
+                                Text("Downloading: $download%")
+                            } else {
+                                Text("Initializing please wait...")
+                            }
+                            CircularProgressIndicator()
+
+                        }
+                    }
+
+                }
+
+
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center,
+                ) {// [Reload, Tooltips, Symbol, Legend]
+                    val bottomBarOpt =
+                        listOf(true, false, false, false)
+                    ChartFeatureControls(
+                        onChangeFlag = { label, value ->
+                            when (label) {
+                                "Reload" ->{
+                                    visibleProgressIndicator.value = true
+                                    navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
+                                    coroutineScope.launch {
+                                        delay(1000)
+                                        visibleProgressIndicator.value = false
+                                    }
+                                }
+                            }
+
+                        },
+                        bottomBarOpt = bottomBarOpt
+                    )
+                    if (visibleProgressIndicator.value) {
+                        CircularProgressIndicator(
+                            color = Color.DarkGray,
                         )
-                        WebView(
-                            state = webViewState,
-                            navigator = navigator,
-                            modifier = Modifier.fillMaxSize()
-                        )
                     }
                 }
 
-                errorMessage.isNotEmpty() -> {
-                    Text(errorMessage)
-                }
 
-                else -> {
-                    if (download > -1) {
-                        Text("Downloading: $download%")
-                    } else {
-                        Text("Initializing please wait...")
-                    }
-                    CircularProgressIndicator()
 
-                }
+
             }
 
-            }
+
+
 
         }
 
