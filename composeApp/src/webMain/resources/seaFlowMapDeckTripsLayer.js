@@ -72,9 +72,9 @@ window.initMapWithData = function( values) {
 
      console.log("deckData 초기화 완료:", deckData.length);
 
-    google.maps.event.addListenerOnce(map, 'idle', function() {
-       startAnimation();
-    });
+
+     startAnimation();
+
 
 }
 
@@ -152,6 +152,27 @@ window.addMarkerClusterer =  function(locations, labels, contents) {
     });
     new markerClusterer.MarkerClusterer({ map, markers });
 };
+
+
+window.addEventListener("message", (event) => {
+
+    let data = event.data;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.error("메시지 데이터 파싱 중 오류 발생:", e);
+            return; // 파싱 실패 시 함수 종료
+        }
+    }
+
+    if(data.action == 'INIT_DATA'){
+        initMapWithData(data.values)
+    }
+
+
+
+});
 
 
 initMap();

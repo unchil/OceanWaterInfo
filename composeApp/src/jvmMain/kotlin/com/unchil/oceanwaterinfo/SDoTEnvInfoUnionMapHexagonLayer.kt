@@ -146,7 +146,7 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
                 var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
                 AnimatedVisibility(descriptionBox){
-                    SDoTDescription(selectedOption = selectedOption, splitFractionVertical= splitFractionVertical)
+                    SDoTDescription(sDoTEnvInfo= sDoTEnvInfo.value, selectedOption = selectedOption, splitFractionVertical= splitFractionVertical)
                 }
 
                 Box( modifier = Modifier.width(24.dp).fillMaxHeight()

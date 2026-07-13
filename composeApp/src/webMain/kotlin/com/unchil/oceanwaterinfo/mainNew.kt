@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
+import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
@@ -447,6 +448,46 @@ fun main(){
 
                         2 -> {
 
+                            val viewModel: KhoaTidalCurrentViewModel = remember {
+                                KhoaTidalCurrentViewModel()
+                            }
+
+
+                            LaunchedEffect(key1 = viewModel){
+                                while(true){
+                                    viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
+                                    delay(5 * 60 * 1000L)
+                                }
+                            }
+
+                            val tidalCurrentInfo = viewModel._tidalCurrentStateFlow.collectAsState()
+
+                            LaunchedEffect( tidalCurrentInfo.value){
+
+
+                                if(tidalCurrentInfo.value.isNotEmpty()) {
+                                    val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
+                                    updatePrevCoordinates(tidalCurrentData)
+                                    val values = tidalCurrentData.map{it}.joinToString(
+                                        separator = ",",
+                                        prefix = "[",
+                                        postfix = "]"
+                                    ){ it ->
+                                        val data = it.value.joinToString (
+                                            separator = ",",
+                                            prefix = "[",
+                                            postfix = "]"
+                                        ){ (schTime, currentDir, currentSpeed,  prev_lon, prev_lat) ->
+                                            "{\"lat\":${prev_lat}, \"lng\":${prev_lon}, \"speed\":${currentSpeed}}"
+                                        }
+                                        data
+                                    }
+
+                                    onInitData( IFRAME_SEA_FLOW_TRIPS, values)
+                                }
+                            }
+
+
                             BoxWithConstraints(
                                 modifier = Modifier.fillMaxSize()
                             ) {
@@ -476,7 +517,7 @@ fun main(){
                                                     coordinates,
                                                     density,
                                                     mainHtmlElementId,
-                                                    seaFlowTripsMapMapHtmlElementId
+                                                    DIV_SEA_FLOW_TRIPS
                                                 )
                                             },
                                         contentAlignment = Alignment.Center
@@ -489,6 +530,38 @@ fun main(){
                         }
 
                         3 -> {
+
+                            val viewModel: KhoaTidalCurrentViewModel = remember {
+                                KhoaTidalCurrentViewModel()
+                            }
+
+
+                            LaunchedEffect(key1 = viewModel){
+                                while(true){
+                                    viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
+                                    delay(5 * 60 * 1000L)
+                                }
+                            }
+
+                            val tidalCurrentInfo = viewModel._tidalCurrentStateFlow.collectAsState()
+
+                            LaunchedEffect( tidalCurrentInfo.value){
+
+                                if(tidalCurrentInfo.value.isNotEmpty()) {
+                                    val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
+                                    val data =  transformToHexagonData(tidalCurrentData)
+
+                                    val values = data.map{it}.joinToString(
+                                        separator = ",",
+                                        prefix = "[",
+                                        postfix = "]"
+                                    ){ it ->
+                                        //Triple(lat,lng,speed)
+                                        "{\"lat\":${it.first}, \"lng\":${it.second},  \"speed\":${it.third}}"
+                                    }
+                                    onInitData( IFRAME_SEA_FLOW_HEXAGON, values)
+                                }
+                            }
 
                             BoxWithConstraints(
                                 modifier = Modifier.fillMaxSize()
@@ -519,7 +592,7 @@ fun main(){
                                                     coordinates,
                                                     density,
                                                     mainHtmlElementId,
-                                                    seaFlowHexagonMapHtmlElementId
+                                                    IFRAME_SEA_FLOW_HEXAGON
                                                 )
                                             },
                                         contentAlignment = Alignment.Center

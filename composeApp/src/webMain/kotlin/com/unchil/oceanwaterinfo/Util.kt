@@ -7,14 +7,20 @@ import kotlinx.browser.document
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
-const val IFRAME_WATER_INFO = "iframe_waterInfo"
-const val IFRAME_OCEAN_WATER_INFO = "iframe_oceanWaterInfo"
-const val DIV_WATER_INFO = "waterInfoMap"
+
 const val DIV_OCEAN_WATER_INFO = "oceanWaterInfoMap"
 const val DIV_AIR_INFO = "airInfoMap"
 const val DIV_SEA_FLOW_TRIPS = "seaFlowTripsMap"
 const val DIV_SEA_FLOW_HEXAGON = "seaFlowHexagonMap"
+const val DIV_WATER_INFO = "waterInfoMap"
+
 const val IFRAME_AIR_INFO = "iframe_airInfoMap"
+const val IFRAME_WATER_INFO = "iframe_waterInfo"
+const val IFRAME_OCEAN_WATER_INFO = "iframe_oceanWaterInfo"
+
+const val IFRAME_SEA_FLOW_TRIPS = "iframe_seaFlowTrips"
+const val IFRAME_SEA_FLOW_HEXAGON = "iframe_seaFlowHexagon"
+
 
 fun transformToMarkerData2(observatorys: List<Observatory>, observations: List<SeawaterInformationByObservationPoint> ): Triple<String, String, String> {
     if (observations.isEmpty()) return Triple("[]", "[]", "[]")
@@ -124,7 +130,7 @@ fun transformToMarkerData(observations: List<KhoaObservation>): Triple<String, S
 fun postIframeMessage(iframeId: String, messageJson: String) {
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement
     val jsString = messageJson.toJsString()
-    println("Sent to ${iframeId}, jsString:[$jsString]")
+  //  println("Sent to ${iframeId}, jsString:[$jsString]")
     iframe?.contentWindow?.postMessage(jsString, "*")
 }
 
@@ -168,6 +174,12 @@ val onClickTabPositionAirInfo2 = {  values:String, element:String->
     val message = "{ \"action\": \"CHANGE_DATA\", \"type\": \"${element}\", \"values\":${values}}"
 
     postIframeMessage(IFRAME_AIR_INFO, message)
+}
+
+val onInitData = {   iframeId:String, values:String->
+    val message = "{ \"action\": \"INIT_DATA\", \"values\":${values}}"
+
+    postIframeMessage(iframeId, message)
 }
 
 
