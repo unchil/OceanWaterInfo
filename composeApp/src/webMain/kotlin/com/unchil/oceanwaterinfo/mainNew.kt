@@ -57,6 +57,7 @@ import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalWasmJsInterop::class)
@@ -81,7 +82,7 @@ fun main(){
         val isReloadWaterInfoMap = remember { mutableStateOf(0) }
         val isReloadOceanWaterInfoMap = remember { mutableStateOf(0) }
 
-        val visibleProgressIndicator = remember { mutableStateOf(false) }
+
 
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
         val tabTitles = listOf("Seoul/Gyonggi Air Quality", "Korea Ocean Water Quality", "Korea Tidal Forecast Map", "Korean Ocean Current Speed Map", "Korea Hydro & Nuclear Power")
@@ -158,6 +159,9 @@ fun main(){
                     when (selectedTabIndex) {
                         0 -> {
 
+                            val initData = remember{ mutableStateOf("" )}
+                            val visibleProgressIndicator = remember { mutableStateOf(false) }
+
                             var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
 
                             val viewModelSDoTEnvInfoUnion: SDoTEnvInfoUnionViewModel = remember {
@@ -175,7 +179,7 @@ fun main(){
                             LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
                                 if(sDoTEnvInfo.value.isNotEmpty()) {
-                                    val values = sDoTEnvInfo.value.map{it}.joinToString(
+                                    initData.value = sDoTEnvInfo.value.map{it}.joinToString(
                                         separator = ",",
                                         prefix = "[",
                                         postfix = "]"
@@ -193,15 +197,18 @@ fun main(){
                                         "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
                                     }
 
-                                    onClickTabPositionAirInfo2.invoke(values, selectedOption.name)
+                                    onClickTabPositionAirInfo2.invoke(initData.value, selectedOption.name)
 
                                 }
 
 
                             }
 
+                            Column (modifier= Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Top,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
 
-                            Column(modifier = Modifier.fillMaxSize()) {
 
                                 Text(
                                     "Seoul/Gyonggi SDoT Air Environmental Observation Information",
@@ -237,71 +244,109 @@ fun main(){
                                     }
                                 }
 
-                                Column (modifier= Modifier.fillMaxWidth()
-                                    .weight(1f), // 여기에 weight(1f)를 적용하면 나머지 전체 높이를 차지합니다.
-                                    verticalArrangement = Arrangement.Top,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                ) {
+
+
 
                                     BoxWithConstraints(
                                         modifier = Modifier.fillMaxSize()
                                     ){
                                         val totalWidth = constraints.maxWidth.toFloat()
-                                        val height = this.maxHeight
+                                        val height = this.maxHeight - bottomBarHeight
 
-                                        Row(modifier = Modifier.fillMaxSize()) {
 
-                                            var splitFractionVertical by remember { mutableStateOf(0.3f) }
+                                        Column(
+                                            modifier= Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.Top,
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                        ) {
 
-                                            AnimatedVisibility(descriptionBox){
-                                                SDoTDescription(sDoTEnvInfo = sDoTEnvInfo.value, selectedOption= selectedOption, splitFractionVertical = splitFractionVertical)
+                                            Row(modifier = Modifier.fillMaxWidth().height(height)) {
+
+                                                var splitFractionVertical by remember { mutableStateOf(0.3f) }
+
+                                                AnimatedVisibility(descriptionBox){
+                                                    SDoTDescription(sDoTEnvInfo = sDoTEnvInfo.value, selectedOption= selectedOption, splitFractionVertical = splitFractionVertical)
+                                                }
+
+                                                Box( modifier = Modifier.width(24.dp).fillMaxHeight()
+                                                    ,contentAlignment = Alignment.Center ){
+
+                                                    val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+
+                                                    IconButton( onClick = { descriptionBox = !descriptionBox }
+                                                        ,modifier = Modifier.fillMaxWidth()
+                                                    ) {
+                                                        Icon( imageVector = Icons.Default.ArrowCircleRight
+                                                            ,contentDescription = "Toggle Description"
+                                                            ,modifier = Modifier.rotate(rotation)
+                                                        )
+                                                    }
+                                                }
+
+                                                DraggableVerticalDivider(
+                                                    onDrag = { deltaPx ->
+                                                        val deltaWeight = deltaPx / totalWidth
+                                                        splitFractionVertical =
+                                                            (splitFractionVertical + deltaWeight).coerceIn(
+                                                                0.1f,
+                                                                0.9f
+                                                            )
+                                                    }
+                                                )
+
+
+
+
+                                                Box(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                        .height(height )
+                                                        .onGloballyPositioned { coordinates ->
+                                                            syncHtmlElementPosition(
+                                                                coordinates,
+                                                                density,
+                                                                mainHtmlElementId,
+                                                                airInfoMapHtmlElementId
+                                                            )
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+
+                                                }
+
+
                                             }
 
-                                            Box( modifier = Modifier.width(24.dp).fillMaxHeight()
-                                                ,contentAlignment = Alignment.Center ){
 
-                                                val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+                                            Box(
+                                                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                                                contentAlignment = Alignment.Center,
+                                            ) {// [Reload, Tooltips, Symbol, Legend]
+                                                val bottomBarOpt =
+                                                    listOf(true, false, false, false)
+                                                ChartFeatureControls(
+                                                    onChangeFlag = { label, value ->
+                                                        when (label) {
+                                                            "Reload" ->{
+                                                                visibleProgressIndicator.value = true
+                                                                onClickTabPositionAirInfo2.invoke(initData.value, selectedOption.name)
+                                                                coroutineScope.launch {
+                                                                    delay(1000)
+                                                                    visibleProgressIndicator.value = false
+                                                                }
+                                                            }
+                                                        }
 
-                                                IconButton( onClick = { descriptionBox = !descriptionBox }
-                                                    ,modifier = Modifier.fillMaxWidth()
-                                                ) {
-                                                    Icon( imageVector = Icons.Default.ArrowCircleRight
-                                                        ,contentDescription = "Toggle Description"
-                                                        ,modifier = Modifier.rotate(rotation)
+                                                    },
+                                                    bottomBarOpt = bottomBarOpt
+                                                )
+                                                if (visibleProgressIndicator.value) {
+                                                    CircularProgressIndicator(
+                                                        color = Color.DarkGray,
                                                     )
                                                 }
                                             }
 
-                                            DraggableVerticalDivider(
-                                                onDrag = { deltaPx ->
-                                                    val deltaWeight = deltaPx / totalWidth
-                                                    splitFractionVertical =
-                                                        (splitFractionVertical + deltaWeight).coerceIn(
-                                                            0.1f,
-                                                            0.9f
-                                                        )
-                                                }
-                                            )
-
-
-
-
-                                            Box(
-                                                modifier = Modifier.fillMaxWidth()
-                                                    .height(height)
-                                                    .onGloballyPositioned { coordinates ->
-                                                        syncHtmlElementPosition(
-                                                            coordinates,
-                                                            density,
-                                                            mainHtmlElementId,
-                                                            airInfoMapHtmlElementId
-                                                        )
-                                                    },
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
-
-                                            }
 
                                         }
 
@@ -309,11 +354,31 @@ fun main(){
 
 
 
+
+
                                     }
 
-                                }
+
+
+
+
+
+
+
 
                             }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                         }
@@ -426,11 +491,7 @@ fun main(){
                                                             },
                                                             bottomBarOpt = bottomBarOpt
                                                         )
-                                                        if (visibleProgressIndicator.value) {
-                                                            CircularProgressIndicator(
-                                                                color = Color.DarkGray,
-                                                            )
-                                                        }
+
                                                     }
 
 
@@ -447,6 +508,9 @@ fun main(){
                         }
 
                         2 -> {
+
+                            val initData = remember{ mutableStateOf("" )}
+                            val visibleProgressIndicator = remember { mutableStateOf(false) }
 
                             val viewModel: KhoaTidalCurrentViewModel = remember {
                                 KhoaTidalCurrentViewModel()
@@ -468,7 +532,7 @@ fun main(){
                                 if(tidalCurrentInfo.value.isNotEmpty()) {
                                     val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
                                     updatePrevCoordinates(tidalCurrentData)
-                                    val values = tidalCurrentData.map{it}.joinToString(
+                                    initData.value = tidalCurrentData.map{it}.joinToString(
                                         separator = ",",
                                         prefix = "[",
                                         postfix = "]"
@@ -483,7 +547,7 @@ fun main(){
                                         data
                                     }
 
-                                    onInitData( IFRAME_SEA_FLOW_TRIPS, values)
+                                    onInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
                                 }
                             }
 
@@ -511,7 +575,7 @@ fun main(){
 
                                     Box(
                                         modifier = Modifier.fillMaxWidth()
-                                            .height(height)
+                                            .height(height - bottomBarHeight)
                                             .onGloballyPositioned { coordinates ->
                                                 syncHtmlElementPosition(
                                                     coordinates,
@@ -524,12 +588,48 @@ fun main(){
                                     ) {
                                         // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
                                     }
+
+
+
+                                    Box(
+                                        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {// [Reload, Tooltips, Symbol, Legend]
+                                        val bottomBarOpt =
+                                            listOf(true, false, false, false)
+                                        ChartFeatureControls(
+                                            onChangeFlag = { label, value ->
+                                                when (label) {
+                                                    "Reload" ->{
+                                                        visibleProgressIndicator.value = true
+                                                        onInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
+                                                        coroutineScope.launch {
+                                                            delay(1000)
+                                                            visibleProgressIndicator.value = false
+                                                        }
+                                                    }
+                                                }
+
+                                            },
+                                            bottomBarOpt = bottomBarOpt
+                                        )
+                                        if (visibleProgressIndicator.value) {
+                                            CircularProgressIndicator(
+                                                color = Color.DarkGray,
+                                            )
+                                        }
+                                    }
+
+
                                 }
 
                             }
                         }
 
                         3 -> {
+
+                            val initData = remember{ mutableStateOf("" )}
+                            val visibleProgressIndicator = remember { mutableStateOf(false) }
 
                             val viewModel: KhoaTidalCurrentViewModel = remember {
                                 KhoaTidalCurrentViewModel()
@@ -551,7 +651,7 @@ fun main(){
                                     val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
                                     val data =  transformToHexagonData(tidalCurrentData)
 
-                                    val values = data.map{it}.joinToString(
+                                    initData.value = data.map{it}.joinToString(
                                         separator = ",",
                                         prefix = "[",
                                         postfix = "]"
@@ -559,7 +659,7 @@ fun main(){
                                         //Triple(lat,lng,speed)
                                         "{\"lat\":${it.first}, \"lng\":${it.second},  \"speed\":${it.third}}"
                                     }
-                                    onInitData( IFRAME_SEA_FLOW_HEXAGON, values)
+                                    onInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
                                 }
                             }
 
@@ -586,7 +686,7 @@ fun main(){
 
                                     Box(
                                         modifier = Modifier.fillMaxWidth()
-                                            .height(height)
+                                            .height(height - bottomBarHeight)
                                             .onGloballyPositioned { coordinates ->
                                                 syncHtmlElementPosition(
                                                     coordinates,
@@ -598,6 +698,37 @@ fun main(){
                                         contentAlignment = Alignment.Center
                                     ) {
                                         // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+                                    }
+
+
+
+                                    Box(
+                                        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {// [Reload, Tooltips, Symbol, Legend]
+                                        val bottomBarOpt =
+                                            listOf(true, false, false, false)
+                                        ChartFeatureControls(
+                                            onChangeFlag = { label, value ->
+                                                when (label) {
+                                                    "Reload" ->{
+                                                        visibleProgressIndicator.value = true
+                                                        onInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
+                                                        coroutineScope.launch {
+                                                            delay(1000)
+                                                            visibleProgressIndicator.value = false
+                                                        }
+                                                    }
+                                                }
+
+                                            },
+                                            bottomBarOpt = bottomBarOpt
+                                        )
+                                        if (visibleProgressIndicator.value) {
+                                            CircularProgressIndicator(
+                                                color = Color.DarkGray,
+                                            )
+                                        }
                                     }
 
 
@@ -714,11 +845,7 @@ fun main(){
                                                             },
                                                             bottomBarOpt = bottomBarOpt
                                                         )
-                                                        if (visibleProgressIndicator.value) {
-                                                            CircularProgressIndicator(
-                                                                color = Color.DarkGray,
-                                                            )
-                                                        }
+
                                                     }
 
 
