@@ -12,6 +12,8 @@ const val IFRAME_OCEAN_WATER_INFO = "iframe_oceanWaterInfo"
 const val DIV_WATER_INFO = "waterInfoMap"
 const val DIV_OCEAN_WATER_INFO = "oceanWaterInfoMap"
 const val DIV_AIR_INFO = "airInfoMap"
+const val DIV_SEA_FLOW_TRIPS = "seaFlowTripsMap"
+const val DIV_SEA_FLOW_HEXAGON = "seaFlowHexagonMap"
 const val IFRAME_AIR_INFO = "iframe_airInfoMap"
 
 fun transformToMarkerData2(observatorys: List<Observatory>, observations: List<SeawaterInformationByObservationPoint> ): Triple<String, String, String> {
@@ -239,6 +241,9 @@ val changeSelectedTab = { selectedTabIndex :Int ->
     val airHtmlElement = document.getElementById(DIV_AIR_INFO) as? HTMLElement
     val waterHtmlElement = document.getElementById(DIV_WATER_INFO) as? HTMLElement
     val oceanWaterHtmlElement = document.getElementById(DIV_OCEAN_WATER_INFO) as? HTMLElement
+    val seaFlowTripsMapMapHtmlElementId = document.getElementById(DIV_SEA_FLOW_TRIPS) as? HTMLElement
+    val seaFlowHexagonMapHtmlElementId = document.getElementById(DIV_SEA_FLOW_HEXAGON) as? HTMLElement
+
 
     airHtmlElement?.let {
         when(selectedTabIndex){
@@ -254,9 +259,25 @@ val changeSelectedTab = { selectedTabIndex :Int ->
         }
     }
 
-    waterHtmlElement?.let {
+
+    seaFlowTripsMapMapHtmlElementId?.let{
         when(selectedTabIndex){
             2 -> it.style.visibility = "visible"
+            else -> it.style.visibility = "hidden"
+        }
+    }
+
+
+    seaFlowHexagonMapHtmlElementId?.let{
+        when(selectedTabIndex){
+            3 -> it.style.visibility = "visible"
+            else -> it.style.visibility = "hidden"
+        }
+    }
+
+    waterHtmlElement?.let {
+        when(selectedTabIndex){
+            4 -> it.style.visibility = "visible"
             else -> it.style.visibility = "hidden"
         }
     }

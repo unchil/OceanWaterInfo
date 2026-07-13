@@ -66,6 +66,10 @@ fun main(){
     val waterInfoMapHtmlElementId = "waterInfoMap"
     val oceanWaterInfoMapHtmlElementId = "oceanWaterInfoMap"
 
+    val seaFlowHexagonMapHtmlElementId = "seaFlowHexagonMap"
+    val seaFlowTripsMapMapHtmlElementId = "seaFlowTripsMap"
+
+
     ComposeViewport(viewportContainerId = mainHtmlElementId) {
 
         val mapScreenHeight = remember{700.dp}
@@ -79,7 +83,7 @@ fun main(){
         val visibleProgressIndicator = remember { mutableStateOf(false) }
 
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
-        val tabTitles = listOf("Seoul/Gyonggi  Air Quality", "Korea Ocean Water Quality", "Korea Hydro & Nuclear Power")
+        val tabTitles = listOf("Seoul/Gyonggi Air Quality", "Korea Ocean Water Quality", "Korea Tidal Forecast Map", "Korean Ocean Current Speed Map", "Korea Hydro & Nuclear Power")
 
 
         val density = LocalDensity.current
@@ -313,6 +317,7 @@ fun main(){
 
                         }
 
+
                         1 -> {
 
                             Column(
@@ -441,6 +446,95 @@ fun main(){
                         }
 
                         2 -> {
+
+                            BoxWithConstraints(
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                val height = this.maxHeight
+
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Top,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+
+                                    ChartTitle(
+                                        "Prediction 3 hour The Tidal Current Map",
+                                        modifier = Modifier,
+                                    )
+
+                                    CaptionText(
+                                        "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
+                                        textAlign = TextAlign.Center
+                                    )
+
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth()
+                                            .height(height)
+                                            .onGloballyPositioned { coordinates ->
+                                                syncHtmlElementPosition(
+                                                    coordinates,
+                                                    density,
+                                                    mainHtmlElementId,
+                                                    seaFlowTripsMapMapHtmlElementId
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+                                    }
+                                }
+
+                            }
+                        }
+
+                        3 -> {
+
+                            BoxWithConstraints(
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                val height = this.maxHeight
+
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Top,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+
+                                    ChartTitle(
+                                        "Ocean Water Speed",
+                                        modifier = Modifier,
+                                    )
+
+                                    CaptionText(
+                                        "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
+                                        textAlign = TextAlign.Center
+                                    )
+
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth()
+                                            .height(height)
+                                            .onGloballyPositioned { coordinates ->
+                                                syncHtmlElementPosition(
+                                                    coordinates,
+                                                    density,
+                                                    mainHtmlElementId,
+                                                    seaFlowHexagonMapHtmlElementId
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+                                    }
+
+
+                                }
+
+                            }
+
+                        }
+
+                        4 -> {
                             Column(
                                 modifier = Modifier.fillMaxSize()
                             ) {
