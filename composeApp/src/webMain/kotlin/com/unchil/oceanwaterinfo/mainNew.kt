@@ -592,7 +592,7 @@ fun main(){
                                                     coordinates,
                                                     density,
                                                     mainHtmlElementId,
-                                                    IFRAME_SEA_FLOW_HEXAGON
+                                                    DIV_SEA_FLOW_HEXAGON
                                                 )
                                             },
                                         contentAlignment = Alignment.Center
