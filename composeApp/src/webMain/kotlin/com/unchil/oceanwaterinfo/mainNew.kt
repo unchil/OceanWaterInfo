@@ -433,9 +433,9 @@ fun main(){
                                                 contentAlignment= Alignment.Center
                                             ) {
                                                 OceanWaterInfoGeoChart(
-                                                    onClickPoint = onClickPointOceanWaterInfoGeoChart2,
-                                                    sendAddMarkerClusterer = sendAddMarkerClusterer3,
-                                                    onClickPointOceanWaterInfoGeoChart = onClickPointOceanWaterInfoGeoChart2,
+                                                    onClickPoint = sendFlyToTargetOceanWater,
+                                                    sendAddMarkerClusterer = sendAddMarkerClusterer,
+                                                    onClickPointOceanWaterInfoGeoChart = sendFlyToTargetOceanWater,
                                                     isReload = isReloadOceanWaterInfoMap.value
                                                 )
                                             }
@@ -797,9 +797,9 @@ fun main(){
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 WaterInfoGeoChart_KHOA(
-                                                    onClickPoint = onClickPointOceanWaterInfoGeoChart,
-                                                    sendAddMarkerClusterer = sendAddMarkerClusterer2,
-                                                    onClickPointOceanWaterInfoGeoChart = onClickPointOceanWaterInfoGeoChart,
+                                                    onClickPoint = sendFlyToTargetWater,
+                                                    sendAddMarkerClusterer = sendAddMarkerClusterer,
+                                                    onClickPointOceanWaterInfoGeoChart = sendFlyToTargetWater,
                                                     isReload = isReloadWaterInfoMap.value
                                                 )
                                             }

@@ -34,7 +34,7 @@ import org.maplibre.spatialk.geojson.Position
 @Composable
 fun OceanWaterInfoGeoChart(
     onClickPoint:(Point<Double, Double>)->Unit = { point -> }  ,
-    sendAddMarkerClusterer:((observatorys: List<Observatory>, observations: List<SeawaterInformationByObservationPoint> )-> Unit)? = null,
+    sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String>  )-> Unit)? = null,
     onClickPointOceanWaterInfoGeoChart: (( point:Point<Double, Double>) -> Unit)? = null,
     isReload: Int = 0
 ){
@@ -151,7 +151,8 @@ fun OceanWaterInfoGeoChart(
                 )
 
                 if(observatorys.value.isNotEmpty()){
-                    sendAddMarkerClusterer?.invoke(observatorys.value, filteredData)
+                    val transData = transformToMarkerDataFromSeawaterInformationByObservationPoint(observatorys.value, seaWaterInfo.value)
+                    sendAddMarkerClusterer?.invoke(IFRAME_OCEAN_WATER_INFO, transData)
                 }
             }
 

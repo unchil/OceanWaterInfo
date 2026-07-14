@@ -8,122 +8,8 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 
-const val DIV_OCEAN_WATER_INFO = "oceanWaterInfoMap"
-const val DIV_AIR_INFO = "airInfoMap"
-const val DIV_SEA_FLOW_TRIPS = "seaFlowTripsMap"
-const val DIV_SEA_FLOW_HEXAGON = "seaFlowHexagonMap"
-const val DIV_WATER_INFO = "waterInfoMap"
-
-const val IFRAME_AIR_INFO = "iframe_airInfoMap"
-const val IFRAME_WATER_INFO = "iframe_waterInfo"
-const val IFRAME_OCEAN_WATER_INFO = "iframe_oceanWaterInfo"
-
-const val IFRAME_SEA_FLOW_TRIPS = "iframe_seaFlowTrips"
-const val IFRAME_SEA_FLOW_HEXAGON = "iframe_seaFlowHexagon"
 
 
-fun transformToMarkerData2(observatorys: List<Observatory>, observations: List<SeawaterInformationByObservationPoint> ): Triple<String, String, String> {
-    if (observations.isEmpty()) return Triple("[]", "[]", "[]")
-
-    val filteredObservatories = observatorys.filter { obs ->
-        observations.any { info -> info.sta_cde == obs.sta_cde }
-    }
-
-    val data = observations.map {
-        Triple(
-            it.sta_nam_kor,
-            Point(it.lon, it.lat),
-            Pair(it.obs_datetime, it.wtr_tmp.toFloat())
-        )
-    }
-
-    val locs = data.map { triple ->
-        triple.second
-    }.joinToString(
-        separator = ",",
-        prefix = "[",
-        postfix = "]"
-    ) { point ->
-        "{ \"lat\": ${point.y}, \"lng\": ${point.x} }"
-    }
-
-    val lbs = data.map { triple ->
-        triple.first
-    }.joinToString(
-        separator = ",",
-        prefix = "[",
-        postfix = "]"
-    ) { sta_nam_kor ->
-        "\"${sta_nam_kor}\""
-    }
-
-    val cnts = data.map { triple ->
-        triple.second
-    }.joinToString(
-        separator = ",",
-        prefix = "[",
-        postfix = "]"
-    ) { point ->
-
-        // 1. 좌표를 키로 사용하여 관측소 찾기 (성능 최적화)
-        val it =
-            filteredObservatories.findLast { it.lat == point.y && it.lon == point.x }
-
-        // 2. buildString을 사용하여 문자열 조립 (가독성 및 안전성)
-        val desc = buildString {
-            append("\" build_date:${it?.bld_dat ?: "N/A"}<br>")
-            if (it?.sur_tmp_yn == "Y") append("surface_depth: ${it.sur_dep}M<br>")
-            if (it?.mid_tmp_yn == "Y") append("middle_depth: ${it.mid_dep}M<br>")
-            if (it?.bot_tmp_yn == "Y") append("bottom_depth: ${it.bot_dep}M<br>")
-            // 1. sta_des에서 모든 개행 문자를 제거 (또는 공백으로 대체)
-            val cleanStaDes = it?.sta_des
-                ?.replace("\n", " ") // 줄바꿈을 공백으로 변경
-                ?.replace("\r", "")  // 캐리지 리턴 제거
-                ?.trim()             // 앞뒤 불필요한 공백 제거
-                ?: ""
-
-            if (it?.sta_des != null) {
-                append("desc: $cleanStaDes\"")
-            } else {
-                append("\"")
-            }
-
-        }
-        desc
-
-    }
-
-
-
-
-    return Triple(locs, lbs, cnts)
-}
-
-
-// 1. 관측 데이터를 마커 클러스터용 문자열 데이터(Triple)로 변환하는 함수
-fun transformToMarkerData(observations: List<KhoaObservation>): Triple<String, String, String> {
-    if (observations.isEmpty()) return Triple("[]", "[]", "[]")
-
-    val data = observations.map {
-        Triple(
-            it.obsvtrNm,
-            Point(it.lot, it.lat),
-            Pair(it.obsrvnDt, Triple(it.wtem ?: "0", it.crdir ?: "0", it.crsp ?: "0"))
-        )
-    }
-
-    val locs = data.joinToString(",", "[", "]") { "{ \"lat\": ${it.second.y}, \"lng\": ${it.second.x} }" }
-    val lbs = data.joinToString(",", "[", "]") { "\"${it.first}\"" }
-    val cnts = data.joinToString(",", "[", "]") { triple ->
-        buildString {
-            append("\"DateTime :${triple.third.first}<br>")
-            append("Temperature: ${triple.third.second.first} °C<br>")
-            append("Direction  : ${triple.third.second.second} \u00B0<br>")
-            append("Speed      : ${triple.third.second.third} (cm/sec)<br>\"")
-        }
-    }
-    return Triple(locs, lbs, cnts)
-}
 
 // 2. Iframe으로 JSON 메시지를 전송하는 공통 함수
 @OptIn(ExperimentalWasmJsInterop::class)
@@ -183,7 +69,7 @@ val onInitData = {   iframeId:String, values:String->
 }
 
 
-val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
+val sendFlyToTargetWater = { point:Point<Double, Double> ->
     val message = """
                 {
                     "action": "FLY_TO",
@@ -194,7 +80,7 @@ val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
 }
 
 
-val onClickPointOceanWaterInfoGeoChart2 = { point:Point<Double, Double> ->
+val sendFlyToTargetOceanWater = { point:Point<Double, Double> ->
     val message = """
                 {
                     "action": "FLY_TO",
@@ -204,39 +90,16 @@ val onClickPointOceanWaterInfoGeoChart2 = { point:Point<Double, Double> ->
     postIframeMessage(IFRAME_OCEAN_WATER_INFO, message)
 }
 
-val sendAddMarkerClusterer = { (locs, lbs, cnts) :Triple<String, String, String> ->
+val sendAddMarkerClusterer = { iframeId:String,  (locs, lbs, cnts) :Triple<String, String, String> ->
     val message = """
                 {
                     "action": "ADD_Marker_Clusterer",
                     "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
                 }
                 """.trimIndent()
-    postIframeMessage(IFRAME_WATER_INFO, message)
+    postIframeMessage(iframeId, message)
 }
 
-val sendAddMarkerClusterer2 = { seaWaterInfo:List<KhoaObservation> ->
-
-    val (locs, lbs, cnts) = transformToMarkerData(seaWaterInfo)
-    val message = """
-                {
-                    "action": "ADD_Marker_Clusterer",
-                    "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
-                }
-                """.trimIndent()
-    postIframeMessage(IFRAME_WATER_INFO, message)
-}
-
-val sendAddMarkerClusterer3 = { observatorys: List<Observatory>, observations: List<SeawaterInformationByObservationPoint>  ->
-
-    val (locs, lbs, cnts) = transformToMarkerData2(observatorys, observations)
-    val message = """
-                {
-                    "action": "ADD_Marker_Clusterer",
-                    "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
-                }
-                """.trimIndent()
-    postIframeMessage(IFRAME_OCEAN_WATER_INFO, message)
-}
 
 
 val disposeHtmlElements = { htmlElements : List<String> ->

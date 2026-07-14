@@ -41,7 +41,7 @@ import org.maplibre.spatialk.geojson.Position
 @Composable
 fun WaterInfoGeoChart_KHOA(
     onClickPoint:(Point<Double,Double>)->Unit = { }  ,
-    sendAddMarkerClusterer:((seaWaterInfo:List<KhoaObservation>)-> Unit)? = null,
+    sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String> )-> Unit)? = null,
     onClickPointOceanWaterInfoGeoChart: (( point:Point<Double, Double>) -> Unit)? = null,
     isReload: Int = 0
 ){
@@ -129,8 +129,8 @@ fun WaterInfoGeoChart_KHOA(
     LaunchedEffect(seaWaterInfo.value){
 
         if (seaWaterInfo.value.isNotEmpty()) {
-
-            sendAddMarkerClusterer?.invoke(seaWaterInfo.value)
+            val transData = transformToMarkerDataFromKhoaObservation(seaWaterInfo.value)
+            sendAddMarkerClusterer?.invoke(IFRAME_WATER_INFO, transData)
 
             data.value = seaWaterInfo.value.map {
                 Triple(
