@@ -1,22 +1,13 @@
 package com.unchil.oceanwaterinfo
 
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -32,10 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,19 +73,6 @@ fun main() = application {
         position = WindowPosition(Alignment.Center)
     )
 
-    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
-
-    val clickPointWaterInfoGeoChart_KHOA = mutableStateOf(initCenterPoint )
-
-    val onClickPointWaterInfoGeoChart_KHOA = { point:Point<Double, Double> ->
-        clickPointWaterInfoGeoChart_KHOA.value = point
-    }
-
-    val clickPointOceanWaterInfoGeoChart = mutableStateOf(initCenterPoint )
-
-    val onClickPointOceanWaterInfoGeoChart = { point:Point<Double, Double> ->
-        clickPointOceanWaterInfoGeoChart.value = point
-    }
 
     var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
     val tabTitles = listOf("Seoul/Gyonggi Air Quality", "Korea Ocean Water Quality", "Korea Tidal Forecast Map", "Korean Ocean Current Speed Map", "Korea Hydro & Nuclear Power")
@@ -168,234 +143,40 @@ fun main() = application {
                     Box(modifier = Modifier.fillMaxSize()) {
                         when (selectedTabIndex) {
                             0 -> {
-                                // --- 탭 1: Seoul SDoT 정보 ---
-                                Column(modifier = Modifier.fillMaxSize()) {
-                                    Text(
-                                        "Seoul/Gyonggi SDoT Air Environmental Observation Information",
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Center
-                                    )
-
-                                    SDoTEnvInfoUnionMapHexagonLayer(initialized, download, errorMessage)
-
-                                }
+                                jvmMainAirQuality(initialized, download, errorMessage)
                             }
                             1 -> {
-
-                                Column(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-
-                                    Text(
-                                        "Korea Ocean Water Information",
-                                        modifier = Modifier.fillMaxWidth()
-                                            .padding(vertical = 20.dp),
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        fontSize = 24.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Center
-                                    )
-
-                                    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
-                                        val totalWidth =  this.maxWidth.value
-
-                                        Column(
-                                            modifier = Modifier.fillMaxSize()
-                                                .verticalScroll(rememberScrollState()),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                        ) {
-                                            OceanWaterInfo_MOF()
-                                            OceanWaterInfoTimeSeries()
-                                            OceanWaterInfoBoxPlotChart()
-                                            OceanWaterInfoBarChart()
-
-                                            //스크롤이 가능한 Column 내부에 구분선(Divider)이 있는 레이아웃을 넣으려면, 해당 Row에 명시적인 높이(height)를 지정해야 합니다.
-                                            // 그리고 그 값은 WaterInfoGeoChart_KHOA  의 height 값 보다 커야됨
-
-                                            var splitFractionVertical by remember {
-                                                mutableStateOf(
-                                                    0.5f
-                                                )
-                                            }
-                                            val mapScreenHeight = remember{700.dp}
-
-                                            Row(   modifier = Modifier.fillMaxSize().height(mapScreenHeight).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp) ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth(splitFractionVertical)
-                                                        .fillMaxHeight(),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    OceanWaterInfoGeoChart(
-                                                        onClickPoint = onClickPointOceanWaterInfoGeoChart
-                                                    )
-                                                }
-
-                                                DraggableVerticalDivider(
-                                                    onDrag = { deltaPx ->
-                                                        val deltaWeight =
-                                                            deltaPx / totalWidth
-                                                        splitFractionVertical =
-                                                            (splitFractionVertical + deltaWeight).coerceIn(
-                                                                0.1f,
-                                                                0.9f
-                                                            )
-                                                    }
-                                                )
-
-                                                CompositionLocalProvider(
-                                                    OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value
-                                                ) {
-                                                    OceanWaterInfoGeoChart_MapScreen(
-                                                        initialized,
-                                                        download,
-                                                        errorMessage,
-                                                        mapScreenHeight
-                                                    )
-                                                }
-
-                                            }
-
-                                            OceanWaterInfoDataGrid()
-                                        }
-                                    }
-                                }
+                                jvmMainOceanWaterQuality(
+                                    initialized,
+                                    download,
+                                    errorMessage
+                                )
                             }
                             2 -> {
-                                SeaFlowMapTripsLayer(
+                                jvmMainTidalForecastMap(
                                     initialized,
                                     download,
                                     errorMessage
                                 )
                             }
                             3 -> {
-                                SeaFlowMapHexagonLayer(
+                                jvmMainOceanCurrentSpeedMap(
                                     initialized,
                                     download,
                                     errorMessage
                                 )
                             }
+
                             4 -> {
-                                Column(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-
-                                    Text(
-                                        "Information regarding Korea Hydro & Nuclear Power",
-                                        modifier = Modifier.fillMaxWidth()
-                                            .padding(vertical = 20.dp),
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        fontSize = 24.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Center
-                                    )
-
-                                    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
-                                        val totalWidth = this.maxWidth.value
-
-                                        Column(
-                                            modifier = Modifier.fillMaxSize()
-                                                .verticalScroll(rememberScrollState()),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                        ) {
-
-                                            NuclearPlantStatePieChart_KHNP()
-                                            RadioActiveWastePlantStatStackedBarChart_KHNP()
-                                            KHNPRadioActiveWasteStackBarChart()
-                                            WaterTempTimeSeries_KHOA()
-                                            RadioRateBarChart()
-                                            WasteWaterTimeSeries_KHNP()
-                                            ThermalWasteWaterTimeSeries_KHNP()
-
-                                            var splitFractionVertical by remember {
-                                                mutableStateOf(
-                                                    0.35f
-                                                )
-                                            }
-                                            val mapScreenHeight = remember{700.dp}
-
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth().height(mapScreenHeight).border(BorderStroke(1.dp, Color.LightGray)).padding(6.dp)
-                                            ) {
-
-
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth(splitFractionVertical)
-                                                        .fillMaxHeight(),
-                                                    contentAlignment= Alignment.Center
-                                                ) {
-
-                                                    WindPolarChart_KHOA()
-
-                                                }
-
-                                                DraggableVerticalDivider(
-                                                    onDrag = { deltaPx ->
-                                                        val deltaWeight = deltaPx / totalWidth
-                                                        splitFractionVertical =
-                                                            (splitFractionVertical + deltaWeight).coerceIn(
-                                                                0.1f,
-                                                                0.9f
-                                                            )
-                                                    }
-                                                )
-
-                                                Row(modifier=Modifier.fillMaxSize()){
-
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth(0.5f)
-                                                            .fillMaxHeight(),
-                                                        contentAlignment= Alignment.Center
-                                                    ) {
-
-                                                        WaterInfoGeoChart_KHOA(
-                                                            onClickPointWaterInfoGeoChart_KHOA
-                                                        )
-                                                    }
-
-                                                    CompositionLocalProvider(
-                                                        WaterInfoGeoChartPoint provides clickPointWaterInfoGeoChart_KHOA.value
-                                                    ) {
-                                                        //WaterInfoGeoChart_KHOA_MapScreen 은 항상 height 값이 fix 되어야 표시됨.
-                                                        WaterInfoGeoChart_KHOA_MapScreen(
-                                                            initialized,
-                                                            download,
-                                                            errorMessage,
-                                                            height = mapScreenHeight
-                                                        )
-                                                    }
-                                                }
-
-
-
-                                            }
-
-
-                                            WaterDegTimeSeries_KHOA()
-
-
-                                        }
-
-                                    }
-
-
-                                }
+                                jvmMainHydroNuclearPower(
+                                    initialized,
+                                    download,
+                                    errorMessage
+                                )
                             }
                         }
                     }
                 }
-
-
-
-
-
 
             }
         }
@@ -408,12 +189,6 @@ fun main() = application {
             KCEF.disposeBlocking()
         }
     }
-
-
-
-
-
-
 
 
 }

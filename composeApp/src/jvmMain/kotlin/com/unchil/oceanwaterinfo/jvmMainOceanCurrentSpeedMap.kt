@@ -30,7 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun SeaFlowMapTripsLayer(
+fun jvmMainOceanCurrentSpeedMap(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
@@ -41,10 +41,8 @@ fun SeaFlowMapTripsLayer(
         KhoaTidalCurrentViewModel()
     }
 
-
-
     val host = "http://localhost:7272"
-    val servicePage = "seaFlowMapDeckTripsLayer.html"
+    val servicePage = "seaFlowMapDeckHexagonLayer.html"
 
 
     val localUrl = "${host}/${servicePage}"
@@ -72,21 +70,15 @@ fun SeaFlowMapTripsLayer(
     LaunchedEffect( tidalCurrentInfo.value){
         if(tidalCurrentInfo.value.isNotEmpty()) {
             val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
-            updatePrevCoordinates(tidalCurrentData)
+            val data =  transformToHexagonData(tidalCurrentData)
 
-            values.value = tidalCurrentData.map{it}.joinToString(
+            values.value = data.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
                 postfix = "]"
             ){ it ->
-                val data = it.value.joinToString (
-                    separator = ",",
-                    prefix = "[",
-                    postfix = "]"
-                ){ (schTime, currentDir, currentSpeed,  prev_lon, prev_lat) ->
-                    "{lat:${prev_lat}, lng:${prev_lon}, speed:${currentSpeed}}"
-                }
-                data
+                //Triple(lat,lng,speed)
+                "{lat:${it.first}, lng:${it.second},  speed:${it.third}}"
             }
 
 
@@ -95,7 +87,7 @@ fun SeaFlowMapTripsLayer(
 
     LaunchedEffect( values.value, webViewState.loadingState){
         if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished){
-      //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
+            //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
             navigator.evaluateJavaScript("initMapWithData( ${values.value})")
         }
     }
@@ -112,13 +104,13 @@ fun SeaFlowMapTripsLayer(
         val height = this.maxHeight
 
 
-
         when {
             initialized -> {
 
                 Column(modifier=Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    horizontalAlignment = Alignment.CenterHorizontally)
+                {
 
                     Column(
                         modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
@@ -127,7 +119,7 @@ fun SeaFlowMapTripsLayer(
                     ) {
 
                         ChartTitle(
-                            "Prediction 3 hour from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }} Tidal Current Map",
+                            "Ocean Water Speed",
                             modifier = Modifier,
                         )
 
@@ -136,13 +128,15 @@ fun SeaFlowMapTripsLayer(
                             textAlign = TextAlign.Center
                         )
 
+
                         WebView(
                             state = webViewState,
                             navigator = navigator,
                             modifier = Modifier.fillMaxSize()
                         )
-                    }
 
+
+                    }
 
                     Box(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
@@ -172,8 +166,9 @@ fun SeaFlowMapTripsLayer(
                             )
                         }
                     }
-                }
 
+
+                }
 
             }
             errorMessage.isNotEmpty() -> {

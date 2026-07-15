@@ -30,7 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun SeaFlowMapHexagonLayer(
+fun jvmMainTidalForecastMap(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
@@ -41,8 +41,10 @@ fun SeaFlowMapHexagonLayer(
         KhoaTidalCurrentViewModel()
     }
 
+
+
     val host = "http://localhost:7272"
-    val servicePage = "seaFlowMapDeckHexagonLayer.html"
+    val servicePage = "seaFlowMapDeckTripsLayer.html"
 
 
     val localUrl = "${host}/${servicePage}"
@@ -70,15 +72,21 @@ fun SeaFlowMapHexagonLayer(
     LaunchedEffect( tidalCurrentInfo.value){
         if(tidalCurrentInfo.value.isNotEmpty()) {
             val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
-            val data =  transformToHexagonData(tidalCurrentData)
+            updatePrevCoordinates(tidalCurrentData)
 
-            values.value = data.map{it}.joinToString(
+            values.value = tidalCurrentData.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
                 postfix = "]"
             ){ it ->
-                //Triple(lat,lng,speed)
-                "{lat:${it.first}, lng:${it.second},  speed:${it.third}}"
+                val data = it.value.joinToString (
+                    separator = ",",
+                    prefix = "[",
+                    postfix = "]"
+                ){ (schTime, currentDir, currentSpeed,  prev_lon, prev_lat) ->
+                    "{lat:${prev_lat}, lng:${prev_lon}, speed:${currentSpeed}}"
+                }
+                data
             }
 
 
@@ -87,7 +95,7 @@ fun SeaFlowMapHexagonLayer(
 
     LaunchedEffect( values.value, webViewState.loadingState){
         if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished){
-            //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
+      //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
             navigator.evaluateJavaScript("initMapWithData( ${values.value})")
         }
     }
@@ -104,13 +112,13 @@ fun SeaFlowMapHexagonLayer(
         val height = this.maxHeight
 
 
+
         when {
             initialized -> {
 
                 Column(modifier=Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.CenterHorizontally)
-                {
+                    horizontalAlignment = Alignment.CenterHorizontally) {
 
                     Column(
                         modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
@@ -119,7 +127,7 @@ fun SeaFlowMapHexagonLayer(
                     ) {
 
                         ChartTitle(
-                            "Ocean Water Speed",
+                            "Prediction 3 hour from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }} Tidal Current Map",
                             modifier = Modifier,
                         )
 
@@ -128,15 +136,13 @@ fun SeaFlowMapHexagonLayer(
                             textAlign = TextAlign.Center
                         )
 
-
                         WebView(
                             state = webViewState,
                             navigator = navigator,
                             modifier = Modifier.fillMaxSize()
                         )
-
-
                     }
+
 
                     Box(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
@@ -166,9 +172,8 @@ fun SeaFlowMapHexagonLayer(
                             )
                         }
                     }
-
-
                 }
+
 
             }
             errorMessage.isNotEmpty() -> {

@@ -36,8 +36,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
@@ -49,7 +51,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SDoTEnvInfoUnionMapHexagonLayer(
+fun jvmMainAirQuality(
     initialized: Boolean,
     download:Int,
     errorMessage:String,
@@ -118,6 +120,17 @@ fun SDoTEnvInfoUnionMapHexagonLayer(
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
+
+        Text(
+            "Seoul/Gyonggi SDoT Air Environmental Observation Information",
+            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+
 
         var selectedTabIndex by remember { mutableIntStateOf(0) }
         SecondaryTabRow(
