@@ -66,7 +66,6 @@ fun main(){
     ComposeViewport(viewportContainerId = DIV_WEB_MAIN) {
 
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
-        val tabTitles = listOf("Seoul/Gyonggi Air Quality", "Korea Ocean Water Quality", "Korea Tidal Forecast Map", "Korean Ocean Current Speed Map", "Korea Hydro & Nuclear Power")
 
         LaunchedEffect(selectedTabIndex) {
             changeSelectedTab(selectedTabIndex)
@@ -89,7 +88,7 @@ fun main(){
                     MaterialTheme.colorScheme.primary,
                     { HorizontalDivider() }
                 ) {
-                    tabTitles.forEachIndexed { index, title ->
+                    MAIN_TAB_ITEMS.forEachIndexed { index, title ->
 
                         val interactionSource = remember { MutableInteractionSource() }
                         // InteractionSource의 상태 변화를 직접 감지하는 로직

@@ -42,7 +42,6 @@ import org.maplibre.spatialk.geojson.Position
 fun WaterInfoGeoChart_KHOA(
     onClickPoint:(Point<Double,Double>)->Unit = { }  ,
     sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String> )-> Unit)? = null,
-    onClickPointOceanWaterInfoGeoChart: (( point:Point<Double, Double>) -> Unit)? = null,
     isReload: Int = 0
 ){
 
@@ -77,7 +76,7 @@ fun WaterInfoGeoChart_KHOA(
     LaunchedEffect(viewModel) {
         viewModel.refreshEvent.collect {
             visibleProgressIndicator.value = false
-            onClickPointOceanWaterInfoGeoChart?.invoke(initCenterPoint)
+            onClickPoint(initCenterPoint)
 
         }
     }

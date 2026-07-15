@@ -35,7 +35,6 @@ import org.maplibre.spatialk.geojson.Position
 fun OceanWaterInfoGeoChart(
     onClickPoint:(Point<Double, Double>)->Unit = { point -> }  ,
     sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String>  )-> Unit)? = null,
-    onClickPointOceanWaterInfoGeoChart: (( point:Point<Double, Double>) -> Unit)? = null,
     isReload: Int = 0
 ){
 
@@ -79,7 +78,7 @@ fun OceanWaterInfoGeoChart(
     LaunchedEffect(viewModel) {
         viewModel.refreshEvent.collect {
             visibleProgressIndicator.value = false
-            onClickPointOceanWaterInfoGeoChart?.invoke(initCenterPoint)
+            onClickPoint(initCenterPoint)
         }
     }
 

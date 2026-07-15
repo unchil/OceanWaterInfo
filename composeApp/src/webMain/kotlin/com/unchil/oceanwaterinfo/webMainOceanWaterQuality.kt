@@ -89,7 +89,6 @@ fun webMainOceanWaterQuality(){
                         OceanWaterInfoGeoChart(
                             onClickPoint = sendFlyToTargetOceanWater,
                             sendAddMarkerClusterer = sendAddMarkerClusterer,
-                            onClickPointOceanWaterInfoGeoChart = sendFlyToTargetOceanWater,
                             isReload = isReloadOceanWaterInfoMap.value
                         )
                     }

@@ -34,6 +34,8 @@ const val IFRAME_SEA_FLOW_TRIPS = "iframe_seaFlowTrips"
 const val IFRAME_SEA_FLOW_HEXAGON = "iframe_seaFlowHexagon"
 
 
+val MAIN_TAB_ITEMS = listOf("Seoul/Gyonggi Air Quality", "Korea Ocean Water Quality", "Korea Tidal Forecast Map", "Korean Ocean Current Speed Map", "Korea Hydro & Nuclear Power")
+
 // 1. 관측 데이터를 마커 클러스터용 문자열 데이터(Triple)로 변환하는 함수
 fun transformToMarkerDataFromKhoaObservation(observations: List<KhoaObservation>): Triple<String, String, String> {
     if (observations.isEmpty()) return Triple("[]", "[]", "[]")

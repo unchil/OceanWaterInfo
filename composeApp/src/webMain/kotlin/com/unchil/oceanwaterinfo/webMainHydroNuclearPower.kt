@@ -98,7 +98,6 @@ fun webMainHydroNuclearPower(){
                         WaterInfoGeoChart_KHOA(
                             onClickPoint = sendFlyToTargetWater,
                             sendAddMarkerClusterer = sendAddMarkerClusterer,
-                            onClickPointOceanWaterInfoGeoChart = sendFlyToTargetWater,
                             isReload = isReloadWaterInfoMap.value
                         )
                     }
