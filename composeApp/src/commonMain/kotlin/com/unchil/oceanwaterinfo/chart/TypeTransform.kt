@@ -18,6 +18,8 @@ import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.round
 
+const val DIV_WEB_MAIN = "webmain"
+
 const val DIV_OCEAN_WATER_INFO = "oceanWaterInfoMap"
 const val DIV_AIR_INFO = "airInfoMap"
 const val DIV_SEA_FLOW_TRIPS = "seaFlowTripsMap"
