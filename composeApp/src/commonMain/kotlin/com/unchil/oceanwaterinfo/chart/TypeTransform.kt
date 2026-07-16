@@ -62,20 +62,11 @@ fun transformToMarkerDataFromKhoaObservation(observations: List<KhoaObservation>
 }
 
 
-fun transformToMarkerDataFromSeawaterInformationByObservationPoint(observatorys: List<Observatory>, observations: List<SeawaterInformationByObservationPoint> ): Triple<String, String, String> {
-    if (observations.isEmpty()) return Triple("[]", "[]", "[]")
+fun transformToMarkerDataFromOceanWater(
+    data: List<ChartValuesGeo>,
+    filteredObservatories: List<Observatory>
+): Triple<String, String, String> {
 
-    val filteredObservatories = observatorys.filter { obs ->
-        observations.any { info -> info.sta_cde == obs.sta_cde }
-    }
-
-    val data = observations.map {
-        Triple(
-            it.sta_nam_kor,
-            Point(it.lon, it.lat),
-            Pair(it.obs_datetime, it.wtr_tmp.toFloat())
-        )
-    }
 
     val locs = data.map { triple ->
         triple.second

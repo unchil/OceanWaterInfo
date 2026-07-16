@@ -128,13 +128,13 @@ fun OceanWaterInfoGeoChart(
 
     LaunchedEffect(seaWaterInfo.value, observatorys.value, geoData.value){
 
-        if ( seaWaterInfo.value.isNotEmpty() && geoData.value.isNotEmpty()) {
+        if ( observatorys.value.isNotEmpty() &&  seaWaterInfo.value.isNotEmpty()) {
 
             val filteredData = seaWaterInfo.value.filter {
                 it.obs_lay == "1"
             }
+            if(filteredData.isNotEmpty()) {
 
-            if(filteredData.isNotEmpty()){
                 data.value = filteredData.map {
                     Triple(
                         it.sta_nam_kor ,
@@ -143,16 +143,21 @@ fun OceanWaterInfoGeoChart(
                     )
                 }
 
-                chartData.value = Triple(
-                    data.value.map{ triple -> triple.first },
-                    data.value,
-                    Pair(geoData.value, onClickPoint)
-                )
-
-                if(observatorys.value.isNotEmpty()){
-                    val transData = transformToMarkerDataFromSeawaterInformationByObservationPoint(observatorys.value, seaWaterInfo.value)
-                    sendAddMarkerClusterer?.invoke(IFRAME_OCEAN_WATER_INFO, transData)
+                if(geoData.value.isNotEmpty()){
+                    chartData.value = Triple(
+                        data.value.map{ triple -> triple.first },
+                        data.value,
+                        Pair(geoData.value, onClickPoint)
+                    )
                 }
+
+                val filteredObservatories = observatorys.value.filter { obs ->
+                    filteredData.any { info -> info.sta_cde == obs.sta_cde }
+                }
+
+                val transData = transformToMarkerDataFromOceanWater( data.value, filteredObservatories)
+                sendAddMarkerClusterer?.invoke(IFRAME_OCEAN_WATER_INFO, transData)
+
             }
 
         }
