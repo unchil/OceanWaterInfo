@@ -87,8 +87,8 @@ fun webMainOceanWaterQuality(){
                         contentAlignment= Alignment.Center
                     ) {
                         OceanWaterInfoGeoChart(
-                            onClickPoint = sendFlyToTargetOceanWater,
-                            sendAddMarkerClusterer = sendAddMarkerClusterer,
+                            onClickPoint = sendMsgFlyToOceanWaterInfo,
+                            sendAddMarkerClusterer = sendMsgAddMarkerClusterer,
                             isReload = isReloadOceanWaterInfoMap.value
                         )
                     }

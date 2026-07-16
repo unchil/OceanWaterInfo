@@ -92,7 +92,7 @@ fun webMainAirQuality(){
                 "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
             }
 
-            onClickTabPositionAirInfo2.invoke(initData.value, selectedOption.name)
+            sendMsgChangeData.invoke(IFRAME_AIR_INFO, initData.value, selectedOption.name)
 
         }
 
@@ -214,7 +214,7 @@ fun webMainAirQuality(){
                             when (label) {
                                 "Reload" ->{
                                     visibleProgressIndicator.value = true
-                                    onClickTabPositionAirInfo2.invoke(initData.value, selectedOption.name)
+                                    sendMsgChangeData.invoke(IFRAME_AIR_INFO, initData.value, selectedOption.name)
                                     coroutineScope.launch {
                                         delay(1000)
                                         visibleProgressIndicator.value = false

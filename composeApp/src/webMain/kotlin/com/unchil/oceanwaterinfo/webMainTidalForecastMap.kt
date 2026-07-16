@@ -72,7 +72,7 @@ fun webMainTidalForecastMap(){
                 data
             }
 
-            onInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
+            sendMsgInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
         }
     }
 
@@ -127,7 +127,7 @@ fun webMainTidalForecastMap(){
                         when (label) {
                             "Reload" ->{
                                 visibleProgressIndicator.value = true
-                                onInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
+                                sendMsgInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
                                 coroutineScope.launch {
                                     delay(1000)
                                     visibleProgressIndicator.value = false

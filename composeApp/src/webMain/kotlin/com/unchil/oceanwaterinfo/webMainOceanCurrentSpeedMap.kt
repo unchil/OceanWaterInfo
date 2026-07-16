@@ -64,7 +64,7 @@ fun webMainOceanCurrentSpeedMap(){
                 //Triple(lat,lng,speed)
                 "{\"lat\":${it.first}, \"lng\":${it.second},  \"speed\":${it.third}}"
             }
-            onInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
+            sendMsgInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
         }
     }
 
@@ -118,7 +118,7 @@ fun webMainOceanCurrentSpeedMap(){
                         when (label) {
                             "Reload" ->{
                                 visibleProgressIndicator.value = true
-                                onInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
+                                sendMsgInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
                                 coroutineScope.launch {
                                     delay(1000)
                                     visibleProgressIndicator.value = false

@@ -8,10 +8,6 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 
-
-
-
-// 2. Iframe으로 JSON 메시지를 전송하는 공통 함수
 @OptIn(ExperimentalWasmJsInterop::class)
 fun postIframeMessage(iframeId: String, messageJson: String) {
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement
@@ -49,27 +45,28 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
     }
 }
 
-val onClickTabPositionAirInfo = {  element:String->
+
+
+val sendMsgChangeType = {  iframeId:String, element:String->
     val message = "{ \"action\": \"CHANGE_TYPE\", \"type\": \"${element}\"}"
-
-    postIframeMessage(IFRAME_AIR_INFO, message)
+    postIframeMessage(iframeId, message)
 }
 
 
-val onClickTabPositionAirInfo2 = {  values:String, element:String->
+
+val sendMsgChangeData = { iframeId:String, values:String, element:String->
     val message = "{ \"action\": \"CHANGE_DATA\", \"type\": \"${element}\", \"values\":${values}}"
-
-    postIframeMessage(IFRAME_AIR_INFO, message)
+    postIframeMessage(iframeId, message)
 }
 
-val onInitData = {   iframeId:String, values:String->
+val sendMsgInitData = { iframeId:String, values:String->
     val message = "{ \"action\": \"INIT_DATA\", \"values\":${values}}"
 
     postIframeMessage(iframeId, message)
 }
 
 
-val sendFlyToTargetWater = { point:Point<Double, Double> ->
+val sendMsgFlyToWaterInfo = { point:Point<Double, Double> ->
     val message = """
                 {
                     "action": "FLY_TO",
@@ -80,7 +77,7 @@ val sendFlyToTargetWater = { point:Point<Double, Double> ->
 }
 
 
-val sendFlyToTargetOceanWater = { point:Point<Double, Double> ->
+val sendMsgFlyToOceanWaterInfo = { point:Point<Double, Double> ->
     val message = """
                 {
                     "action": "FLY_TO",
@@ -90,7 +87,7 @@ val sendFlyToTargetOceanWater = { point:Point<Double, Double> ->
     postIframeMessage(IFRAME_OCEAN_WATER_INFO, message)
 }
 
-val sendAddMarkerClusterer = { iframeId:String,  (locs, lbs, cnts) :Triple<String, String, String> ->
+val sendMsgAddMarkerClusterer = { iframeId:String, (locs, lbs, cnts) :Triple<String, String, String> ->
     val message = """
                 {
                     "action": "ADD_Marker_Clusterer",
