@@ -67,7 +67,7 @@ fun webMainOceanWaterQuality(){
                 OceanWaterInfoTimeSeries()
                 OceanWaterInfoBoxPlotChart()
                 OceanWaterInfoBarChart()
-                OceanWaterInfoDataGrid()
+
 
                 var splitFractionVertical by remember {
                     mutableStateOf(
@@ -144,6 +144,8 @@ fun webMainOceanWaterQuality(){
                         }
                     }
                 }
+
+                OceanWaterInfoDataGrid()
             }
         }
     }

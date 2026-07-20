@@ -17,8 +17,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,81 +72,99 @@ fun webMainHydroNuclearPower(){
                 WasteWaterTimeSeries_KHNP()
                 ThermalWasteWaterTimeSeries_KHNP()
 
-
+                var splitFractionVertical by remember {
+                    mutableStateOf(
+                        0.35f
+                    )
+                }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .height(mapScreenHeight)
+                    modifier = Modifier
+                        .fillMaxWidth().height(mapScreenHeight)
                         .border(BorderStroke(1.dp, Color.LightGray))
-                        .padding(10.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(6.dp)
                 ) {
 
                     Box(
-                        modifier = Modifier.fillMaxWidth(0.3f)
+                        modifier = Modifier
+                            .fillMaxWidth(splitFractionVertical)
                             .fillMaxHeight(),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment= Alignment.Center
                     ) {
                         WindPolarChart_KHOA()
                     }
 
-                    Box(
-                        modifier = Modifier.fillMaxWidth(0.5f)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        WaterInfoGeoChart_KHOA(
-                            onClickPoint = sendMsgFlyToWaterInfo,
-                            sendAddMarkerClusterer = sendMsgAddMarkerClusterer,
-                            isReload = isReloadWaterInfoMap.value
-                        )
-                    }
+                    DraggableVerticalDivider(
+                        onDrag = { deltaPx ->
+                            val deltaWeight = deltaPx / totalWidth
+                            splitFractionVertical =
+                                (splitFractionVertical + deltaWeight).coerceIn(
+                                    0.1f,
+                                    0.9f
+                                )
+                        }
+                    )
 
-
-
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-
+                    Row(modifier=Modifier.fillMaxSize()){
 
                         Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .height(mapScreenHeight - bottomBarHeight)
-                                .onGloballyPositioned { coordinates ->
-                                    syncHtmlElementPosition(
-                                        coordinates,
-                                        density,
-                                        DIV_WEB_MAIN,
-                                        DIV_WATER_INFO
-                                    )
-                                },
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier
+                                .fillMaxWidth(0.5f)
+                                .fillMaxHeight(),
+                            contentAlignment= Alignment.Center
                         ) {
-                            // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
-                        }
 
-
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ) {// [Reload, Tooltips, Symbol, Legend]
-                            val bottomBarOpt =
-                                listOf(true, false, false, false)
-                            ChartFeatureControls(
-                                onChangeFlag = { label, value ->
-                                    when (label) {
-                                        "Reload" -> isReloadWaterInfoMap.value = kotlin.time.Clock.System.now().nanosecondsOfSecond
-                                    }
-
-                                },
-                                bottomBarOpt = bottomBarOpt
+                            WaterInfoGeoChart_KHOA(
+                                onClickPoint = sendMsgFlyToWaterInfo,
+                                sendAddMarkerClusterer = sendMsgAddMarkerClusterer,
+                                isReload = isReloadWaterInfoMap.value
                             )
-
                         }
 
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+
+
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                                    .height(mapScreenHeight - bottomBarHeight)
+                                    .onGloballyPositioned { coordinates ->
+                                        syncHtmlElementPosition(
+                                            coordinates,
+                                            density,
+                                            DIV_WEB_MAIN,
+                                            DIV_WATER_INFO
+                                        )
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+                            }
+
+
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {// [Reload, Tooltips, Symbol, Legend]
+                                val bottomBarOpt =
+                                    listOf(true, false, false, false)
+                                ChartFeatureControls(
+                                    onChangeFlag = { label, value ->
+                                        when (label) {
+                                            "Reload" -> isReloadWaterInfoMap.value = kotlin.time.Clock.System.now().nanosecondsOfSecond
+                                        }
+
+                                    },
+                                    bottomBarOpt = bottomBarOpt
+                                )
+
+                            }
+
+
+                        }
 
                     }
 
