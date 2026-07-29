@@ -297,7 +297,7 @@ data class ConfigData(
     val KHOA_TIDALCURRENT_API: KhoaTidalCurrentApiConfig? = null,
     val SDOT_API: SDoTApiConfig? = null,
     val KHNP: KHNP? = null,
-
+    val WATER_LOGGED: Water_LoggedConfig? = null,
     val SDOT_Gyonggi: SDoTGyonggiConfig? = null,
     val SQLITE_DB: DatabaseConfig? = null,
     val COLLECTION_TYPE: CollectionConfig? = null
@@ -361,6 +361,12 @@ data class KHNP(
     val serviceKey: String
 )
 
+@Serializable
+data class Water_LoggedConfig(
+    val endPoint: String,
+    val subPath: String,
+    val apikey: String
+)
 
 @Serializable
 data class SDoTGyonggiConfig(

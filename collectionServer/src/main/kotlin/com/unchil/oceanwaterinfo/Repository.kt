@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.remote.creation.ceil
 import com.unchil.oceanwaterinfo.Config.Companion.configData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
@@ -21,6 +22,7 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
@@ -40,8 +42,10 @@ import org.jetbrains.kotlinx.dataframe.api.values
 import org.jetbrains.kotlinx.dataframe.api.with
 import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
+import org.jetbrains.kotlinx.dataframe.io.readSqlQuery
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
+import kotlin.math.ceil
 import kotlin.time.Clock
 
 class Repository {
@@ -386,8 +390,68 @@ class Repository {
         }
     }
 
+    fun loadDataCoastalFlooding(path:String, codeList:List<String>): List<DataFrame<*>>{
+        val numOfRows = 300
+        val allDataFrames = mutableListOf<DataFrame<*>>()
 
+        codeList.forEach {  it ->
 
+            val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
+            val firstUrl = "${baseUrl}&pageNo=1"
+            val df_first = DataFrame.readJson(firstUrl)
+            val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
+            val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
+            val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+            LOGGER.info("ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
+            val dataFrames = mutableListOf<DataFrame<*>>()
+            dataFrames.add(data)
+            for (page in 2..totalPages) {
+                val url = "$baseUrl&pageNo=$page"
+                val df_page = DataFrame.readJson(url)
+                val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
+                dataFrames.add(data)
+            }
+            val df_SggAll = dataFrames.concat()
+            allDataFrames.add(df_SggAll)
+        }
+        return allDataFrames
+    }
+
+    fun getCoastalFloodingInfo(){
+        try {
+            val path = "${configData.WATER_LOGGED?.endPoint}/${configData.WATER_LOGGED?.subPath}" +
+                    "?serviceKey=${configData.WATER_LOGGED?.apikey}&type=json"
+
+            transaction(Config.conn) {
+
+                val codeList = SggCode.select(SggCode.sgg_code).map { it ->
+                    it[SggCode.sgg_code].trim()
+                }
+
+                val result = loadDataCoastalFlooding(path, codeList).concat()
+
+                SchemaUtils.create(CoastalFloodingGeoInfo)
+                result.forEach { item ->
+                    try {
+                        CoastalFloodingGeoInfo.insertIgnore { it ->
+                            it[ctpvNm] = item["ctpvNm"].toString()
+                            it[sggNm] = item["sggNm"].toString()
+                            it[flodVlCn] = item["flodVlCn"].toString()
+                            it[geom] = item["geom"].toString()
+                        }
+                    } catch (e: Exception) {
+                        e.localizedMessage?.let { msg ->
+                            LOGGER.debug(msg)
+                        }
+                    }
+                }
+            }
+        } catch (e:Exception){
+            e.localizedMessage?.let { msg ->
+                LOGGER.debug(msg)
+            }
+        }
+    }
 
     fun loadDataSDoT(path:String, maxPage:Int): List<DataFrame<*>> {
         val rows = mutableListOf<DataFrame<*>>()
