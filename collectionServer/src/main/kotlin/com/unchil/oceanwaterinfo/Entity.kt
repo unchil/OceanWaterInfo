@@ -1,7 +1,26 @@
 package com.unchil.oceanwaterinfo
 
 
+import com.unchil.oceanwaterinfo.ObservationTable.obs_dat
+import com.unchil.oceanwaterinfo.ObservationTable.obs_lay
+import com.unchil.oceanwaterinfo.ObservationTable.obs_tim
+import com.unchil.oceanwaterinfo.ObservationTable.sta_cde
 import org.jetbrains.exposed.v1.core.Table
+
+object SggCode: Table("SggCode"){
+    val sgg_code = varchar("sgg_code", 20)
+    val sgg_name = varchar("sgg_name", 20)
+    val sd_name = varchar("sd_name", 20)
+
+    override val primaryKey = PrimaryKey(sgg_code, name = "primaryKey")
+}
+
+object CoastalFloodingGeoInfo: Table("CoastalFloodingGeoInfo"){
+    val ctpvNm = varchar("ctpvNm", 20)
+    val sggNm = varchar("sggNm", 20)
+    val flodVlCn = varchar("flodVlCn", 20)
+    val geom = text("geom")
+}
 
 object ObservationTable: Table("Observation"){
     val sta_cde = varchar("sta_cde", 5)
