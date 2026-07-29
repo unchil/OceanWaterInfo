@@ -20,6 +20,7 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -431,6 +432,13 @@ class Repository {
                 val result = loadDataCoastalFlooding(path, codeList).concat()
 
                 SchemaUtils.create(CoastalFloodingGeoInfo)
+
+                // --------------------------------------------------
+                // 추가된 부분: 새로운 데이터를 넣기 전에 기존 데이터를 모두 삭제 (Truncate 효과)
+                CoastalFloodingGeoInfo.deleteAll()
+                // --------------------------------------------------
+
+
                 result.forEach { item ->
                     try {
                         CoastalFloodingGeoInfo.insertIgnore { it ->
