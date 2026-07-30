@@ -414,9 +414,9 @@ class Repository {
             .When(CoastalFloodingGeoInfo.flodVlCn eq "1.0-1.5", stringLiteral("C"))
             .When(CoastalFloodingGeoInfo.flodVlCn eq "1.5-2.0", stringLiteral("D"))
             .When(CoastalFloodingGeoInfo.flodVlCn eq "2.0-2.5", stringLiteral("E"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.5-3.0", stringLiteral("F"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.0-3.0", stringLiteral("G"))
-            .Else(stringLiteral("H"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.5-3.0", stringLiteral("E"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.0-3.0", stringLiteral("E"))
+            .Else(stringLiteral("F"))
 
 
         val maxGradeExpr = gradeExpression.max()
@@ -436,12 +436,10 @@ class Repository {
                         "B" -> "0.5-1.0"
                         "C" -> "1.0-1.5"
                         "D" -> "1.5-2.0"
-                        "E" -> "2.0-2.5"
-                        "F" -> "2.5-3.0"
-                        "G" -> "2.0-3.0"
+                        "E" -> "2.0-3.0"
                         else -> "3.0"
                     },
-                    grade = it[maxGradeExpr] ?: "H",    // SQL의 'grade'
+                    grade = it[maxGradeExpr] ?: "F",    // SQL의 'grade'
                     geom = it[CoastalFloodingGeoInfo.geom] // GROUP BY 기준
                 )
             }
