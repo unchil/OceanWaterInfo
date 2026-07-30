@@ -5,6 +5,13 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
+data class CoastalFloodingGeo(
+    val flodVlCn:String,
+    val grade: String,
+    val geom: String
+ )
+
+@Serializable
 data class SeaWaterBoxPlotStat(
     val gruNam: String,
     val staName: String,

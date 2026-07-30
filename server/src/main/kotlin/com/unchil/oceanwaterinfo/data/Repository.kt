@@ -431,6 +431,16 @@ class Repository {
             .limit(size)
             .map {
                 CoastalFloodingGeo(
+                    flodVlCn = when(it[maxGradeExpr] ?: "H"){
+                        "A" -> "0.0-0.5"
+                        "B" -> "0.5-1.0"
+                        "C" -> "1.0-1.5"
+                        "D" -> "1.5-2.0"
+                        "E" -> "2.0-2.5"
+                        "F" -> "2.5-3.0"
+                        "G" -> "2.0-3.0"
+                        else -> "3.0"
+                    },
                     grade = it[maxGradeExpr] ?: "H",    // SQL의 'grade'
                     geom = it[CoastalFloodingGeoInfo.geom] // GROUP BY 기준
                 )
