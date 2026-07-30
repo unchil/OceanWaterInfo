@@ -149,8 +149,13 @@ fun Application.configureSerialization(repository: Repository) {
         route("/khoa"){
 
             get("/coastal_flooding_info"){
+
+                val defaultRequestedSize = 100
+                val maxRequestedSize = 1000
+
                 val page = call.parameters["page"]?.toIntOrNull() ?: 1
-                val size = call.parameters["size"]?.toIntOrNull() ?: 100
+                val size = ( call.parameters["size"]?.toIntOrNull() ?: defaultRequestedSize).coerceAtMost(maxRequestedSize)
+
 
                 try {
                     val result = repository.coastalFloodingGeo(page, size)
