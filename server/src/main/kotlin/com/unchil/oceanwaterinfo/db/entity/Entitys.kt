@@ -4,6 +4,13 @@ package com.unchil.oceanwaterinfo
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 
+object CoastalFloodingGeoInfo: Table("CoastalFloodingGeoInfo"){
+    val ctpvNm = varchar("ctpvNm", 20)
+    val sggNm = varchar("sggNm", 20)
+    val flodVlCn = varchar("flodVlCn", 20)
+    val geom = text("geom")
+}
+
 object QWQObservatoryTable: Table("OWQObservatory"){
     val sta_code = varchar("sta_code", 7)
     val sta_name =  varchar("sta_name", 20)

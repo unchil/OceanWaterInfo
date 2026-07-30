@@ -12,6 +12,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.FloatColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.avg
 import org.jetbrains.exposed.v1.core.castTo
@@ -27,6 +28,13 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
+
+import org.jetbrains.exposed.v1.core.stringLiteral
+import org.jetbrains.exposed.v1.core.max
+import org.jetbrains.exposed.v1.core.case
+import org.jetbrains.exposed.v1.core.concat
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.trim
 
 
 // 캐시를 저장할 ConcurrentHashMap. 스레드 안전성을 보장합니다.
@@ -46,9 +54,41 @@ private val cacheStorage_KHNPThermalWasteWater = ConcurrentHashMap<String, Pair<
 private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHNPRadioRate>, Long>>()
 private val cacheStorage_KHNPRadioActiveWaste = ConcurrentHashMap<String, Pair<List<KHNPRadioActiveWaste>, Long>>()
 private val cacheStorage_KHNPPlantState = ConcurrentHashMap<String, Pair<List<KHNPPlantOperationInfo>, Long>>()
+
+private val cacheStorage_CoastalFloodingGeo = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeo>, Long>>()
+
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 
 class Repository {
+
+
+    fun coastalFloodingGeo(page: Int, size: Int):List<CoastalFloodingGeo> {
+        /*
+        val key = "cache_coastalFloodingGeo"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+
+        cacheStorage_CoastalFloodingGeo[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+
+         */
+
+        val resultFromDb = fetchCoastalFloodingGeoFromDb(page, size)
+        /*
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_CoastalFloodingGeo[key] = Pair(resultFromDb, now)
+        }
+
+         */
+        return resultFromDb
+
+    }
+
 
     fun khnp_PlantState():List<KHNPPlantOperationInfo> {
         val key = "cache_khnp_plantstate"
@@ -362,6 +402,42 @@ class Repository {
         return resultFromDb
     }
 
+
+    fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int): List<CoastalFloodingGeo> = transaction {
+        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoFromDb")
+
+        val offset = ((page - 1) * size).toLong()
+
+        val gradeExpression = case()
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "0.0-0.5", stringLiteral("A"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "0.5-1.0", stringLiteral("B"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "1.0-1.5", stringLiteral("C"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "1.5-2.0", stringLiteral("D"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.0-2.5", stringLiteral("E"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.5-3.0", stringLiteral("F"))
+            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.0-3.0", stringLiteral("G"))
+            .Else(stringLiteral("H"))
+
+
+        val maxGradeExpr = gradeExpression.max()
+
+        val result = CoastalFloodingGeoInfo
+            .select(
+                maxGradeExpr,
+                CoastalFloodingGeoInfo.geom
+            )
+            .groupBy(CoastalFloodingGeoInfo.geom)
+            .offset(offset)
+            .limit(size)
+            .map {
+                CoastalFloodingGeo(
+                    grade = it[maxGradeExpr] ?: "H",    // SQL의 'grade'
+                    geom = it[CoastalFloodingGeoInfo.geom] // GROUP BY 기준
+                )
+            }
+
+        return@transaction result
+    }
 
     fun fetchKHNPPlantStateFromDb(): List<KHNPPlantOperationInfo> = transaction {
         LOGGER.info("Serving from DB for : fetchKHNPPlantStateFromDb")

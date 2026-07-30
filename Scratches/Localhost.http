@@ -15,9 +15,10 @@ Accept: application/json
 GET {{host}}/sdot_env_info
 Accept: application/json
 
-<> 2026-04-15T092439.200.json
 
-
+###
+GET {{host}}/khoa/coastal_flooding_info?page=1&size=1000
+Accept: application/json
 
 ###
 GET {{host}}/khoa/tidal_current_info

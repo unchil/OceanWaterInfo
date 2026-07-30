@@ -442,10 +442,10 @@ class Repository {
                 result.forEach { item ->
                     try {
                         CoastalFloodingGeoInfo.insertIgnore { it ->
-                            it[ctpvNm] = item["ctpvNm"].toString()
-                            it[sggNm] = item["sggNm"].toString()
-                            it[flodVlCn] = item["flodVlCn"].toString()
-                            it[geom] = item["geom"].toString()
+                            it[ctpvNm] = item["ctpvNm"].toString().trim()
+                            it[sggNm] = item["sggNm"].toString().trim()
+                            it[flodVlCn] = item["flodVlCn"].toString().trim()
+                            it[geom] = item["geom"].toString().trim()
                         }
                     } catch (e: Exception) {
                         e.localizedMessage?.let { msg ->

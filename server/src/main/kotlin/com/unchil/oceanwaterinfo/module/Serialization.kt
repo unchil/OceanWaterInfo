@@ -148,6 +148,22 @@ fun Application.configureSerialization(repository: Repository) {
 
         route("/khoa"){
 
+            get("/coastal_flooding_info"){
+                val page = call.parameters["page"]?.toIntOrNull() ?: 1
+                val size = call.parameters["size"]?.toIntOrNull() ?: 100
+
+                try {
+                    val result = repository.coastalFloodingGeo(page, size)
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+
             get("/tidal_current_info"){
                 try {
                     val result = repository.khoaTidalCurrentInfo()
