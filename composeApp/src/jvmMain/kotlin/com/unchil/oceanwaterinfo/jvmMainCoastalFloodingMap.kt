@@ -50,9 +50,10 @@ fun jvmMainCoastalFloodingMap(
     val initData = remember{ mutableStateOf("" )}
 
     val grade = "F"
+    val sido = "경기도"
 
     LaunchedEffect(key1 = viewModel){
-        viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(grade))
+        viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(grade, sido))
     }
 
     val coastalFloodingInfo = viewModel._coastalFloodingInfo.collectAsState()

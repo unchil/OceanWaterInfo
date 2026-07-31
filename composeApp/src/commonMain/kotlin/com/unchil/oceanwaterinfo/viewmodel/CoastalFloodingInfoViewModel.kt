@@ -15,13 +15,13 @@ class CoastalFloodingInfoViewModel {
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                repository.getCoastalFloodingInfo(event.grade)
+                repository.getCoastalFloodingInfo(event.grade, event.sido)
             }
         }
     }
 
     sealed class Event {
-        data class Refresh(val grade:String) : Event()
+        data class Refresh(val grade:String, val sido:String = "") : Event()
     }
 
 

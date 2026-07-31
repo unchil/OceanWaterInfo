@@ -8,6 +8,7 @@ import io.ktor.client.plugins.logging.EMPTY
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
+import io.ktor.http.encodeURLQueryComponent
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -39,9 +40,24 @@ class OceanWaterApi {
         }
     }
 
-    suspend fun getCoastalFloodingGeo(page:Int = 1, size:Int = 300, grade:String = "F"): List<CoastalFloodingGeo>{
-        val url = "${endPoint}/khoa/coastal_flooding_info?page=${page}&size=${size}&grade=${grade}"
+    suspend fun getCoastalFloodingGeo(page:Int = 1, size:Int = 300, grade:String = "F", sido:String = ""): List<CoastalFloodingGeo>{
+
+        /*
+        // 한글인 sido 값을 URL에 안전한 형태로 변환 (예: "전라남도" -> "%EC%A0%84%EB%9D%BC...")
+        val encodedSido = sido.encodeURLQueryComponent()
+        val url = "${endPoint}/khoa/coastal_flooding_info?page=${page}&sido=${encodedSido}&size=${size}&grade=${grade}"
         return httpClient.get(url).body<List<CoastalFloodingGeo>>()
+         */
+
+        return httpClient.get("${endPoint}/khoa/coastal_flooding_info") {
+            url {
+                // Ktor가 한글인 sido를 자동으로 인코딩해줍니다.
+                parameters.append("page", page.toString())
+                parameters.append("size", size.toString())
+                parameters.append("grade", grade)
+                parameters.append("sido", sido)
+            }
+        }.body<List<CoastalFloodingGeo>>()
 
     }
 

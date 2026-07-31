@@ -5,14 +5,6 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class CoastalFloodingGeo(
-    val flodVlCn:String,
-    val grade: String,
-    val geom: String,
-    val ctpvNm:String,
- )
-
-@Serializable
 data class SeaWaterBoxPlotStat(
     val gruNam: String,
     val staName: String,
@@ -23,6 +15,17 @@ data class SeaWaterBoxPlotStat(
     val max: Float,     // 이상치 제외 최대값 또는 Upper Bound
     val outliers: List<Float> = emptyList() // 이상치 목록
 )
+
+
+@Serializable
+data class CoastalFloodingGeo(
+    val grade: String,
+    val flodVlCn:String,
+    val ctpvNm:String,
+    val geom: String,
+
+    )
+
 
 enum class DATA_DIVISION {
     oneday, grid, current, statistics, mof_oneday

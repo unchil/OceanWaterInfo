@@ -62,7 +62,7 @@ private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 class Repository {
 
 
-    fun coastalFloodingGeo(page: Int, size: Int, grade:String):List<CoastalFloodingGeo> {
+    fun coastalFloodingGeo(page: Int, size: Int, grade:String, sido:String):List<CoastalFloodingGeo> {
         /*
         val key = "cache_coastalFloodingGeo"
         val now = System.currentTimeMillis()
@@ -78,7 +78,7 @@ class Repository {
 
          */
 
-        val resultFromDb = fetchCoastalFloodingGeoFromDb(page, size, grade)
+        val resultFromDb = fetchCoastalFloodingGeoFromDb(page, size, grade, sido)
         /*
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_CoastalFloodingGeo[key] = Pair(resultFromDb, now)
@@ -403,8 +403,9 @@ class Repository {
     }
 
 
-    fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String): List<CoastalFloodingGeo> = transaction {
+    fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String, ctpvNm:String): List<CoastalFloodingGeo> = transaction {
         LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoFromDb")
+
 
         val offset = ((page - 1) * size).toLong()
 
@@ -415,7 +416,16 @@ class Repository {
                 CoastalFloodingGeoTbl.ctpvNm,
                 CoastalFloodingGeoTbl.geom
             )
-            .where{ CoastalFloodingGeoTbl.grade eq grade}
+            .where {
+                // 1. 기본적으로 grade 조건은 필수
+                val condition = CoastalFloodingGeoTbl.grade eq grade
+                // 2. sido가 비어있지 않을 경우에만 AND 조건 추가
+                if (ctpvNm.isNotEmpty()) {
+                    condition and (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
+                } else {
+                    condition
+                }
+            }
             .offset(offset)
             .limit(size)
             .map{

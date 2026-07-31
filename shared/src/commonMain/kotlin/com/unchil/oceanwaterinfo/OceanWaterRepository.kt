@@ -69,14 +69,14 @@ class OceanWaterRepository {
             = MutableStateFlow(emptyList())
 
 
-    suspend fun getCoastalFloodingInfo(grade:String){
+    suspend fun getCoastalFloodingInfo(grade:String, sido:String){
         var page = 1
         val size = 1000
         var currentCnt = 0
         val result = mutableListOf<List<CoastalFloodingGeo>>()
         try {
             do{
-                oceanWaterApi.getCoastalFloodingGeo(page, size, grade).let {
+                oceanWaterApi.getCoastalFloodingGeo(page, size, grade, sido).let {
                     currentCnt = it.count()
                     result.add(it)
                     page = page + 1
