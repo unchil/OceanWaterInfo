@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 
 import com.unchil.oceanwaterinfo.ObservationTable.obs_dat
+import com.unchil.oceanwaterinfo.ObservationTable.obs_datetime
 import com.unchil.oceanwaterinfo.ObservationTable.obs_lay
 import com.unchil.oceanwaterinfo.ObservationTable.obs_tim
 import com.unchil.oceanwaterinfo.ObservationTable.sta_cde
@@ -13,6 +14,19 @@ object SggCode: Table("SggCode"){
     val sd_name = varchar("sd_name", 20)
 
     override val primaryKey = PrimaryKey(sgg_code, name = "primaryKey")
+}
+
+object CoastalFloodingGeoTbl: Table("CoastalFloodingGeoTbl"){
+    val grade = varchar("grade", 2)
+    val flodVlCn = varchar("flodVlCn", 20)
+    val ctpvNm = varchar("ctpvNm", 20)
+    val geom = text("geom")
+
+    init {
+        index("CoastalFloodingGeoTbl__index_grade_ctpvNm", false, columns = arrayOf(grade, ctpvNm) )
+        index("CoastalFloodingGeoTbl__index_grade", false, columns = arrayOf(grade) )
+        index("CoastalFloodingGeoTbl__index_ctpvNm", false, columns = arrayOf( ctpvNm) )
+    }
 }
 
 object CoastalFloodingGeoInfo: Table("CoastalFloodingGeoInfo"){

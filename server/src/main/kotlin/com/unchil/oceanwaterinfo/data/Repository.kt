@@ -408,43 +408,24 @@ class Repository {
 
         val offset = ((page - 1) * size).toLong()
 
-        val gradeExpression = case()
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "0.0-0.5", stringLiteral("A"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "0.5-1.0", stringLiteral("B"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "1.0-1.5", stringLiteral("C"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "1.5-2.0", stringLiteral("D"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.0-2.5", stringLiteral("E"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.5-3.0", stringLiteral("E"))
-            .When(CoastalFloodingGeoInfo.flodVlCn eq "2.0-3.0", stringLiteral("E"))
-            .Else(stringLiteral("F"))
-
-
-        val maxGradeExpr = gradeExpression.max()
-
-        val result = CoastalFloodingGeoInfo
+        val result = CoastalFloodingGeoTbl
             .select(
-                maxGradeExpr,
-                CoastalFloodingGeoInfo.geom
+                CoastalFloodingGeoTbl.grade,
+                CoastalFloodingGeoTbl.flodVlCn,
+                CoastalFloodingGeoTbl.ctpvNm,
+                CoastalFloodingGeoTbl.geom
             )
-            .groupBy(CoastalFloodingGeoInfo.geom)
-            .having { maxGradeExpr eq grade }
+            .where{ CoastalFloodingGeoTbl.grade eq grade}
             .offset(offset)
             .limit(size)
-            .map {
+            .map{
                 CoastalFloodingGeo(
-                    flodVlCn = when(it[maxGradeExpr] ?: "F"){
-                        "A" -> "0.0-0.5"
-                        "B" -> "0.5-1.0"
-                        "C" -> "1.0-1.5"
-                        "D" -> "1.5-2.0"
-                        "E" -> "2.0-3.0"
-                        else -> "3.0"
-                    },
-                    grade = it[maxGradeExpr] ?: "F",    // SQL의 'grade'
-                    geom = it[CoastalFloodingGeoInfo.geom] // GROUP BY 기준
+                    grade = it[CoastalFloodingGeoTbl.grade],
+                    flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
+                    ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
+                    geom = it[CoastalFloodingGeoTbl.geom]
                 )
             }
-
         return@transaction result
     }
 

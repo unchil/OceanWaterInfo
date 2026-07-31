@@ -4,6 +4,20 @@ package com.unchil.oceanwaterinfo
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 
+
+object CoastalFloodingGeoTbl: Table("CoastalFloodingGeoTbl"){
+    val grade = varchar("grade", 2)
+    val flodVlCn = varchar("flodVlCn", 20)
+    val ctpvNm = varchar("ctpvNm", 20)
+    val geom = text("geom")
+
+    init {
+        index("CoastalFloodingGeoTbl__index_grade_ctpvNm", false, columns = arrayOf(grade, ctpvNm) )
+        index("CoastalFloodingGeoTbl__index_grade", false, columns = arrayOf(grade) )
+        index("CoastalFloodingGeoTbl__index_ctpvNm", false, columns = arrayOf( ctpvNm) )
+    }
+}
+
 object CoastalFloodingGeoInfo: Table("CoastalFloodingGeoInfo"){
     val ctpvNm = varchar("ctpvNm", 20)
     val sggNm = varchar("sggNm", 20)

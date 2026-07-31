@@ -8,7 +8,8 @@ import kotlinx.serialization.Serializable
 data class CoastalFloodingGeo(
     val flodVlCn:String,
     val grade: String,
-    val geom: String
+    val geom: String,
+    val ctpvNm:String,
  )
 
 @Serializable
