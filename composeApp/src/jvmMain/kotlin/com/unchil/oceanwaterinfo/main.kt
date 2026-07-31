@@ -173,6 +173,13 @@ fun main() = application {
                                     errorMessage
                                 )
                             }
+                            5 -> {
+                                jvmMainCoastalFloodingMap(
+                                    initialized,
+                                    download,
+                                    errorMessage
+                                )
+                            }
                         }
                     }
                 }

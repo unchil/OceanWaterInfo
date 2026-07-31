@@ -39,6 +39,12 @@ class OceanWaterApi {
         }
     }
 
+    suspend fun getCoastalFloodingGeo(page:Int = 1, size:Int = 300, grade:String = "F"): List<CoastalFloodingGeo>{
+        val url = "${endPoint}/khoa/coastal_flooding_info?page=${page}&size=${size}&grade=${grade}"
+        return httpClient.get(url).body<List<CoastalFloodingGeo>>()
+
+    }
+
     suspend fun getSeaWaterInfo(division:String): List<SeawaterInformationByObservationPoint>? {
         val url = "${endPoint}/nifs/seawaterinfo/$division"
         return httpClient.get(url).body<List<SeawaterInformationByObservationPoint>>()

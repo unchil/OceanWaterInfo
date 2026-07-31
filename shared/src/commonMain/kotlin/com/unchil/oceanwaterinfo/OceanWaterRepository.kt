@@ -64,6 +64,34 @@ class OceanWaterRepository {
     val _khnpPlantState: MutableStateFlow<List<KHNPPlantOperationInfo>>
             = MutableStateFlow(emptyList())
 
+
+    val _coastalFloodingInfo: MutableStateFlow<List<CoastalFloodingGeo>>
+            = MutableStateFlow(emptyList())
+
+
+    suspend fun getCoastalFloodingInfo(grade:String){
+        var page = 1
+        val size = 1000
+        var currentCnt = 0
+        val result = mutableListOf<List<CoastalFloodingGeo>>()
+        try {
+            do{
+                oceanWaterApi.getCoastalFloodingGeo(page, size, grade).let {
+                    currentCnt = it.count()
+                    result.add(it)
+                    page = page + 1
+                    LOGGER.debug("getCoastalFloodingInfo() called[${it.count()}]")
+                }
+            }while  (currentCnt == size)
+
+            _coastalFloodingInfo.value = result.flatten()
+        }catch (e:Exception){
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
+
+
+
     suspend fun getKhnpPlantState(){
         try {
             oceanWaterApi.getKhnpPlantState().let {

@@ -62,7 +62,7 @@ private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 class Repository {
 
 
-    fun coastalFloodingGeo(page: Int, size: Int):List<CoastalFloodingGeo> {
+    fun coastalFloodingGeo(page: Int, size: Int, grade:String):List<CoastalFloodingGeo> {
         /*
         val key = "cache_coastalFloodingGeo"
         val now = System.currentTimeMillis()
@@ -78,7 +78,7 @@ class Repository {
 
          */
 
-        val resultFromDb = fetchCoastalFloodingGeoFromDb(page, size)
+        val resultFromDb = fetchCoastalFloodingGeoFromDb(page, size, grade)
         /*
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_CoastalFloodingGeo[key] = Pair(resultFromDb, now)
@@ -403,7 +403,7 @@ class Repository {
     }
 
 
-    fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int): List<CoastalFloodingGeo> = transaction {
+    fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String): List<CoastalFloodingGeo> = transaction {
         LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoFromDb")
 
         val offset = ((page - 1) * size).toLong()
@@ -427,11 +427,12 @@ class Repository {
                 CoastalFloodingGeoInfo.geom
             )
             .groupBy(CoastalFloodingGeoInfo.geom)
+            .having { maxGradeExpr eq grade }
             .offset(offset)
             .limit(size)
             .map {
                 CoastalFloodingGeo(
-                    flodVlCn = when(it[maxGradeExpr] ?: "H"){
+                    flodVlCn = when(it[maxGradeExpr] ?: "F"){
                         "A" -> "0.0-0.5"
                         "B" -> "0.5-1.0"
                         "C" -> "1.0-1.5"

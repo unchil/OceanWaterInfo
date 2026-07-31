@@ -155,10 +155,10 @@ fun Application.configureSerialization(repository: Repository) {
 
                 val page = call.parameters["page"]?.toIntOrNull() ?: 1
                 val size = ( call.parameters["size"]?.toIntOrNull() ?: defaultRequestedSize).coerceAtMost(maxRequestedSize)
-
+                val grade = call.parameters["grade"]?.trim() ?: "F"
 
                 try {
-                    val result = repository.coastalFloodingGeo(page, size)
+                    val result = repository.coastalFloodingGeo(page, size, grade)
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
