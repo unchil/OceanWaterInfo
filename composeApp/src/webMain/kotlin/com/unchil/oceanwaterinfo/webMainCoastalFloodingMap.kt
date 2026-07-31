@@ -42,6 +42,7 @@ fun webMainCoastalFloodingMap(){
     }
 
     val grade = "F"
+    val sido = ""
 
     LaunchedEffect(key1 = viewModel){
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(grade))

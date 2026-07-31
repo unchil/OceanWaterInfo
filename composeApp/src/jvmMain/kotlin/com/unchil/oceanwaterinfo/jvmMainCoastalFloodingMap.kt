@@ -44,7 +44,7 @@ fun jvmMainCoastalFloodingMap(
 
     val localUrl = "${host}/${servicePage}"
 
- //   val webViewState = rememberWebViewState(localUrl)
+    val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
 
     val initData = remember{ mutableStateOf("" )}
@@ -97,13 +97,13 @@ fun jvmMainCoastalFloodingMap(
                             textAlign = TextAlign.Center
                         )
 
-/*
+
                         WebView(
                             state = webViewState,
                             navigator = navigator,
                             modifier = Modifier.fillMaxSize()
                         )
-*/
+
 
                     }
 
@@ -118,7 +118,7 @@ fun jvmMainCoastalFloodingMap(
                                 when (label) {
                                     "Reload" ->{
                                         visibleProgressIndicator.value = true
-                                        navigator.evaluateJavaScript("initMapWithData( ${initData.value})")
+                                      //  navigator.evaluateJavaScript("initMapWithData( ${initData.value})")
                                         coroutineScope.launch {
                                             delay(1000)
                                             visibleProgressIndicator.value = false
