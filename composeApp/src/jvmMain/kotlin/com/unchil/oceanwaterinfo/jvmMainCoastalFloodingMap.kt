@@ -84,6 +84,8 @@ fun jvmMainCoastalFloodingMap(
                 // 2. 쉼표(,)를 기준으로 각 좌표 쌍 분리
                 val coordinatePairs = cleaned.split(",")
 
+                val polygon = mutableListOf<List<Double>>()
+
                 coordinatePairs.mapNotNull { pair ->
                     val parts = pair.trim().split("\\s+".toRegex())
                     if (parts.size == 2) {
@@ -93,10 +95,16 @@ fun jvmMainCoastalFloodingMap(
                         if (lat != null && lng != null) {
                             //   mapOf("lat" to lat, "lng" to lng) // 구글 맵 포맷인 (위도, 경도) 순서로 생성
                             //  "{lat:${lat}, lng:${lng}}"
-                            listOf(lng, lat)
+                            polygon.add(listOf(lng, lat))
                         } else null
                     } else null
                 }
+
+                // check if the first and last coordinates match, if not, push the first to the end
+                if( polygon.first() != polygon.last()){
+                    polygon.add(polygon.first())
+                }
+                polygon
             }
 
             geojsonObject.value = """{
