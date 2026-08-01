@@ -57,35 +57,16 @@ fun jvmMainCoastalFloodingMap(
     val navigator = rememberWebViewNavigator()
 
     val initData = remember{ mutableStateOf("" )}
-    
-    val gradeList = listOf(
-        "F",
-        "E",
-        "D",
-        "C",
-        "B",
-        "A"
-    )
 
-    val sidoList = listOf(
-        "경기도",
-        "경상남도",
-        "경상북도",
-        "부산광역시",
-        "울산광역시",
-        "인천광역시",
-        "전라남도",
-        "전북특별자치도",
-        "제주도",
-        "충청남도"
-    )
 
-    var gradeOption by remember { mutableStateOf(gradeList[0]) }
-    var sidoOption by remember { mutableStateOf(sidoList[0]) }
+
+
+    var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
+    var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
 
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
-        viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption, sidoOption))
+        viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
     }
 
 
@@ -120,7 +101,7 @@ fun jvmMainCoastalFloodingMap(
             containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
             contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
         ) {
-            gradeList.forEachIndexed { index, element ->
+            CoastalFloodingGrade.entries.forEachIndexed { index, element ->
                 Tab(
                     selected = selectedTabIndexGrade == index,
                     onClick = {
@@ -129,7 +110,7 @@ fun jvmMainCoastalFloodingMap(
                     },
                     text = {
                         Text(
-                            text = element,
+                            text = element.tabTitle(),
                             style = MaterialTheme.typography.titleSmall
                         )
                     }
@@ -144,7 +125,7 @@ fun jvmMainCoastalFloodingMap(
             containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
             contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
         ) {
-            sidoList.forEachIndexed { index, element ->
+            SiDo.entries.forEachIndexed { index, element ->
                 Tab(
                     selected = selectedTabIndexSido == index,
                     onClick = {
@@ -153,7 +134,7 @@ fun jvmMainCoastalFloodingMap(
                     },
                     text = {
                         Text(
-                            text = element,
+                            text = element.name,
                             style = MaterialTheme.typography.titleSmall
                         )
                     }
