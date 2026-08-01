@@ -4,6 +4,37 @@ package com.unchil.oceanwaterinfo
 import kotlinx.serialization.Serializable
 
 
+
+enum class CoastalFloodingGrade {
+    F, E, D, C, B, A
+}
+
+fun CoastalFloodingGrade.tabTitle():String{
+    return when(this){
+        CoastalFloodingGrade.F -> "${this.name} 3.0"
+        CoastalFloodingGrade.E -> "${this.name} 2.0-3.0"
+        CoastalFloodingGrade.D -> "${this.name} 1.5-2.0"
+        CoastalFloodingGrade.C -> "${this.name} 1.0-1.5"
+        CoastalFloodingGrade.B -> "${this.name} 0.5-1.0"
+        CoastalFloodingGrade.A -> "${this.name} 0.0-0.5"
+    }
+}
+
+enum class SiDo {
+    경기도,
+    경상남도,
+    경상북도,
+    부산광역시,
+    울산광역시,
+    인천광역시,
+    전라남도,
+    전북특별자치도,
+    제주도,
+    충청남도
+}
+
+
+
 @Serializable
 data class SeaWaterBoxPlotStat(
     val gruNam: String,
