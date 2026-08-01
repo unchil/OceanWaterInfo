@@ -1,15 +1,8 @@
-//import {values } from './values.js';
-
-//const {GoogleMapsOverlay, TripsLayer} = deck;
 
 let map;
 let overlay;
-let zoomLevel = 8
-let currentTime = 0; // 애니메이션 진행 상태를 추적할 변수//
+let zoomLevel = 6
 let center = { lat: 37.385852, lng: 126.934515 };
-let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
-let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
-let props;
 
 
 async function initMap() {
@@ -33,88 +26,63 @@ async function initMap() {
 
     });
 
-  //  overlay = new GoogleMapsOverlay({layers:[]});
-  //  overlay.setMap(map);
-
-  //  initMapWithData(values)
+ //   initMapWithData(geojsonObject, grade);
 
 };
 
-
-/*
-window.initMapWithData = function( values) {
-
-    deckData = values.map((particle) => {
-        const path = particle.map(p => [p.lng, p.lat]);
-        const timestamps = particle.map( (_, index) =>  index  *  10  );
-        const speed = particle[0].speed;
-        return {
-            speed: speed,
-            path: path,
-            timestamps: timestamps
-        };
-    });
-
-    props = {
-      id: 'trips-layer',
-      data: deckData,
-      getPath: d => d.path,
-      getTimestamps: d => d.timestamps,
-      getColor: d => {
-          if (d.speed > 100) return [255, 0, 0];      // Red
-          if (d.speed > 30) return [255, 165, 0];    // Orange
-          return [0, 255, 255];                      // Cyan
-      },
-      opacity: 1.0,
-      widthMinPixels: 3,   // 최소 선 두께
-      trailLength: 360,     // 입자 꼬리의 길이
-      currentTime: currentTime,   // 현재 애니메이션 시간
-      shadowEnabled: true
-  }
-
-     console.log("deckData 초기화 완료:", deckData.length);
-
-    google.maps.event.addListenerOnce(map, 'idle', function() {
-       startAnimation();
-    });
-
+// 등급별 색상 매핑 함수
+function getGradeColor(grade) {
+    switch (grade) {
+        case 'F': return '#FF0000'; // 가득참 (가장 위험) - 빨강
+        case 'E': return '#FF4500'; // 매우 높음 - 주황빨강
+        case 'D': return '#FF8C00'; // 높음 - 주황
+        case 'C': return '#FFD700'; // 보통 - 노랑
+        case 'B': return '#9ACD32'; // 낮음 - 연두
+        case 'A': return '#008000'; // 매우 낮음 - 초록
+        default: return '#808080';  // 알 수 없음 - 회색
+    }
 }
 
-
-function startAnimation() {
-
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-    }
-    // 데이터가 있는지 확인
-    if (deckData.length === 0) return;
-
-    // 데이터의 마지막 타임스탬프 값 계산 (예: 데이터 36개 * 간격 30 )
-    const maxTime = ( deckData[0].timestamps.length - 1 ) * 10 ;
-
-    console.log("Animation Started with maxTime:", maxTime);
-
-    function animate() {
-
-        currentTime += 3.0; // 애니메이션 속도 조절
-        if (currentTime > maxTime) currentTime = 0;
-
-        const tripsLayer = new TripsLayer({
-            ...props,
-            currentTime
+// Geometry에서 좌표를 추출하여 bounds를 확장하는 보조 함수
+function processConfiguration(geometry, callback, thisArg) {
+    if (geometry instanceof google.maps.LatLng) {
+        callback.call(thisArg, geometry);
+    } else if (geometry instanceof google.maps.Data.Point) {
+        callback.call(thisArg, geometry.get());
+    } else {
+        geometry.getArray().forEach((g) => {
+            processConfiguration(g, callback, thisArg);
         });
-
-        overlay.setProps({
-          layers: [tripsLayer],
-        });
-
-        animationId = requestAnimationFrame(animate);
     }
-
-    animationId = requestAnimationFrame(animate);
 }
 
-*/
+window.initMapWithData = function( geojsonObject, grade) {
+    const strokeColor = getGradeColor(grade);
+
+    // 2. 기존 데이터 레이어 초기화 (필요시)
+    map.data.forEach((feature) => {
+        map.data.remove(feature);
+    });
+
+    map.data.addGeoJson(geojsonObject);
+
+    // 4. 스타일 설정 (전체 레이어에 적용하거나 조건부 적용)
+    map.data.setStyle({
+        fillColor: strokeColor,   // 면 색상
+        fillOpacity: 0.5,         // 투명도
+        strokeColor: strokeColor, // 선 색상
+        strokeWeight: 2,          // 선 굵기
+        clickable: true
+    });
+
+    // (선택 사항) 지도를 데이터 경계에 맞게 조정
+    const bounds = new google.maps.LatLngBounds();
+    map.data.forEach((feature) => {
+        processConfiguration(feature.getGeometry(), bounds.extend, bounds);
+    });
+    map.fitBounds(bounds);
+
+}
 
 
 function smoothZoom ( targetZoom, currentZoom) {

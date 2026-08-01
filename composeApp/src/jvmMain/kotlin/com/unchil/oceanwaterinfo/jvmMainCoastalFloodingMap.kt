@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
@@ -56,10 +57,7 @@ fun jvmMainCoastalFloodingMap(
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
 
-    val initData = remember{ mutableStateOf("" )}
-
-
-
+    val geojsonObject = remember{ mutableStateOf("" )}
 
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
@@ -72,13 +70,60 @@ fun jvmMainCoastalFloodingMap(
 
     val coastalFloodingInfo = viewModel._coastalFloodingInfo.collectAsState()
 
+
     LaunchedEffect( coastalFloodingInfo.value){
         if(coastalFloodingInfo.value.isNotEmpty()) {
-            val count = coastalFloodingInfo.value.size
 
+            val multiPolygon = coastalFloodingInfo.value.map { it.geom }.map {
+                var cleaned = it.trim()
+                    .replace(Regex("""^MULTIPOLYGON\s*""", RegexOption.IGNORE_CASE), "")
+                    .removePrefix("(")
+                    .removeSuffix(")")
+                    .trim()
+                cleaned = cleaned.replace("(", "").replace(")", "").trim()
+                // 2. 쉼표(,)를 기준으로 각 좌표 쌍 분리
+                val coordinatePairs = cleaned.split(",")
+
+                coordinatePairs.mapNotNull { pair ->
+                    val parts = pair.trim().split("\\s+".toRegex())
+                    if (parts.size == 2) {
+                        val lng = parts[0].toDoubleOrNull()
+                        val lat = parts[1].toDoubleOrNull()
+
+                        if (lat != null && lng != null) {
+                            //   mapOf("lat" to lat, "lng" to lng) // 구글 맵 포맷인 (위도, 경도) 순서로 생성
+                            //  "{lat:${lat}, lng:${lng}}"
+                            listOf(lng, lat)
+                        } else null
+                    } else null
+                }
+            }
+
+            geojsonObject.value = """{
+"type": "FeatureCollection",
+"features": [
+    {
+        "type": "Feature",
+        "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+                ${multiPolygon.toList()}
+            ]
+        },
+        "properties": { "name": "MultiPolygon ${sidoOption.name}_${gradeOption.tabTitle()}" }
+    }
+]
+}"""
 
         }
     }
+
+    LaunchedEffect(webViewState.loadingState,geojsonObject.value){
+        if( geojsonObject.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
+            navigator.evaluateJavaScript("initMapWithData( ${geojsonObject.value},  \"${gradeOption.name}\")")
+        }
+    }
+
 
     val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
