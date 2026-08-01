@@ -114,7 +114,7 @@ fun jvmMainAirQuality(
         }
     }
 
-    val bottomBarHeight = remember{60.dp}
+    val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     Column(
@@ -214,10 +214,7 @@ fun jvmMainAirQuality(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                CaptionText(
-                                    AIR_QUAlITY_UNION.caption,
-                                    textAlign = TextAlign.Center
-                                )
+
                                 WebView(
                                     state = webViewState,
                                     navigator = navigator,
@@ -243,6 +240,10 @@ fun jvmMainAirQuality(
 
                 }
 
+                CaptionText(
+                    AIR_QUAlITY_UNION.caption,
+                    textAlign = TextAlign.Center
+                )
 
                 Box(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),

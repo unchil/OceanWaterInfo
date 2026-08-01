@@ -100,7 +100,7 @@ fun jvmMainTidalForecastMap(
         }
     }
 
-    val bottomBarHeight = remember{60.dp}
+    val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
 
 
@@ -131,10 +131,7 @@ fun jvmMainTidalForecastMap(
                             modifier = Modifier,
                         )
 
-                        CaptionText(
-                            "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
-                            textAlign = TextAlign.Center
-                        )
+
 
                         WebView(
                             state = webViewState,
@@ -142,6 +139,11 @@ fun jvmMainTidalForecastMap(
                             modifier = Modifier.fillMaxSize()
                         )
                     }
+
+                    CaptionText(
+                        "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
+                        textAlign = TextAlign.Center
+                    )
 
 
                     Box(

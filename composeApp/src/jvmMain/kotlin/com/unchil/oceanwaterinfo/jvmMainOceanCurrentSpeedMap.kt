@@ -92,7 +92,7 @@ fun jvmMainOceanCurrentSpeedMap(
         }
     }
 
-    val bottomBarHeight = remember{60.dp}
+    val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
 
 
@@ -123,11 +123,6 @@ fun jvmMainOceanCurrentSpeedMap(
                             modifier = Modifier,
                         )
 
-                        CaptionText(
-                            "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
-                            textAlign = TextAlign.Center
-                        )
-
 
                         WebView(
                             state = webViewState,
@@ -137,6 +132,13 @@ fun jvmMainOceanCurrentSpeedMap(
 
 
                     }
+
+
+                    CaptionText(
+                        "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
+                        textAlign = TextAlign.Center
+                    )
+
 
                     Box(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),

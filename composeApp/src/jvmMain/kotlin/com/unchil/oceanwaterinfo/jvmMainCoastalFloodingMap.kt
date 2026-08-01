@@ -80,7 +80,7 @@ fun jvmMainCoastalFloodingMap(
         }
     }
 
-    val bottomBarHeight = remember{60.dp}
+    val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     Column(
@@ -160,16 +160,6 @@ fun jvmMainCoastalFloodingMap(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
 
-                            ChartTitle(
-                                "Korea Coastal Flooding Information",
-                                modifier = Modifier,
-                            )
-
-                            CaptionText(
-                                "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
-                                textAlign = TextAlign.Center
-                            )
-
 
                             WebView(
                                 state = webViewState,
@@ -179,6 +169,14 @@ fun jvmMainCoastalFloodingMap(
 
 
                         }
+
+
+
+                        CaptionText(
+                            "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
+                            textAlign = TextAlign.Center
+                        )
+
 
                         Box(
                             modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
