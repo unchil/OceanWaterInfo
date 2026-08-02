@@ -86,6 +86,7 @@ class OceanWaterRepository {
 
             _coastalFloodingInfo.value = result.flatten()
         }catch (e:Exception){
+            _coastalFloodingInfo.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }

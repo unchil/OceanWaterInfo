@@ -1,5 +1,7 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,6 +37,7 @@ import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
+import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -48,6 +51,11 @@ fun jvmMainCoastalFloodingMap(
     val viewModel: CoastalFloodingInfoViewModel = remember {
         CoastalFloodingInfoViewModel()
     }
+
+    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
+    val bottomBarHeight = remember{80.dp}
+    val visibleProgressIndicator = remember { mutableStateOf(false) }
+    val visibleAlertBox = remember { mutableStateOf(false) }
 
     val host = "http://localhost:7272"
     val servicePage = "coastalFloodingMap.html"
@@ -65,6 +73,7 @@ fun jvmMainCoastalFloodingMap(
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
+        visibleProgressIndicator.value = true
     }
 
 
@@ -72,7 +81,12 @@ fun jvmMainCoastalFloodingMap(
 
 
     LaunchedEffect( coastalFloodingInfo.value){
+
+        visibleProgressIndicator.value = false
+
+
         if(coastalFloodingInfo.value.isNotEmpty()) {
+            visibleAlertBox.value = false
 
             val multiPolygon = coastalFloodingInfo.value.map { it.geom }.map {
                 var cleaned = it.trim()
@@ -123,6 +137,11 @@ fun jvmMainCoastalFloodingMap(
 ]
 }"""
 
+        }else {
+            // 쿼리 결과가 0 인 경우
+            visibleAlertBox.value = true
+            val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
+            navigator.evaluateJavaScript(flyTo)
         }
     }
 
@@ -133,11 +152,12 @@ fun jvmMainCoastalFloodingMap(
     }
 
 
-    val bottomBarHeight = remember{80.dp}
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement =   Arrangement.Center
     ) {
         Text(
             "Korea Coastal Flooding Prediction Information",
@@ -193,6 +213,18 @@ fun jvmMainCoastalFloodingMap(
                     }
                 )
             }
+        }
+
+
+        AnimatedVisibility(visibleAlertBox.value){
+            Text(
+                "No relevant data was found.",
+                modifier = Modifier.fillMaxWidth().padding(vertical =10.dp),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                color = Color.Blue,
+            )
+
         }
 
 
