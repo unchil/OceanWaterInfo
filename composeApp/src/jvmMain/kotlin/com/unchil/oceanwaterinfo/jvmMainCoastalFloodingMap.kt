@@ -87,55 +87,7 @@ fun jvmMainCoastalFloodingMap(
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
             visibleAlertBox.value = false
-
-            val multiPolygon = coastalFloodingInfo.value.map { it.geom }.map {
-                var cleaned = it.trim()
-                    .replace(Regex("""^MULTIPOLYGON\s*""", RegexOption.IGNORE_CASE), "")
-                    .removePrefix("(")
-                    .removeSuffix(")")
-                    .trim()
-                cleaned = cleaned.replace("(", "").replace(")", "").trim()
-                // 2. 쉼표(,)를 기준으로 각 좌표 쌍 분리
-                val coordinatePairs = cleaned.split(",")
-
-                val polygon = mutableListOf<List<Double>>()
-
-                coordinatePairs.mapNotNull { pair ->
-                    val parts = pair.trim().split("\\s+".toRegex())
-                    if (parts.size == 2) {
-                        val lng = parts[0].toDoubleOrNull()
-                        val lat = parts[1].toDoubleOrNull()
-
-                        if (lat != null && lng != null) {
-                            //   mapOf("lat" to lat, "lng" to lng) // 구글 맵 포맷인 (위도, 경도) 순서로 생성
-                            //  "{lat:${lat}, lng:${lng}}"
-                            polygon.add(listOf(lng, lat))
-                        } else null
-                    } else null
-                }
-
-                // check if the first and last coordinates match, if not, push the first to the end
-                if( polygon.first() != polygon.last()){
-                    polygon.add(polygon.first())
-                }
-                polygon
-            }
-
-            geojsonObject.value = """{
-"type": "FeatureCollection",
-"features": [
-    {
-        "type": "Feature",
-        "geometry": {
-            "type": "MultiPolygon",
-            "coordinates": [
-                ${multiPolygon.toList()}
-            ]
-        },
-        "properties": { "name": "MultiPolygon ${sidoOption.name}_${gradeOption.tabTitle()}" }
-    }
-]
-}"""
+            geojsonObject.value =coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
 
         }else {
             // 쿼리 결과가 0 인 경우

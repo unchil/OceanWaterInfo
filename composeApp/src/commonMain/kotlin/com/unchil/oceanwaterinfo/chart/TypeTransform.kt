@@ -143,6 +143,57 @@ val Double.toRadians get() = this * (PI / 180.0)
 val Double.toDegrees get() = this * (180.0 / PI)
 
 
+fun List<CoastalFloodingGeo>.toGeoJsonObject(info:Pair<String, String> ):String {
+    val multiPolygon = this.map { it.geom }.map {
+        var cleaned = it.trim()
+            .replace(Regex("""^MULTIPOLYGON\s*""", RegexOption.IGNORE_CASE), "")
+            .removePrefix("(")
+            .removeSuffix(")")
+            .trim()
+        cleaned = cleaned.replace("(", "").replace(")", "").trim()
+        // 2. 쉼표(,)를 기준으로 각 좌표 쌍 분리
+        val coordinatePairs = cleaned.split(",")
+
+        val polygon = mutableListOf<List<Double>>()
+
+        coordinatePairs.mapNotNull { pair ->
+            val parts = pair.trim().split("\\s+".toRegex())
+            if (parts.size == 2) {
+                val lng = parts[0].toDoubleOrNull()
+                val lat = parts[1].toDoubleOrNull()
+
+                if (lat != null && lng != null) {
+                  // 구글 맵 포맷인 (위도, 경도) 순서로 생성
+                    polygon.add(listOf(lng, lat))
+                } else null
+            } else null
+        }
+
+        // check if the first and last coordinates match, if not, push the first to the end
+        if( polygon.first() != polygon.last()){
+            polygon.add(polygon.first())
+        }
+        polygon
+    }
+
+    return """{
+"type": "FeatureCollection",
+"features": [
+    {
+        "type": "Feature",
+        "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+                ${multiPolygon.toList()}
+            ]
+        },
+        "properties": { "name": "MultiPolygon ${info.first}_${info.second}" }
+    }
+]
+}"""
+
+}
+
 fun List<TidalCurrentInfo>.toTidalCurrentDataMap():Map<Pair<Double, Double>, List<TidalCurrentData>>{
 
     return this.groupBy(
