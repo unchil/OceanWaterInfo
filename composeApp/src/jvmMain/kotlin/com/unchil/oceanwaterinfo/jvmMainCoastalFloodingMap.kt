@@ -140,7 +140,7 @@ fun jvmMainCoastalFloodingMap(
         modifier = Modifier.fillMaxSize(),
     ) {
         Text(
-            "Korea Coastal Flooding Information",
+            "Korea Coastal Flooding Prediction Information",
             modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 20.sp,
