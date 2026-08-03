@@ -66,6 +66,17 @@ val sendMsgInitData = { iframeId:String, values:String->
 }
 
 
+val sendMsgFlyToCoastalFlooding = { point:Point<Double, Double> ->
+    val message = """
+                {
+                    "action": "FLY_TO",
+                    "target": { "lat": ${point.y}, "lng": ${point.x} }
+                }
+                """.trimIndent()
+    postIframeMessage(IFRAME_COASTAL_FLOODING, message)
+}
+
+
 val sendMsgFlyToWaterInfo = { point:Point<Double, Double> ->
     val message = """
                 {
