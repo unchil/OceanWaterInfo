@@ -163,8 +163,9 @@ fun List<CoastalFloodingGeo>.toGeoJsonObject(info:Pair<String, String> ):String 
                 val lat = parts[1].toDoubleOrNull()
 
                 if (lat != null && lng != null) {
-                  // 구글 맵 포맷인 (위도, 경도) 순서로 생성
+                  // 구글 맵 포맷인  순서로 생성
                     polygon.add(listOf(lng, lat))
+                 //   polygon.add(listOf(lat, lng))
                 } else null
             } else null
         }

@@ -5,7 +5,7 @@ const {GoogleMapsOverlay, GeoJsonLayer } = deck;
 
 let map;
 let overlay;
-let zoomLevel = 6
+let zoomLevel = 10
 let center = { lat: 37.385852, lng: 126.934515 };
 
 
@@ -29,6 +29,7 @@ async function initMap() {
       mapTypeId: google.maps.MapTypeId.SATELLITE,
 
     });
+
 
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
@@ -101,10 +102,12 @@ function renderOnMap(data) {
 /*
     const layerId = `geojson-layer-${data.grade}`;
 
+    const geojsonObject = data.geoJson
+
     // 2. GeoJsonLayer 생성
     const geoJsonLayer = new GeoJsonLayer({
       id: layerId,
-      data: data.geoJson, // GeoJSON 객체 또는 URL
+      data: geojsonObject, // GeoJSON 객체 또는 URL
 
       // 스타일 설정
       pickable: true,            // 마우스 호버/클릭 이벤트 활성화
@@ -114,8 +117,8 @@ function renderOnMap(data) {
       wireframe: false,          // 3D 와이어프레임 표시 여부
 
       // 색상 지정 (RGBA 배열: 0~255)
-      getFillColor: [255, 140, 0, 180],     // 채우기 색상 (주황색, 투명도)
-      getLineColor: [255, 255, 255, 255],   // 외곽선 색상 (흰색)
+      getFillColor:[255, 0, 0],     // 채우기 색상 (주황색, 투명도)
+      getLineColor: [255, 126, 0],   // 외곽선 색상 (흰색)
       getLineWidth: 2,                     // 외곽선 두께 (미터 또는 픽셀 단위)
       lineWidthMinPixels: 1,               // 축소 시 최저 픽셀 두께
       getElevation: f => f.properties.height || 10, // 3D 높이 값 지정
@@ -142,11 +145,13 @@ function renderOnMap(data) {
     }
 */
 
+
+
 }
 
 
 // 1. Web Worker 생성
-const mapWorker = new Worker("./coastalFloodingMapWaker.js");
+const mapWorker = new Worker("./coastalFloodingMapWoker.js");
 
 // 2. Worker로부터 파싱 완료 결과를 수신하는 리스너
 mapWorker.onmessage = function (e) {
