@@ -144,37 +144,64 @@ val Double.toDegrees get() = this * (180.0 / PI)
 
 
 fun List<CoastalFloodingGeo>.toGeoJsonObject(info:Pair<String, String> ):String {
-    val multiPolygon = this.map { it.geom }.map {
-        var cleaned = it.trim()
+
+    // 1. 유효한 폴리곤 리스트 생성
+    val validPolygons = this.mapNotNull { item ->
+        val rawGeom = item.geom
+        if (rawGeom.isBlank()) return@mapNotNull null
+
+        // WKT 포맷 정제 (MULTIPOLYGON, 괄호 등 제거)
+        var cleaned = rawGeom.trim()
             .replace(Regex("""^MULTIPOLYGON\s*""", RegexOption.IGNORE_CASE), "")
-            .removePrefix("(")
-            .removeSuffix(")")
+            .replace("(", " ")
+            .replace(")", " ")
             .trim()
-        cleaned = cleaned.replace("(", "").replace(")", "").trim()
-        // 2. 쉼표(,)를 기준으로 각 좌표 쌍 분리
+
+        // 2. 좌표 쌍 분리 및 파싱
         val coordinatePairs = cleaned.split(",")
+        val ring = mutableListOf<List<Double>>()
 
-        val polygon = mutableListOf<List<Double>>()
-
-        coordinatePairs.mapNotNull { pair ->
-            val parts = pair.trim().split("\\s+".toRegex())
-            if (parts.size == 2) {
+        coordinatePairs.forEach { pair ->
+            val parts = pair.trim().split(Regex("\\s+"))
+            if (parts.size >= 2) {
                 val lng = parts[0].toDoubleOrNull()
                 val lat = parts[1].toDoubleOrNull()
-
-                if (lat != null && lng != null) {
-                  // 구글 맵 포맷인  순서로 생성
-                    polygon.add(listOf(lng, lat))
-                 //   polygon.add(listOf(lat, lng))
-                } else null
-            } else null
+                if (lng != null && lat != null) {
+                    ring.add(listOf(lng, lat))
+                }
+            }
         }
 
-        // check if the first and last coordinates match, if not, push the first to the end
-        if( polygon.first() != polygon.last()){
-            polygon.add(polygon.first())
+        // --- [검증 로직 시작] ---
+
+        // 검증 A: 포인트가 최소 4개 이상이어야 함 (삼각형 + 닫는 점)
+        if (ring.size < 3) return@mapNotNull null
+
+        // 검증 B: 첫 번째 점과 마지막 점이 같은지 확인 (폐쇄성 보장)
+        if (ring.first() != ring.last()) {
+            ring.add(ring.first())
         }
-        polygon
+
+        // 검증 C: 폐쇄 후 최소 포인트가 4개인지 다시 확인
+        if (ring.size < 4) return@mapNotNull null
+
+        // --- [검증 로직 끝] ---
+
+        // MultiPolygon 구조: [Polygon[Ring[Point]]]
+        // 여기서는 하나의 폴리곤 내에 하나의 외곽선(Ring)만 있는 구조로 생성
+        listOf(ring)
+    }
+
+    if (validPolygons.isEmpty()) return """{"type": "FeatureCollection", "features": []}"""
+
+    // 3. MultiPolygon 포맷에 맞게 문자열 조립
+    // validPolygons는 List<List<List<List<Double>>>> 구조가 됨
+    val coordinatesJson = validPolygons.joinToString(",") { polygon ->
+        polygon.joinToString(",", "[", "]") { ring ->
+            ring.joinToString(",", "[", "]") { point ->
+                "[${point[0]},${point[1]}]"
+            }
+        }
     }
 
     return """{
@@ -184,14 +211,14 @@ fun List<CoastalFloodingGeo>.toGeoJsonObject(info:Pair<String, String> ):String 
         "type": "Feature",
         "geometry": {
             "type": "MultiPolygon",
-            "coordinates": [
-                ${multiPolygon.toList()}
-            ]
+            "coordinates": [ $coordinatesJson ]
         },
         "properties": { "name": "MultiPolygon ${info.first}_${info.second}" }
     }
 ]
 }"""
+
+    
 
 }
 
