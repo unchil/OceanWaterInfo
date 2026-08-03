@@ -80,7 +80,7 @@ fun webMainCoastalFloodingMap(){
         }else {
             // 쿼리 결과가 0 인 경우
             visibleAlertBox.value = true
-            sendMsgFlyToWaterInfo.invoke(initCenterPoint)
+            sendMsgFlyToCoastalFlooding.invoke(initCenterPoint)
         }
     }
 
