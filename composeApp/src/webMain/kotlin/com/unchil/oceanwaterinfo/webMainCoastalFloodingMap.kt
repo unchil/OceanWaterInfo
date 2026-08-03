@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -9,20 +10,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
+import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -41,94 +52,188 @@ fun webMainCoastalFloodingMap(){
         CoastalFloodingInfoViewModel()
     }
 
-    val grade = "F"
-    val sido = ""
+    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
+    val visibleAlertBox = remember { mutableStateOf(false) }
+    val geojsonObject = remember{ mutableStateOf("" )}
 
-    LaunchedEffect(key1 = viewModel){
-        viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(grade))
+    var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
+    var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
+
+    LaunchedEffect( viewModel, gradeOption, sidoOption){
+        viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
+        visibleProgressIndicator.value = true
     }
+
 
     val coastalFloodingInfo = viewModel._coastalFloodingInfo.collectAsState()
 
     LaunchedEffect( coastalFloodingInfo.value){
+
+        visibleProgressIndicator.value = false
+
+
         if(coastalFloodingInfo.value.isNotEmpty()) {
+            visibleAlertBox.value = false
+            geojsonObject.value =coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
 
-
-
+            sendMsgChangeData( IFRAME_COASTAL_FLOODING, geojsonObject.value, gradeOption.name)
+        }else {
+            // 쿼리 결과가 0 인 경우
+            visibleAlertBox.value = true
+            sendMsgFlyToWaterInfo.invoke(initCenterPoint)
         }
     }
 
 
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement =   Arrangement.Center
     ) {
-        val height = this.maxHeight
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Text(
+            "Korea Coastal Flooding Prediction Information",
+            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        var selectedTabIndexGrade by remember { mutableIntStateOf(0) }
+        SecondaryTabRow(
+            selectedTabIndex = selectedTabIndexGrade,
+            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
+            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
         ) {
-
-            ChartTitle(
-                "Korea Coastal Flooding Information",
-                modifier = Modifier,
-            )
-
-            CaptionText(
-                "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
-                textAlign = TextAlign.Center
-            )
-
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                    .height(height - bottomBarHeight)
-                    .onGloballyPositioned { coordinates ->
-                        syncHtmlElementPosition(
-                            coordinates,
-                            density,
-                            DIV_WEB_MAIN,
-                            DIV_COASTAL_FLOODING
-                        )
+            CoastalFloodingGrade.entries.forEachIndexed { index, element ->
+                Tab(
+                    selected = selectedTabIndexGrade == index,
+                    onClick = {
+                        selectedTabIndexGrade = index
+                        gradeOption = element
                     },
-                contentAlignment = Alignment.Center
-            ) {
-                // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+                    text = {
+                        Text(
+                            text = element.tabTitle(),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                )
             }
+        }
+
+        var selectedTabIndexSido by remember { mutableIntStateOf(0) }
+        SecondaryTabRow(
+            selectedTabIndex = selectedTabIndexSido,
+            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
+            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+        ) {
+            SiDo.entries.forEachIndexed { index, element ->
+                Tab(
+                    selected = selectedTabIndexSido == index,
+                    onClick = {
+                        selectedTabIndexSido = index
+                        sidoOption = element
+                    },
+                    text = {
+                        Text(
+                            text = element.name,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                )
+            }
+        }
+
+        AnimatedVisibility(visibleAlertBox.value){
+            Text(
+                "No relevant data was found.",
+                modifier = Modifier.fillMaxWidth().padding(vertical =10.dp),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                color = Color.Blue,
+            )
+
+        }
 
 
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val height = this.maxHeight
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
 
-            Box(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
-                contentAlignment = Alignment.Center,
-            ) {// [Reload, Tooltips, Symbol, Legend]
-                val bottomBarOpt =
-                    listOf(true, false, false, false)
-                ChartFeatureControls(
-                    onChangeFlag = { label, value ->
-                        when (label) {
-                            "Reload" ->{
-                                visibleProgressIndicator.value = true
-                                sendMsgInitData( IFRAME_COASTAL_FLOODING, initData.value)
-                                coroutineScope.launch {
-                                    delay(1000)
-                                    visibleProgressIndicator.value = false
+
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                        .height(height - bottomBarHeight)
+                        .onGloballyPositioned { coordinates ->
+                            syncHtmlElementPosition(
+                                coordinates,
+                                density,
+                                DIV_WEB_MAIN,
+                                DIV_COASTAL_FLOODING
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                 //
+                }
+
+                CaptionText(
+                    "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
+                    textAlign = TextAlign.Center
+                )
+
+
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center,
+                ) {// [Reload, Tooltips, Symbol, Legend]
+                    val bottomBarOpt =
+                        listOf(true, false, false, false)
+                    ChartFeatureControls(
+                        onChangeFlag = { label, value ->
+                            when (label) {
+                                "Reload" ->{
+                                    visibleProgressIndicator.value = true
+                                    sendMsgInitData( IFRAME_COASTAL_FLOODING, initData.value)
+                                    coroutineScope.launch {
+                                        delay(1000)
+                                        visibleProgressIndicator.value = false
+                                    }
                                 }
                             }
-                        }
 
-                    },
-                    bottomBarOpt = bottomBarOpt
-                )
-                if (visibleProgressIndicator.value) {
-                    CircularProgressIndicator(
-                        color = Color.DarkGray,
+                        },
+                        bottomBarOpt = bottomBarOpt
                     )
+                    if (visibleProgressIndicator.value) {
+                        CircularProgressIndicator(
+                            color = Color.DarkGray,
+                        )
+                    }
                 }
+
             }
 
         }
 
+
+
     }
+
+
+
+
+
+
+
 
 
 }
