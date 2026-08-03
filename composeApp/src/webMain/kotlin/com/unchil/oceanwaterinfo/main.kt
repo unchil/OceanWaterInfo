@@ -161,7 +161,7 @@ fun main(){
 
         DisposableEffect(Unit) {
             onDispose {
-                disposeHtmlElements(listOf(DIV_AIR_INFO, DIV_OCEAN_WATER_INFO, DIV_SEA_FLOW_TRIPS, DIV_SEA_FLOW_HEXAGON, DIV_WATER_INFO))
+                disposeHtmlElements(listOf(DIV_AIR_INFO, DIV_OCEAN_WATER_INFO, DIV_SEA_FLOW_TRIPS, DIV_SEA_FLOW_HEXAGON, DIV_WATER_INFO, DIV_COASTAL_FLOODING))
             }
         }
 

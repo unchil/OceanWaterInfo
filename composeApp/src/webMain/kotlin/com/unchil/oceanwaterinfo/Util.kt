@@ -147,6 +147,7 @@ val changeSelectedTab = { selectedTabIndex :Int ->
     val oceanWaterHtmlElement = document.getElementById(DIV_OCEAN_WATER_INFO) as? HTMLElement
     val seaFlowTripsMapMapHtmlElementId = document.getElementById(DIV_SEA_FLOW_TRIPS) as? HTMLElement
     val seaFlowHexagonMapHtmlElementId = document.getElementById(DIV_SEA_FLOW_HEXAGON) as? HTMLElement
+    val coastalFloodingMapHtmlElementId = document.getElementById(DIV_COASTAL_FLOODING) as? HTMLElement
 
 
     airHtmlElement?.let {
@@ -186,5 +187,11 @@ val changeSelectedTab = { selectedTabIndex :Int ->
         }
     }
 
+    coastalFloodingMapHtmlElementId?.let {
+        when(selectedTabIndex){
+            5 -> it.style.visibility = "visible"
+            else -> it.style.visibility = "hidden"
+        }
+    }
 
 }

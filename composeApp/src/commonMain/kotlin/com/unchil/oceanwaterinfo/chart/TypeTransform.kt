@@ -32,7 +32,7 @@ const val IFRAME_AIR_INFO = "iframe_airInfoMap"
 const val IFRAME_WATER_INFO = "iframe_waterInfo"
 const val IFRAME_OCEAN_WATER_INFO = "iframe_oceanWaterInfo"
 
-const val IFRAME_COASTAL_FLOODING  = "iframe_coastalFloodin"
+const val IFRAME_COASTAL_FLOODING  = "iframe_coastalFlooding"
 const val IFRAME_SEA_FLOW_TRIPS = "iframe_seaFlowTrips"
 const val IFRAME_SEA_FLOW_HEXAGON = "iframe_seaFlowHexagon"
 
