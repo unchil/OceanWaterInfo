@@ -17,6 +17,27 @@ fun postIframeMessage(iframeId: String, messageJson: String) {
 }
 
 
+// 브라우저의 TextEncoder를 사용하여 버퍼를 생성하고 Transferable로 전송하는 JS 브릿지 함수
+/*
+@OptIn(ExperimentalWasmJsInterop::class)
+@JsFun("(window, grade, jsonString, origin) => { " +
+        "const encodedData = new TextEncoder().encode(jsonString);" +
+        "const buffer = encodedData.buffer;" +
+        "window.postMessage({ type: 'TRANSFER_DATA', grade: grade,  buffer: buffer }, origin, [buffer]);" +
+        "}")
+private external fun jsPostTransferable(window: org.w3c.dom.Window, grade:String, jsonString: String, origin: String)
+
+@OptIn(ExperimentalWasmJsInterop::class)
+fun postIframeMessage2(iframeId: String, messageJson: String, grade:String) {
+    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
+    val contentWindow = iframe.contentWindow ?: return
+
+    // JS 함수를 호출하여 문자열을 버퍼로 변환하고 소유권을 이전하며 전송합니다.
+    jsPostTransferable(contentWindow, grade, messageJson, "*")
+}
+*/
+
+
 /** Compose Box의 위치 정보를 실제 브라우저 HTML 요소의 스타일에 동기화하는 함수 */
 fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, mainHtmlElementId: String, htmlElementId: String ) {
 // 1. Compose 내부에서의 절대 좌표 계산 (Window 기준)

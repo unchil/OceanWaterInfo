@@ -88,10 +88,28 @@ window.initMapWithData = function( geojsonObject, grade) {
 
 window.addEventListener("message", (event) => {
 
-    let data = event.data;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
-    if (typeof data === 'string') {
+    let data ;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
+
+    // 1. 전달된 데이터가 Transferable(ArrayBuffer) 형태인지 확인
+    if ( event.data &&  event.data.type === 'TRANSFER_DATA' && event.data.grade &&  event.data.buffer) {
         try {
-            data = JSON.parse(data);
+            const decodedString = new TextDecoder().decode(new Uint8Array( event.data.buffer));
+            // Validate that the string isn't empty and contains basic JSON structure
+            if (!decodedString || decodedString.trim() === "") {
+                throw new Error("Decoded string is empty");
+            }
+            // 3. JSON 파싱
+            let geojsonObject = JSON.parse(decodedString);
+            let grade =  event.data.grade
+            initMapWithData(geojsonObject, grade)
+        } catch (e) {
+            console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
+            return;
+        }
+    }
+    else if (typeof event.data === 'string') {
+        try {
+            data = JSON.parse(event.data);
         } catch (e) {
             console.error("메시지 데이터 파싱 중 오류 발생:", e);
             return; // 파싱 실패 시 함수 종료
