@@ -39,6 +39,8 @@ import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -54,7 +56,7 @@ fun jvmMainCoastalFloodingMap(
 
     val initCenterPoint = remember{ Point(126.934515, 37.385852) }
     val bottomBarHeight = remember{80.dp}
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
     val visibleAlertBox = remember { mutableStateOf(false) }
 
     val host = "http://localhost:7272"
@@ -71,19 +73,18 @@ fun jvmMainCoastalFloodingMap(
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
 
 
+
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
-        visibleProgressIndicator.value = true
     }
 
 
     val coastalFloodingInfo = viewModel._coastalFloodingInfo.collectAsState()
+    // ViewModel의 로딩 상태를 관찰
+    val isLoading by viewModel.isLoading.collectAsState()
 
 
     LaunchedEffect( coastalFloodingInfo.value){
-
-        visibleProgressIndicator.value = false
-
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
             visibleAlertBox.value = false
@@ -225,23 +226,20 @@ fun jvmMainCoastalFloodingMap(
                                 onChangeFlag = { label, value ->
                                     when (label) {
                                         "Reload" ->{
-                                            visibleProgressIndicator.value = true
-                                            //  navigator.evaluateJavaScript("initMapWithData( ${initData.value})")
-                                            coroutineScope.launch {
-                                                delay(1000)
-                                                visibleProgressIndicator.value = false
-                                            }
+                                            navigator.evaluateJavaScript("initMapWithData( ${geojsonObject.value},  \"${gradeOption.name}\")")
                                         }
                                     }
 
                                 },
                                 bottomBarOpt = bottomBarOpt
                             )
-                            if (visibleProgressIndicator.value) {
+
+                            if (isLoading) {
                                 CircularProgressIndicator(
                                     color = Color.DarkGray,
                                 )
                             }
+
                         }
 
 

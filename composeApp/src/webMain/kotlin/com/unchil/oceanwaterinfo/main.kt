@@ -147,6 +147,9 @@ fun main(){
                         4 -> {
                             webMainHydroNuclearPower()
                         }
+                        5 -> {
+                            webMainCoastalFloodingMap()
+                        }
                     }
                 }
 

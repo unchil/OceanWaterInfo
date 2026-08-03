@@ -45,8 +45,6 @@ fun webMainCoastalFloodingMap(){
     val density = LocalDensity.current
     val bottomBarHeight = remember{100.dp}
 
-    val initData = remember{ mutableStateOf("" )}
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val viewModel: CoastalFloodingInfoViewModel = remember {
         CoastalFloodingInfoViewModel()
@@ -61,27 +59,31 @@ fun webMainCoastalFloodingMap(){
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
-        visibleProgressIndicator.value = true
+
     }
 
 
     val coastalFloodingInfo = viewModel._coastalFloodingInfo.collectAsState()
 
+    // ViewModel의 로딩 상태를 관찰
+    val isLoading by viewModel.isLoading.collectAsState()
+
     LaunchedEffect( coastalFloodingInfo.value){
-
-        visibleProgressIndicator.value = false
-
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
             visibleAlertBox.value = false
             geojsonObject.value = coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
 
-            sendMsgChangeData( IFRAME_COASTAL_FLOODING, geojsonObject.value, gradeOption.name)
         }else {
             // 쿼리 결과가 0 인 경우
             visibleAlertBox.value = true
             sendMsgFlyToCoastalFlooding.invoke(initCenterPoint)
         }
+    }
+
+
+    LaunchedEffect(geojsonObject.value){
+        sendMsgChangeData( IFRAME_COASTAL_FLOODING, geojsonObject.value, gradeOption.name)
     }
 
 
@@ -201,11 +203,9 @@ fun webMainCoastalFloodingMap(){
                         onChangeFlag = { label, value ->
                             when (label) {
                                 "Reload" ->{
-                                    visibleProgressIndicator.value = true
                                     sendMsgChangeData( IFRAME_COASTAL_FLOODING, geojsonObject.value, gradeOption.name)
                                     coroutineScope.launch {
                                         delay(1000)
-                                        visibleProgressIndicator.value = false
                                     }
                                 }
                             }
@@ -213,11 +213,14 @@ fun webMainCoastalFloodingMap(){
                         },
                         bottomBarOpt = bottomBarOpt
                     )
-                    if (visibleProgressIndicator.value) {
+
+                    if (isLoading) {
                         CircularProgressIndicator(
                             color = Color.DarkGray,
                         )
                     }
+
+
                 }
 
             }
