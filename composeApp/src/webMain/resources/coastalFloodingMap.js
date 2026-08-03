@@ -102,6 +102,11 @@ window.addEventListener("message", (event) => {
         initMapWithData(data.values, data.type)
     }
 
+    if (data.action === "FLY_TO") {
+        console.log("FLY_TO:", data.target.lat, data.target.lng);
+        smoothFlyTo({lat:data.target.lat, lng:data.target.lng})
+    }
+
 });
 
 
