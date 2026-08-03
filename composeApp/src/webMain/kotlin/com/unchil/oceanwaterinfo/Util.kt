@@ -18,7 +18,7 @@ fun postIframeMessage(iframeId: String, messageJson: String) {
 
 
 // 브라우저의 TextEncoder를 사용하여 버퍼를 생성하고 Transferable로 전송하는 JS 브릿지 함수
-/*
+
 @OptIn(ExperimentalWasmJsInterop::class)
 @JsFun("(window, grade, jsonString, origin) => { " +
         "const encodedData = new TextEncoder().encode(jsonString);" +
@@ -35,7 +35,7 @@ fun postIframeMessage2(iframeId: String, messageJson: String, grade:String) {
     // JS 함수를 호출하여 문자열을 버퍼로 변환하고 소유권을 이전하며 전송합니다.
     jsPostTransferable(contentWindow, grade, messageJson, "*")
 }
-*/
+
 
 
 /** Compose Box의 위치 정보를 실제 브라우저 HTML 요소의 스타일에 동기화하는 함수 */

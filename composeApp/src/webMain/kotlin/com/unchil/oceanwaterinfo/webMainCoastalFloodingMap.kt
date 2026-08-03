@@ -73,8 +73,8 @@ fun webMainCoastalFloodingMap(){
         if(coastalFloodingInfo.value.isNotEmpty()) {
             visibleAlertBox.value = false
             geojsonObject.value = coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
-            sendMsgChangeData(IFRAME_COASTAL_FLOODING,  geojsonObject.value, gradeOption.name)
-            //postIframeMessage2(IFRAME_COASTAL_FLOODING , geojsonObject.value,gradeOption.name)
+          //  sendMsgChangeData(IFRAME_COASTAL_FLOODING,  geojsonObject.value, gradeOption.name)
+            postIframeMessage2(IFRAME_COASTAL_FLOODING , geojsonObject.value,gradeOption.name)
         }else {
             // 쿼리 결과가 0 인 경우
             visibleAlertBox.value = true

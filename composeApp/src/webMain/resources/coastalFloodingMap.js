@@ -1,5 +1,7 @@
 //import {geojsonObject } from './geom.js';
 
+const {GoogleMapsOverlay, GeoJsonLayer } = deck;
+
 
 let map;
 let overlay;
@@ -27,6 +29,10 @@ async function initMap() {
       mapTypeId: google.maps.MapTypeId.SATELLITE,
 
     });
+
+    overlay = new GoogleMapsOverlay({layers:[]});
+    overlay.setMap(map);
+
 
  //   initMapWithData(geojsonObject, grade);
 
@@ -86,22 +92,89 @@ window.initMapWithData = function( geojsonObject, grade) {
 
 }
 
+// 지도에 데이터를 렌더링하는 함수 예시
+function renderOnMap(data) {
+    // Google Maps Data Layer 사용 시
+    initMapWithData(data.geoJson, data.grade);
+
+    // deck.gl WebGL Layer 사용 시 (권장)
+/*
+    const layerId = `geojson-layer-${data.grade}`;
+
+    // 2. GeoJsonLayer 생성
+    const geoJsonLayer = new GeoJsonLayer({
+      id: layerId,
+      data: data.geoJson, // GeoJSON 객체 또는 URL
+
+      // 스타일 설정
+      pickable: true,            // 마우스 호버/클릭 이벤트 활성화
+      stroked: true,             // 외곽선 그리기 여부
+      filled: true,              // 내부 채우기 여부
+      extruded: true,            // 3D 입체 높이 표현 여부
+      wireframe: false,          // 3D 와이어프레임 표시 여부
+
+      // 색상 지정 (RGBA 배열: 0~255)
+      getFillColor: [255, 140, 0, 180],     // 채우기 색상 (주황색, 투명도)
+      getLineColor: [255, 255, 255, 255],   // 외곽선 색상 (흰색)
+      getLineWidth: 2,                     // 외곽선 두께 (미터 또는 픽셀 단위)
+      lineWidthMinPixels: 1,               // 축소 시 최저 픽셀 두께
+      getElevation: f => f.properties.height || 10, // 3D 높이 값 지정
+
+      // 이벤트 핸들러
+      onHover: info => {
+        if (info.object) {
+          console.log('Hovered Feature:', info.object.properties);
+        }
+      },
+      onClick: info => {
+        if (info.object) {
+          alert(`클릭된 영역: ${info.object.properties.name || '이름 없음'}`);
+        }
+      }
+    });
+
+
+
+    if (overlay) {
+      overlay.setProps({
+          layers: [geoJsonLayer],
+      });
+    }
+*/
+
+}
+
+
+// 1. Web Worker 생성
+const mapWorker = new Worker("./coastalFloodingMapWaker.js");
+
+// 2. Worker로부터 파싱 완료 결과를 수신하는 리스너
+mapWorker.onmessage = function (e) {
+
+    const { status, data, error } = e.data;
+
+    if (status === "success") {
+        console.log("Worker 파싱 완료! 지도 렌더링을 시작합니다.");
+        // 파싱된 GeoJSON 데이터를 지도에 그리기 (예: Google Maps Data Layer 또는 deck.gl)
+        //  data = { geoJson: geoJsonData, grade:grade}
+        renderOnMap(data);
+    } else {
+        console.error("Worker 내 파싱 에러:", error);
+    }
+};
+
+
 window.addEventListener("message", (event) => {
 
-    let data ;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
+   // let data ;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
 
     // 1. 전달된 데이터가 Transferable(ArrayBuffer) 형태인지 확인
-    if ( event.data &&  event.data.type === 'TRANSFER_DATA' && event.data.grade &&  event.data.buffer) {
+    if ( event.data &&  event.data.type === 'TRANSFER_DATA' && event.data.grade &&  event.data.buffer  instanceof ArrayBuffer) {
         try {
-            const decodedString = new TextDecoder().decode(new Uint8Array( event.data.buffer));
-            // Validate that the string isn't empty and contains basic JSON structure
-            if (!decodedString || decodedString.trim() === "") {
-                throw new Error("Decoded string is empty");
-            }
-            // 3. JSON 파싱
-            let geojsonObject = JSON.parse(decodedString);
-            let grade =  event.data.grade
-            initMapWithData(geojsonObject, grade)
+        // ArrayBuffer를 Worker로 넘기면서 소유권 이전 (Transferable List 활용)
+            // 3번째 인자 [arrayBuffer]를 넘겨 메인 스레드 메모리 복사 없이 전달
+            mapWorker.postMessage({ grade: event.data.grade,  buffer: event.data.buffer },   [event.data.buffer]);
+            console.log("Worker로 ArrayBuffer 이관 완료 (메인 스레드 블로킹 없음)");
         } catch (e) {
             console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
             return;
@@ -109,21 +182,24 @@ window.addEventListener("message", (event) => {
     }
     else if (typeof event.data === 'string') {
         try {
-            data = JSON.parse(event.data);
+            const data = JSON.parse(event.data);
+
+            if(data.action == 'CHANGE_DATA'){
+                initMapWithData(data.values, data.type)
+            }
+
+            if (data.action === "FLY_TO") {
+                console.log("FLY_TO:", data.target.lat, data.target.lng);
+                smoothFlyTo({lat:data.target.lat, lng:data.target.lng})
+            }
+
         } catch (e) {
             console.error("메시지 데이터 파싱 중 오류 발생:", e);
             return; // 파싱 실패 시 함수 종료
         }
     }
 
-    if(data.action == 'CHANGE_DATA'){
-        initMapWithData(data.values, data.type)
-    }
 
-    if (data.action === "FLY_TO") {
-        console.log("FLY_TO:", data.target.lat, data.target.lng);
-        smoothFlyTo({lat:data.target.lat, lng:data.target.lng})
-    }
 
 });
 
