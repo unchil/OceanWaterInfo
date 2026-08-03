@@ -74,7 +74,7 @@ fun webMainCoastalFloodingMap(){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
             visibleAlertBox.value = false
-            geojsonObject.value =coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
+            geojsonObject.value = coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
 
             sendMsgChangeData( IFRAME_COASTAL_FLOODING, geojsonObject.value, gradeOption.name)
         }else {
@@ -202,7 +202,7 @@ fun webMainCoastalFloodingMap(){
                             when (label) {
                                 "Reload" ->{
                                     visibleProgressIndicator.value = true
-                                    sendMsgInitData( IFRAME_COASTAL_FLOODING, initData.value)
+                                    sendMsgChangeData( IFRAME_COASTAL_FLOODING, geojsonObject.value, gradeOption.name)
                                     coroutineScope.launch {
                                         delay(1000)
                                         visibleProgressIndicator.value = false
