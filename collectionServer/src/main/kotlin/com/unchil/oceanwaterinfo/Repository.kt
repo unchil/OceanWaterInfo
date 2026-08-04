@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 
 import com.unchil.oceanwaterinfo.Config.Companion.configData
+import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
@@ -845,9 +846,10 @@ class Repository {
         try {
             RestApi.callMofAPI_xml().let { response ->
                 if(response.status.value == 200){
-                    XML.toJSONObject(response.bodyAsText()).let { jsonData ->
-                        val df = DataFrame.readJson(jsonData.toString().byteInputStream())
-                        val result = df.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
+                   // XML.toJSONObject(response.bodyAsText()).let { jsonData ->
+                    response.bodyAsText().let{ jsonData ->
+                        val df = DataFrame.readJson(jsonData.byteInputStream())
+                        val result = df.get("body").get("items").get("item")[0] as DataFrame<*>
 
                         LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${result.count()}]]")
 
