@@ -1,6 +1,6 @@
 package com.unchil.oceanwaterinfo
 
-import androidx.compose.remote.creation.ceil
+
 import com.unchil.oceanwaterinfo.Config.Companion.configData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
