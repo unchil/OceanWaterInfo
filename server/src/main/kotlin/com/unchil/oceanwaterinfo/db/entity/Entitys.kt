@@ -1,9 +1,16 @@
 package com.unchil.oceanwaterinfo
 
 
+import com.unchil.oceanwaterinfo.QWQObservatoryTable.sta_code
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 
+object CoastalFloodingGeoJsonObjectTbl: Table("CoastalFloodingGeoJsonObjectTbl"){
+    val grade = varchar("grade", 2)
+    val ctpvNm = varchar("ctpvNm", 20)
+    val geojson =  text("geojson")
+    override val primaryKey = PrimaryKey(grade, ctpvNm, geojson, name = "CoastalFloodingGeoJsonObjectTbl_pk")
+}
 
 object CoastalFloodingGeoTbl: Table("CoastalFloodingGeoTbl"){
     val grade = varchar("grade", 2)

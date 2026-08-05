@@ -57,7 +57,6 @@ fun jvmMainCoastalFloodingMap(
     val initCenterPoint = remember{ Point(126.934515, 37.385852) }
     val bottomBarHeight = remember{80.dp}
 
-    val visibleAlertBox = remember { mutableStateOf(false) }
 
     val host = "http://localhost:7272"
     val servicePage = "coastalFloodingMap.html"
@@ -79,7 +78,7 @@ fun jvmMainCoastalFloodingMap(
     }
 
 
-    val coastalFloodingInfo = viewModel._coastalFloodingInfo.collectAsState()
+    val coastalFloodingInfo = viewModel._coastalFloodingGeoJsonObject.collectAsState()
     // ViewModel의 로딩 상태를 관찰
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -87,14 +86,8 @@ fun jvmMainCoastalFloodingMap(
     LaunchedEffect( coastalFloodingInfo.value){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
-            visibleAlertBox.value = false
-            geojsonObject.value =coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
+            geojsonObject.value = coastalFloodingInfo.value.first().geojson
 
-        }else {
-            // 쿼리 결과가 0 인 경우
-            visibleAlertBox.value = true
-            val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
-            navigator.evaluateJavaScript(flyTo)
         }
     }
 
@@ -169,16 +162,6 @@ fun jvmMainCoastalFloodingMap(
         }
 
 
-        AnimatedVisibility(visibleAlertBox.value){
-            Text(
-                "No relevant data was found.",
-                modifier = Modifier.fillMaxWidth().padding(vertical =10.dp),
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                color = Color.Blue,
-            )
-
-        }
 
 
         BoxWithConstraints(

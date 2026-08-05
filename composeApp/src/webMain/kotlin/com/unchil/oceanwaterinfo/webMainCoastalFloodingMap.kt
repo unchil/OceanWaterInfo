@@ -36,6 +36,8 @@ import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 
 @Composable
@@ -51,7 +53,7 @@ fun webMainCoastalFloodingMap(){
     }
 
     val initCenterPoint = remember{ Point(126.934515, 37.385852) }
-    val visibleAlertBox = remember { mutableStateOf(false) }
+
     val geojsonObject = remember{ mutableStateOf("" )}
 
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
@@ -59,11 +61,11 @@ fun webMainCoastalFloodingMap(){
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
-
+        logWithTime( getTimeStamp(), "Sending Refresh Event")
     }
 
 
-    val coastalFloodingInfo = viewModel._coastalFloodingInfo.collectAsState()
+    val coastalFloodingInfo = viewModel._coastalFloodingGeoJsonObject.collectAsState()
 
     // ViewModel의 로딩 상태를 관찰
     val isLoading by viewModel.isLoading.collectAsState()
@@ -71,14 +73,14 @@ fun webMainCoastalFloodingMap(){
     LaunchedEffect( coastalFloodingInfo.value){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
-            visibleAlertBox.value = false
-            geojsonObject.value = coastalFloodingInfo.value.toGeoJsonObject(Pair(sidoOption.name, gradeOption.tabTitle()))
-          //  sendMsgChangeData(IFRAME_COASTAL_FLOODING,  geojsonObject.value, gradeOption.name)
-            postIframeMessage2(IFRAME_COASTAL_FLOODING , geojsonObject.value,gradeOption.name)
-        }else {
-            // 쿼리 결과가 0 인 경우
-            visibleAlertBox.value = true
-     //       sendMsgFlyToCoastalFlooding.invoke(initCenterPoint)
+
+            logWithTime( getTimeStamp(), "GeoJSON object creation and validation Start")
+            postIframeMessage2(
+                IFRAME_COASTAL_FLOODING ,
+                coastalFloodingInfo.value.first().geojson,
+                gradeOption.name
+            )
+
         }
     }
 
@@ -146,16 +148,7 @@ fun webMainCoastalFloodingMap(){
             }
         }
 
-        AnimatedVisibility(visibleAlertBox.value){
-            Text(
-                "No relevant data was found.",
-                modifier = Modifier.fillMaxWidth().padding(vertical =10.dp),
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                color = Color.Blue,
-            )
 
-        }
 
 
         BoxWithConstraints(

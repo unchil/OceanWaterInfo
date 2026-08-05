@@ -1,15 +1,9 @@
 package com.unchil.oceanwaterinfo.viewmodel
 
-import com.unchil.oceanwaterinfo.CoastalFloodingGeo
+import com.unchil.oceanwaterinfo.CoastalFloodingGeoJsonObject
 import com.unchil.oceanwaterinfo.getPlatform
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 class CoastalFloodingInfoViewModel() {
 
@@ -19,17 +13,17 @@ class CoastalFloodingInfoViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    val _coastalFloodingInfo: MutableStateFlow<List<CoastalFloodingGeo>>
-        = repository._coastalFloodingInfo
 
-
+    val _coastalFloodingGeoJsonObject: MutableStateFlow<List<CoastalFloodingGeoJsonObject>>
+            = repository._coastalFloodingGeoJsonObject
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
                 _isLoading.value = true // 로딩 시작
                 try {
-                    repository.getCoastalFloodingInfo(event.grade, event.sido)
+
+                    repository.getCoastalFloodingGeojson_Object(event.grade, event.sido, "select")
                 } finally {
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
@@ -38,7 +32,7 @@ class CoastalFloodingInfoViewModel() {
     }
 
     sealed class Event {
-        data class Refresh(val grade:String, val sido:String = "") : Event()
+        data class Refresh(val grade:String, val sido:String = "경기도") : Event()
     }
 
 

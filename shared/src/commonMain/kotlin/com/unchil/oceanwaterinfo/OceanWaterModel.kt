@@ -2,7 +2,7 @@ package com.unchil.oceanwaterinfo
 
 
 import kotlinx.serialization.Serializable
-
+import kotlinx.serialization.descriptors.StructureKind
 
 
 enum class CoastalFloodingGrade {
@@ -47,6 +47,13 @@ data class SeaWaterBoxPlotStat(
     val outliers: List<Float> = emptyList() // 이상치 목록
 )
 
+@Serializable
+data class CoastalFloodingGeoJsonObject(
+    val grade: String,
+    val ctpvNm:String,
+    val geojson:String
+
+    )
 
 @Serializable
 data class CoastalFloodingGeo(

@@ -8,6 +8,15 @@ let overlay;
 let zoomLevel = 10
 let center = { lat: 37.385852, lng: 126.934515 };
 
+// [14:30:05.123] 형태의 타임스탬프 생성
+function getTimestamp() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    return `[${h}:${m}:${s}.${ms}]`;
+}
 
 async function initMap() {
 
@@ -74,6 +83,36 @@ function processConfiguration(geometry, callback, thisArg) {
 }
 
 window.initMapWithData = function( geojsonObject, grade) {
+
+    console.log(`${getTimestamp()} initMapWithData Start`);
+
+
+    // --- [데이터 검증 및 이동 로직 추가] ---
+    let isEmpty = true;
+
+    if (geojsonObject && geojsonObject.features && geojsonObject.features.length > 0) {
+        const geometry = geojsonObject.features[0].geometry;
+        // MultiPolygon 구조이므로 coordinates 배열의 길이를 확인
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            isEmpty = false;
+        }
+    }
+
+    if (isEmpty) {
+        console.log(`${getTimestamp()} GeoJSON coordinates are empty. Flying to default center.`);
+        window.alert("선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.");
+        // 데이터가 없으므로 기존 데이터를 지우고 기본 센터로 이동
+        map.data.forEach((feature) => {
+            map.data.remove(feature);
+        });
+
+        // 전역 변수로 정의된 center ({ lat: 37.385852, lng: 126.934515 }) 사용
+        smoothFlyTo(center);
+        return; // 이후 렌더링 로직 중단
+    }
+    // ------------------------------------------
+
+
     const strokeColor = getGradeColor(grade);
     // 2. 기존 데이터 레이어 초기화
     map.data.forEach((feature) => {
@@ -94,6 +133,8 @@ window.initMapWithData = function( geojsonObject, grade) {
         processConfiguration(feature.getGeometry(), bounds.extend, bounds);
     });
     map.fitBounds(bounds);
+
+   console.log(`${getTimestamp()} initMapWithData End`);
 }
 
 
@@ -216,12 +257,12 @@ mapWorker.onmessage = function (e) {
     const { status, data, error } = e.data;
 
     if (status === "success") {
-        console.log("Worker 파싱 완료! 지도 렌더링을 시작합니다.");
+        console.log(`${getTimestamp()} Worker 파싱 완료! 지도 렌더링을 시작합니다.`);
         // 파싱된 GeoJSON 데이터를 지도에 그리기 (예: Google Maps Data Layer 또는 deck.gl)
         //  data = { geoJson: geoJsonData, grade:grade}
         renderOnMap(data);
     } else {
-        console.error("Worker 내 파싱 에러:", error);
+        console.log(`${getTimestamp()} Worker 내 파싱 에러:`, error);
     }
 };
 
@@ -230,13 +271,16 @@ window.addEventListener("message", (event) => {
 
    // let data ;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
 
+   console.log(`${getTimestamp()} EventListener receive message!`);
+
+
     // 1. 전달된 데이터가 Transferable(ArrayBuffer) 형태인지 확인
     if ( event.data &&  event.data.type === 'TRANSFER_DATA' && event.data.grade &&  event.data.buffer  instanceof ArrayBuffer) {
         try {
         // ArrayBuffer를 Worker로 넘기면서 소유권 이전 (Transferable List 활용)
             // 3번째 인자 [arrayBuffer]를 넘겨 메인 스레드 메모리 복사 없이 전달
             mapWorker.postMessage({ grade: event.data.grade,  buffer: event.data.buffer },   [event.data.buffer]);
-            console.log("Worker로 ArrayBuffer 이관 완료 (메인 스레드 블로킹 없음)");
+            console.log(`${getTimestamp()} Worker로 ArrayBuffer 이관 완료 (메인 스레드 블로킹 없음)`);
         } catch (e) {
             console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
             return;
@@ -304,6 +348,7 @@ window.addMarkerClusterer =  function(locations, labels, contents) {
     });
     new markerClusterer.MarkerClusterer({ map, markers });
 };
+
 
 
 initMap();

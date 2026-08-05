@@ -68,6 +68,25 @@ class OceanWaterRepository {
     val _coastalFloodingInfo: MutableStateFlow<List<CoastalFloodingGeo>>
             = MutableStateFlow(emptyList())
 
+    val _coastalFloodingGeoJsonObject: MutableStateFlow<List<CoastalFloodingGeoJsonObject>>
+            = MutableStateFlow(emptyList())
+
+
+
+    suspend fun getCoastalFloodingGeojson_Object(grade:String, sido:String, type:String){
+
+        try {
+
+            oceanWaterApi.getCoastalFloodingGeojson_object( grade, sido, type).let {
+                _coastalFloodingGeoJsonObject.value = it
+                LOGGER.debug("getCoastalFloodingGeojson_Object() called[${it.count()}]")
+            }
+
+        }catch (e:Exception){
+            _coastalFloodingGeoJsonObject.value = emptyList()
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
 
     suspend fun getCoastalFloodingInfo(grade:String, sido:String){
         var page = 1

@@ -1,8 +1,20 @@
+//import {geojsonObject } from './geom.js';
+
 
 let map;
 let overlay;
 let zoomLevel = 6
 let center = { lat: 37.385852, lng: 126.934515 };
+
+// [14:30:05.123] 형태의 타임스탬프 생성
+function getTimestamp() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    return `[${h}:${m}:${s}.${ms}]`;
+}
 
 
 async function initMap() {
@@ -57,6 +69,37 @@ function processConfiguration(geometry, callback, thisArg) {
 }
 
 window.initMapWithData = function( geojsonObject, grade) {
+
+    // --- [데이터 검증 및 이동 로직 추가] ---
+    let isEmpty = true;
+
+    if (geojsonObject && geojsonObject.features && geojsonObject.features.length > 0) {
+        const geometry = geojsonObject.features[0].geometry;
+        // MultiPolygon 구조이므로 coordinates 배열의 길이를 확인
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            isEmpty = false;
+        }
+    }
+
+    if (isEmpty) {
+        console.log(`${getTimestamp()} GeoJSON coordinates are empty. Flying to default center.`);
+        window.alert("선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.");
+        // 데이터가 없으므로 기존 데이터를 지우고 기본 센터로 이동
+        map.data.forEach((feature) => {
+            map.data.remove(feature);
+        });
+
+        // 전역 변수로 정의된 center ({ lat: 37.385852, lng: 126.934515 }) 사용
+        smoothFlyTo(center);
+        return; // 이후 렌더링 로직 중단
+    }
+    // ------------------------------------------
+
+
+
+
+
+
     const strokeColor = getGradeColor(grade);
 
     // 2. 기존 데이터 레이어 초기화 (필요시)

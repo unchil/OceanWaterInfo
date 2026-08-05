@@ -148,6 +148,24 @@ fun Application.configureSerialization(repository: Repository) {
 
         route("/khoa"){
 
+            get("/coastal_flooding_info/geojson_object"){
+                val grade = call.parameters["grade"]?.trim() ?: "F"
+                val sido = call.parameters["sido"]?.trim() ?: "경기도"
+                val type = call.parameters["type"]?.trim() ?: "create"
+
+                try {
+                    val result = repository.coastalFloodingGeoJsonObject(grade, sido,type)
+                    if (result.isEmpty()) {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    }
+                    call.respond(result)
+                } catch (ex: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+
+            }
+
             get("/coastal_flooding_info"){
 
                 val defaultRequestedSize = 100

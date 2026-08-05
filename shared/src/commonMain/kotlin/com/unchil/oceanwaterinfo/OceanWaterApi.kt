@@ -40,6 +40,20 @@ class OceanWaterApi {
         }
     }
 
+
+    suspend fun getCoastalFloodingGeojson_object(grade:String = "F", sido:String = "경기도", type:String = "select"): List<CoastalFloodingGeoJsonObject>{
+
+
+        return httpClient.get("${endPoint}/khoa/coastal_flooding_info/geojson_object") {
+            url {
+                parameters.append("grade", grade)
+                parameters.append("sido", sido)
+                parameters.append("type", type)
+            }
+        }.body<List<CoastalFloodingGeoJsonObject>>()
+
+    }
+
     suspend fun getCoastalFloodingGeo(page:Int = 1, size:Int = 300, grade:String = "F", sido:String = ""): List<CoastalFloodingGeo>{
 
         /*

@@ -4,9 +4,25 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.browser.document
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
+
+fun getTimeStamp():String{
+    val now = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    return  "[${now.hour}:${now.minute}:${now.second}.${now.nanosecond/1000000}]"
+}
+
+@OptIn(ExperimentalWasmJsInterop::class)
+@JsFun("(timestamp, msg) => { " +
+        "console.log([timestamp] + ' [Kotlin] ' + msg);" +
+        "}")
+external fun logWithTime(timestamp:String, msg: String)
 
 @OptIn(ExperimentalWasmJsInterop::class)
 fun postIframeMessage(iframeId: String, messageJson: String) {
@@ -29,6 +45,9 @@ private external fun jsPostTransferable(window: org.w3c.dom.Window, grade:String
 
 @OptIn(ExperimentalWasmJsInterop::class)
 fun postIframeMessage2(iframeId: String, messageJson: String, grade:String) {
+
+    logWithTime( getTimeStamp(), "Sending to IFRAME[${iframeId}] TRANSFER_DATA")
+
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
     val contentWindow = iframe.contentWindow ?: return
 

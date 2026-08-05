@@ -1,6 +1,9 @@
 package com.unchil.oceanwaterinfo
 
 
+import com.unchil.oceanwaterinfo.CoastalFloodingGeoInfo.flodVlCn
+import com.unchil.oceanwaterinfo.CoastalFloodingGeoInfo.geom
+import com.unchil.oceanwaterinfo.CoastalFloodingGeoInfo.sggNm
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -35,6 +38,8 @@ import org.jetbrains.exposed.v1.core.case
 import org.jetbrains.exposed.v1.core.concat
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.trim
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
 
 
 // 캐시를 저장할 ConcurrentHashMap. 스레드 안전성을 보장합니다.
@@ -62,6 +67,10 @@ private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 class Repository {
 
 
+    fun coastalFloodingGeoJsonObject( grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
+        val resultFromDb = fetchCoastalFloodingGeoJsonObjectFromDb(grade, sido, type)
+        return resultFromDb
+    }
     fun coastalFloodingGeo(page: Int, size: Int, grade:String, sido:String):List<CoastalFloodingGeo> {
         /*
         val key = "cache_coastalFloodingGeo"
@@ -402,6 +411,81 @@ class Repository {
         return resultFromDb
     }
 
+    fun fetchCoastalFloodingGeoJsonObjectFromDb(grade:String, ctpvNm:String, type:String): List<CoastalFloodingGeoJsonObject> = transaction {
+        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb")
+
+        val result = when(type){
+            "create" -> {
+
+                val geoJsonObject = CoastalFloodingGeoTbl
+                    .select(
+                        CoastalFloodingGeoTbl.grade,
+                        CoastalFloodingGeoTbl.flodVlCn,
+                        CoastalFloodingGeoTbl.ctpvNm,
+                        CoastalFloodingGeoTbl.geom
+                    )
+                    .where {
+                        (CoastalFloodingGeoTbl.grade eq grade)  and
+                                (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
+                    }
+                    .map{
+                        CoastalFloodingGeo(
+                            grade = it[CoastalFloodingGeoTbl.grade],
+                            flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
+                            ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
+                            geom = it[CoastalFloodingGeoTbl.geom]
+                        )
+                    }.toGeoJsonObject(Pair(ctpvNm, grade))
+
+
+                SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
+
+                try {
+                    CoastalFloodingGeoJsonObjectTbl.insertIgnore { it ->
+                        it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
+                        it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
+                        it[CoastalFloodingGeoJsonObjectTbl.geojson] = geoJsonObject
+                    }
+                } catch (e: Exception) {
+                    e.localizedMessage?.let { msg ->
+                        LOGGER.debug(msg)
+                    }
+                }
+
+                listOf(
+                    CoastalFloodingGeoJsonObject(
+                        grade = grade,
+                        ctpvNm = ctpvNm,
+                        geojson = geoJsonObject
+                    )
+                )
+
+            }
+
+            else -> {
+                CoastalFloodingGeoJsonObjectTbl
+                    .select(
+                        CoastalFloodingGeoJsonObjectTbl.grade,
+                        CoastalFloodingGeoJsonObjectTbl.ctpvNm,
+                        CoastalFloodingGeoJsonObjectTbl.geojson
+                    )
+                    .where {
+                        (CoastalFloodingGeoJsonObjectTbl.grade eq grade)  and
+                        (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
+                    }
+                    .map{
+                        CoastalFloodingGeoJsonObject(
+                            grade = it[CoastalFloodingGeoJsonObjectTbl.grade],
+                            ctpvNm = it[CoastalFloodingGeoJsonObjectTbl.ctpvNm],
+                            geojson = it[CoastalFloodingGeoJsonObjectTbl.geojson]
+                        )
+                    }
+
+            }
+        }
+
+        return@transaction result
+    }
 
     fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String, ctpvNm:String): List<CoastalFloodingGeo> = transaction {
         LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoFromDb")
