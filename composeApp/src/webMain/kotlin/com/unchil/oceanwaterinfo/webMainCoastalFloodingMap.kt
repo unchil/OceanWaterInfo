@@ -75,17 +75,13 @@ fun webMainCoastalFloodingMap(){
         if(coastalFloodingInfo.value.isNotEmpty()) {
 
             logWithTime( getTimeStamp(), "GeoJSON object creation and validation Start")
-            postIframeMessage2(
-                IFRAME_COASTAL_FLOODING ,
+
+            sendMsgChangeData(IFRAME_COASTAL_FLOODING ,
                 coastalFloodingInfo.value.first().geojson,
                 gradeOption.name
             )
-
         }
     }
-
-
-
 
 
     Column(
