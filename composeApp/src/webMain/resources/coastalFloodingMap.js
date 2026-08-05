@@ -267,7 +267,7 @@ mapWorker.onmessage = function (e) {
 };
 
 
-window.addEventListener("message", (event) => {
+window.addEventListener("message", async(event) => {
 
    // let data ;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
 
@@ -284,6 +284,31 @@ window.addEventListener("message", (event) => {
         } catch (e) {
             console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
             return;
+        }
+    }
+    else if (event.data &&  event.data.type === 'COMPRESSED_TRANSFER_DATA') {
+        try {
+            console.log(`${getTimestamp()} [JS] 압축 데이터 수신 완료. 해제 시작...`);
+
+            // 1. DecompressionStream 생성 (gzip)
+            const ds = new DecompressionStream('gzip');
+
+            // 2. 데이터를 스트림으로 변환 후 해제
+            const response = new Response(event.data.buffer);
+            const decompressedStream = response.body.pipeThrough(ds);
+
+            // 3. 텍스트로 읽기
+            const resultText = await new Response(decompressedStream).text();
+
+            // 4. JSON 파싱
+            const json = JSON.parse(resultText);
+
+            console.log(`${getTimestamp()} [JS] 해제 완료. 데이터 처리 시작.`);
+
+            initMapWithData(json, event.data.grade)
+
+        } catch (e) {
+            console.error(`${getTimestamp()} 압축 해제 실패:` , e);
         }
     }
     else if (typeof event.data === 'string') {

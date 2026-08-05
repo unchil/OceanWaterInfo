@@ -24,6 +24,36 @@ fun getTimeStamp():String{
         "}")
 external fun logWithTime(timestamp:String, msg: String)
 
+
+
+@OptIn(ExperimentalWasmJsInterop::class)
+fun postIframeMessageCompressed(iframeId: String, grade:String, messageJson: String) {
+    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
+    val contentWindow = iframe.contentWindow ?: return
+
+    logWithTime(getTimeStamp(), "Compressing and sending data...")
+
+    // JS 브릿지 함수 호출 (압축 및 전송)
+    jsPostCompressedTransferable(contentWindow, grade, messageJson, "*")
+}
+
+@OptIn(ExperimentalWasmJsInterop::class)
+@JsFun("(window, grade, jsonString, origin) => { " +
+        "const encoder = new TextEncoder();" +
+        "const data = encoder.encode(jsonString);" +
+        // 1. CompressionStream 생성 (gzip 방식)
+        "const cs = new CompressionStream('gzip');" +
+        "const writer = cs.writable.getWriter();" +
+        "writer.write(data);" +
+        "writer.close();" +
+        // 2. 압축된 스트림을 ArrayBuffer로 변환
+        "new Response(cs.readable).arrayBuffer().then(buffer => {" +
+        "   window.postMessage({ type: 'COMPRESSED_TRANSFER_DATA', grade: grade, buffer: buffer }, origin, [buffer]);" +
+        "}).catch(err => console.error('Compression failed', err));" +
+        "}")
+private external fun jsPostCompressedTransferable(window: org.w3c.dom.Window, grade:String, jsonString: String, origin: String)
+
+
 @OptIn(ExperimentalWasmJsInterop::class)
 fun postIframeMessage(iframeId: String, messageJson: String) {
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement
@@ -50,6 +80,7 @@ fun postIframeMessage2(iframeId: String, messageJson: String, grade:String) {
 
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
     val contentWindow = iframe.contentWindow ?: return
+
 
     // JS 함수를 호출하여 문자열을 버퍼로 변환하고 소유권을 이전하며 전송합니다.
     jsPostTransferable(contentWindow, grade, messageJson, "*")

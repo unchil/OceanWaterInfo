@@ -1,6 +1,6 @@
 package com.unchil.oceanwaterinfo
 
-import androidx.compose.animation.AnimatedVisibility
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -74,12 +74,38 @@ fun webMainCoastalFloodingMap(){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
 
-            logWithTime( getTimeStamp(), "GeoJSON object creation and validation Start")
+            val length = coastalFloodingInfo.value.first().geojson.length
+            val sizeThreshold = 50 * 1024 * 1024 // 50MB (Bytes/Chars 기준)
+            logWithTime(getTimeStamp(), "Data Processing Start (Size: ${length/1024/1024} MB)")
 
-            sendMsgChangeData(IFRAME_COASTAL_FLOODING ,
+            sendMsgChangeData(
+                IFRAME_COASTAL_FLOODING,
                 coastalFloodingInfo.value.first().geojson,
                 gradeOption.name
             )
+
+            /*
+
+            if (length >= sizeThreshold) {
+                // 1. 50MB 이상일 때: 압축 전송 (Transferable + Gzip)
+                logWithTime(getTimeStamp(), "Data size >= 50MB. Calling postIframeMessageCompressed")
+                postIframeMessageCompressed(
+                    IFRAME_COASTAL_FLOODING,
+                    gradeOption.name,
+                    coastalFloodingInfo.value.first().geojson
+                )
+            }else {
+                // 2. 50MB 미만일 때: 일반 전송 (기존 방식)
+                logWithTime(getTimeStamp(), "Data size < 50MB. Calling sendMsgChangeData")
+                sendMsgChangeData(
+                    IFRAME_COASTAL_FLOODING,
+                    coastalFloodingInfo.value.first().geojson,
+                    gradeOption.name
+                )
+            }
+
+             */
+
         }
     }
 
