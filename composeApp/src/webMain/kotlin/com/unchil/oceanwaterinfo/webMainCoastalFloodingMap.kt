@@ -78,11 +78,21 @@ fun webMainCoastalFloodingMap(){
             val sizeThreshold = 50 * 1024 * 1024 // 50MB (Bytes/Chars 기준)
             logWithTime(getTimeStamp(), "Data Processing Start (Size: ${length/1024/1024} MB)")
 
+
+            postIframeMessage2(
+                IFRAME_COASTAL_FLOODING,
+                coastalFloodingInfo.value.first().geojson,
+                gradeOption.name
+            )
+
+            /*
             sendMsgChangeData(
                 IFRAME_COASTAL_FLOODING,
                 coastalFloodingInfo.value.first().geojson,
                 gradeOption.name
             )
+
+ */
 
             /*
 
