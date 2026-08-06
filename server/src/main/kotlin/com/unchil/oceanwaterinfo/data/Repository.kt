@@ -1,9 +1,6 @@
 package com.unchil.oceanwaterinfo
 
 
-import com.unchil.oceanwaterinfo.CoastalFloodingGeoInfo.flodVlCn
-import com.unchil.oceanwaterinfo.CoastalFloodingGeoInfo.geom
-import com.unchil.oceanwaterinfo.CoastalFloodingGeoInfo.sggNm
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -15,7 +12,6 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.FloatColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.avg
 import org.jetbrains.exposed.v1.core.castTo
@@ -25,21 +21,15 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.substring
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
-
-import org.jetbrains.exposed.v1.core.stringLiteral
-import org.jetbrains.exposed.v1.core.max
-import org.jetbrains.exposed.v1.core.case
-import org.jetbrains.exposed.v1.core.concat
-import org.jetbrains.exposed.v1.core.lowerCase
-import org.jetbrains.exposed.v1.core.trim
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.insertIgnore
 
 
 // 캐시를 저장할 ConcurrentHashMap. 스레드 안전성을 보장합니다.
@@ -441,11 +431,20 @@ class Repository {
                 SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
 
                 try {
-                    CoastalFloodingGeoJsonObjectTbl.insertIgnore { it ->
+
+                    // Exposed v0.41+ 기준 deleteWhere 문법
+                    CoastalFloodingGeoJsonObjectTbl.deleteWhere {
+                        (CoastalFloodingGeoJsonObjectTbl.grade eq grade) and
+                                (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
+                    }
+
+                    // 4. 새로운 데이터 Insert
+                    CoastalFloodingGeoJsonObjectTbl.insert {
                         it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
                         it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
                         it[CoastalFloodingGeoJsonObjectTbl.geojson] = geoJsonObject
                     }
+
                 } catch (e: Exception) {
                     e.localizedMessage?.let { msg ->
                         LOGGER.debug(msg)

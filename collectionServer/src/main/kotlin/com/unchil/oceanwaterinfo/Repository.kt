@@ -423,6 +423,7 @@ class Repository {
 
             val updateTargets = transaction(Config.conn) {
 
+
                 val codeList = SggCode.select(SggCode.sgg_code).map { it ->
                     it[SggCode.sgg_code].trim()
                 }
@@ -453,6 +454,8 @@ class Repository {
                         }
                     }
                 }
+
+
 
                 // ---------------------------------------------------------------------------
                 // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
@@ -499,21 +502,22 @@ class Repository {
                 // ---------------------------------------------------------------------------
                 // 2. 루프를 돌기 위해 필요한 grade와 sido(ctpvNm) 목록 추출 (중복 제거)
                 // ---------------------------------------------------------------------------
-                CoastalFloodingGeoTbl
-                    .select( CoastalFloodingGeoTbl.grade , CoastalFloodingGeoTbl.ctpvNm)
+                SggCode
+                    .select( SggCode.sd_name )
                     .withDistinct() // 중복된 grade-sido 쌍 제거
-                    .map {
-                        Pair(it[CoastalFloodingGeoTbl.grade], it[CoastalFloodingGeoTbl.ctpvNm])
-                    }
+                    .map {  it[SggCode.sd_name]}
+
             }
 
             // 3. 추출된 대상을 바탕으로 RestApi 호출 (Transaction 외부에서 비동기 호출 권장)
-            updateTargets.forEach { (grade, sido) ->
-                try {
-                    // RestApi 호출을 통해 GeoJSON 오브젝트 생성 또는 갱신 요청
-                    RestApi.getCoastalFloodingGeojson_object(grade, sido, "create")
-                } catch (e: Exception) {
-                    LOGGER.info("API Call: [grade:$grade, sido:$sido]}")
+            updateTargets.forEach { sido ->
+                listOf("F", "E", "D", "C", "B", "A").forEach {
+                    try {
+                        // RestApi 호출을 통해 GeoJSON 오브젝트 생성 또는 갱신 요청
+                        RestApi.getCoastalFloodingGeojson_object(it, sido, "create")
+                    } catch (e: Exception) {
+                        LOGGER.info("API Call: [grade:$it, sido:$sido]}")
+                    }
                 }
             }
 
