@@ -151,7 +151,7 @@ fun Application.configureSerialization(repository: Repository) {
             get("/coastal_flooding_info/geojson_object"){
                 val grade = call.parameters["grade"]?.trim() ?: "F"
                 val sido = call.parameters["sido"]?.trim() ?: "경기도"
-                val type = call.parameters["type"]?.trim() ?: "create"
+                val type = call.parameters["type"]?.trim() ?: "select"
 
                 try {
                     val result = repository.coastalFloodingGeoJsonObject(grade, sido,type)
