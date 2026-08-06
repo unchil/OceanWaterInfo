@@ -451,8 +451,7 @@ class Repository {
                         LOGGER.debug(msg)
                     }
                 }
-                emptyList()
-                /*
+
                 listOf(
                     CoastalFloodingGeoJsonObject(
                         grade = grade,
@@ -460,8 +459,6 @@ class Repository {
                         geojson = geoJsonObject
                     )
                 )
-
-                 */
 
             }
 
