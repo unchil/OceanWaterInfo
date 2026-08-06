@@ -123,9 +123,9 @@ class RestApi {
             }
 
             install(HttpTimeout) {
-                requestTimeoutMillis = 10000
-                connectTimeoutMillis = 3000
-                socketTimeoutMillis = 3000
+                requestTimeoutMillis = 30000
+                connectTimeoutMillis = 30000
+                socketTimeoutMillis = 30000
             }
         }
     }
