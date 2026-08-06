@@ -2,7 +2,6 @@ package com.unchil.oceanwaterinfo
 
 
 import com.unchil.oceanwaterinfo.Config.Companion.configData
-import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
@@ -24,7 +23,6 @@ import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
@@ -44,7 +42,6 @@ import org.jetbrains.kotlinx.dataframe.api.values
 import org.jetbrains.kotlinx.dataframe.api.with
 import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
-import org.jetbrains.kotlinx.dataframe.io.readSqlQuery
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
 import kotlin.math.ceil
@@ -419,12 +416,12 @@ class Repository {
         return allDataFrames
     }
 
-    fun getCoastalFloodingInfo(){
+    suspend fun getCoastalFloodingInfo(){
         try {
             val path = "${configData.WATER_LOGGED?.endPoint}/${configData.WATER_LOGGED?.subPath}" +
                     "?serviceKey=${configData.WATER_LOGGED?.apikey}&type=json"
 
-            transaction(Config.conn) {
+            val updateTargets = transaction(Config.conn) {
 
                 val codeList = SggCode.select(SggCode.sgg_code).map { it ->
                     it[SggCode.sgg_code].trim()
@@ -499,7 +496,27 @@ class Repository {
 
                 LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
 
+                // ---------------------------------------------------------------------------
+                // 2. 루프를 돌기 위해 필요한 grade와 sido(ctpvNm) 목록 추출 (중복 제거)
+                // ---------------------------------------------------------------------------
+                CoastalFloodingGeoTbl
+                    .select( CoastalFloodingGeoTbl.grade , CoastalFloodingGeoTbl.ctpvNm)
+                    .withDistinct() // 중복된 grade-sido 쌍 제거
+                    .map {
+                        Pair(it[CoastalFloodingGeoTbl.grade], it[CoastalFloodingGeoTbl.ctpvNm])
+                    }
             }
+
+            // 3. 추출된 대상을 바탕으로 RestApi 호출 (Transaction 외부에서 비동기 호출 권장)
+            updateTargets.forEach { (grade, sido) ->
+                try {
+                    // RestApi 호출을 통해 GeoJSON 오브젝트 생성 또는 갱신 요청
+                    RestApi.getCoastalFloodingGeojson_object(grade, sido, "create")
+                } catch (e: Exception) {
+                    LOGGER.info("API Call: [grade:$grade, sido:$sido]}")
+                }
+            }
+
         } catch (e:Exception){
             e.localizedMessage?.let { msg ->
                 LOGGER.debug(msg)

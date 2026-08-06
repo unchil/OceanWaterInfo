@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 import com.unchil.oceanwaterinfo.Config.Companion.configData
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -29,6 +30,20 @@ import java.nio.charset.StandardCharsets
 class RestApi {
 
     companion object {
+
+        suspend fun getCoastalFloodingGeojson_object(grade:String = "F", sido:String = "경기도", type:String = "select"): List<CoastalFloodingGeoJsonObject>{
+
+            val endPoint = "http://${if( getPlatform().name.contains("Android") ) "192.168.35.107" else "192.168.35.107"}:7788"
+
+            return client.get("${endPoint}/khoa/coastal_flooding_info/geojson_object") {
+                url {
+                    parameters.append("grade", grade)
+                    parameters.append("sido", sido)
+                    parameters.append("type", type)
+                }
+            }.body<List<CoastalFloodingGeoJsonObject>>()
+
+        }
         suspend fun callKHNP_PlantStates_xml(url:String):String{
             client.get(url).let {
                 return it.bodyAsText(java.nio.charset.Charset.forName("UTF8"))

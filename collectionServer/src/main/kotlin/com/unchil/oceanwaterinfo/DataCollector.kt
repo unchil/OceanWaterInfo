@@ -63,7 +63,7 @@ class DataCollector {
 
     }
 
-    fun scheduleJob720Minutes(){
+    suspend fun scheduleJob720Minutes(){
         LOGGER.info("Data Collector Started. scheduleJob720Minutes...")
         try {
             repository.getCoastalFloodingInfo()
