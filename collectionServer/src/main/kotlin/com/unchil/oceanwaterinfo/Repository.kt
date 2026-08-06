@@ -430,8 +430,10 @@ class Repository {
                     it[SggCode.sgg_code].trim()
                 }
 
+
                 val result = loadDataCoastalFlooding(path, codeList).concat()
 
+                // 1. 원본 데이터 테이블 생성 및 초기화
                 SchemaUtils.create(CoastalFloodingGeoInfo)
 
                 // --------------------------------------------------
@@ -439,7 +441,7 @@ class Repository {
                 CoastalFloodingGeoInfo.deleteAll()
                 // --------------------------------------------------
 
-
+                // 2. 원본 데이터 삽입 (기존 로직)
                 result.forEach { item ->
                     try {
                         CoastalFloodingGeoInfo.insertIgnore { it ->
@@ -454,6 +456,49 @@ class Repository {
                         }
                     }
                 }
+
+                // ---------------------------------------------------------------------------
+                // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
+                // ---------------------------------------------------------------------------
+
+                // 요약 테이블 생성 및 기존 데이터 삭제
+                SchemaUtils.create(CoastalFloodingGeoTbl)
+                CoastalFloodingGeoTbl.deleteAll()
+
+                // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
+                // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
+                val aggregateSql = """
+                INSERT INTO CoastalFloodingGeoTbl (grade, flodVlCn, ctpvNm, geom)
+                SELECT 
+                    MAX(grade) AS grade,
+                    MAX(flodVlCn) AS flodVlCn,
+                    MAX(ctpvNm) AS ctpvNm,
+                    geom
+                FROM (
+                    SELECT 
+                        CASE 
+                            WHEN flodVlCn = '0.0-0.5' THEN 'A'
+                            WHEN flodVlCn = '0.5-1.0' THEN 'B'
+                            WHEN flodVlCn = '1.0-1.5' THEN 'C'
+                            WHEN flodVlCn = '1.5-2.0' THEN 'D'
+                            WHEN flodVlCn = '2.0-2.5' THEN 'E'
+                            WHEN flodVlCn = '2.5-3.0' THEN 'E'
+                            WHEN flodVlCn = '2.0-3.0' THEN 'E'
+                            ELSE 'F'
+                        END AS grade,
+                        geom,
+                        ctpvNm,
+                        flodVlCn
+                    FROM CoastalFloodingGeoInfo
+                ) AS A
+                GROUP BY A.geom
+            """.trimIndent()
+
+                // Exposed의 exec 함수를 통해 네이티브 쿼리 실행
+                exec(aggregateSql)
+
+                LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
+
             }
         } catch (e:Exception){
             e.localizedMessage?.let { msg ->

@@ -3,6 +3,16 @@ package com.unchil.oceanwaterinfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+
+@Serializable
+data class CoastalFloodingGeo(
+    val grade: String,
+    val flodVlCn:String,
+    val ctpvNm:String,
+    val geom: String,
+
+    )
+
 @Serializable
 data class KHNPPlantInfo(
     val siteCd: String,
