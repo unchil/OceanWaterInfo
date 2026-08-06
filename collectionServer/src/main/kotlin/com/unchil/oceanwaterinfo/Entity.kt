@@ -1,11 +1,5 @@
 package com.unchil.oceanwaterinfo
 
-
-import com.unchil.oceanwaterinfo.ObservationTable.obs_dat
-import com.unchil.oceanwaterinfo.ObservationTable.obs_datetime
-import com.unchil.oceanwaterinfo.ObservationTable.obs_lay
-import com.unchil.oceanwaterinfo.ObservationTable.obs_tim
-import com.unchil.oceanwaterinfo.ObservationTable.sta_cde
 import org.jetbrains.exposed.v1.core.Table
 
 object SggCode: Table("SggCode"){

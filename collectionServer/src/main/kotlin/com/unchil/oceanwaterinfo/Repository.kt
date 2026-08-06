@@ -17,10 +17,13 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -416,28 +419,30 @@ class Repository {
         return allDataFrames
     }
 
-    suspend fun getCoastalFloodingInfo(){
+    fun getCoastalFloodingInfo(){
         try {
             val path = "${configData.WATER_LOGGED?.endPoint}/${configData.WATER_LOGGED?.subPath}" +
                     "?serviceKey=${configData.WATER_LOGGED?.apikey}&type=json"
 
-            val updateTargets = transaction(Config.conn) {
-
+            transaction(Config.conn) {
 
                 val codeList = SggCode.select(SggCode.sgg_code).map { it ->
                     it[SggCode.sgg_code].trim()
                 }
 
-
                 val result = loadDataCoastalFlooding(path, codeList).concat()
+
+
 
                 // 1. 원본 데이터 테이블 생성 및 초기화
                 SchemaUtils.create(CoastalFloodingGeoInfo)
+
 
                 // --------------------------------------------------
                 // 추가된 부분: 새로운 데이터를 넣기 전에 기존 데이터를 모두 삭제 (Truncate 효과)
                 CoastalFloodingGeoInfo.deleteAll()
                 // --------------------------------------------------
+                LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
 
                 // 2. 원본 데이터 삽입 (기존 로직)
                 result.forEach { item ->
@@ -455,6 +460,9 @@ class Repository {
                     }
                 }
 
+                LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
+
+
 
 
                 // ---------------------------------------------------------------------------
@@ -464,6 +472,8 @@ class Repository {
                 // 요약 테이블 생성 및 기존 데이터 삭제
                 SchemaUtils.create(CoastalFloodingGeoTbl)
                 CoastalFloodingGeoTbl.deleteAll()
+
+                LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
 
                 // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
                 // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
@@ -499,27 +509,79 @@ class Repository {
 
                 LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
 
+
+                CoastalFloodingGeoInfo.deleteAll()
+
+                LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+
                 // ---------------------------------------------------------------------------
                 // 2. 루프를 돌기 위해 필요한 grade와 sido(ctpvNm) 목록 추출 (중복 제거)
                 // ---------------------------------------------------------------------------
-                SggCode
+
+                val updateTargets = SggCode
                     .select( SggCode.sd_name )
                     .withDistinct() // 중복된 grade-sido 쌍 제거
                     .map {  it[SggCode.sd_name]}
 
-            }
 
-            // 3. 추출된 대상을 바탕으로 RestApi 호출 (Transaction 외부에서 비동기 호출 권장)
-            updateTargets.forEach { sido ->
-                listOf("F", "E", "D", "C", "B", "A").forEach {
-                    try {
-                        // RestApi 호출을 통해 GeoJSON 오브젝트 생성 또는 갱신 요청
-                        RestApi.getCoastalFloodingGeojson_object(it, sido, "create")
-                    } catch (e: Exception) {
-                        LOGGER.info("API Call: [grade:$it, sido:$sido]}")
+                // 3. 추출된 대상을 바탕으로 RestApi 호출 (Transaction 외부에서 비동기 호출 권장)
+                updateTargets.forEach { ctpvNm ->
+                    listOf("F", "E", "D", "C", "B", "A").forEach { grade ->
+
+                        val geoJsonObject = CoastalFloodingGeoTbl
+                            .select(
+                                CoastalFloodingGeoTbl.grade,
+                                CoastalFloodingGeoTbl.flodVlCn,
+                                CoastalFloodingGeoTbl.ctpvNm,
+                                CoastalFloodingGeoTbl.geom
+                            )
+                            .where {
+                                (CoastalFloodingGeoTbl.grade eq grade)  and
+                                        (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
+                            }
+                            .map{
+                                CoastalFloodingGeo(
+                                    grade = it[CoastalFloodingGeoTbl.grade],
+                                    flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
+                                    ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
+                                    geom = it[CoastalFloodingGeoTbl.geom]
+                                )
+                            }.toGeoJsonObject(Pair(ctpvNm, grade))
+
+
+                        SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
+
+                        try {
+
+                            // Exposed v0.41+ 기준 deleteWhere 문법
+                            CoastalFloodingGeoJsonObjectTbl.deleteWhere {
+                                (CoastalFloodingGeoJsonObjectTbl.grade eq grade) and
+                                        (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
+                            }
+
+                            // 4. 새로운 데이터 Insert
+                            CoastalFloodingGeoJsonObjectTbl.insert {
+                                it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
+                                it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
+                                it[CoastalFloodingGeoJsonObjectTbl.geojson] = geoJsonObject
+                            }
+
+                        } catch (e: Exception) {
+                            e.localizedMessage?.let { msg ->
+                                com.unchil.oceanwaterinfo.LOGGER.debug(msg)
+                            }
+                        }
+
                     }
                 }
+
+                LOGGER.info("CoastalFloodingGeoJsonObjectTbl  테이블 갱신 완료.")
+
+                CoastalFloodingGeoTbl.deleteAll()
+                LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
             }
+
+
 
         } catch (e:Exception){
             e.localizedMessage?.let { msg ->
