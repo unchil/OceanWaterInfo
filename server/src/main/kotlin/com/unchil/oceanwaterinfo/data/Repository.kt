@@ -50,7 +50,7 @@ private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHN
 private val cacheStorage_KHNPRadioActiveWaste = ConcurrentHashMap<String, Pair<List<KHNPRadioActiveWaste>, Long>>()
 private val cacheStorage_KHNPPlantState = ConcurrentHashMap<String, Pair<List<KHNPPlantOperationInfo>, Long>>()
 
-private val cacheStorage_CoastalFloodingGeo = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeo>, Long>>()
+private val cacheStorage_CoastalFloodingGeoJsonObject = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeoJsonObject>, Long>>()
 
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 
@@ -58,9 +58,30 @@ class Repository {
 
 
     fun coastalFloodingGeoJsonObject( grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
+        /*
+        val key = "cache_coastalFloodingGeoJsonObject_${grade}_${sido}"
+        val now = System.currentTimeMillis()
+        val duration =  12 * 60 * 60L
+
+        cacheStorage_CoastalFloodingGeoJsonObject[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(duration)) {
+                LOGGER.info("Serving from cache for ID:${key}")
+                return cachedData.first
+            }
+        }
+*/
         val resultFromDb = fetchCoastalFloodingGeoJsonObjectFromDb(grade, sido, type)
+/*
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_CoastalFloodingGeoJsonObject[key] = Pair(resultFromDb, now)
+        }
+
+ */
+
         return resultFromDb
     }
+
+
     fun coastalFloodingGeo(page: Int, size: Int, grade:String, sido:String):List<CoastalFloodingGeo> {
         /*
         val key = "cache_coastalFloodingGeo"
@@ -402,7 +423,7 @@ class Repository {
     }
 
     fun fetchCoastalFloodingGeoJsonObjectFromDb(grade:String, ctpvNm:String, type:String): List<CoastalFloodingGeoJsonObject> = transaction {
-        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb")
+        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb Start")
 
         val result = when(type){
             "create" -> {
@@ -482,7 +503,7 @@ class Repository {
 
             }
         }
-
+        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb End")
         return@transaction result
     }
 
