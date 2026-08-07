@@ -33,9 +33,12 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
+import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
+
+val LOGGER = KtorSimpleLogger("jvmMain")
 
 
 

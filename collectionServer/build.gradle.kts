@@ -19,7 +19,6 @@ dependencies {
     implementation(libs.logback)
     implementation(libs.ktor.clientCore)
     implementation(libs.ktor.clientCio)
-    implementation(libs.logback)
     implementation(libs.ktor.clientLogging)
     implementation(libs.ktor.clientNegotiation)
     implementation(libs.kotlinx.serialization)

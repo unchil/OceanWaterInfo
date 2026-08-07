@@ -1,7 +1,5 @@
 package com.unchil.oceanwaterinfo
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,13 +33,8 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
-import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import io.github.koalaplot.core.xygraph.Point
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 
 @Composable
 fun jvmMainCoastalFloodingMap(
@@ -74,7 +67,9 @@ fun jvmMainCoastalFloodingMap(
 
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
+        LOGGER.debug("Call Refresh Event")
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
+
     }
 
 
@@ -87,6 +82,8 @@ fun jvmMainCoastalFloodingMap(
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
             geojsonObject.value = coastalFloodingInfo.value.first().geojson
+            val length = coastalFloodingInfo.value.first().geojson.size
+            LOGGER.debug("Data Receive (Size: ${length / 1024 } KB)")
 
         }
     }
@@ -95,6 +92,7 @@ fun jvmMainCoastalFloodingMap(
         if( geojsonObject.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
             val jsonString = geojsonObject.value.decodeToString()
             navigator.evaluateJavaScript("initMapWithData( ${jsonString},  \"${gradeOption.name}\")")
+            LOGGER.debug("Call initMapWithData")
         }
     }
 

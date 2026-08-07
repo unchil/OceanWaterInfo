@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -81,6 +82,9 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(compose.desktop.currentOs)
             implementation(libs.compose.webview.multiplatform)
+
+            implementation(libs.ktor.clientLogging)
+            implementation(libs.logback)
 
         }
     }
