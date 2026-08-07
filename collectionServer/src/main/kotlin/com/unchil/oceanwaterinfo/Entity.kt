@@ -13,7 +13,7 @@ object SggCode: Table("SggCode"){
 object CoastalFloodingGeoJsonObjectTbl: Table("CoastalFloodingGeoJsonObjectTbl"){
     val grade = varchar("grade", 2)
     val ctpvNm = varchar("ctpvNm", 20)
-    val geojson =  text("geojson")
+    val geojson =  blob("geojson")
     override val primaryKey = PrimaryKey(grade, ctpvNm, name = "CoastalFloodingGeoJsonObjectTbl_pk")
 }
 

@@ -20,6 +20,7 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.statements.api.ExposedBlob
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -559,11 +560,16 @@ class Repository {
                                         (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
                             }
 
+                            // 2. String을 ByteArray로 변환 후 ExposedBlob으로 생성
+                            val bytes = geoJsonObject.toByteArray(Charsets.UTF_8)
+                            val blobData = ExposedBlob(bytes)
+
+
                             // 4. 새로운 데이터 Insert
                             CoastalFloodingGeoJsonObjectTbl.insert {
                                 it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
                                 it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
-                                it[CoastalFloodingGeoJsonObjectTbl.geojson] = geoJsonObject
+                                it[CoastalFloodingGeoJsonObjectTbl.geojson] = blobData
                             }
 
                         } catch (e: Exception) {

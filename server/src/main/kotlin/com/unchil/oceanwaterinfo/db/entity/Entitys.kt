@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.core.Table
 object CoastalFloodingGeoJsonObjectTbl: Table("CoastalFloodingGeoJsonObjectTbl"){
     val grade = varchar("grade", 2)
     val ctpvNm = varchar("ctpvNm", 20)
-    val geojson =  text("geojson")
+    val geojson =  blob("geojson")
     override val primaryKey = PrimaryKey(grade, ctpvNm, name = "CoastalFloodingGeoJsonObjectTbl_pk")
 }
 

@@ -20,6 +20,7 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.min
+import org.jetbrains.exposed.v1.core.statements.api.ExposedBlob
 import org.jetbrains.exposed.v1.core.substring
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -459,11 +460,17 @@ class Repository {
                                 (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
                     }
 
+                    // 2. String을 ByteArray로 변환 후 ExposedBlob으로 생성
+                    val bytes = geoJsonObject.toByteArray(Charsets.UTF_8)
+                    val blobData = ExposedBlob(bytes)
+
+
+
                     // 4. 새로운 데이터 Insert
                     CoastalFloodingGeoJsonObjectTbl.insert {
                         it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
                         it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
-                        it[CoastalFloodingGeoJsonObjectTbl.geojson] = geoJsonObject
+                        it[CoastalFloodingGeoJsonObjectTbl.geojson] = blobData
                     }
 
                 } catch (e: Exception) {
@@ -494,10 +501,18 @@ class Repository {
                         (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
                     }
                     .map{
+
+                        // 1. BLOB 객체 가져오기
+                        val blob = it[CoastalFloodingGeoJsonObjectTbl.geojson]
+
+                        // 2. 바이트 배열을 추출하여 UTF-8 문자열로 복원
+                        val jsonString = String(blob.bytes, Charsets.UTF_8)
+
+
                         CoastalFloodingGeoJsonObject(
                             grade = it[CoastalFloodingGeoJsonObjectTbl.grade],
                             ctpvNm = it[CoastalFloodingGeoJsonObjectTbl.ctpvNm],
-                            geojson = it[CoastalFloodingGeoJsonObjectTbl.geojson]
+                            geojson = jsonString
                         )
                     }
 
