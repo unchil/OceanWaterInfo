@@ -271,7 +271,7 @@ window.addEventListener("message", async(event) => {
 
    // let data ;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
 
-   console.log(`${getTimestamp()} EventListener receive message!`);
+   console.log(`${getTimestamp()} EventListener Receive Message!`);
 
 
     // 1. 전달된 데이터가 Transferable(ArrayBuffer) 형태인지 확인
@@ -280,7 +280,7 @@ window.addEventListener("message", async(event) => {
         // ArrayBuffer를 Worker로 넘기면서 소유권 이전 (Transferable List 활용)
             // 3번째 인자 [arrayBuffer]를 넘겨 메인 스레드 메모리 복사 없이 전달
             mapWorker.postMessage({ grade: event.data.grade,  buffer: event.data.buffer },   [event.data.buffer]);
-            console.log(`${getTimestamp()} Worker로 ArrayBuffer 이관 완료 (메인 스레드 블로킹 없음)`);
+            console.log(`${getTimestamp()} Receive Data Send to Worker `);
         } catch (e) {
             console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
             return;
@@ -288,7 +288,7 @@ window.addEventListener("message", async(event) => {
     }
     else if (event.data &&  event.data.type === 'COMPRESSED_TRANSFER_DATA') {
         try {
-            console.log(`${getTimestamp()} [JS] 압축 데이터 수신 완료. 해제 시작...`);
+            console.log(`${getTimestamp()} 압축 데이터 수신 완료. 해제 시작...`);
 
             // 1. DecompressionStream 생성 (gzip)
             const ds = new DecompressionStream('gzip');
@@ -303,7 +303,7 @@ window.addEventListener("message", async(event) => {
             // 4. JSON 파싱
             const json = JSON.parse(resultText);
 
-            console.log(`${getTimestamp()} [JS] 해제 완료. 데이터 처리 시작.`);
+            console.log(`${getTimestamp()} 해제 완료. 데이터 처리 시작.`);
 
             initMapWithData(json, event.data.grade)
 
