@@ -66,7 +66,7 @@ fun jvmMainCoastalFloodingMap(
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
 
-    val geojsonObject = remember{ mutableStateOf("" )}
+    val geojsonObject = remember{ mutableStateOf(byteArrayOf())}
 
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
@@ -93,7 +93,8 @@ fun jvmMainCoastalFloodingMap(
 
     LaunchedEffect(webViewState.loadingState,geojsonObject.value){
         if( geojsonObject.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
-            navigator.evaluateJavaScript("initMapWithData( ${geojsonObject.value},  \"${gradeOption.name}\")")
+            val jsonString = geojsonObject.value.decodeToString()
+            navigator.evaluateJavaScript("initMapWithData( ${jsonString},  \"${gradeOption.name}\")")
         }
     }
 
@@ -209,7 +210,9 @@ fun jvmMainCoastalFloodingMap(
                                 onChangeFlag = { label, value ->
                                     when (label) {
                                         "Reload" ->{
-                                            navigator.evaluateJavaScript("initMapWithData( ${geojsonObject.value},  \"${gradeOption.name}\")")
+                                            val jsonString = geojsonObject.value.decodeToString()
+
+                                            navigator.evaluateJavaScript("initMapWithData( ${jsonString},  \"${gradeOption.name}\")")
                                         }
                                     }
 

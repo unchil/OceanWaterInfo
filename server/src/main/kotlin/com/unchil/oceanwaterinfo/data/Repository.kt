@@ -483,7 +483,7 @@ class Repository {
                     CoastalFloodingGeoJsonObject(
                         grade = grade,
                         ctpvNm = ctpvNm,
-                        geojson = geoJsonObject
+                        geojson = geoJsonObject.toByteArray(Charsets.UTF_8)
                     )
                 )
 
@@ -502,17 +502,10 @@ class Repository {
                     }
                     .map{
 
-                        // 1. BLOB 객체 가져오기
-                        val blob = it[CoastalFloodingGeoJsonObjectTbl.geojson]
-
-                        // 2. 바이트 배열을 추출하여 UTF-8 문자열로 복원
-                        val jsonString = String(blob.bytes, Charsets.UTF_8)
-
-
                         CoastalFloodingGeoJsonObject(
                             grade = it[CoastalFloodingGeoJsonObjectTbl.grade],
                             ctpvNm = it[CoastalFloodingGeoJsonObjectTbl.ctpvNm],
-                            geojson = jsonString
+                            geojson = it[CoastalFloodingGeoJsonObjectTbl.geojson].bytes
                         )
                     }
 

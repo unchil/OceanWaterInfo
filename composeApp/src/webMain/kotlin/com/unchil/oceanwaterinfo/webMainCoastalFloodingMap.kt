@@ -54,7 +54,7 @@ fun webMainCoastalFloodingMap(){
 
     val initCenterPoint = remember{ Point(126.934515, 37.385852) }
 
-    val geojsonObject = remember{ mutableStateOf("" )}
+   // val geojsonObject = remember{ mutableStateOf("" )}
 
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
@@ -74,25 +74,26 @@ fun webMainCoastalFloodingMap(){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
 
-            val length = coastalFloodingInfo.value.first().geojson.length
+            val length = coastalFloodingInfo.value.first().geojson.size
             val sizeThreshold = 50 * 1024 * 1024 // 50MB (Bytes/Chars 기준)
             println( "${getTimeStamp()} [Kotlin] Data Receive (Size: ${length/1024/1024} MB)")
 
-
+/*
             postIframeMessage2(
                 IFRAME_COASTAL_FLOODING,
                 coastalFloodingInfo.value.first().geojson,
                 gradeOption.name
             )
 
-            /*
+ */
+
             sendMsgChangeData(
                 IFRAME_COASTAL_FLOODING,
-                coastalFloodingInfo.value.first().geojson,
+                coastalFloodingInfo.value.first().geojson.decodeToString(),
                 gradeOption.name
             )
 
- */
+
 
             /*
 
@@ -226,7 +227,11 @@ fun webMainCoastalFloodingMap(){
                         onChangeFlag = { label, value ->
                             when (label) {
                                 "Reload" ->{
-                                    sendMsgChangeData( IFRAME_COASTAL_FLOODING, geojsonObject.value, gradeOption.name)
+                                    sendMsgChangeData(
+                                        IFRAME_COASTAL_FLOODING,
+                                        coastalFloodingInfo.value.first().geojson.decodeToString(),
+                                        gradeOption.name
+                                    )
                                     coroutineScope.launch {
                                         delay(1000)
                                     }
