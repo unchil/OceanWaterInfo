@@ -11,6 +11,65 @@ let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
 let currentType = 'o3';
 
+
+// --- 로딩 스피너 설정 ---
+const style = document.createElement('style');
+style.innerHTML = `
+  #map-loader-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000; /* 지도보다 위에 표시 */
+    display: none;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .map-spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: map-spin 1s linear infinite;
+    margin-bottom: 10px;
+  }
+  @keyframes map-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .loader-text {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+  }
+`;
+document.head.appendChild(style);
+
+// 로더 DOM 생성
+const loaderDiv = document.createElement('div');
+loaderDiv.id = 'map-loader-container';
+loaderDiv.innerHTML = `
+    <div class="map-spinner"></div>
+    <div class="loader-text">loading...</div>
+`;
+document.body.appendChild(loaderDiv);
+
+// 제어 함수
+function showMapLoader(text = "loading...") {
+    document.querySelector('.loader-text').textContent = text;
+    loaderDiv.style.display = 'block';
+}
+
+function hideMapLoader() {
+    loaderDiv.style.display = 'none';
+}
+
+
 // Data.kt의 AirQualityStage 색상과 매칭 (RGB 형식)
 const airQualityColorRange = [
     [0, 228, 0],    // 1: GOOD (Green)
@@ -132,6 +191,11 @@ function renderLayer() {
     };
 
     startHexagonAnimation(props);
+
+           // 최종 렌더링 종료 후 로더 숨김
+           setTimeout(() => {
+               hideMapLoader();
+           }, 300); // 부드러운 전환을 위해 약간의 지연
 };
 
 
@@ -173,18 +237,20 @@ async function initMap() {
 
 
 window.addEventListener("message", (event) => {
-
+ showMapLoader("loading..."); // 로더 표시
     let data = event.data;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
     if (typeof data === 'string') {
         try {
             data = JSON.parse(data);
         } catch (e) {
             console.error("메시지 데이터 파싱 중 오류 발생:", e);
+            hideMapLoader();
             return; // 파싱 실패 시 함수 종료
         }
     }
 
     if(data.action == 'CHANGE_DATA'){
+
         currentType = data.type;
         updateData(data.values)
     }
@@ -247,6 +313,8 @@ function startHexagonAnimation(props) {
     }
 
     animationId = requestAnimationFrame(animate);
+
+
 }
 
 function smoothZoom ( targetZoom, currentZoom) {
