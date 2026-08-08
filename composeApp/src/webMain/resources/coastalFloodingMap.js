@@ -8,6 +8,64 @@ let overlay;
 let zoomLevel = 10
 let center = { lat: 37.385852, lng: 126.934515 };
 
+
+// --- 로딩 스피너 설정 ---
+const style = document.createElement('style');
+style.innerHTML = `
+  #map-loader-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000; /* 지도보다 위에 표시 */
+    display: none;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .map-spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: map-spin 1s linear infinite;
+    margin-bottom: 10px;
+  }
+  @keyframes map-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .loader-text {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+  }
+`;
+document.head.appendChild(style);
+
+// 로더 DOM 생성
+const loaderDiv = document.createElement('div');
+loaderDiv.id = 'map-loader-container';
+loaderDiv.innerHTML = `
+    <div class="map-spinner"></div>
+    <div class="loader-text">loading...</div>
+`;
+document.body.appendChild(loaderDiv);
+
+// 제어 함수
+function showMapLoader(text = "loading...") {
+    document.querySelector('.loader-text').textContent = text;
+    loaderDiv.style.display = 'block';
+}
+
+function hideMapLoader() {
+    loaderDiv.style.display = 'none';
+}
+
 // [14:30:05.123] 형태의 타임스탬프 생성
 function getTimestamp() {
     const now = new Date();
@@ -99,6 +157,7 @@ window.initMapWithData = function( geojsonObject, grade) {
     }
 
     if (isEmpty) {
+
         console.log(`${getTimestamp()} GeoJSON coordinates are empty. Flying to default center.`);
         window.alert("선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.");
         // 데이터가 없으므로 기존 데이터를 지우고 기본 센터로 이동
@@ -108,6 +167,8 @@ window.initMapWithData = function( geojsonObject, grade) {
 
         // 전역 변수로 정의된 center ({ lat: 37.385852, lng: 126.934515 }) 사용
         smoothFlyTo(center);
+
+            hideMapLoader();
         return; // 이후 렌더링 로직 중단
     }
     // ------------------------------------------
@@ -135,6 +196,11 @@ window.initMapWithData = function( geojsonObject, grade) {
     map.fitBounds(bounds);
 
    console.log(`${getTimestamp()} initMapWithData End`);
+
+       // 최종 렌더링 종료 후 로더 숨김
+       setTimeout(() => {
+           hideMapLoader();
+       }, 300); // 부드러운 전환을 위해 약간의 지연
 }
 
 
@@ -277,17 +343,20 @@ window.addEventListener("message", async(event) => {
     // 1. 전달된 데이터가 Transferable(ArrayBuffer) 형태인지 확인
     if ( event.data &&  event.data.type === 'TRANSFER_DATA' && event.data.grade &&  event.data.buffer  instanceof ArrayBuffer) {
         try {
+          showMapLoader("loading..."); // 로더 표시
         // ArrayBuffer를 Worker로 넘기면서 소유권 이전 (Transferable List 활용)
             // 3번째 인자 [arrayBuffer]를 넘겨 메인 스레드 메모리 복사 없이 전달
             mapWorker.postMessage({ grade: event.data.grade,  buffer: event.data.buffer },   [event.data.buffer]);
             console.log(`${getTimestamp()} Receive Data Send to Worker `);
         } catch (e) {
+        hideMapLoader(); // 에러 시 로더 숨김
             console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
             return;
         }
     }
     else if (event.data &&  event.data.type === 'COMPRESSED_TRANSFER_DATA') {
         try {
+        showMapLoader("loading..."); // 로더 표시
             console.log(`${getTimestamp()} 압축 데이터 수신 완료. 해제 시작...`);
 
             // 1. DecompressionStream 생성 (gzip)
@@ -308,6 +377,7 @@ window.addEventListener("message", async(event) => {
             initMapWithData(json, event.data.grade)
 
         } catch (e) {
+        hideMapLoader();
             console.error(`${getTimestamp()} 압축 해제 실패:` , e);
         }
     }
