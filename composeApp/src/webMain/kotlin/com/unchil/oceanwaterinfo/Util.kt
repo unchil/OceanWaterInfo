@@ -64,6 +64,10 @@ fun postIframeMessage(iframeId: String, messageJson: String) {
     iframe?.contentWindow?.postMessage(jsString, "*")
 }
 
+@OptIn(ExperimentalWasmJsInterop::class)
+@JsFun("() => performance.now()")
+external fun getPerformanceNow(): Double
+
 
 @OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, grade, wasmArray, origin) => { " +
         "const getTs = () => {" +

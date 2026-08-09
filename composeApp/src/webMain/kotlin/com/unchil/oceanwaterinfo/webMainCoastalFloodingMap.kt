@@ -61,7 +61,7 @@ fun webMainCoastalFloodingMap(){
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
-        println( "${getTimeStamp()} [Kotlin] Call Refresh Event")
+        println( "[Kotlin] Call Refresh Event")
     }
 
 
@@ -75,8 +75,7 @@ fun webMainCoastalFloodingMap(){
         if(coastalFloodingInfo.value.isNotEmpty()) {
 
             val length = coastalFloodingInfo.value.first().geojson.size
-            val sizeThreshold = 50 * 1024 * 1024 // 50MB (Bytes/Chars 기준)
-            println( "${getTimeStamp()} [Kotlin] Data Receive (Size: ${length/1024/1024} MB)")
+            println( "[Kotlin] Data Receive (Size: ${length/1024} KB)")
 
 
             postIframeMessage2(
