@@ -1,4 +1,4 @@
-//import {values } from './values.js';
+import { showMapLoader, hideMapLoader } from './mapLoader.js';
 
 const {GoogleMapsOverlay, TripsLayer} = deck;
 
@@ -41,6 +41,7 @@ async function initMap() {
 
 
 window.initMapWithData = function( values) {
+    showMapLoader("loading..."); // 로더 표시
 
     deckData = values.map((particle) => {
         const path = particle.map(p => [p.lng, p.lat]);
@@ -75,6 +76,10 @@ window.initMapWithData = function( values) {
 
      startAnimation();
 
+       // 최종 렌더링 종료 후 로더 숨김
+       setTimeout(() => {
+           hideMapLoader();
+       }, 300); // 부드러운 전환을 위해 약간의 지연
 
 }
 
@@ -85,7 +90,10 @@ function startAnimation() {
         cancelAnimationFrame(animationId);
     }
     // 데이터가 있는지 확인
-    if (deckData.length === 0) return;
+    if (deckData.length === 0) {
+        hideMapLoader();
+        return;
+    }
 
     // 데이터의 마지막 타임스탬프 값 계산 (예: 데이터 36개 * 간격 30 )
     const maxTime = ( deckData[0].timestamps.length - 1 ) * 10 ;
