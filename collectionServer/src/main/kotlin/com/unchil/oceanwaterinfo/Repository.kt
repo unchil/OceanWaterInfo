@@ -16,6 +16,7 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import nl.adaptivity.xmlutil.core.impl.multiplatform.InputStream
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -980,10 +981,12 @@ class Repository {
         try {
             RestApi.callMofAPI_xml().let { response ->
                 if(response.status.value == 200){
-                   // XML.toJSONObject(response.bodyAsText()).let { jsonData ->
-                    response.bodyAsText().let{ jsonData ->
-                        val df = DataFrame.readJson(jsonData.byteInputStream())
-                        val result = df.get("body").get("items").get("item")[0] as DataFrame<*>
+                    XML.toJSONObject(response.bodyAsText()).let { jsonData ->
+                 //   response.bodyAsText().let{ jsonData ->
+                        // val df = DataFrame.readJson(jsonData.byteInputStream())
+                     //  val result = df.get("body").get("items").get("item")[0] as DataFrame<*>
+                        val df = DataFrame.readJson( jsonData.toString().byteInputStream())
+                        val result = df.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
 
                         LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${result.count()}]]")
 
