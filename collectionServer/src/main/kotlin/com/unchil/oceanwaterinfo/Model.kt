@@ -40,8 +40,26 @@ fun List<CoastalFloodingGeo>.toGeoJsonObject(info:Pair<String, String> ):String 
             val trimmedPair = pair.trim()
             val spaceIdx = trimmedPair.indexOf(' ')
             if (spaceIdx != -1) {
-                val lng = trimmedPair.substring(0, spaceIdx)
-                val lat = trimmedPair.substring(spaceIdx + 1)
+                // 1. 원본 문자열 추출
+                val rawLng = trimmedPair.substring(0, spaceIdx)
+                val rawLat = trimmedPair.substring(spaceIdx + 1)
+
+                // 2. 경도(lng) 소수점 4자리 추출 (정수부 + '.' + 4자리 = dotIdx + 5)
+                val dotIdxLng = rawLng.indexOf('.')
+                val lng = if (dotIdxLng != -1 && rawLng.length > dotIdxLng + 5) {
+                    rawLng.substring(0, dotIdxLng + 5)
+                } else {
+                    rawLng
+                }
+
+                // 3. 위도(lat) 소수점 4자리 추출
+                val dotIdxLat = rawLat.indexOf('.')
+                val lat = if (dotIdxLat != -1 && rawLat.length > dotIdxLat + 5) {
+                    rawLat.substring(0, dotIdxLat + 5)
+                } else {
+                    rawLat
+                }
+
                 ring.add("[$lng,$lat]")
             }
         }
