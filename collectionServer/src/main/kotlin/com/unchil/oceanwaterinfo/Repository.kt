@@ -16,7 +16,6 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
-import nl.adaptivity.xmlutil.core.impl.multiplatform.InputStream
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -49,6 +48,7 @@ import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
+import java.nio.charset.StandardCharsets
 import kotlin.math.ceil
 import kotlin.time.Clock
 
@@ -421,6 +421,66 @@ class Repository {
         return allDataFrames
     }
 
+
+    fun simplifyGeoJsonWithMapshaper(inputJson: String, percentage: String = "20%"): String {
+
+        // 1. 임시 파일 생성 (입력용 및 출력용)
+        val inputFile = java.io.File.createTempFile("mapshaper_in_", ".json")
+        val outputFile = java.io.File.createTempFile("mapshaper_out_", ".json")
+
+        return try {
+            // 2. 입력 데이터를 파일에 저장
+            inputFile.writeText(inputJson, StandardCharsets.UTF_8)
+            LOGGER.info("[Mapshaper] Input file created: ${inputFile.absolutePath} (${inputFile.length() / 1024} KB)")
+
+            // 3. CLI 명령어 구성
+            // node --max-old-space-size=4096 를 사용하여 대용량 처리 메모리 확보
+            val process = ProcessBuilder(
+                "node",
+                "--max-old-space-size=4096",
+                "/opt/homebrew/bin/mapshaper",
+                "-i", inputFile.absolutePath,
+                "-clean",
+                "-simplify", percentage, "visvalingam", "keep-shapes",
+                "-clean",
+                "-o", outputFile.absolutePath, "format=geojson"
+            ).start()
+
+            // 4. 에러 로그 감시 (기존 코드 유지)
+            val errorOutput = StringBuilder()
+            val errorThread = Thread {
+                process.errorStream.bufferedReader().use { reader ->
+                    reader.forEachLine { line ->
+                        LOGGER.info("[Mapshaper Log] $line")
+                        errorOutput.append(line).append("\n")
+                    }
+                }
+            }
+            errorThread.start()
+
+            // 5. 프로세스 종료 대기
+            val exitCode = process.waitFor()
+            errorThread.join(2000)
+
+            if (exitCode != 0) {
+                throw RuntimeException("Mapshaper failed (Exit: $exitCode). Error: $errorOutput")
+            }
+
+            // 6. 출력 파일 읽기
+            val result = outputFile.readText(StandardCharsets.UTF_8)
+            LOGGER.info("[Mapshaper] Result read successfully. Length: ${result.length}")
+
+            result
+        } catch (e: Exception) {
+            LOGGER.error("[Mapshaper] Process Error: ${e.message}")
+            ""
+        } finally {
+            // 7. 사용 완료된 임시 파일 삭제 (보안 및 용량 관리)
+            if (inputFile.exists()) inputFile.delete()
+            if (outputFile.exists()) outputFile.delete()
+        }
+    }
+
     fun getCoastalFloodingInfo(){
         try {
             val path = "${configData.WATER_LOGGED?.endPoint}/${configData.WATER_LOGGED?.subPath}" +
@@ -476,6 +536,8 @@ class Repository {
                 CoastalFloodingGeoTbl.deleteAll()
 
                 LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
+
+
 
                 // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
                 // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
@@ -551,7 +613,16 @@ class Repository {
                             }.toGeoJsonObject(Pair(ctpvNm, grade))
 
 
+                        LOGGER.info("Simplifying GeoJSON for $ctpvNm $grade (Original size: ${geoJsonObject.length / 1024} KB)")
+                        // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
+                        val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
+                        LOGGER.info("Optimization Done for $ctpvNm $grade (Reduced size: ${simplifyGeoJsonObject.length / 1024} KB)")
+                        val simplifyBlobData = ExposedBlob(simplifyGeoJsonObject.toByteArray(Charsets.UTF_8))
+
+
+
                         SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
+
 
                         try {
 
@@ -566,11 +637,14 @@ class Repository {
                             val blobData = ExposedBlob(bytes)
 
 
+
                             // 4. 새로운 데이터 Insert
                             CoastalFloodingGeoJsonObjectTbl.insert {
                                 it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
                                 it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
                                 it[CoastalFloodingGeoJsonObjectTbl.geojson] = blobData
+                                it[CoastalFloodingGeoJsonObjectTbl.simplegeojson] = simplifyBlobData
+
                             }
 
                         } catch (e: Exception) {

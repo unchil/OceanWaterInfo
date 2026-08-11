@@ -9,6 +9,7 @@ object CoastalFloodingGeoJsonObjectTbl: Table("CoastalFloodingGeoJsonObjectTbl")
     val grade = varchar("grade", 2)
     val ctpvNm = varchar("ctpvNm", 20)
     val geojson =  blob("geojson")
+    val simplegeojson =  blob("simplegeojson")
     override val primaryKey = PrimaryKey(grade, ctpvNm, name = "CoastalFloodingGeoJsonObjectTbl_pk")
 }
 
