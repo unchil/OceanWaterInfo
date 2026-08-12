@@ -78,21 +78,25 @@ fun jvmMainCoastalFloodingMap(
     val isLoading by viewModel.isLoading.collectAsState()
 
 
-    LaunchedEffect( coastalFloodingInfo.value){
+    LaunchedEffect( coastalFloodingInfo.value, webViewState.loadingState){
 
-        if(coastalFloodingInfo.value.isNotEmpty()) {
-            geojsonObject.value = coastalFloodingInfo.value.first().geojson
-            val length = coastalFloodingInfo.value.first().geojson.size
-            LOGGER.debug("Data Receive (Size: ${length / 1024 } KB)")
+        if(coastalFloodingInfo.value.isNotEmpty()  &&  webViewState.loadingState is LoadingState.Finished ) {
 
-        }
-    }
+            if(sidoOption.equals(SiDo.entries[0])){
+                navigator.evaluateJavaScript("removeMapFeature()")
+            }
 
-    LaunchedEffect(webViewState.loadingState,geojsonObject.value){
-        if( geojsonObject.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
-            val jsonString = geojsonObject.value.decodeToString()
-            navigator.evaluateJavaScript("initMapWithData( ${jsonString},  \"${gradeOption.name}\")")
-            LOGGER.debug("Call initMapWithData")
+            coastalFloodingInfo.value.forEach { it->
+                if(sidoOption.equals(SiDo.entries[0])){
+                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call initMapWithDataAll")
+                    navigator.evaluateJavaScript("initMapWithDataAll( ${it.geojson.decodeToString()},  \"${gradeOption.name}\")")
+                }else {
+                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call initMapWithData")
+                    navigator.evaluateJavaScript("initMapWithData( ${it.geojson.decodeToString()},  \"${gradeOption.name}\")")
+                }
+
+            }
+
         }
     }
 

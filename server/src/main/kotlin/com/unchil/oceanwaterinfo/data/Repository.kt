@@ -427,66 +427,23 @@ class Repository {
         LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb Start")
 
         val result = when(type){
-            "create" -> {
-
-                val geoJsonObject = CoastalFloodingGeoTbl
+            "all" -> {
+                CoastalFloodingGeoJsonObjectTbl
                     .select(
-                        CoastalFloodingGeoTbl.grade,
-                        CoastalFloodingGeoTbl.flodVlCn,
-                        CoastalFloodingGeoTbl.ctpvNm,
-                        CoastalFloodingGeoTbl.geom
+                        CoastalFloodingGeoJsonObjectTbl.grade,
+                        CoastalFloodingGeoJsonObjectTbl.ctpvNm,
+                        CoastalFloodingGeoJsonObjectTbl.simplegeojson
                     )
                     .where {
-                        (CoastalFloodingGeoTbl.grade eq grade)  and
-                                (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
+                        (CoastalFloodingGeoJsonObjectTbl.grade eq grade)
                     }
                     .map{
-                        CoastalFloodingGeo(
-                            grade = it[CoastalFloodingGeoTbl.grade],
-                            flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
-                            ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
-                            geom = it[CoastalFloodingGeoTbl.geom]
+                        CoastalFloodingGeoJsonObject(
+                            grade = it[CoastalFloodingGeoJsonObjectTbl.grade],
+                            ctpvNm = it[CoastalFloodingGeoJsonObjectTbl.ctpvNm],
+                            geojson = it[CoastalFloodingGeoJsonObjectTbl.simplegeojson].bytes
                         )
-                    }.toGeoJsonObject(Pair(ctpvNm, grade))
-
-
-                SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
-
-                try {
-
-                    // Exposed v0.41+ 기준 deleteWhere 문법
-                    CoastalFloodingGeoJsonObjectTbl.deleteWhere {
-                        (CoastalFloodingGeoJsonObjectTbl.grade eq grade) and
-                                (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
                     }
-
-                    // 2. String을 ByteArray로 변환 후 ExposedBlob으로 생성
-                    val bytes = geoJsonObject.toByteArray(Charsets.UTF_8)
-                    val blobData = ExposedBlob(bytes)
-
-
-
-                    // 4. 새로운 데이터 Insert
-                    CoastalFloodingGeoJsonObjectTbl.insert {
-                        it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
-                        it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
-                        it[CoastalFloodingGeoJsonObjectTbl.geojson] = blobData
-                    }
-
-                } catch (e: Exception) {
-                    e.localizedMessage?.let { msg ->
-                        LOGGER.debug(msg)
-                    }
-                }
-
-                listOf(
-                    CoastalFloodingGeoJsonObject(
-                        grade = grade,
-                        ctpvNm = ctpvNm,
-                        geojson = geoJsonObject.toByteArray(Charsets.UTF_8)
-                    )
-                )
-
             }
 
             else -> {

@@ -21,6 +21,7 @@ fun CoastalFloodingGrade.tabTitle():String{
 }
 
 enum class SiDo {
+    전국,
     경기도,
     경상남도,
     경상북도,

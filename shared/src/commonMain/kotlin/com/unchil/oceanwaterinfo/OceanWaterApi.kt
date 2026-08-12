@@ -48,7 +48,7 @@ class OceanWaterApi {
             url {
                 parameters.append("grade", grade)
                 parameters.append("sido", sido)
-                parameters.append("type", type)
+                parameters.append("type", if(sido.equals("전국")) "all" else type)
             }
         }.body<List<CoastalFloodingGeoJsonObject>>()
 
