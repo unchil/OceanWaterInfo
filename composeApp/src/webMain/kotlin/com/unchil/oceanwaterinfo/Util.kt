@@ -4,54 +4,33 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.browser.document
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.khronos.webgl.toInt8Array
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 
-fun getTimeStamp():String{
-    val now = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    return  "[${now.hour}:${now.minute}:${now.second}.${now.nanosecond/1000000}]"
+fun sendPostMsg (iframeId:String, msgKey:String, values:String? = null ){
+    val message = if(values != null){
+        "{ \"msgKey\": \"${msgKey}\", \"values\":${values}}"
+    }else{
+        "{ \"msgKey\": \"${msgKey}\"}"
+    }
+    postIframeMessage(iframeId, message)
 }
 
-
+@OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, msgKey, grade,  wasmArray, origin) => { " +
+        "const uint8Array = new Uint8Array(wasmArray.buffer, wasmArray.byteOffset, wasmArray.byteLength);" +
+        "const buffer = uint8Array.buffer;" +
+        "window.postMessage({ msgKey: msgKey, grade: grade, buffer: buffer }, origin, [buffer]);" +
+        "}")
+private external fun jsPostMessage(window: org.w3c.dom.Window, msgKey:String, grade:String, wasmArray: JsAny, origin: String)
 
 @OptIn(ExperimentalWasmJsInterop::class)
-fun postIframeMessageCompressed(iframeId: String, grade:String, messageJson: String) {
+fun sendPostMsgRaw(iframeId: String, msgKey:String,  grade: String, geojsonBytes: ByteArray,){
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
     val contentWindow = iframe.contentWindow ?: return
-
-    // JS 브릿지 함수 호출 (압축 및 전송)
-    jsPostCompressedTransferable(contentWindow, grade, messageJson, "*")
+    jsPostMessage(contentWindow, msgKey, grade, geojsonBytes.toInt8Array(),  "*")
 }
-
-@OptIn(ExperimentalWasmJsInterop::class)
-@JsFun("(window, grade, jsonString, origin) => { " +
-        "const getTs = () => {" +
-        "    const now = new Date();" +
-        "    const h = now.getHours().toString().padStart(2, '0');" +
-        "    const m = now.getMinutes().toString().padStart(2, '0');" +
-        "    const s = now.getSeconds().toString().padStart(2, '0');" +
-        "    const ms = now.getMilliseconds().toString().padStart(3, '0');" +
-        "    return `[\${h}:\${m}:\${s}.\${ms}]`;" +
-        "};" +
-        "console.log(`\${getTs()} [Kotlin] jsPostCompressed: Compression Start`);" +
-
-        "const encoder = new TextEncoder();" +
-        "const data = encoder.encode(jsonString);" +
-        "const cs = new CompressionStream('gzip');" +
-        "const writer = cs.writable.getWriter();" +
-        "writer.write(data);" +
-        "writer.close();" +
-
-        "new Response(cs.readable).arrayBuffer().then(buffer => {" +
-        "   console.log(`\${getTs()} [Kotlin] jsPostCompressed: Compression Done & Sending`);" +
-        "   window.postMessage({ type: 'COMPRESSED_TRANSFER_DATA', grade: grade, buffer: buffer }, origin, [buffer]);" +
-        "}).catch(err => console.error('Compression failed', err));" +
-        "}")
-private external fun jsPostCompressedTransferable(window: org.w3c.dom.Window, grade: String, jsonString: String, origin: String)
 
 
 
@@ -62,71 +41,6 @@ fun postIframeMessage(iframeId: String, messageJson: String) {
     val jsString = messageJson.toJsString()
   //  println("Sent to ${iframeId}, jsString:[$jsString]")
     iframe?.contentWindow?.postMessage(jsString, "*")
-}
-
-@OptIn(ExperimentalWasmJsInterop::class)
-@JsFun("() => performance.now()")
-external fun getPerformanceNow(): Double
-
-
-@OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, grade, wasmArray, origin) => { " +
-        "const getTs = () => {" +
-        "    const now = new Date();" +
-        "    const h = now.getHours().toString().padStart(2, '0');" +
-        "    const m = now.getMinutes().toString().padStart(2, '0');" +
-        "    const s = now.getSeconds().toString().padStart(2, '0');" +
-        "    const ms = now.getMilliseconds().toString().padStart(3, '0');" +
-        "    return `[\${h}:\${m}:\${s}.\${ms}]`;" +
-        "};" +
-
-        // 1. Wasm Array를 Uint8Array로 변환 (복사 없이 뷰만 생성)
-        "const uint8Array = new Uint8Array(wasmArray.buffer, wasmArray.byteOffset, wasmArray.byteLength);" +
-        "const buffer = uint8Array.buffer;" +
-        "console.log(`\${getTs()} [Kotlin] jsPostDirectBuffer: Sending Buffer (Size: \${buffer.byteLength} bytes)`);" +
-        "window.postMessage({ type: 'TRANSFER_DATA', grade: grade, buffer: buffer }, origin, [buffer]);" +
-        "}")
-private external fun jsPostTransferable(window: org.w3c.dom.Window, grade: String, wasmArray: JsAny, origin: String)
-
-@OptIn(ExperimentalWasmJsInterop::class)
-fun postIframeMessage2(iframeId: String, geojsonBytes: ByteArray, grade:String) {
-
-    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
-    val contentWindow = iframe.contentWindow ?: return
-
-
-    // JS 함수를 호출하여 문자열을 버퍼로 변환하고 소유권을 이전하며 전송합니다.
-    jsPostTransferable(contentWindow, grade, geojsonBytes.toInt8Array(), "*")
-}
-
-
-
-@OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, grade, wasmArray, origin) => { " +
-        "const getTs = () => {" +
-        "    const now = new Date();" +
-        "    const h = now.getHours().toString().padStart(2, '0');" +
-        "    const m = now.getMinutes().toString().padStart(2, '0');" +
-        "    const s = now.getSeconds().toString().padStart(2, '0');" +
-        "    const ms = now.getMilliseconds().toString().padStart(3, '0');" +
-        "    return `[\${h}:\${m}:\${s}.\${ms}]`;" +
-        "};" +
-
-        // 1. Wasm Array를 Uint8Array로 변환 (복사 없이 뷰만 생성)
-        "const uint8Array = new Uint8Array(wasmArray.buffer, wasmArray.byteOffset, wasmArray.byteLength);" +
-        "const buffer = uint8Array.buffer;" +
-        "console.log(`\${getTs()} [Kotlin] jsPostDirectBuffer: Sending Buffer (Size: \${buffer.byteLength} bytes)`);" +
-        "window.postMessage({ type: 'TRANSFER_DATA_ALL', grade: grade, buffer: buffer }, origin, [buffer]);" +
-        "}")
-private external fun jsPostTransferableAll(window: org.w3c.dom.Window, grade: String, wasmArray: JsAny, origin: String)
-
-@OptIn(ExperimentalWasmJsInterop::class)
-fun postIframeMessageAll(iframeId: String, geojsonBytes: ByteArray, grade:String) {
-
-    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
-    val contentWindow = iframe.contentWindow ?: return
-
-
-    // JS 함수를 호출하여 문자열을 버퍼로 변환하고 소유권을 이전하며 전송합니다.
-    jsPostTransferableAll(contentWindow, grade, geojsonBytes.toInt8Array(), "*")
 }
 
 
@@ -160,10 +74,7 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
 
 
 
-val sendMsgRemoveFeather = {  iframeId:String ->
-    val message = "{ \"action\": \"REMOVE_FEATHER\"}"
-    postIframeMessage(iframeId, message)
-}
+
 
 
 
@@ -178,16 +89,6 @@ val sendMsgInitData = { iframeId:String, values:String->
     postIframeMessage(iframeId, message)
 }
 
-
-val sendMsgFlyToCoastalFlooding = { point:Point<Double, Double> ->
-    val message = """
-                {
-                    "action": "FLY_TO",
-                    "target": { "lat": ${point.y}, "lng": ${point.x} }
-                }
-                """.trimIndent()
-    postIframeMessage(IFRAME_COASTAL_FLOODING, message)
-}
 
 
 val sendMsgFlyToWaterInfo = { point:Point<Double, Double> ->

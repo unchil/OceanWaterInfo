@@ -52,9 +52,6 @@ fun webMainCoastalFloodingMap(){
         CoastalFloodingInfoViewModel()
     }
 
-    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
-
-   // val geojsonObject = remember{ mutableStateOf("" )}
 
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
@@ -74,24 +71,28 @@ fun webMainCoastalFloodingMap(){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
 
-            if(sidoOption.equals(SiDo.entries[0])){
-                sendMsgRemoveFeather(IFRAME_COASTAL_FLOODING)
-            }
+
+            sendPostMsg(IFRAME_COASTAL_FLOODING, "REMOVE_FEATHER" )
+
 
             coastalFloodingInfo.value.forEach { it ->
                 if(sidoOption.equals(SiDo.entries[0])){
                     println( "[Kotlin] Data Receive (Size: ${it.geojson.size/1024} KB)")
-                    postIframeMessageAll(
-                        IFRAME_COASTAL_FLOODING,
-                        it.geojson,
-                        gradeOption.name
+
+                    sendPostMsgRaw(
+                        iframeId=IFRAME_COASTAL_FLOODING,
+                        msgKey="COASTAL_FLOODING_ALL",
+                        grade=gradeOption.name,
+                        geojsonBytes=it.geojson
                     )
                 } else {
                     println( "[Kotlin] Data Receive (Size: ${it.geojson.size/1024} KB)")
-                    postIframeMessage2(
-                        IFRAME_COASTAL_FLOODING,
-                        it.geojson,
-                        gradeOption.name
+
+                    sendPostMsgRaw(
+                        iframeId=IFRAME_COASTAL_FLOODING,
+                        msgKey="COASTAL_FLOODING",
+                        grade=gradeOption.name,
+                        geojsonBytes=it.geojson
                     )
                 }
             }

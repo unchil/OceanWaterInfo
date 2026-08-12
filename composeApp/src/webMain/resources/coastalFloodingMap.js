@@ -45,8 +45,6 @@ async function initMap() {
     overlay.setMap(map);
 
 
- //   initMapWithData(geojsonObject, grade);
-
 };
 
 // 등급별 색상 매핑 함수
@@ -83,10 +81,8 @@ function processConfiguration(geometry, callback, thisArg) {
     }
 }
 
-window.initMapWithData = function( geojsonObject, grade) {
-
-    console.log(`${getTimestamp()} initMapWithData Start`);
-
+window.renderingMap = function( geojsonObject, grade, msgKey){
+    console.log(`${getTimestamp()} renderingMap Start`);
 
     // --- [데이터 검증 및 이동 로직 추가] ---
     let isEmpty = true;
@@ -99,31 +95,20 @@ window.initMapWithData = function( geojsonObject, grade) {
         }
     }
 
-    if (isEmpty) {
-
+    if (isEmpty && msgKey === 'COASTAL_FLOODING') {
         console.log(`${getTimestamp()} GeoJSON coordinates are empty. Flying to default center.`);
         window.alert("선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.");
         // 데이터가 없으므로 기존 데이터를 지우고 기본 센터로 이동
-        map.data.forEach((feature) => {
-            map.data.remove(feature);
-        });
-
-        // 전역 변수로 정의된 center ({ lat: 37.385852, lng: 126.934515 }) 사용
+        removeFeather();
         smoothFlyTo(center);
-
-            hideMapLoader();
+        hideMapLoader();
         return; // 이후 렌더링 로직 중단
     }
-    // ------------------------------------------
-
 
     const strokeColor = getGradeColor(grade);
-    // 2. 기존 데이터 레이어 초기화
-    map.data.forEach((feature) => {
-        map.data.remove(feature);
-    });
+
     map.data.addGeoJson(geojsonObject);
-    // 4. 스타일 설정
+
     map.data.setStyle({
         fillColor: strokeColor,   // 면 색상
         fillOpacity: 0.5,         // 투명도
@@ -138,60 +123,14 @@ window.initMapWithData = function( geojsonObject, grade) {
     });
     map.fitBounds(bounds);
 
-   console.log(`${getTimestamp()} initMapWithData End`);
+    console.log(`${getTimestamp()} renderingMap End`);
 
-       // 최종 렌더링 종료 후 로더 숨김
-       setTimeout(() => {
-           hideMapLoader();
-       }, 300); // 부드러운 전환을 위해 약간의 지연
+    // 최종 렌더링 종료 후 로더 숨김
+    setTimeout(() => {
+       hideMapLoader();
+    }, 300); // 부드러운 전환을 위해 약간의 지연
 }
 
-
-window.initMapWithDataAll = function( geojsonObject, grade) {
-
-    console.log(`${getTimestamp()} initMapWithData Start`);
-
-
-    // --- [데이터 검증 및 이동 로직 추가] ---
-    let isNotEmpty = false;
-
-    if (geojsonObject && geojsonObject.features && geojsonObject.features.length > 0) {
-        const geometry = geojsonObject.features[0].geometry;
-        // MultiPolygon 구조이므로 coordinates 배열의 길이를 확인
-        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
-            isNotEmpty = true;
-        }
-    }
-
-    if(isNotEmpty){
-
-        const strokeColor = getGradeColor(grade);
-
-        map.data.addGeoJson(geojsonObject);
-        // 4. 스타일 설정
-        map.data.setStyle({
-            fillColor: strokeColor,   // 면 색상
-            fillOpacity: 0.5,         // 투명도
-            strokeColor: strokeColor, // 선 색상
-            strokeWeight: 2,          // 선 굵기
-            clickable: true
-        });
-        //  지도를 데이터 경계에 맞게 조정
-        const bounds = new google.maps.LatLngBounds();
-        map.data.forEach((feature) => {
-            processConfiguration(feature.getGeometry(), bounds.extend, bounds);
-        });
-        map.fitBounds(bounds);
-
-       console.log(`${getTimestamp()} initMapWithData End`);
-
-       // 최종 렌더링 종료 후 로더 숨김
-       setTimeout(() => {
-           hideMapLoader();
-       }, 300); // 부드러운 전환을 위해 약간의 지연
-
-   }
-}
 
 /**
  * GeoJSON 객체로부터 google.maps.LatLngBounds를 추출하는 함수
@@ -228,85 +167,6 @@ function removeFeather(){
     });
 }
 
-function initDeckWithData(data){
-
-    const layerId = `geojson-layer-${data.grade}`;
-    const geojsonObject = data.geoJson
-
-    // 1. grade에 따른 Hex 색상 가져오기
-    const hexColor = getGradeColor(data.grade);
-
-    // 2. deck.gl 형식([R, G, B, A])으로 변환
-    // 채우기 색상 (투명도 150 적용)
-    const fillColor = hexToRgbArray(hexColor, 200);
-    // 선 색상 (불투명 255 적용)
-    const strokeColor = hexToRgbArray(hexColor, 255);
-
-    // 2. GeoJsonLayer 생성
-    const geoJsonLayer = new GeoJsonLayer({
-      id: layerId,
-      data: geojsonObject, // GeoJSON 객체 또는 URL
-
-      // 스타일 설정
-      pickable: true,            // 마우스 호버/클릭 이벤트 활성화
-      stroked: true,             // 외곽선 그리기 여부
-      filled: true,              // 내부 채우기 여부
-      extruded: true,            // 3D 입체 높이 표현 여부
-      wireframe: false,          // 3D 와이어프레임 표시 여부
-      // 색상 지정 (RGBA 배열: 0~255)
-      getFillColor:fillColor,     // 채우기 색상 (주황색, 투명도)
-      getLineColor: strokeColor,   // 외곽선 색상 (흰색)
-      getLineWidth: 2,                     // 외곽선 두께 (미터 또는 픽셀 단위)
-      lineWidthMinPixels: 1,               // 축소 시 최저 픽셀 두께
-      getElevation: f => f.properties.height || 10, // 3D 높이 값 지정
-      // 이벤트 핸들러
-      onHover: info => {
-        if (info.object) {
-       //   console.log('Hovered Feature:', info.object.properties);
-        }
-      },
-      onClick: info => {
-        if (info.object) {
-    //      alert(`클릭된 영역: ${info.object.properties.name || '이름 없음'}`);
-        }
-      }
-    });
-
-    if (overlay) {
-
-        overlay.setProps({
-          layers: [geoJsonLayer],
-        });
-
-        if (geojsonObject) {
-            const bounds = getBoundsFromGeoJson(geojsonObject);
-
-            // bounds가 유효한 경우(데이터가 있는 경우)에만 실행
-            if (!bounds.isEmpty()) {
-              // padding을 주어 가장자리 여유를 둠
-              map.fitBounds(bounds, 50);
-              // 필요 시 최대 줌 레벨 제한 (너무 확대되는 것 방지)
-              const listener = google.maps.event.addListener(map, 'idle', function() {
-               //   if (map.getZoom() > 18) map.setZoom(18);
-                  google.maps.event.removeListener(listener);
-              });
-            }
-        }
-
-    }
-
-
-}
-
-// 지도에 데이터를 렌더링하는 함수 예시
-function renderOnMap(data) {
-    // Google Maps Data Layer 사용 시
-    initMapWithData(data.geoJson, data.grade);
-
-    // deck.gl WebGL Layer 사용 시
-    //initDeckWithData(data)
-
-}
 
 
 // 1. Web Worker 생성
@@ -319,9 +179,7 @@ mapWorker.onmessage = function (e) {
 
     if (status === "success") {
         console.log(`${getTimestamp()} Worker 파싱 완료! 지도 렌더링을 시작합니다.`);
-        // 파싱된 GeoJSON 데이터를 지도에 그리기 (예: Google Maps Data Layer 또는 deck.gl)
-        //  data = { geoJson: geoJsonData, grade:grade}
-        initMapWithDataAll(data.geoJson, data.grade);
+        renderingMap(data.geoJson, data.grade, data.msgKey);
     } else {
         console.log(`${getTimestamp()} Worker 내 파싱 에러:`, error);
     }
@@ -330,87 +188,53 @@ mapWorker.onmessage = function (e) {
 
 window.addEventListener("message", async(event) => {
 
-   // let data ;    // 1. 데이터가 문자열(String)인 경우 JSON으로 파싱 시도
-
-   console.log(`${getTimestamp()} EventListener Receive Message!`);
-
-
-    // 1. 전달된 데이터가 Transferable(ArrayBuffer) 형태인지 확인
-    if ( event.data &&  event.data.type === 'TRANSFER_DATA' && event.data.grade &&  event.data.buffer  instanceof ArrayBuffer) {
-        try {
-          showMapLoader("loading..."); // 로더 표시
-          const decoder = new TextDecoder("utf-8");
-          const jsonString = decoder.decode( event.data.buffer);
-          const geoJsonData = JSON.parse(jsonString);
-          initMapWithData(geoJsonData, event.data.grade)
-
-        } catch (e) {
-            hideMapLoader(); // 에러 시 로더 숨김
-            console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
-            return;
-        }
+    // 1. 기초 검증
+    if (!event.data) {
+       console.log(`${getTimestamp()} EventListener Empty Data`);
+       return;
     }
-    else if ( event.data &&  event.data.type === 'TRANSFER_DATA_ALL' && event.data.grade &&  event.data.buffer  instanceof ArrayBuffer) {
+
+    console.log(`${getTimestamp()} EventListener Receive Message!`);
+
+    if( event.data.msgKey === 'COASTAL_FLOODING'){
+        // 단일 데이터 전송 (Main 스레드 디코딩)
+        showMapLoader("loading...");
+        const decoder = new TextDecoder("utf-8");
+        const jsonString = decoder.decode(event.data.buffer);
+        const geoJsonData = JSON.parse(jsonString);
+        renderingMap(geoJsonData, event.data.grade, event.data.msgKey);
+
+    }else if(event.data.msgKey === 'COASTAL_FLOODING_ALL'){
+        // 대용량 데이터 전송 (Web Worker로 위임)
+        showMapLoader("loading...");
+        mapWorker.postMessage({
+            grade: event.data.grade,
+            buffer: event.data.buffer,
+            msgKey: event.data.msgKey
+        }, [event.data.buffer]);
+
+        console.log(`${getTimestamp()} Data sent to Worker: ${event.data.msgKey}`);
+
+    }else{
+
+        if (typeof event.data === 'string') {
             try {
-                showMapLoader("loading..."); // 로더 표시
-                mapWorker.postMessage({ grade: event.data.grade,  buffer: event.data.buffer },   [event.data.buffer]);
-                console.log(`${getTimestamp()} Receive Data Send to Worker `);
+                let messageData = JSON.parse(event.data);
+                switch (messageData.msgKey) {
+                    case 'REMOVE_FEATHER':
+                        removeFeather();
+                        break;
+                    default:
+                        console.log(`${getTimestamp()} Unknown msgKey: ${messageData.msgKey}`);
+                        break;
+                }
             } catch (e) {
-                hideMapLoader(); // 에러 시 로더 숨김
-                console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", event.data.buffer);
+                console.error("JSON String 파싱 에러:", e);
                 return;
             }
         }
-    else if (event.data &&  event.data.type === 'COMPRESSED_TRANSFER_DATA') {
-        try {
-        showMapLoader("loading..."); // 로더 표시
-            console.log(`${getTimestamp()} 압축 데이터 수신 완료. 해제 시작...`);
 
-            // 1. DecompressionStream 생성 (gzip)
-            const ds = new DecompressionStream('gzip');
-
-            // 2. 데이터를 스트림으로 변환 후 해제
-            const response = new Response(event.data.buffer);
-            const decompressedStream = response.body.pipeThrough(ds);
-
-            // 3. 텍스트로 읽기
-            const resultText = await new Response(decompressedStream).text();
-
-            // 4. JSON 파싱
-            const json = JSON.parse(resultText);
-
-            console.log(`${getTimestamp()} 해제 완료. 데이터 처리 시작.`);
-
-            initMapWithData(json, event.data.grade)
-
-        } catch (e) {
-        hideMapLoader();
-            console.error(`${getTimestamp()} 압축 해제 실패:` , e);
-        }
     }
-    else if (typeof event.data === 'string') {
-        try {
-            const data = JSON.parse(event.data);
-
-            if(data.action == 'CHANGE_DATA'){
-                initMapWithData(data.values, data.type)
-            }
-
-            if(data.action == 'REMOVE_FEATHER'){
-                removeFeather()
-            }
-
-            if (data.action === "FLY_TO") {
-                console.log("FLY_TO:", data.target.lat, data.target.lng);
-                smoothFlyTo({lat:data.target.lat, lng:data.target.lng})
-            }
-
-        } catch (e) {
-            console.error("메시지 데이터 파싱 중 오류 발생:", e);
-            return; // 파싱 실패 시 함수 종료
-        }
-    }
-
 
 
 });

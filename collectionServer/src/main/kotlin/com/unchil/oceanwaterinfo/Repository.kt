@@ -424,6 +424,12 @@ class Repository {
 
     fun simplifyGeoJsonWithMapshaper(inputJson: String, percentage: String = "20%"): String {
 
+        // ProcessBuilder 사용 시 주의사항 (Tips)
+        // 1. 절대 경로 사용: 운영체제마다 환경변수(PATH)가 다를 수 있으므로, 실행 파일(node, mapshaper 등)의 절대 경로를 사용하는 것이 서버 환경에서 가장 안전합니다. (which mapshaper로 확인)
+        // 2. 종료 대기 타임아웃: waitFor()는 프로세스가 끝날 때까지 무한정 기다립니다. process.waitFor(10, TimeUnit.MINUTES) 처럼 타임아웃을 거는 것이 서버 안정성에 좋습니다.
+        // 3. 에러 로그 확인: exitCode가 0이 아닐 경우, errorOutput에 담긴 내용을 반드시 확인해야 합니다. 보통 권한 문제나 라이브러리 부재 에러가 여기서 나타납니다.
+
+
         // 1. 임시 파일 생성 (입력용 및 출력용)
         val inputFile = java.io.File.createTempFile("mapshaper_in_", ".json")
         val outputFile = java.io.File.createTempFile("mapshaper_out_", ".json")
@@ -446,7 +452,9 @@ class Repository {
                 "-o", outputFile.absolutePath, "format=geojson"
             ).start()
 
-            // 4. 에러 로그 감시 (기존 코드 유지)
+            // 4. 에러 로그 감시
+            // 중요 (Deadlock 방지): 데이터가 많을 경우, inputStream이나 errorStream을 제때 읽어주지 않으면 내부 버퍼가 가득 차서 외부 프로세스가 멈춰버리는 데드락(Deadlock) 현상이 발생합니다.
+            // 그래서 별도 스레드에서 에러 스트림을 소비하는 것이 매우 좋은 습관입니다.
             val errorOutput = StringBuilder()
             val errorThread = Thread {
                 process.errorStream.bufferedReader().use { reader ->
@@ -467,6 +475,7 @@ class Repository {
             }
 
             // 6. 출력 파일 읽기
+            // 대용량(100MB+) 데이터의 경우 inputStream으로 직접 읽는 것보다 outputFile.readText() 방식이 메모리 관리와 데이터 완전성 측면에서 훨씬 안전합니다.
             val result = outputFile.readText(StandardCharsets.UTF_8)
             LOGGER.info("[Mapshaper] Result read successfully. Length: ${result.length}")
 

@@ -2,6 +2,7 @@
 self.onmessage = async function (e) {
   const arrayBuffer = e.data.buffer;
   const grade =  e.data.grade
+  const msgKey = e.data.msgKey
 
   try {
     // 1. ArrayBuffer를 Text로 디코딩 (Worker 스레드에서 수행)
@@ -17,7 +18,7 @@ self.onmessage = async function (e) {
     // 4. 파싱 완료된 데이터를 메인 스레드로 전달
     self.postMessage({
       status: "success",
-      data: { geoJson: geoJsonData, grade:grade}
+      data: { geoJson: geoJsonData, grade:grade, msgKey:msgKey}
     });
 
   } catch (error) {
