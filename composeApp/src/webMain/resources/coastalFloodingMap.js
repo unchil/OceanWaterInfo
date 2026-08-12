@@ -147,6 +147,52 @@ window.initMapWithData = function( geojsonObject, grade) {
 }
 
 
+window.initMapWithDataAll = function( geojsonObject, grade) {
+
+    console.log(`${getTimestamp()} initMapWithData Start`);
+
+
+    // --- [데이터 검증 및 이동 로직 추가] ---
+    let isNotEmpty = false;
+
+    if (geojsonObject && geojsonObject.features && geojsonObject.features.length > 0) {
+        const geometry = geojsonObject.features[0].geometry;
+        // MultiPolygon 구조이므로 coordinates 배열의 길이를 확인
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            isNotEmpty = true;
+        }
+    }
+
+    if(isNotEmpty){
+
+        const strokeColor = getGradeColor(grade);
+
+        map.data.addGeoJson(geojsonObject);
+        // 4. 스타일 설정
+        map.data.setStyle({
+            fillColor: strokeColor,   // 면 색상
+            fillOpacity: 0.5,         // 투명도
+            strokeColor: strokeColor, // 선 색상
+            strokeWeight: 2,          // 선 굵기
+            clickable: true
+        });
+        //  지도를 데이터 경계에 맞게 조정
+        const bounds = new google.maps.LatLngBounds();
+        map.data.forEach((feature) => {
+            processConfiguration(feature.getGeometry(), bounds.extend, bounds);
+        });
+        map.fitBounds(bounds);
+
+       console.log(`${getTimestamp()} initMapWithData End`);
+
+       // 최종 렌더링 종료 후 로더 숨김
+       setTimeout(() => {
+           hideMapLoader();
+       }, 300); // 부드러운 전환을 위해 약간의 지연
+
+   }
+}
+
 /**
  * GeoJSON 객체로부터 google.maps.LatLngBounds를 추출하는 함수
  */
@@ -174,6 +220,12 @@ function getBoundsFromGeoJson(geojson) {
     }
 
     return bounds;
+}
+
+function removeFeather(){
+    map.data.forEach((feature) => {
+        map.data.remove(feature);
+    });
 }
 
 function initDeckWithData(data){
@@ -269,7 +321,7 @@ mapWorker.onmessage = function (e) {
         console.log(`${getTimestamp()} Worker 파싱 완료! 지도 렌더링을 시작합니다.`);
         // 파싱된 GeoJSON 데이터를 지도에 그리기 (예: Google Maps Data Layer 또는 deck.gl)
         //  data = { geoJson: geoJsonData, grade:grade}
-        renderOnMap(data);
+        initMapWithDataAll(data.geoJson, data.grade);
     } else {
         console.log(`${getTimestamp()} Worker 내 파싱 에러:`, error);
     }
@@ -287,16 +339,28 @@ window.addEventListener("message", async(event) => {
     if ( event.data &&  event.data.type === 'TRANSFER_DATA' && event.data.grade &&  event.data.buffer  instanceof ArrayBuffer) {
         try {
           showMapLoader("loading..."); // 로더 표시
-        // ArrayBuffer를 Worker로 넘기면서 소유권 이전 (Transferable List 활용)
-            // 3번째 인자 [arrayBuffer]를 넘겨 메인 스레드 메모리 복사 없이 전달
-            mapWorker.postMessage({ grade: event.data.grade,  buffer: event.data.buffer },   [event.data.buffer]);
-            console.log(`${getTimestamp()} Receive Data Send to Worker `);
+          const decoder = new TextDecoder("utf-8");
+          const jsonString = decoder.decode( event.data.buffer);
+          const geoJsonData = JSON.parse(jsonString);
+          initMapWithData(geoJsonData, event.data.grade)
+
         } catch (e) {
-        hideMapLoader(); // 에러 시 로더 숨김
+            hideMapLoader(); // 에러 시 로더 숨김
             console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", data.buffer);
             return;
         }
     }
+    else if ( event.data &&  event.data.type === 'TRANSFER_DATA_ALL' && event.data.grade &&  event.data.buffer  instanceof ArrayBuffer) {
+            try {
+                showMapLoader("loading..."); // 로더 표시
+                mapWorker.postMessage({ grade: event.data.grade,  buffer: event.data.buffer },   [event.data.buffer]);
+                console.log(`${getTimestamp()} Receive Data Send to Worker `);
+            } catch (e) {
+                hideMapLoader(); // 에러 시 로더 숨김
+                console.error("Transferable 데이터 디코딩 실패:", e.message, "Content:", event.data.buffer);
+                return;
+            }
+        }
     else if (event.data &&  event.data.type === 'COMPRESSED_TRANSFER_DATA') {
         try {
         showMapLoader("loading..."); // 로더 표시
@@ -330,6 +394,10 @@ window.addEventListener("message", async(event) => {
 
             if(data.action == 'CHANGE_DATA'){
                 initMapWithData(data.values, data.type)
+            }
+
+            if(data.action == 'REMOVE_FEATHER'){
+                removeFeather()
             }
 
             if (data.action === "FLY_TO") {

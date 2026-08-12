@@ -100,6 +100,36 @@ fun postIframeMessage2(iframeId: String, geojsonBytes: ByteArray, grade:String) 
 
 
 
+@OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, grade, wasmArray, origin) => { " +
+        "const getTs = () => {" +
+        "    const now = new Date();" +
+        "    const h = now.getHours().toString().padStart(2, '0');" +
+        "    const m = now.getMinutes().toString().padStart(2, '0');" +
+        "    const s = now.getSeconds().toString().padStart(2, '0');" +
+        "    const ms = now.getMilliseconds().toString().padStart(3, '0');" +
+        "    return `[\${h}:\${m}:\${s}.\${ms}]`;" +
+        "};" +
+
+        // 1. Wasm Array를 Uint8Array로 변환 (복사 없이 뷰만 생성)
+        "const uint8Array = new Uint8Array(wasmArray.buffer, wasmArray.byteOffset, wasmArray.byteLength);" +
+        "const buffer = uint8Array.buffer;" +
+        "console.log(`\${getTs()} [Kotlin] jsPostDirectBuffer: Sending Buffer (Size: \${buffer.byteLength} bytes)`);" +
+        "window.postMessage({ type: 'TRANSFER_DATA_ALL', grade: grade, buffer: buffer }, origin, [buffer]);" +
+        "}")
+private external fun jsPostTransferableAll(window: org.w3c.dom.Window, grade: String, wasmArray: JsAny, origin: String)
+
+@OptIn(ExperimentalWasmJsInterop::class)
+fun postIframeMessageAll(iframeId: String, geojsonBytes: ByteArray, grade:String) {
+
+    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
+    val contentWindow = iframe.contentWindow ?: return
+
+
+    // JS 함수를 호출하여 문자열을 버퍼로 변환하고 소유권을 이전하며 전송합니다.
+    jsPostTransferableAll(contentWindow, grade, geojsonBytes.toInt8Array(), "*")
+}
+
+
 /** Compose Box의 위치 정보를 실제 브라우저 HTML 요소의 스타일에 동기화하는 함수 */
 fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, mainHtmlElementId: String, htmlElementId: String ) {
 // 1. Compose 내부에서의 절대 좌표 계산 (Window 기준)
@@ -130,8 +160,8 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
 
 
 
-val sendMsgChangeType = {  iframeId:String, element:String->
-    val message = "{ \"action\": \"CHANGE_TYPE\", \"type\": \"${element}\"}"
+val sendMsgRemoveFeather = {  iframeId:String ->
+    val message = "{ \"action\": \"REMOVE_FEATHER\"}"
     postIframeMessage(iframeId, message)
 }
 

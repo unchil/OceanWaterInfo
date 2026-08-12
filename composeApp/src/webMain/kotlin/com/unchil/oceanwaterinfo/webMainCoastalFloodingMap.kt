@@ -74,50 +74,27 @@ fun webMainCoastalFloodingMap(){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
 
-            val length = coastalFloodingInfo.value.first().geojson.size
-            println( "[Kotlin] Data Receive (Size: ${length/1024} KB)")
-
-
-            postIframeMessage2(
-                IFRAME_COASTAL_FLOODING,
-                coastalFloodingInfo.value.first().geojson,
-                gradeOption.name
-            )
-
-
-            /*
-
-            sendMsgChangeData(
-                IFRAME_COASTAL_FLOODING,
-                coastalFloodingInfo.value.first().geojson.decodeToString(),
-                gradeOption.name
-            )
-
-             */
-
-
-
-            /*
-
-            if (length >= sizeThreshold) {
-                // 1. 50MB 이상일 때: 압축 전송 (Transferable + Gzip)
-                logWithTime(getTimeStamp(), "Data size >= 50MB. Calling postIframeMessageCompressed")
-                postIframeMessageCompressed(
-                    IFRAME_COASTAL_FLOODING,
-                    gradeOption.name,
-                    coastalFloodingInfo.value.first().geojson
-                )
-            }else {
-                // 2. 50MB 미만일 때: 일반 전송 (기존 방식)
-                logWithTime(getTimeStamp(), "Data size < 50MB. Calling sendMsgChangeData")
-                sendMsgChangeData(
-                    IFRAME_COASTAL_FLOODING,
-                    coastalFloodingInfo.value.first().geojson,
-                    gradeOption.name
-                )
+            if(sidoOption.equals(SiDo.entries[0])){
+                sendMsgRemoveFeather(IFRAME_COASTAL_FLOODING)
             }
 
-             */
+            coastalFloodingInfo.value.forEach { it ->
+                if(sidoOption.equals(SiDo.entries[0])){
+                    println( "[Kotlin] Data Receive (Size: ${it.geojson.size/1024} KB)")
+                    postIframeMessageAll(
+                        IFRAME_COASTAL_FLOODING,
+                        it.geojson,
+                        gradeOption.name
+                    )
+                } else {
+                    println( "[Kotlin] Data Receive (Size: ${it.geojson.size/1024} KB)")
+                    postIframeMessage2(
+                        IFRAME_COASTAL_FLOODING,
+                        it.geojson,
+                        gradeOption.name
+                    )
+                }
+            }
 
         }
     }

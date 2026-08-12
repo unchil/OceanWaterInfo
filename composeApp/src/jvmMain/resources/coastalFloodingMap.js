@@ -158,6 +158,61 @@ function processConfiguration(geometry, callback, thisArg) {
     }
 }
 
+
+window.removeMapFeature = function(){
+    map.data.forEach((feature) => {
+        map.data.remove(feature);
+    });
+}
+
+window.initMapWithDataAll = function( geojsonObject, grade) {
+ showMapLoader("loading..."); // 로더 표시
+    // --- [데이터 검증 및 이동 로직 추가] ---
+    let isNotEmpty = false;
+
+    if (geojsonObject && geojsonObject.features && geojsonObject.features.length > 0) {
+        const geometry = geojsonObject.features[0].geometry;
+        // MultiPolygon 구조이므로 coordinates 배열의 길이를 확인
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            isNotEmpty = true;
+        }
+    }
+
+    if(isNotEmpty){
+
+        const strokeColor = getGradeColor(grade);
+
+        map.data.addGeoJson(geojsonObject);
+
+        // 4. 스타일 설정 (전체 레이어에 적용하거나 조건부 적용)
+        map.data.setStyle({
+            fillColor: strokeColor,   // 면 색상
+            fillOpacity: 0.5,         // 투명도
+            strokeColor: strokeColor, // 선 색상
+            strokeWeight: 2,          // 선 굵기
+            clickable: true
+        });
+
+        // (선택 사항) 지도를 데이터 경계에 맞게 조정
+        const bounds = new google.maps.LatLngBounds();
+        map.data.forEach((feature) => {
+            processConfiguration(feature.getGeometry(), bounds.extend, bounds);
+        });
+
+        map.fitBounds(bounds);
+
+
+        // 최종 렌더링 종료 후 로더 숨김
+        setTimeout(() => {
+           hideMapLoader();
+        }, 300); // 부드러운 전환을 위해 약간의 지연
+
+    }
+}
+
+
+
+
 window.initMapWithData = function( geojsonObject, grade) {
  showMapLoader("loading..."); // 로더 표시
     // --- [데이터 검증 및 이동 로직 추가] ---
