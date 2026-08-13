@@ -414,7 +414,7 @@ class Repository {
         val numOfRows = 300
 
         // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(10)
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(5)
 
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
