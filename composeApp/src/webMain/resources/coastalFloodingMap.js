@@ -1,7 +1,5 @@
 import { showMapLoader, hideMapLoader } from './mapLoader.js';
 
-const {GoogleMapsOverlay, GeoJsonLayer } = deck;
-
 
 let map;
 let overlay;
@@ -39,10 +37,6 @@ async function initMap() {
       mapTypeId: google.maps.MapTypeId.SATELLITE,
 
     });
-
-
-    overlay = new GoogleMapsOverlay({layers:[]});
-    overlay.setMap(map);
 
 
 };
