@@ -42,12 +42,11 @@ fun jvmMainCoastalFloodingMap(
     download:Int,
     errorMessage:String,
 ){
-    val coroutineScope = rememberCoroutineScope()
+
     val viewModel: CoastalFloodingInfoViewModel = remember {
         CoastalFloodingInfoViewModel()
     }
 
-    val initCenterPoint = remember{ Point(126.934515, 37.385852) }
     val bottomBarHeight = remember{80.dp}
 
 
@@ -69,38 +68,29 @@ fun jvmMainCoastalFloodingMap(
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         LOGGER.debug("Call Refresh Event")
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
-
     }
-
 
     val coastalFloodingInfo = viewModel._coastalFloodingGeoJsonObject.collectAsState()
     // ViewModel의 로딩 상태를 관찰
     val isLoading by viewModel.isLoading.collectAsState()
 
-
     LaunchedEffect( coastalFloodingInfo.value, webViewState.loadingState){
 
         if(coastalFloodingInfo.value.isNotEmpty()  &&  webViewState.loadingState is LoadingState.Finished ) {
 
-            if(sidoOption.equals(SiDo.entries[0])){
-                navigator.evaluateJavaScript("removeMapFeature()")
-            }
+            navigator.evaluateJavaScript("removeMapFeature()")
 
             coastalFloodingInfo.value.forEach { it->
                 if(sidoOption.equals(SiDo.entries[0])){
-                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call initMapWithDataAll")
-                    navigator.evaluateJavaScript("initMapWithDataAll( ${it.geojson.decodeToString()},  \"${gradeOption.name}\")")
+                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call COASTAL_FLOODING_ALL")
+                    navigator.evaluateJavaScript("renderingMap( ${it.geojson.decodeToString()},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\')")
                 }else {
-                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call initMapWithData")
-                    navigator.evaluateJavaScript("initMapWithData( ${it.geojson.decodeToString()},  \"${gradeOption.name}\")")
+                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call COASTAL_FLOODING")
+                    navigator.evaluateJavaScript("renderingMap( ${it.geojson.decodeToString()},  \"${gradeOption.name}\", \'COASTAL_FLOODING\')")
                 }
-
             }
-
         }
     }
-
-
 
 
     Column(
@@ -163,8 +153,6 @@ fun jvmMainCoastalFloodingMap(
                 )
             }
         }
-
-
 
 
         BoxWithConstraints(
