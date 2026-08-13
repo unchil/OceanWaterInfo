@@ -58,6 +58,7 @@ import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
+import java.nio.charset.StandardCharsets
 import kotlin.io.path.deleteIfExists
 import kotlin.math.ceil
 import kotlin.time.Clock
@@ -449,6 +450,7 @@ class CollectionServerRepository {
     }
 
 
+
     suspend fun simplifyGeoJsonWithMapshaper(inputJson: String, percentage: String = "20%"): String {
         // 1. Kotlin Path API를 사용하여 임시 파일 생성
         val inputPath = createTempFile("mapshaper_in_", ".json")
@@ -457,7 +459,7 @@ class CollectionServerRepository {
         return runCatching {
             // 2. 파일 쓰기
             inputPath.writeText(inputJson)
-            LOGGER.info("[Mapshaper] Input: ${inputPath.toAbsolutePath()} (${inputPath.toFile().length() / 1024} KB)")
+            LOGGER.debug("[Mapshaper] Input: ${inputPath.toAbsolutePath()} (${inputPath.toFile().length() / 1024} KB)")
 
             // 3. CLI 명령어 리스트 작성 (Kotlin 스타일)
             val command = listOf(
@@ -480,7 +482,7 @@ class CollectionServerRepository {
 
             // 5. 결과 읽기
             val simplifiedJson = outputPath.readText()
-            LOGGER.info("[Mapshaper] Success. Reduced Length: ${simplifiedJson.length}")
+            LOGGER.debug("[Mapshaper] Success. Reduced Length: ${simplifiedJson.length}")
 
             simplifiedJson
         }.onFailure { e ->
@@ -512,18 +514,14 @@ class CollectionServerRepository {
             val limit = configData.WATER_LOGGED?.limitedParallelism ?: 1
 
             loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
+
                 val result = rawDataFrames.concat()
                 // 1. 데이터 수집 및 초기화 단계
                 val updateTargets = suspendTransaction( CollectionServerConfig.conn) {
 
-                    // 1. 원본 데이터 테이블 생성 및 초기화
-                    SchemaUtils.create(CoastalFloodingGeoInfo)
 
-                    // --------------------------------------------------
-                    // 추가된 부분: 새로운 데이터를 넣기 전에 기존 데이터를 모두 삭제 (Truncate 효과)
-                    CoastalFloodingGeoInfo.deleteAll()
-                    // --------------------------------------------------
-                    LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+                    // 1. 원본 데이터 테이블 생성
+                    SchemaUtils.create(CoastalFloodingGeoInfo)
 
                     try {
                         // 개별 insert 대신 batchInsert 사용 (성능 핵심)
@@ -547,9 +545,7 @@ class CollectionServerRepository {
                     // 요약 테이블 생성 및 기존 데이터 삭제
                     SchemaUtils.create(CoastalFloodingGeoTbl)
                     CoastalFloodingGeoTbl.deleteAll()
-
                     LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
-
 
                     // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
                     // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
@@ -585,22 +581,25 @@ class CollectionServerRepository {
 
                     LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
 
-                    CoastalFloodingGeoInfo.deleteAll()
-
-                    LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
-
                     SggCode
                         .select(SggCode.sd_name)
                         .withDistinct() // 중복된 grade-sido 쌍 제거
                         .map { it[SggCode.sd_name] }
                 }
+
+
+
                 coroutineScope {
                     // SQLite와 CPU 부하를 고려하여 동시 실행 작업 수를 3개로 제한
-                    val semaphore = Semaphore(3)
+                    val mapShaperLimit = configData.WATER_LOGGED?.mapshaperLimitedParallelism ?: 3
+                    LOGGER.info("loadDataCoastalFlooding mapShaperLimitedDispatcher: ${mapShaperLimit}")
+                    val mapShaperLimitedDispatcher = Dispatchers.IO.limitedParallelism(mapShaperLimit)
+
                     updateTargets.forEach { ctpvNm ->
+
                         listOf("F", "E", "D", "C", "B", "A").forEach { grade ->
-                            launch {
-                                semaphore.withPermit {
+
+                            launch(mapShaperLimitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
 
                                     val geoJsonObject = suspendTransaction( CollectionServerConfig.conn) {
                                         CoastalFloodingGeoTbl
@@ -626,13 +625,15 @@ class CollectionServerRepository {
 
                                     if (geoJsonObject.length < 100) return@launch // 데이터 없으면 스킵
 
-                                    LOGGER.info("Processing: $ctpvNm $grade")
+
 
                                     // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
                                     val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
-                                    if (simplifyGeoJsonObject.isEmpty()) return@launch
 
-                                    LOGGER.info("\nOptimization Done for $ctpvNm $grade \n( Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB )")
+                                    LOGGER.info("\nOptimization Done for $ctpvNm $grade :[Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB]")
+
+
+                                    if (simplifyGeoJsonObject.isEmpty()) return@launch
 
                                     suspendTransaction( CollectionServerConfig.conn) {
 
@@ -658,7 +659,6 @@ class CollectionServerRepository {
 
                                     LOGGER.info("Successfully saved $ctpvNm $grade")
 
-                                } // semaphore
                             } // launch
 
                         } // grade List
@@ -671,6 +671,11 @@ class CollectionServerRepository {
 
         }catch (err: Exception){
             LOGGER.error("[getCoastalFloodingInfo] Process Error: ${err.message}")
+        }finally {
+            suspendTransaction( CollectionServerConfig.conn) {
+                CoastalFloodingGeoInfo.deleteAll()
+                LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+            }
         }
 
 

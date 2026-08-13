@@ -68,7 +68,7 @@ class CollectionServerDataCollector {
         try {
             collectionServerRepository.getCoastalFloodingInfo()
         } catch (e: Exception) {
-            LOGGER.error(e.stackTrace.toString())
+            LOGGER.error(e.localizedMessage)
         }
     }
 
