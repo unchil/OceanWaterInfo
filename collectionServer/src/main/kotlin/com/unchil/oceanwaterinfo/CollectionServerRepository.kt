@@ -1,7 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 
-import com.unchil.oceanwaterinfo.Config.Companion.configData
+import com.unchil.oceanwaterinfo.CollectionServerConfig.Companion.configData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
@@ -35,7 +35,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
@@ -52,7 +51,6 @@ import org.jetbrains.kotlinx.dataframe.api.pivot
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.rows
 import org.jetbrains.kotlinx.dataframe.api.schema
-import org.jetbrains.kotlinx.dataframe.api.toList
 import org.jetbrains.kotlinx.dataframe.api.update
 import org.jetbrains.kotlinx.dataframe.api.values
 import org.jetbrains.kotlinx.dataframe.api.with
@@ -60,19 +58,17 @@ import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
-import java.nio.charset.StandardCharsets
 import kotlin.io.path.deleteIfExists
 import kotlin.math.ceil
 import kotlin.time.Clock
 import kotlin.io.path.createTempFile
-import kotlin.io.path.deleteIfExists
 import kotlin.io.path.writeText
 import kotlin.io.path.readText
-class Repository {
-    internal val LOGGER = KtorSimpleLogger( Repository::class.java.name )
+class CollectionServerRepository {
+    internal val LOGGER = KtorSimpleLogger( CollectionServerRepository::class.java.name )
 
     init {
-        transaction(Config.conn) {
+        transaction(CollectionServerConfig.conn) {
             addLogger(StdOutSqlLogger)
         }
     }
@@ -95,7 +91,7 @@ class Repository {
             val url = "${url_PlantStates}&SITE_CD=${genName}"
 
             try {
-                RestApi.callKHNP_PlantStates_xml(url).let {
+                CollectionServerRestApi.callKHNP_PlantStates_xml(url).let {
 
                     val element = Json.parseToJsonElement( it )
                     val item = element.jsonObject["response"]?.jsonObject?.get("body")?.jsonObject?.get("items")?.jsonObject?.get("item")
@@ -162,7 +158,7 @@ class Repository {
             }
         }
 
-         transaction(Config.conn) {
+         transaction(CollectionServerConfig.conn) {
              SchemaUtils.create(KHNP_PlantInfo)
              plantInfo.forEach { item  ->
                  try{
@@ -272,7 +268,7 @@ class Repository {
         LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Count:[${result.count()}]")
 
-        transaction(Config.conn) {
+        transaction(CollectionServerConfig.conn) {
             SchemaUtils.create(KHNP_ThermalWasteWater)
 
             result.forEach { item  ->
@@ -330,7 +326,7 @@ class Repository {
         LOGGER.info("\n ${::getKHNP_WasteWater.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_WasteWater.name}  Count:[${result.count()}]")
 
-        transaction(Config.conn) {
+        transaction(CollectionServerConfig.conn) {
             SchemaUtils.create(KHNP_WasteWater)
 
             result.forEach { item  ->
@@ -361,7 +357,7 @@ class Repository {
         LOGGER.info("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_RadioRate.name}  Count:[${result.count()}]")
 
-        transaction(Config.conn) {
+        transaction(CollectionServerConfig.conn) {
             SchemaUtils.create(KHNP_RadioRate)
 
             result.forEach { item  ->
@@ -390,7 +386,7 @@ class Repository {
         LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Count:[${result.count()}]")
 
-        transaction(Config.conn) {
+        transaction(CollectionServerConfig.conn) {
             SchemaUtils.create(KHNP_RadioActiveWaste)
 
             result.forEach { item  ->
@@ -415,6 +411,8 @@ class Repository {
 
         // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
+
+        LOGGER.info("loadDataCoastalFlooding limitedDispatcher: ${limit}")
 
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
@@ -502,7 +500,7 @@ class Repository {
                     "?serviceKey=${configData.WATER_LOGGED?.apikey}&type=json"
 
             // 1. 시군구 코드 목록 추출 (짧은 트랜잭션)
-            val codeList = transaction(Config.conn) {
+            val codeList = transaction(CollectionServerConfig.conn) {
                 SggCode.select(SggCode.sgg_code).map { it ->
                     it[SggCode.sgg_code].trim()
                 }
@@ -517,7 +515,7 @@ class Repository {
             val result = rawDataFrames.concat()
 
             // 1. 데이터 수집 및 초기화 단계
-            val updateTargets = suspendTransaction( Config.conn) {
+            val updateTargets = suspendTransaction( CollectionServerConfig.conn) {
 
                 // 1. 원본 데이터 테이블 생성 및 초기화
                 SchemaUtils.create(CoastalFloodingGeoInfo)
@@ -606,7 +604,7 @@ class Repository {
                         launch {
                             semaphore.withPermit {
 
-                                val geoJsonObject = suspendTransaction( Config.conn) {
+                                val geoJsonObject = suspendTransaction( CollectionServerConfig.conn) {
                                     CoastalFloodingGeoTbl
                                         .select(
                                             CoastalFloodingGeoTbl.grade,
@@ -638,7 +636,7 @@ class Repository {
 
                                 LOGGER.info("\nOptimization Done for $ctpvNm $grade \n( Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB )")
 
-                                suspendTransaction( Config.conn) {
+                                suspendTransaction( CollectionServerConfig.conn) {
 
                                     val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
                                     val simpleBlob = ExposedBlob(simplifyGeoJsonObject.toByteArray(Charsets.UTF_8))
@@ -729,7 +727,7 @@ class Repository {
             LOGGER.info("\n"+ result.schema().toString())
             LOGGER.info("\n"+ result.head(5).toString())
 
-            transaction(Config.conn) {
+            transaction(CollectionServerConfig.conn) {
                 SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
 
                 result.forEach {  item  ->
@@ -781,16 +779,16 @@ class Repository {
             var uniqueSensingTimeCount = 0
             var receiveData: MutableList<SDoTEnvInformation> = mutableListOf()
 
-            RestApi.callSDoT_EnvInfo_json(url+"1/1000/").let{
-                val response = RestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
+            CollectionServerRestApi.callSDoT_EnvInfo_json(url+"1/1000/").let{
+                val response = CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
                 LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
                 receiveData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
                 uniqueSensingTimeCount = receiveData.map { it.SENSING_TIME }.distinct().size
             }
 
             if(uniqueSensingTimeCount == 1){
-                RestApi.callSDoT_EnvInfo_json(url+"1001/1200/").let{
-                    val response = RestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
+                CollectionServerRestApi.callSDoT_EnvInfo_json(url+"1001/1200/").let{
+                    val response = CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
                     LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
                     receiveData.addAll(response.sDoTEnv.row as MutableList<SDoTEnvInformation>)
                 }
@@ -799,7 +797,7 @@ class Repository {
             if(receiveData.isNotEmpty()){
                 val maxSensingTime = receiveData.maxOfOrNull { it.SENSING_TIME }
                 val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
-                transaction(Config.conn) {
+                transaction(CollectionServerConfig.conn) {
                     SchemaUtils.create(SDoT_EnvInfo)
                     finalData.forEach { item ->
                         try {
@@ -911,13 +909,13 @@ class Repository {
             val url = "${configData.KHOA_TIDALCURRENT_API?.endPoint}/${configData.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${configData.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${configData.KHOA_TIDALCURRENT_API?.type}${configData.KHOA_TIDALCURRENT_API?.boundBox}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
             try {
-                RestApi.callKhoaAPI_json(url).let {
+                CollectionServerRestApi.callKhoaAPI_json(url).let {
 
-                    val response = RestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
+                    val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
 
                     LOGGER.info("${::getKhoaTidalCurrent.name} [receive count[${response.result.meta.sch_time}]]")
 
-                    transaction(Config.conn) {
+                    transaction(CollectionServerConfig.conn) {
                         SchemaUtils.create(TidalCurrentInfoKHOA)
                         response.result.data.forEach { item ->
                             try {
@@ -962,7 +960,7 @@ class Repository {
                      "&numOfRows=${configData.KHOA_API?.numOfRows}"
 
 
-             val result = transaction(Config.conn) {
+             val result = transaction(CollectionServerConfig.conn) {
                  ObservatoryKHOA.select(ObservatoryKHOA.obsCode).where {
                      ObservatoryKHOA.obsCode like "HB%"
                  }.map { resultRow ->
@@ -978,15 +976,15 @@ class Repository {
                     val pageUrl = "${url}&pageNo=${requestPage}&obsCode=${obsCode}"
 
                      try {
-                            RestApi.callKhoaAPI_json(pageUrl).let {
-                             val recvData = RestApi.commonJson.decodeFromString<KhoaObservationResponse>(it)
+                            CollectionServerRestApi.callKhoaAPI_json(pageUrl).let {
+                             val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(it)
 
                              if(recvData.header.resultCode.equals("00")) {
                              //    requestPage += 1
 
                                  LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
 
-                                 transaction(Config.conn) {
+                                 transaction(CollectionServerConfig.conn) {
                                      SchemaUtils.create(ObservationKHOA)
                                      SchemaUtils.create(ObservatoryKHOA)
 
@@ -1061,7 +1059,7 @@ class Repository {
     @Suppress("DefaultLocale")
     suspend fun  getRealTimeOceanWaterQuality(){
         try {
-            RestApi.callMofAPI_xml().let { response ->
+            CollectionServerRestApi.callMofAPI_xml().let { response ->
                 if(response.status.value == 200){
                     XML.toJSONObject(response.bodyAsText()).let { jsonData ->
                  //   response.bodyAsText().let{ jsonData ->
@@ -1072,7 +1070,7 @@ class Repository {
 
                         LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${result.count()}]]")
 
-                        transaction (Config.conn){
+                        transaction (CollectionServerConfig.conn){
                             SchemaUtils.create( OWQInformationTable)
                             result.forEach {  item  ->
                                 try{
@@ -1115,11 +1113,11 @@ class Repository {
     suspend fun getRealTimeObservation(){
         try{
 
-            RestApi.callNifsAPI_json("list").let {
-                val recvData = RestApi.commonJson.decodeFromString<ObservationResponse>(it)
+            CollectionServerRestApi.callNifsAPI_json("list").let {
+                val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
                 if(recvData.header.resultCode.equals("00")){
                     LOGGER.info( "${::getRealTimeObservation.name} [receive count[${recvData.body.item.size}]]")
-                    transaction (Config.conn){
+                    transaction (CollectionServerConfig.conn){
 
                         SchemaUtils.create( ObservationTable)
 
@@ -1163,13 +1161,13 @@ class Repository {
     @Suppress("DefaultLocale")
     suspend fun getRealTimeObservatory(){
         try{
-            RestApi.callNifsAPI_json("code").let {
-                val recvData = RestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
+            CollectionServerRestApi.callNifsAPI_json("code").let {
+                val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
                 if(recvData.header.resultCode.equals("00")) {
 
                     LOGGER.info( "${::getRealTimeObservatory.name} [receive count[${recvData.body.item.size}]]")
 
-                    transaction (Config.conn){
+                    transaction (CollectionServerConfig.conn){
                         SchemaUtils.drop( ObservatoryTable)
                         SchemaUtils.create( ObservatoryTable)
                         recvData.body.item.forEach { item ->

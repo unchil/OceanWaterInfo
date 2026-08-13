@@ -1,6 +1,6 @@
 package com.unchil.oceanwaterinfo
 
-import com.unchil.oceanwaterinfo.Config.Companion.configData
+import com.unchil.oceanwaterinfo.CollectionServerConfig.Companion.configData
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.runBlocking
 
@@ -20,7 +20,7 @@ fun main(args: Array<String>) = runBlocking {
     }
 
     if (allowedIntervals?.contains(interval) == true ) {
-        val collector = DataCollector()
+        val collector = CollectionServerDataCollector()
 
         LOGGER.info("Starting Data Collector with interval: $interval minutes")
 

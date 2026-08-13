@@ -1,13 +1,13 @@
 package com.unchil.oceanwaterinfo
 
-class DataCollector {
+class CollectionServerDataCollector {
 
-    val repository = Repository()
+    val collectionServerRepository = CollectionServerRepository()
 
     fun batchJob(startDate:String, endDate:String){
         LOGGER.info("Data Collector Started. batchJob:startDate[${startDate}], endDate[${endDate}]...")
         try {
-            RecoveryCollector().getRealTimeOceanWaterQuality_Rocovery(startDate, endDate)
+            CollectionServerRecoveryCollector().getRealTimeOceanWaterQuality_Rocovery(startDate, endDate)
             LOGGER.info("Batch job finished.")
         } catch (e: Exception) {
             LOGGER.error(e.stackTrace.toString())
@@ -19,12 +19,12 @@ class DataCollector {
         LOGGER.info("Data Collector Started. scheduleJob5Minutes...")
 
         try {
-            repository.getRealTimeOceanWaterQuality()
-            repository.getKhoaObservation()
-            repository.getKhoaTidalCurrent()
-            repository.getKHNP_RadioRate()
-            repository.getKHNP_ThermalWasteWater()
-            repository.getKHNP_WasteWater()
+            collectionServerRepository.getRealTimeOceanWaterQuality()
+            collectionServerRepository.getKhoaObservation()
+            collectionServerRepository.getKhoaTidalCurrent()
+            collectionServerRepository.getKHNP_RadioRate()
+            collectionServerRepository.getKHNP_ThermalWasteWater()
+            collectionServerRepository.getKHNP_WasteWater()
 
             LOGGER.info("Schedule job for 5 Minutes finished.")
         } catch (e: Exception) {
@@ -38,8 +38,8 @@ class DataCollector {
 
         try {
             // 30 Minutes Gap Data
-            repository.getRealTimeObservation()
-            repository.getRealTimeObservatory()
+            collectionServerRepository.getRealTimeObservation()
+            collectionServerRepository.getRealTimeObservatory()
 
             LOGGER.info("Schedule job for 10 Minutes finished.")
         } catch (e: Exception) {
@@ -53,8 +53,8 @@ class DataCollector {
 
             try {
                 // 60 Minutes Gap Data
-                repository.getSDoTEnvInfo()
-                repository.getSDoTEnvInfoGyonggi()
+                collectionServerRepository.getSDoTEnvInfo()
+                collectionServerRepository.getSDoTEnvInfoGyonggi()
 
                 LOGGER.info("Schedule job for 30 Minutes finished.")
             } catch (e: Exception) {
@@ -66,7 +66,7 @@ class DataCollector {
     suspend fun scheduleJob720Minutes(){
         LOGGER.info("Data Collector Started. scheduleJob720Minutes...")
         try {
-            repository.getCoastalFloodingInfo()
+            collectionServerRepository.getCoastalFloodingInfo()
         } catch (e: Exception) {
             LOGGER.error(e.stackTrace.toString())
         }
@@ -76,8 +76,8 @@ class DataCollector {
         LOGGER.info("Data Collector Started. scheduleJob1440Minutes...")
 
         try {
-            repository.getKHNP_RadioActiveWaste()
-            repository.getKHNP_PlantStates()
+            collectionServerRepository.getKHNP_RadioActiveWaste()
+            collectionServerRepository.getKHNP_PlantStates()
             LOGGER.info("Schedule job for 1440 Minutes finished.")
         } catch (e: Exception) {
             LOGGER.error(e.stackTrace.toString())

@@ -6,7 +6,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import org.jetbrains.exposed.v1.jdbc.Database
 
-class Config {
+class CollectionServerConfig {
 
     companion object {
 

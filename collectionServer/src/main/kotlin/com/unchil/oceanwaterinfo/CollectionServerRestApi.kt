@@ -1,6 +1,6 @@
 package com.unchil.oceanwaterinfo
 
-import com.unchil.oceanwaterinfo.Config.Companion.configData
+import com.unchil.oceanwaterinfo.CollectionServerConfig.Companion.configData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -27,7 +27,7 @@ import kotlinx.serialization.json.Json
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-class RestApi {
+class CollectionServerRestApi {
 
     companion object {
 
