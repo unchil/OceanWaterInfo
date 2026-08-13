@@ -1,9 +1,31 @@
 package com.unchil.oceanwaterinfo
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.io.File
+import java.util.concurrent.TimeUnit
 
+// 프로세스 실행 결과를 담을 객체
+data class ProcessResult(val exitCode: Int, val output: String, val error: String)
 
+// Kotlin 스타일의 프로세스 실행 확장 함수
+suspend fun List<String>.runCommand(workingDir: File? = null, timeoutAmount: Long = 10): ProcessResult =
+    withContext(Dispatchers.IO) {
+    val process = ProcessBuilder(this@runCommand)
+        .directory(workingDir)
+        .start()
+
+    // 입출력을 비동기로 읽음 (데드락 방지)
+    val outDeferred = async { process.inputStream.bufferedReader().readText() }
+    val errDeferred = async { process.errorStream.bufferedReader().readText() }
+
+    process.waitFor(timeoutAmount, TimeUnit.MINUTES)
+
+    ProcessResult(process.exitValue(), outDeferred.await(), errDeferred.await())
+}
 fun List<CoastalFloodingGeo>.toGeoJsonObject(info:Pair<String, String> ):String {
 
 

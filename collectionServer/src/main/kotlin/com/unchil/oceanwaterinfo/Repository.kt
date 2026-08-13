@@ -6,6 +6,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -59,9 +61,13 @@ import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
 import java.nio.charset.StandardCharsets
+import kotlin.io.path.deleteIfExists
 import kotlin.math.ceil
 import kotlin.time.Clock
-
+import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.writeText
+import kotlin.io.path.readText
 class Repository {
     internal val LOGGER = KtorSimpleLogger( Repository::class.java.name )
 
@@ -404,117 +410,104 @@ class Repository {
         }
     }
 
-    fun loadDataCoastalFlooding(path:String, codeList:List<String>): List<DataFrame<*>>{
+    suspend fun loadDataCoastalFlooding(path:String, codeList:List<String>): List<DataFrame<*>> = coroutineScope {
         val numOfRows = 300
-        val allDataFrames = mutableListOf<DataFrame<*>>()
 
-        codeList.forEach {  it ->
+        // 동시에 실행될 수 있는 최대 코루틴 수를 제한
+        val semaphore = Semaphore(5)
 
-            val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
-            val firstUrl = "${baseUrl}&pageNo=1"
-            val df_first = DataFrame.readJson(firstUrl)
-            val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
-            val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
-            val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
-            LOGGER.info("ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
-            val dataFrames = mutableListOf<DataFrame<*>>()
-            dataFrames.add(data)
-            for (page in 2..totalPages) {
-                val url = "$baseUrl&pageNo=$page"
-                val df_page = DataFrame.readJson(url)
-                val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
-                dataFrames.add(data)
+        // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
+        val deferredResults = codeList.map {  it ->
+            async(Dispatchers.IO) { // 네트워크 IO를 위한 IO 디스패처 사용
+                // 세마포어로부터 허가를 얻어야만 내부 로직이 실행됨
+                semaphore.withPermit {
+                    val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
+                    val firstUrl = "${baseUrl}&pageNo=1"
+                    val df_first = DataFrame.readJson(firstUrl)
+                    val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
+                    val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
+                    val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+                    LOGGER.info("ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
+                    val dataFrames = mutableListOf<DataFrame<*>>()
+                    dataFrames.add(data)
+                    for (page in 2..totalPages) {
+                        val url = "$baseUrl&pageNo=$page"
+                        val df_page = DataFrame.readJson(url)
+                        val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
+                        dataFrames.add(data)
+                    }
+                    dataFrames.concat()
+                }
             }
-            val df_SggAll = dataFrames.concat()
-            allDataFrames.add(df_SggAll)
+
         }
-        return allDataFrames
+        // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
+        deferredResults.awaitAll()
     }
 
 
-    fun simplifyGeoJsonWithMapshaper(inputJson: String, percentage: String = "20%"): String {
+    suspend fun simplifyGeoJsonWithMapshaper(inputJson: String, percentage: String = "20%"): String {
+        // 1. Kotlin Path API를 사용하여 임시 파일 생성
+        val inputPath = createTempFile("mapshaper_in_", ".json")
+        val outputPath = createTempFile("mapshaper_out_", ".json")
 
-        // ProcessBuilder 사용 시 주의사항 (Tips)
-        // 1. 절대 경로 사용: 운영체제마다 환경변수(PATH)가 다를 수 있으므로, 실행 파일(node, mapshaper 등)의 절대 경로를 사용하는 것이 서버 환경에서 가장 안전합니다. (which mapshaper로 확인)
-        // 2. 종료 대기 타임아웃: waitFor()는 프로세스가 끝날 때까지 무한정 기다립니다. process.waitFor(10, TimeUnit.MINUTES) 처럼 타임아웃을 거는 것이 서버 안정성에 좋습니다.
-        // 3. 에러 로그 확인: exitCode가 0이 아닐 경우, errorOutput에 담긴 내용을 반드시 확인해야 합니다. 보통 권한 문제나 라이브러리 부재 에러가 여기서 나타납니다.
+        return runCatching {
+            // 2. 파일 쓰기
+            inputPath.writeText(inputJson)
+            LOGGER.info("[Mapshaper] Input: ${inputPath.toAbsolutePath()} (${inputPath.toFile().length() / 1024} KB)")
 
-
-        // 1. 임시 파일 생성 (입력용 및 출력용)
-        val inputFile = java.io.File.createTempFile("mapshaper_in_", ".json")
-        val outputFile = java.io.File.createTempFile("mapshaper_out_", ".json")
-
-        return try {
-            // 2. 입력 데이터를 파일에 저장
-            inputFile.writeText(inputJson, StandardCharsets.UTF_8)
-            LOGGER.info("[Mapshaper] Input file created: ${inputFile.absolutePath} (${inputFile.length() / 1024} KB)")
-
-            // 3. CLI 명령어 구성
-            // node --max-old-space-size=4096 를 사용하여 대용량 처리 메모리 확보
-            val process = ProcessBuilder(
+            // 3. CLI 명령어 리스트 작성 (Kotlin 스타일)
+            val command = listOf(
                 "${configData.WATER_LOGGED?.node}",
                 "${configData.WATER_LOGGED?.nodeOption}",
                 "${configData.WATER_LOGGED?.mapshaper}",
-                "-i", inputFile.absolutePath,
+                "-i", inputPath.toString(),
                 "-clean",
                 "-simplify", percentage, "visvalingam", "keep-shapes",
                 "-clean",
-                "-o", outputFile.absolutePath, "format=geojson"
-            ).start()
+                "-o", outputPath.toString(), "format=geojson"
+            )
 
-            // 4. 에러 로그 감시
-            // 중요 (Deadlock 방지): 데이터가 많을 경우, inputStream이나 errorStream을 제때 읽어주지 않으면 내부 버퍼가 가득 차서 외부 프로세스가 멈춰버리는 데드락(Deadlock) 현상이 발생합니다.
-            // 그래서 별도 스레드에서 에러 스트림을 소비하는 것이 매우 좋은 습관입니다.
-            val errorOutput = StringBuilder()
-            val errorThread = Thread {
-                process.errorStream.bufferedReader().use { reader ->
-                    reader.forEachLine { line ->
-                        LOGGER.info("[Mapshaper Log] $line")
-                        errorOutput.append(line).append("\n")
-                    }
-                }
-            }
-            errorThread.start()
+            // 4. 실행
+            val result = command.runCommand()
 
-            // 5. 프로세스 종료 대기
-            val exitCode = process.waitFor()
-            errorThread.join(2000)
-
-            if (exitCode != 0) {
-                throw RuntimeException("Mapshaper failed (Exit: $exitCode). Error: $errorOutput")
+            if (result.exitCode != 0) {
+                throw RuntimeException("Mapshaper failed: ${result.error}")
             }
 
-            // 6. 출력 파일 읽기
-            // 대용량(100MB+) 데이터의 경우 inputStream으로 직접 읽는 것보다 outputFile.readText() 방식이 메모리 관리와 데이터 완전성 측면에서 훨씬 안전합니다.
-            val result = outputFile.readText(StandardCharsets.UTF_8)
-            LOGGER.info("[Mapshaper] Result read successfully. Length: ${result.length}")
+            // 5. 결과 읽기
+            val simplifiedJson = outputPath.readText()
+            LOGGER.info("[Mapshaper] Success. Reduced Length: ${simplifiedJson.length}")
 
-            result
-        } catch (e: Exception) {
+            simplifiedJson
+        }.onFailure { e ->
             LOGGER.error("[Mapshaper] Process Error: ${e.message}")
-            ""
-        } finally {
-            // 7. 사용 완료된 임시 파일 삭제 (보안 및 용량 관리)
-            if (inputFile.exists()) inputFile.delete()
-            if (outputFile.exists()) outputFile.delete()
-        }
+        }.also {
+            // 6. finally 대신 임시 파일 삭제
+            inputPath.deleteIfExists()
+            outputPath.deleteIfExists()
+        }.getOrDefault("")
     }
+
 
     suspend fun getCoastalFloodingInfo() {
         val path = "${configData.WATER_LOGGED?.endPoint}/${configData.WATER_LOGGED?.subPath}" +
                 "?serviceKey=${configData.WATER_LOGGED?.apikey}&type=json"
 
-
-        // 1. 데이터 수집 및 초기화 단계
-        val updateTargets = suspendTransaction( Config.conn) {
-
-
-
-            val codeList = SggCode.select(SggCode.sgg_code).map { it ->
+        // 1. 시군구 코드 목록 추출 (짧은 트랜잭션)
+        val codeList = transaction(Config.conn) {
+            SggCode.select(SggCode.sgg_code).map { it ->
                 it[SggCode.sgg_code].trim()
             }
+        }
 
-            val result = loadDataCoastalFlooding(path, codeList).concat()
+        // 2. [핵심 수정] 네트워크로부터 데이터 비동기 수집 (트랜잭션 밖에서 수행)
+        // List<List<DataFrame>>을 받아오게 되므로 flatten 후 concat
+        val rawDataFrames = loadDataCoastalFlooding(path, codeList)
+        val result = rawDataFrames.concat()
+
+            // 1. 데이터 수집 및 초기화 단계
+        val updateTargets = suspendTransaction( Config.conn) {
 
             // 1. 원본 데이터 테이블 생성 및 초기화
             SchemaUtils.create(CoastalFloodingGeoInfo)
@@ -538,10 +531,7 @@ class Repository {
                 LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
             }
 
-
-
             LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
-
 
             // ---------------------------------------------------------------------------
             // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
@@ -592,8 +582,6 @@ class Repository {
 
             LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
 
-
-
             SggCode
                 .select(SggCode.sd_name)
                 .withDistinct() // 중복된 grade-sido 쌍 제거
@@ -637,7 +625,8 @@ class Repository {
                             // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
                             val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
                             if (simplifyGeoJsonObject.isEmpty()) return@launch
-                            LOGGER.info("Optimization Done for $ctpvNm $grade \n(Original size: ${geoJsonObject.length / 1024} KB) \n(Reduced size: ${simplifyGeoJsonObject.length / 1024} KB)")
+
+                            LOGGER.info("\nOptimization Done for $ctpvNm $grade \n( Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB )")
 
                             suspendTransaction( Config.conn) {
 

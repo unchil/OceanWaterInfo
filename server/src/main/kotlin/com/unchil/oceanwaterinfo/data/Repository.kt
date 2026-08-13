@@ -451,7 +451,6 @@ class Repository {
                     .select(
                         CoastalFloodingGeoJsonObjectTbl.grade,
                         CoastalFloodingGeoJsonObjectTbl.ctpvNm,
-                    //    CoastalFloodingGeoJsonObjectTbl.geojson
                         CoastalFloodingGeoJsonObjectTbl.simplegeojson
 
                     )
@@ -464,7 +463,6 @@ class Repository {
                         CoastalFloodingGeoJsonObject(
                             grade = it[CoastalFloodingGeoJsonObjectTbl.grade],
                             ctpvNm = it[CoastalFloodingGeoJsonObjectTbl.ctpvNm],
-                  //          geojson = it[CoastalFloodingGeoJsonObjectTbl.geojson].bytes
                             geojson = it[CoastalFloodingGeoJsonObjectTbl.simplegeojson].bytes
                         )
                     }
