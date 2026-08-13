@@ -410,11 +410,11 @@ class Repository {
         }
     }
 
-    suspend fun loadDataCoastalFlooding(path:String, codeList:List<String>): List<DataFrame<*>> = coroutineScope {
+    suspend fun loadDataCoastalFlooding(path:String, codeList:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
         val numOfRows = 300
 
         // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(5)
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
@@ -511,7 +511,9 @@ class Repository {
             // 2. [핵심 수정] 네트워크로부터 데이터 비동기 수집 (트랜잭션 밖에서 수행)
             // List<List<DataFrame>>을 받아오게 되므로 flatten 후 concat
 
-            val rawDataFrames = loadDataCoastalFlooding(path, codeList)
+            val limit = configData.WATER_LOGGED?.limitedParallelism ?: 1
+
+            val rawDataFrames = loadDataCoastalFlooding(path, codeList, limit)
             val result = rawDataFrames.concat()
 
             // 1. 데이터 수집 및 초기화 단계
