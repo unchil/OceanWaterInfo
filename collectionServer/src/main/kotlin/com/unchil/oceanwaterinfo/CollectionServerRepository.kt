@@ -511,50 +511,49 @@ class CollectionServerRepository {
 
             val limit = configData.WATER_LOGGED?.limitedParallelism ?: 1
 
-            val rawDataFrames = loadDataCoastalFlooding(path, codeList, limit)
-            val result = rawDataFrames.concat()
+            loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
+                val result = rawDataFrames.concat()
+                // 1. 데이터 수집 및 초기화 단계
+                val updateTargets = suspendTransaction( CollectionServerConfig.conn) {
 
-            // 1. 데이터 수집 및 초기화 단계
-            val updateTargets = suspendTransaction( CollectionServerConfig.conn) {
+                    // 1. 원본 데이터 테이블 생성 및 초기화
+                    SchemaUtils.create(CoastalFloodingGeoInfo)
 
-                // 1. 원본 데이터 테이블 생성 및 초기화
-                SchemaUtils.create(CoastalFloodingGeoInfo)
+                    // --------------------------------------------------
+                    // 추가된 부분: 새로운 데이터를 넣기 전에 기존 데이터를 모두 삭제 (Truncate 효과)
+                    CoastalFloodingGeoInfo.deleteAll()
+                    // --------------------------------------------------
+                    LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
 
-                // --------------------------------------------------
-                // 추가된 부분: 새로운 데이터를 넣기 전에 기존 데이터를 모두 삭제 (Truncate 효과)
-                CoastalFloodingGeoInfo.deleteAll()
-                // --------------------------------------------------
-                LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+                    try {
+                        // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                        CoastalFloodingGeoInfo.batchInsert(result.rows(), true, false) { row ->
+                            this[CoastalFloodingGeoInfo.ctpvNm] = row["ctpvNm"].toString().trim()
+                            this[CoastalFloodingGeoInfo.sggNm] = row["sggNm"].toString().trim()
+                            this[CoastalFloodingGeoInfo.flodVlCn] = row["flodVlCn"].toString().trim()
+                            this[CoastalFloodingGeoInfo.geom] = row["geom"].toString().trim()
+                        }
 
-                try {
-                    // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                    CoastalFloodingGeoInfo.batchInsert(result.rows(), true, false) { row ->
-                        this[CoastalFloodingGeoInfo.ctpvNm] = row["ctpvNm"].toString().trim()
-                        this[CoastalFloodingGeoInfo.sggNm] = row["sggNm"].toString().trim()
-                        this[CoastalFloodingGeoInfo.flodVlCn] = row["flodVlCn"].toString().trim()
-                        this[CoastalFloodingGeoInfo.geom] = row["geom"].toString().trim()
+                    } catch (e: Exception) {
+                        LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
                     }
 
-                } catch (e: Exception) {
-                    LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
-                }
+                    LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
 
-                LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
+                    // ---------------------------------------------------------------------------
+                    // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
+                    // ---------------------------------------------------------------------------
 
-                // ---------------------------------------------------------------------------
-                // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
-                // ---------------------------------------------------------------------------
+                    // 요약 테이블 생성 및 기존 데이터 삭제
+                    SchemaUtils.create(CoastalFloodingGeoTbl)
+                    CoastalFloodingGeoTbl.deleteAll()
 
-                // 요약 테이블 생성 및 기존 데이터 삭제
-                SchemaUtils.create(CoastalFloodingGeoTbl)
-                CoastalFloodingGeoTbl.deleteAll()
-
-                LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
+                    LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
 
 
-                // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
-                // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
-                val aggregateSql = """
+                    // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
+                    // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
+                    val aggregateSql = """
                 INSERT INTO CoastalFloodingGeoTbl (grade, flodVlCn, ctpvNm, geom)
                 SELECT
                     MAX(grade) AS grade,
@@ -581,92 +580,94 @@ class CollectionServerRepository {
                 GROUP BY A.geom
             """.trimIndent()
 
-                // Exposed의 exec 함수를 통해 네이티브 쿼리 실행
-                exec(aggregateSql)
+                    // Exposed의 exec 함수를 통해 네이티브 쿼리 실행
+                    exec(aggregateSql)
 
-                LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
+                    LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
 
-                CoastalFloodingGeoInfo.deleteAll()
+                    CoastalFloodingGeoInfo.deleteAll()
 
-                LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+                    LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
 
-                SggCode
-                    .select(SggCode.sd_name)
-                    .withDistinct() // 중복된 grade-sido 쌍 제거
-                    .map { it[SggCode.sd_name] }
+                    SggCode
+                        .select(SggCode.sd_name)
+                        .withDistinct() // 중복된 grade-sido 쌍 제거
+                        .map { it[SggCode.sd_name] }
+                }
+                coroutineScope {
+                    // SQLite와 CPU 부하를 고려하여 동시 실행 작업 수를 3개로 제한
+                    val semaphore = Semaphore(3)
+                    updateTargets.forEach { ctpvNm ->
+                        listOf("F", "E", "D", "C", "B", "A").forEach { grade ->
+                            launch {
+                                semaphore.withPermit {
+
+                                    val geoJsonObject = suspendTransaction( CollectionServerConfig.conn) {
+                                        CoastalFloodingGeoTbl
+                                            .select(
+                                                CoastalFloodingGeoTbl.grade,
+                                                CoastalFloodingGeoTbl.flodVlCn,
+                                                CoastalFloodingGeoTbl.ctpvNm,
+                                                CoastalFloodingGeoTbl.geom
+                                            )
+                                            .where {
+                                                (CoastalFloodingGeoTbl.grade eq grade) and
+                                                        (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
+                                            }
+                                            .map {
+                                                CoastalFloodingGeo(
+                                                    grade = it[CoastalFloodingGeoTbl.grade],
+                                                    flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
+                                                    ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
+                                                    geom = it[CoastalFloodingGeoTbl.geom]
+                                                )
+                                            }.toGeoJsonObject(Pair(ctpvNm, grade))
+                                    } // suspendTransaction
+
+                                    if (geoJsonObject.length < 100) return@launch // 데이터 없으면 스킵
+
+                                    LOGGER.info("Processing: $ctpvNm $grade")
+
+                                    // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
+                                    val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
+                                    if (simplifyGeoJsonObject.isEmpty()) return@launch
+
+                                    LOGGER.info("\nOptimization Done for $ctpvNm $grade \n( Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB )")
+
+                                    suspendTransaction( CollectionServerConfig.conn) {
+
+                                        val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
+                                        val simpleBlob = ExposedBlob(simplifyGeoJsonObject.toByteArray(Charsets.UTF_8))
+
+
+                                        SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
+
+                                        CoastalFloodingGeoJsonObjectTbl.deleteWhere {
+                                            (CoastalFloodingGeoJsonObjectTbl.grade eq grade) and
+                                                    (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
+                                        }
+
+                                        CoastalFloodingGeoJsonObjectTbl.insert {
+                                            it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
+                                            it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
+                                            it[CoastalFloodingGeoJsonObjectTbl.geojson] = originalBlob
+                                            it[CoastalFloodingGeoJsonObjectTbl.simplegeojson] = simpleBlob
+
+                                        }
+                                    } // suspendTransaction
+
+                                    LOGGER.info("Successfully saved $ctpvNm $grade")
+
+                                } // semaphore
+                            } // launch
+
+                        } // grade List
+                    } // sido List
+
+                }// coroutineScope
+
             }
 
-            coroutineScope {
-                // SQLite와 CPU 부하를 고려하여 동시 실행 작업 수를 3개로 제한
-                val semaphore = Semaphore(3)
-                updateTargets.forEach { ctpvNm ->
-                    listOf("F", "E", "D", "C", "B", "A").forEach { grade ->
-                        launch {
-                            semaphore.withPermit {
-
-                                val geoJsonObject = suspendTransaction( CollectionServerConfig.conn) {
-                                    CoastalFloodingGeoTbl
-                                        .select(
-                                            CoastalFloodingGeoTbl.grade,
-                                            CoastalFloodingGeoTbl.flodVlCn,
-                                            CoastalFloodingGeoTbl.ctpvNm,
-                                            CoastalFloodingGeoTbl.geom
-                                        )
-                                        .where {
-                                            (CoastalFloodingGeoTbl.grade eq grade) and
-                                                    (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
-                                        }
-                                        .map {
-                                            CoastalFloodingGeo(
-                                                grade = it[CoastalFloodingGeoTbl.grade],
-                                                flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
-                                                ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
-                                                geom = it[CoastalFloodingGeoTbl.geom]
-                                            )
-                                        }.toGeoJsonObject(Pair(ctpvNm, grade))
-                                } // suspendTransaction
-
-                                if (geoJsonObject.length < 100) return@launch // 데이터 없으면 스킵
-
-                                LOGGER.info("Processing: $ctpvNm $grade")
-
-                                // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
-                                val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
-                                if (simplifyGeoJsonObject.isEmpty()) return@launch
-
-                                LOGGER.info("\nOptimization Done for $ctpvNm $grade \n( Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB )")
-
-                                suspendTransaction( CollectionServerConfig.conn) {
-
-                                    val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
-                                    val simpleBlob = ExposedBlob(simplifyGeoJsonObject.toByteArray(Charsets.UTF_8))
-
-
-                                    SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
-
-                                    CoastalFloodingGeoJsonObjectTbl.deleteWhere {
-                                        (CoastalFloodingGeoJsonObjectTbl.grade eq grade) and
-                                                (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
-                                    }
-
-                                    CoastalFloodingGeoJsonObjectTbl.insert {
-                                        it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
-                                        it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
-                                        it[CoastalFloodingGeoJsonObjectTbl.geojson] = originalBlob
-                                        it[CoastalFloodingGeoJsonObjectTbl.simplegeojson] = simpleBlob
-
-                                    }
-                                } // suspendTransaction
-
-                                LOGGER.info("Successfully saved $ctpvNm $grade")
-
-                            } // semaphore
-                        } // launch
-
-                    } // grade List
-                } // sido List
-
-            }// coroutineScope
 
         }catch (err: Exception){
             LOGGER.error("[getCoastalFloodingInfo] Process Error: ${err.message}")
