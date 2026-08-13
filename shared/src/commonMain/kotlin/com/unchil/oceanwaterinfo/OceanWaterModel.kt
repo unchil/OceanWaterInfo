@@ -52,7 +52,7 @@ data class SeaWaterBoxPlotStat(
 data class CoastalFloodingGeoJsonObject(
     val grade: String,
     val ctpvNm:String,
-    val geojson:ByteArray
+    val geojson:String
 
     )
 

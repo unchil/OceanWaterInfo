@@ -218,6 +218,12 @@ window.addEventListener("message", async(event) => {
                     case 'REMOVE_FEATHER':
                         removeFeather();
                         break;
+                    case 'COASTAL_FLOODING':
+                        renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
+                        break;
+                    case 'COASTAL_FLOODING_ALL':
+                        renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
+                        break;
                     default:
                         console.log(`${getTimestamp()} Unknown msgKey: ${messageData.msgKey}`);
                         break;

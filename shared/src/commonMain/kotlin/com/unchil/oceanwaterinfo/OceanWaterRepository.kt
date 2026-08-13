@@ -83,8 +83,18 @@ class OceanWaterRepository {
             }
 
         }catch (e:Exception){
-            _coastalFloodingGeoJsonObject.value = emptyList()
-            LOGGER.error(e.message ?: "Error ")
+            _coastalFloodingGeoJsonObject.value = listOf(
+                CoastalFloodingGeoJsonObject(
+                    grade,
+                    sido,
+                    """
+                        {"type":"FeatureCollection", "features": [
+                        {"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[]},"properties":{"name":"MultiPolygon ${sido}_${grade}"}}
+                        ]}
+                    """.trimIndent()
+                )
+            )
+            LOGGER.info(e.message ?: "NotFound Data[ grade:${grade}, sido:${sido} ]")
         }
     }
 

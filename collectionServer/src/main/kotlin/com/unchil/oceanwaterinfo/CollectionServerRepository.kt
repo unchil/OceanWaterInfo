@@ -638,7 +638,7 @@ class CollectionServerRepository {
                                     suspendTransaction( CollectionServerConfig.conn) {
 
                                         val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
-                                        val simpleBlob = ExposedBlob(simplifyGeoJsonObject.toByteArray(Charsets.UTF_8))
+
 
 
                                         SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
@@ -652,7 +652,7 @@ class CollectionServerRepository {
                                             it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
                                             it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
                                             it[CoastalFloodingGeoJsonObjectTbl.geojson] = originalBlob
-                                            it[CoastalFloodingGeoJsonObjectTbl.simplegeojson] = simpleBlob
+                                            it[CoastalFloodingGeoJsonObjectTbl.simplegeojson] = simplifyGeoJsonObject
 
                                         }
                                     } // suspendTransaction

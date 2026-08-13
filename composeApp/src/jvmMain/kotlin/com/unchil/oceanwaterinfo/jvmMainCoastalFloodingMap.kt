@@ -82,11 +82,11 @@ fun jvmMainCoastalFloodingMap(
 
             coastalFloodingInfo.value.forEach { it->
                 if(sidoOption.equals(SiDo.entries[0])){
-                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call COASTAL_FLOODING_ALL")
-                    navigator.evaluateJavaScript("renderingMap( ${it.geojson.decodeToString()},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\')")
+                    LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING_ALL")
+                    navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\')")
                 }else {
-                    LOGGER.debug("Data Receive (Size: ${ it.geojson.size / 1024 } KB)\n Call COASTAL_FLOODING")
-                    navigator.evaluateJavaScript("renderingMap( ${it.geojson.decodeToString()},  \"${gradeOption.name}\", \'COASTAL_FLOODING\')")
+                    LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING")
+                    navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\')")
                 }
             }
         }

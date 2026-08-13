@@ -77,23 +77,17 @@ fun webMainCoastalFloodingMap(){
 
             coastalFloodingInfo.value.forEach { it ->
                 if(sidoOption.equals(SiDo.entries[0])){
-                    println( "[Kotlin] Data Receive (Size: ${it.geojson.size/1024} KB)")
+                    println( "[Kotlin] Data Receive (Size: ${it.geojson.length} )")
 
-                    sendPostMsgRaw(
-                        iframeId=IFRAME_COASTAL_FLOODING,
-                        msgKey="COASTAL_FLOODING_ALL",
-                        grade=gradeOption.name,
-                        geojsonBytes=it.geojson
-                    )
+
+                    val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${it.geojson}}"
+                    sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING_ALL", values )
                 } else {
-                    println( "[Kotlin] Data Receive (Size: ${it.geojson.size/1024} KB)")
+                    println( "[Kotlin] Data Receive (Size: ${it.geojson.length})")
 
-                    sendPostMsgRaw(
-                        iframeId=IFRAME_COASTAL_FLOODING,
-                        msgKey="COASTAL_FLOODING",
-                        grade=gradeOption.name,
-                        geojsonBytes=it.geojson
-                    )
+                    val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${it.geojson}}"
+
+                    sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING", values )
                 }
             }
 
@@ -207,11 +201,17 @@ fun webMainCoastalFloodingMap(){
                         onChangeFlag = { label, value ->
                             when (label) {
                                 "Reload" ->{
+                                    /*
                                     sendMsgChangeData(
                                         IFRAME_COASTAL_FLOODING,
                                         coastalFloodingInfo.value.first().geojson.decodeToString(),
                                         gradeOption.name
                                     )
+
+                                     */
+
+                                    val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${coastalFloodingInfo.value.first().geojson}}"
+                                    sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING", values )
                                     coroutineScope.launch {
                                         delay(1000)
                                     }
