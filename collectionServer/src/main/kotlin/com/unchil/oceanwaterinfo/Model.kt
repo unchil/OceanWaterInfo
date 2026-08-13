@@ -459,7 +459,10 @@ data class KHNP(
 data class Water_LoggedConfig(
     val endPoint: String,
     val subPath: String,
-    val apikey: String
+    val apikey: String,
+    val node: String,
+    val nodeOption: String,
+    val mapshaper: String
 )
 
 @Serializable
