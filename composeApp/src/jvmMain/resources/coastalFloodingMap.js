@@ -82,7 +82,7 @@ window.removeMapFeature = function(){
 window.renderingMap = function( geojsonObject, grade, msgKey){
     console.log(`${getTimestamp()} renderingMap Start`);
 
-
+    showMapLoader("loading...");
     // --- [데이터 검증 및 이동 로직 추가] ---
     let isEmpty = true;
 

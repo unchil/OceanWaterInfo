@@ -219,9 +219,11 @@ window.addEventListener("message", async(event) => {
                         removeFeather();
                         break;
                     case 'COASTAL_FLOODING':
+                        showMapLoader("loading...");
                         renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
                         break;
                     case 'COASTAL_FLOODING_ALL':
+                        showMapLoader("loading...");
                         renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
                         break;
                     default:
