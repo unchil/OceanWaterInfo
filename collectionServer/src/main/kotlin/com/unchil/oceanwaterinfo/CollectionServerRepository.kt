@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -407,6 +408,24 @@ class CollectionServerRepository {
         }
     }
 
+    suspend fun <T> retryIO(
+        times: Int = 3,
+        initialDelay: Long = 1000,
+        block: suspend () -> T
+    ): T {
+        var currentDelay = initialDelay
+        repeat(times - 1) {
+            try {
+                return block()
+            } catch (e: Exception) {
+                LOGGER.warn("요청 실패, $currentDelay ms 후 재시도... (${e.message})")
+                delay(currentDelay)
+                currentDelay *= 2 // 점진적으로 대기 시간 증가 (Exponential Backoff)
+            }
+        }
+        return block() // 마지막 시도
+    }
+
     suspend fun loadDataCoastalFlooding(path:String, codeList:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
         val numOfRows = 300
 
@@ -418,10 +437,11 @@ class CollectionServerRepository {
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
             async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
-                val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
-                var url = ""
+                retryIO(times = 3) {
+                    val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
+                    var url = ""
 
-                    try{
+                    try {
                         url = "${baseUrl}&pageNo=1"
                         val df_first = DataFrame.readJson(url)
                         val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
@@ -442,6 +462,8 @@ class CollectionServerRepository {
                     } catch (err: Exception) {
                         LOGGER.error("Error processing $url : ", err)
                     }
+
+                }
             }
 
         }
