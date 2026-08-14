@@ -21,8 +21,8 @@ fun main(args: Array<String>) = runBlocking {
 
     if (allowedIntervals?.contains(interval) == true ) {
 
-        // 설정 감시 시작
-    //    ConfigManager.startWatching(this)
+        // 감시 시작
+        ConfigManager.startWatching(this)
 
         val collector = CollectionServerDataCollector()
 
@@ -57,8 +57,9 @@ fun main(args: Array<String>) = runBlocking {
         LOGGER.info("[$interval minutes] This is not an allowed schedule interval.")
     }
 
-    // 종료 시
-  //  ConfigManager.stopWatching()
+    // 종료 시 (선택 사항)
+    ConfigManager.stopWatching()
+
     LOGGER.info("Data Collector Stopped.")
 }
 

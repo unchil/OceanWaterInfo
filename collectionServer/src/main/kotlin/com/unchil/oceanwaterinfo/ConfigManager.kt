@@ -7,28 +7,33 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.Database
-import java.io.File
-import java.nio.file.FileSystems
-import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
-import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
+import java.nio.file.StandardWatchEventKinds
+import kotlin.io.path.Path
+import kotlin.io.path.name
 
 object ConfigManager {
     // 1. 반드시 'src' 경로가 아닌 실제 실행 환경에서 접근 가능한 경로를 사용하거나
-    //    개발 환경이라면 전체 경로를 절대 경로로 지정합니다.
+    //  개발 환경이라면 전체 경로를 절대 경로로 지정합니다.
 
     private const val CONFIG_FILENAME = "application.json"
-    private const val FULL_PATH = "/Users/unchil/AndroidStudioProjects/OceanWaterInfo/collectionServer/src/main/resources/${CONFIG_FILENAME}"
 
-    private val configFile = File(FULL_PATH)
-    private val parentDir = configFile.parentFile.toPath()
+    private const val CONFIG__FILEPATH = "/Users/unchil/AndroidStudioProjects/OceanWaterInfo/collectionServer/src/main/resources"
+
+    private  val configFilePath = Path("${CONFIG__FILEPATH}/${CONFIG_FILENAME}")
+    private val configFile = configFilePath.toFile()
+
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     // 현재 메모리에 로드된 설정 정보
     var currentConfig: ConfigData = loadConfig()
         private set
+
+    // 코루틴 관리용 Job
+    private var watchJob: Job? = null
+    private var watchService: java.nio.file.WatchService? = null
+
 
     val conn = Database.connect(
         url = currentConfig.SQLITE_DB?.jdbcURL ?: "",
@@ -49,63 +54,69 @@ object ConfigManager {
         }
     }
 
-    private var watchJob: Job? = null
-    private var watchService: java.nio.file.WatchService? = null
-
-/*
-    // 파일 변경 감시 시작
+    /**
+     * 파일 변화 감지 시작
+     */
     fun startWatching(scope: CoroutineScope) {
-        // 이미 실행 중인 경우 중복 실행 방지
+        // 이미 실행 중이면 중복 실행 방지
         if (watchJob?.isActive == true) return
 
         watchJob = scope.launch(Dispatchers.IO) {
             try {
-                val service = FileSystems.getDefault().newWatchService()
-                watchService = service // 전역 변수에 할당
+                // 1. WatchService 생성
+                watchService =  configFilePath.parent.fileSystem.newWatchService()
 
-                service?.let { it ->
-                    // 수정(MODIFY) 이벤트 등록
-                    parentDir.register(it,  ENTRY_MODIFY, ENTRY_CREATE)
+                // 2. 부모 디렉토리를 감시 대상으로 등록 (수정 및 생성 이벤트 모두 감지)
+                // IntelliJ의 'Safe Write' 기능은 파일을 삭제 후 생성하므로 ENTRY_CREATE가 필수입니다.
+                configFilePath.parent.register(
+                    watchService,
+                    StandardWatchEventKinds.ENTRY_MODIFY,
+                    StandardWatchEventKinds.ENTRY_CREATE
+                )
 
-                    println("[ConfigManager] 설정 파일 감시 시작...")
+                println("[ConfigManager] 감시 시작: ${configFilePath.parent.name}")
 
-                    while (isActive) {
-                        val key = it.take() // 이벤트가 발생할 때까지 대기
+                while (isActive) {
+                    // 3. 이벤트 대기 (Blocking 호출)
+                    watchService?.take()?.let { key ->
                         for (event in key.pollEvents()) {
-                            val context = event.context() as Path
-                            if (context.toString() == CONFIG_FILENAME) {
-                                println("[ConfigManager] 파일 변경 감지! 다시 로드합니다...")
-
-                                // 파일 쓰기가 완료될 때까지 잠시 대기 (안전장치)
+                            // 4. 감시 중인 파일 이름과 일치하는지 확인
+                            if ( event.context().toString().equals(CONFIG_FILENAME)) {
+                                // 파일이 완전히 저장될 때까지 아주 잠시 대기 (파일 잠금 방지)
                                 delay(500)
                                 currentConfig = loadConfig()
                             }
                         }
+
+                        // 5. 키 리셋 (실패 시 감시 종료)
                         if (!key.reset()) break
                     }
-
                 }
 
-            }  catch (e: java.nio.file.ClosedWatchServiceException) {
-                println("[ConfigManager] WatchService가 닫혔습니다.")
+
             } catch (e: Exception) {
-                println("[ConfigManager] 감시 중 에러 발생: ${e.message}")
+                if (e is java.nio.file.ClosedWatchServiceException) {
+                    println("[ConfigManager] 감시 코루틴이 취소되었습니다.")
+                } else {
+                    println("[ConfigManager] 감시 중 에러 발생: ${e.message}")
+                }
             } finally {
                 watchService?.close()
-                watchJob = null
-                println("[ConfigManager] 감시 리소스 정리 완료.")
+                println("[ConfigManager] 감시 리소스 정리 중...")
             }
         }
+
     }
 
 
-    // --- 추가된 종료 함수 ---
+    /**
+     * 파일 변화 감지 종료
+     */
     fun stopWatching() {
-        println("[ConfigManager] 감시 종료 요청...")
-        watchJob?.cancel() // 코루틴 취소
-        watchService?.close() // 블로킹 중인 take()를 깨우기 위해 서비스 닫기
+        println("[ConfigManager] 감시 종료 요청")
+        watchJob?.cancel()
+        watchService?.close()
         watchJob = null
     }
 
-*/
 }
