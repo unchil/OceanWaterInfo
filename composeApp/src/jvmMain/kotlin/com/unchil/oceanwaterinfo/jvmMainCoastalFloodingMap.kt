@@ -35,6 +35,8 @@ import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import io.github.koalaplot.core.xygraph.Point
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun jvmMainCoastalFloodingMap(
@@ -46,6 +48,8 @@ fun jvmMainCoastalFloodingMap(
     val viewModel: CoastalFloodingInfoViewModel = remember {
         CoastalFloodingInfoViewModel()
     }
+
+    val coroutineScope = rememberCoroutineScope()
 
     val bottomBarHeight = remember{80.dp}
 
@@ -93,11 +97,16 @@ fun jvmMainCoastalFloodingMap(
     }
 
 
+
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement =   Arrangement.Center
     ) {
+
+
+
         Text(
             "Korea Coastal Flooding Prediction Information",
             modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
@@ -200,9 +209,13 @@ fun jvmMainCoastalFloodingMap(
                                 onChangeFlag = { label, value ->
                                     when (label) {
                                         "Reload" ->{
-                                            val jsonString = geojsonObject.value.decodeToString()
-
-                                            navigator.evaluateJavaScript("initMapWithData( ${jsonString},  \"${gradeOption.name}\")")
+                                            coroutineScope.launch {
+                                                selectedTabIndexGrade = 0
+                                                selectedTabIndexSido = 0
+                                                gradeOption = CoastalFloodingGrade.entries[0]
+                                                sidoOption = SiDo.entries[0]
+                                                viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
+                                            }
                                         }
                                     }
 

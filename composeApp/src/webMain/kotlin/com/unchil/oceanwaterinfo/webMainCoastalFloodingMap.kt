@@ -201,19 +201,12 @@ fun webMainCoastalFloodingMap(){
                         onChangeFlag = { label, value ->
                             when (label) {
                                 "Reload" ->{
-                                    /*
-                                    sendMsgChangeData(
-                                        IFRAME_COASTAL_FLOODING,
-                                        coastalFloodingInfo.value.first().geojson.decodeToString(),
-                                        gradeOption.name
-                                    )
-
-                                     */
-
-                                    val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${coastalFloodingInfo.value.first().geojson}}"
-                                    sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING", values )
                                     coroutineScope.launch {
-                                        delay(1000)
+                                        selectedTabIndexGrade = 0
+                                        selectedTabIndexSido = 0
+                                        gradeOption = CoastalFloodingGrade.entries[0]
+                                        sidoOption = SiDo.entries[0]
+                                        viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
                                     }
                                 }
                             }
