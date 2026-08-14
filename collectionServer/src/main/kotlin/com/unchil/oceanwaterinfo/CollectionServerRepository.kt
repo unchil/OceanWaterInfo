@@ -439,29 +439,28 @@ class CollectionServerRepository {
             async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
                 retryIO(times = 3) {
                     val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
-                    var url = ""
+                    var url = "${baseUrl}&pageNo=1"
 
-                    try {
-                        url = "${baseUrl}&pageNo=1"
-                        val df_first = DataFrame.readJson(url)
-                        val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
-                        val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
-                        val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
-                        LOGGER.info("ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
-                        val dataFrames = mutableListOf<DataFrame<*>>()
-                        dataFrames.add(data)
-                        for (page in 2..totalPages) {
-                            url = "$baseUrl&pageNo=$page"
-                            val df_page = DataFrame.readJson(url)
-                            val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
-                            dataFrames.add(data)
-                        }
-
-                        dataFrames.concat()
-
-                    } catch (err: Exception) {
-                        LOGGER.error("Error processing $url : ", err)
+                    val df_first = try {
+                        DataFrame.readJson(url)
+                    } catch (e: Exception) {
+                        LOGGER.error("첫 페이지 로드 실패: $url", e)
+                        throw e
                     }
+
+                    val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
+                    val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
+                    val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+                    LOGGER.info("ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
+                    val dataFrames = mutableListOf<DataFrame<*>>()
+                    dataFrames.add(data)
+                    for (page in 2..totalPages) {
+                        url = "$baseUrl&pageNo=$page"
+                        val df_page = DataFrame.readJson(url)
+                        val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
+                        dataFrames.add(data)
+                    }
+                    dataFrames.concat()
 
                 }
             }
