@@ -81,8 +81,6 @@ window.removeMapFeature = function(){
 
 window.renderingMap = function( geojsonObject, grade, msgKey){
     console.log(`${getTimestamp()} renderingMap Start`);
-
-    showMapLoader("loading...");
     // --- [데이터 검증 및 이동 로직 추가] ---
     let isEmpty = true;
 
@@ -95,14 +93,13 @@ window.renderingMap = function( geojsonObject, grade, msgKey){
     }
 
     if (isEmpty && msgKey === 'COASTAL_FLOODING') {
-        console.log(`${getTimestamp()} GeoJSON coordinates are empty. Flying to default center.`);
         window.alert("선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.");
-        // 데이터가 없으므로 기존 데이터를 지우고 기본 센터로 이동
-        removeFeather();
         smoothFlyTo(center);
-        hideMapLoader();
+        removeFeather();
         return; // 이후 렌더링 로직 중단
     }
+
+    showMapLoader("loading...");
 
     const strokeColor = getGradeColor(grade);
 

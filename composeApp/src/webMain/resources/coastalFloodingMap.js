@@ -95,9 +95,10 @@ window.renderingMap = function( geojsonObject, grade, msgKey){
         // 데이터가 없으므로 기존 데이터를 지우고 기본 센터로 이동
         removeFeather();
         smoothFlyTo(center);
-        hideMapLoader();
         return; // 이후 렌더링 로직 중단
     }
+
+    showMapLoader("loading...");
 
     const strokeColor = getGradeColor(grade);
 
@@ -192,7 +193,7 @@ window.addEventListener("message", async(event) => {
 
     if( event.data.msgKey === 'COASTAL_FLOODING'){
         // 단일 데이터 전송 (Main 스레드 디코딩)
-        showMapLoader("loading...");
+
         const decoder = new TextDecoder("utf-8");
         const jsonString = decoder.decode(event.data.buffer);
         const geoJsonData = JSON.parse(jsonString);
@@ -200,7 +201,7 @@ window.addEventListener("message", async(event) => {
 
     }else if(event.data.msgKey === 'COASTAL_FLOODING_ALL'){
         // 대용량 데이터 전송 (Web Worker로 위임)
-        showMapLoader("loading...");
+
         mapWorker.postMessage({
             grade: event.data.grade,
             buffer: event.data.buffer,
@@ -219,11 +220,11 @@ window.addEventListener("message", async(event) => {
                         removeFeather();
                         break;
                     case 'COASTAL_FLOODING':
-                        showMapLoader("loading...");
+
                         renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
                         break;
                     case 'COASTAL_FLOODING_ALL':
-                        showMapLoader("loading...");
+
                         renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
                         break;
                     default:
