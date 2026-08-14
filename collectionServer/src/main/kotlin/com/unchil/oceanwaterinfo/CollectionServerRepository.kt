@@ -1,7 +1,6 @@
 package com.unchil.oceanwaterinfo
 
 
-import com.unchil.oceanwaterinfo.CollectionServerConfig.Companion.configData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
@@ -11,8 +10,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -59,18 +56,18 @@ import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.json.XML
-import java.nio.charset.StandardCharsets
+import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.math.ceil
 import kotlin.time.Clock
-import kotlin.io.path.createTempFile
-import kotlin.io.path.writeText
-import kotlin.io.path.readText
+
 class CollectionServerRepository {
     internal val LOGGER = KtorSimpleLogger( CollectionServerRepository::class.java.name )
 
     init {
-        transaction(CollectionServerConfig.conn) {
+        transaction(ConfigManager.conn) {
             addLogger(StdOutSqlLogger)
         }
     }
@@ -78,7 +75,7 @@ class CollectionServerRepository {
 
      suspend fun getKHNP_PlantStates() {
 
-        val url_PlantStates = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.NuclearPlantStates}?serviceKey=${configData.KHNP?.serviceKey}"
+        val url_PlantStates = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.NuclearPlantStates}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
         val genNames = listOf("WS", "KR", "YK", "SU", "UJ")
 
@@ -160,7 +157,7 @@ class CollectionServerRepository {
             }
         }
 
-         transaction(CollectionServerConfig.conn) {
+         transaction(ConfigManager.conn) {
              SchemaUtils.create(KHNP_PlantInfo)
              plantInfo.forEach { item  ->
                  try{
@@ -237,7 +234,7 @@ class CollectionServerRepository {
 
 
     fun getKHNP_ThermalWasteWater(){
-        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+        val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
         val concatDf = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
         val updatedDf = concatDf.update ( "name" ).with {
@@ -270,7 +267,7 @@ class CollectionServerRepository {
         LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Count:[${result.count()}]")
 
-        transaction(CollectionServerConfig.conn) {
+        transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_ThermalWasteWater)
 
             result.forEach { item  ->
@@ -300,7 +297,7 @@ class CollectionServerRepository {
 
     fun getKHNP_WasteWater(){
 
-        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.WasteWater}?serviceKey=${configData.KHNP?.serviceKey}"
+        val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.WasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
         val concatDf = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
         val updatedDf = concatDf.update ("name" ).with {
@@ -328,7 +325,7 @@ class CollectionServerRepository {
         LOGGER.info("\n ${::getKHNP_WasteWater.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_WasteWater.name}  Count:[${result.count()}]")
 
-        transaction(CollectionServerConfig.conn) {
+        transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_WasteWater)
 
             result.forEach { item  ->
@@ -352,14 +349,14 @@ class CollectionServerRepository {
 
 
     fun getKHNP_RadioRate(){
-        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.RadioRate}?serviceKey=${configData.KHNP?.serviceKey}"
+        val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioRate}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
         val result = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
 
         LOGGER.info("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_RadioRate.name}  Count:[${result.count()}]")
 
-        transaction(CollectionServerConfig.conn) {
+        transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioRate)
 
             result.forEach { item  ->
@@ -381,14 +378,14 @@ class CollectionServerRepository {
     }
 
     fun getKHNP_RadioActiveWaste(){
-        val url = "${configData.KHNP?.endPoint}/${configData.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${configData.KHNP?.serviceKey}"
+        val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
         val result = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800") )
 
 
         LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Count:[${result.count()}]")
 
-        transaction(CollectionServerConfig.conn) {
+        transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioActiveWaste)
 
             result.forEach { item  ->
@@ -484,9 +481,9 @@ class CollectionServerRepository {
 
             // 3. CLI 명령어 리스트 작성 (Kotlin 스타일)
             val command = listOf(
-                "${configData.WATER_LOGGED?.node}",
-                "${configData.WATER_LOGGED?.nodeOption}",
-                "${configData.WATER_LOGGED?.mapshaper}",
+                "${ConfigManager.currentConfig.WATER_LOGGED?.node}",
+                "${ConfigManager.currentConfig.WATER_LOGGED?.nodeOption}",
+                "${ConfigManager.currentConfig.WATER_LOGGED?.mapshaper}",
                 "-i", inputPath.toString(),
                 "-clean",
                 "-simplify", percentage, "visvalingam", "keep-shapes",
@@ -519,11 +516,11 @@ class CollectionServerRepository {
     suspend fun getCoastalFloodingInfo() {
 
         try{
-            val path = "${configData.WATER_LOGGED?.endPoint}/${configData.WATER_LOGGED?.subPath}" +
-                    "?serviceKey=${configData.WATER_LOGGED?.apikey}&type=json"
+            val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
+                    "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
 
             // 1. 시군구 코드 목록 추출 (짧은 트랜잭션)
-            val codeList = transaction(CollectionServerConfig.conn) {
+            val codeList = transaction(ConfigManager.conn) {
                 SggCode.select(SggCode.sgg_code).map { it ->
                     it[SggCode.sgg_code].trim()
                 }
@@ -532,13 +529,13 @@ class CollectionServerRepository {
             // 2. [핵심 수정] 네트워크로부터 데이터 비동기 수집 (트랜잭션 밖에서 수행)
             // List<List<DataFrame>>을 받아오게 되므로 flatten 후 concat
 
-            val limit = configData.WATER_LOGGED?.limitedParallelism ?: 1
+            val limit = ConfigManager.currentConfig.WATER_LOGGED?.limitedParallelism ?: 1
 
             loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
 
                 val result = rawDataFrames.concat()
                 // 1. 데이터 수집 및 초기화 단계
-                val updateTargets = suspendTransaction( CollectionServerConfig.conn) {
+                val updateTargets = suspendTransaction( ConfigManager.conn) {
 
 
                     // 1. 원본 데이터 테이블 생성
@@ -612,7 +609,7 @@ class CollectionServerRepository {
 
                 coroutineScope {
                     // SQLite와 CPU 부하를 고려하여 동시 실행 작업 수를 3개로 제한
-                    val mapShaperLimit = configData.WATER_LOGGED?.mapshaperLimitedParallelism ?: 3
+                    val mapShaperLimit = ConfigManager.currentConfig.WATER_LOGGED?.mapshaperLimitedParallelism ?: 3
                     LOGGER.info("loadDataCoastalFlooding mapShaperLimitedDispatcher: ${mapShaperLimit}")
                     val mapShaperLimitedDispatcher = Dispatchers.IO.limitedParallelism(mapShaperLimit)
 
@@ -622,7 +619,7 @@ class CollectionServerRepository {
 
                             launch(mapShaperLimitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
 
-                                    val geoJsonObject = suspendTransaction( CollectionServerConfig.conn) {
+                                    val geoJsonObject = suspendTransaction( ConfigManager.conn) {
                                         CoastalFloodingGeoTbl
                                             .select(
                                                 CoastalFloodingGeoTbl.grade,
@@ -656,7 +653,7 @@ class CollectionServerRepository {
 
                                     if (simplifyGeoJsonObject.isEmpty()) return@launch
 
-                                    suspendTransaction( CollectionServerConfig.conn) {
+                                    suspendTransaction( ConfigManager.conn) {
 
                                         val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
 
@@ -693,7 +690,7 @@ class CollectionServerRepository {
         }catch (err: Exception){
             LOGGER.error("[getCoastalFloodingInfo] Process Error: ${err.message}")
         }finally {
-            suspendTransaction( CollectionServerConfig.conn) {
+            suspendTransaction( ConfigManager.conn) {
                 CoastalFloodingGeoInfo.deleteAll()
                 LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
             }
@@ -730,10 +727,10 @@ class CollectionServerRepository {
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH")}) + ":00"
 
-         val url = "${configData.SDOT_Gyonggi?.endPoint}" +
-                   "/${configData.SDOT_Gyonggi?.subPath}" +
-                 "?KEY=${configData.SDOT_Gyonggi?.apikey}" +
-                 "&Type=${configData.SDOT_Gyonggi?.type}" +
+         val url = "${ConfigManager.currentConfig.SDOT_Gyonggi?.endPoint}" +
+                   "/${ConfigManager.currentConfig.SDOT_Gyonggi?.subPath}" +
+                 "?KEY=${ConfigManager.currentConfig.SDOT_Gyonggi?.apikey}" +
+                 "&Type=${ConfigManager.currentConfig.SDOT_Gyonggi?.type}" +
                  "&MESURE_DAY_TM=${previous1Hour.encodeURLParameter()}"
 
 
@@ -754,7 +751,7 @@ class CollectionServerRepository {
             LOGGER.info("\n"+ result.schema().toString())
             LOGGER.info("\n"+ result.head(5).toString())
 
-            transaction(CollectionServerConfig.conn) {
+            transaction(ConfigManager.conn) {
                 SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
 
                 result.forEach {  item  ->
@@ -798,9 +795,9 @@ class CollectionServerRepository {
         // 2. 최초 1000 건을 수집하되 SENSING_TIME 이 unique 하면 200 건을 더 수집.
         // 3. 수집된 데이터중 SENSING_TIME 이 MAX(SENSING_TIME) 인 값만 filtering.
 
-        val url = "${configData.SDOT_API?.endPoint}/${configData.SDOT_API?.apikey}/" +
-                "${configData.SDOT_API?.type}/" +
-                "${configData.SDOT_API?.subPath}/"
+        val url = "${ConfigManager.currentConfig.SDOT_API?.endPoint}/${ConfigManager.currentConfig.SDOT_API?.apikey}/" +
+                "${ConfigManager.currentConfig.SDOT_API?.type}/" +
+                "${ConfigManager.currentConfig.SDOT_API?.subPath}/"
         try {
 
             var uniqueSensingTimeCount = 0
@@ -824,7 +821,7 @@ class CollectionServerRepository {
             if(receiveData.isNotEmpty()){
                 val maxSensingTime = receiveData.maxOfOrNull { it.SENSING_TIME }
                 val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
-                transaction(CollectionServerConfig.conn) {
+                transaction(ConfigManager.conn) {
                     SchemaUtils.create(SDoT_EnvInfo)
                     finalData.forEach { item ->
                         try {
@@ -909,8 +906,8 @@ class CollectionServerRepository {
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun getKhoaTidalCurrent(){
         var now = Clock.System.now()
-        val interval = configData.KHOA_TIDALCURRENT_API?.interval ?: 5
-        val predictedTotalMinute = configData.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
+        val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
+        val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
         val windowSize = predictedTotalMinute / interval
 
         repeat(windowSize){
@@ -933,7 +930,7 @@ class CollectionServerRepository {
             val hour = datetime.substring(8,10)
             val minute = datetime.substring(10,12)
 
-            val url = "${configData.KHOA_TIDALCURRENT_API?.endPoint}/${configData.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${configData.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${configData.KHOA_TIDALCURRENT_API?.type}${configData.KHOA_TIDALCURRENT_API?.boundBox}&Date=${date}&Hour=${hour}&Minute=${minute}"
+            val url = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
             try {
                 CollectionServerRestApi.callKhoaAPI_json(url).let {
@@ -942,7 +939,7 @@ class CollectionServerRepository {
 
                     LOGGER.info("${::getKhoaTidalCurrent.name} [receive count[${response.result.meta.sch_time}]]")
 
-                    transaction(CollectionServerConfig.conn) {
+                    transaction(ConfigManager.conn) {
                         SchemaUtils.create(TidalCurrentInfoKHOA)
                         response.result.data.forEach { item ->
                             try {
@@ -979,15 +976,15 @@ class CollectionServerRepository {
                  kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
                      .format(LocalDateTime.Format { byUnicodePattern("yyyyMMdd") })
 
-             val url = "${configData.KHOA_API?.endPoint}/${configData.KHOA_API?.subPath}" +
-                     "?serviceKey=${configData.KHOA_API?.apikey}" +
-                     "&type=${configData.KHOA_API?.type}" +
+             val url = "${ConfigManager.currentConfig.KHOA_API?.endPoint}/${ConfigManager.currentConfig.KHOA_API?.subPath}" +
+                     "?serviceKey=${ConfigManager.currentConfig.KHOA_API?.apikey}" +
+                     "&type=${ConfigManager.currentConfig.KHOA_API?.type}" +
                      "&reqDate=${reqDate}" +
-                     "&min=${configData.KHOA_API?.min}" +
-                     "&numOfRows=${configData.KHOA_API?.numOfRows}"
+                     "&min=${ConfigManager.currentConfig.KHOA_API?.min}" +
+                     "&numOfRows=${ConfigManager.currentConfig.KHOA_API?.numOfRows}"
 
 
-             val result = transaction(CollectionServerConfig.conn) {
+             val result = transaction(ConfigManager.conn) {
                  ObservatoryKHOA.select(ObservatoryKHOA.obsCode).where {
                      ObservatoryKHOA.obsCode like "HB%"
                  }.map { resultRow ->
@@ -1011,7 +1008,7 @@ class CollectionServerRepository {
 
                                  LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
 
-                                 transaction(CollectionServerConfig.conn) {
+                                 transaction(ConfigManager.conn) {
                                      SchemaUtils.create(ObservationKHOA)
                                      SchemaUtils.create(ObservatoryKHOA)
 
@@ -1097,7 +1094,7 @@ class CollectionServerRepository {
 
                         LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${result.count()}]]")
 
-                        transaction (CollectionServerConfig.conn){
+                        transaction (ConfigManager.conn){
                             SchemaUtils.create( OWQInformationTable)
                             result.forEach {  item  ->
                                 try{
@@ -1144,7 +1141,7 @@ class CollectionServerRepository {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
                 if(recvData.header.resultCode.equals("00")){
                     LOGGER.info( "${::getRealTimeObservation.name} [receive count[${recvData.body.item.size}]]")
-                    transaction (CollectionServerConfig.conn){
+                    transaction (ConfigManager.conn){
 
                         SchemaUtils.create( ObservationTable)
 
@@ -1194,7 +1191,7 @@ class CollectionServerRepository {
 
                     LOGGER.info( "${::getRealTimeObservatory.name} [receive count[${recvData.body.item.size}]]")
 
-                    transaction (CollectionServerConfig.conn){
+                    transaction (ConfigManager.conn){
                         SchemaUtils.drop( ObservatoryTable)
                         SchemaUtils.create( ObservatoryTable)
                         recvData.body.item.forEach { item ->

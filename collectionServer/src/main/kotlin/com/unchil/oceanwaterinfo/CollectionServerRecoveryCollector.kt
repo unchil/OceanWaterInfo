@@ -55,7 +55,7 @@ class CollectionServerRecoveryCollector {
         val tableName = "Observation"
 
         try {
-            DriverManager.getConnection(CollectionServerConfig.url).use { conn ->
+            DriverManager.getConnection(ConfigManager.currentConfig.SQLITE_DB?.jdbcURL).use { conn ->
 
                 val sql = """INSERT INTO ${tableName} ( 
                     sta_cde, sta_nam_kor, obs_dat, obs_tim, obs_datetime,
@@ -117,7 +117,7 @@ class CollectionServerRecoveryCollector {
 
 
         try {
-            DriverManager.getConnection(CollectionServerConfig.url).use { conn ->
+            DriverManager.getConnection(ConfigManager.currentConfig.SQLITE_DB?.jdbcURL).use { conn ->
 
                 val sql = """INSERT INTO ${tableName} ( 
                     sta_cde, sta_nam_kor, bld_dat, end_dat, gru_nam,
@@ -170,7 +170,7 @@ class CollectionServerRecoveryCollector {
         LOGGER.debug("wtch_dt_start : ${wtch_dt_start}, wtch_dt_end : ${wtch_dt_end}")
         val maxPage = 500
         val numOfRows = 1000
-        val url = "${CollectionServerConfig.configData.MOF_API?.endPoint}/${CollectionServerConfig.configData.MOF_API?.subPath}" +
+        val url = "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
                 "?wtch_dt_start=${
                     URLEncoder.encode(
                         wtch_dt_start,
@@ -184,7 +184,7 @@ class CollectionServerRecoveryCollector {
                     )
                 }" +
                 "&numOfRows=${numOfRows}" +
-                "&ServiceKey=${CollectionServerConfig.configData.MOF_API?.apikey}"
+                "&ServiceKey=${ConfigManager.currentConfig.MOF_API?.apikey}"
 
         val dataList = loadData(url , maxPage)
         val df = dataList.concat()
@@ -196,7 +196,7 @@ class CollectionServerRecoveryCollector {
 
         try {
 
-            DriverManager.getConnection(CollectionServerConfig.url).use { conn ->
+            DriverManager.getConnection(ConfigManager.currentConfig.SQLITE_DB?.jdbcURL).use { conn ->
                 createAndPopulateTable(conn, tableName)
 
                 val sql = """INSERT INTO ${tableName} ( 
@@ -287,12 +287,12 @@ class CollectionServerRecoveryCollector {
 
         val urlString = when (funcName) {
             "getRealTimeObservation" -> {
-                "${CollectionServerConfig.configData.NIFS_API?.endPoint}/${CollectionServerConfig.configData.NIFS_API?.subPath}" +
-                        "?id=${CollectionServerConfig.configData.NIFS_API?.id?.list}&key=${CollectionServerConfig.configData.NIFS_API?.apikey}"
+                "${ConfigManager.currentConfig.NIFS_API?.endPoint}/${ConfigManager.currentConfig.NIFS_API?.subPath}" +
+                        "?id=${ConfigManager.currentConfig.NIFS_API?.id?.list}&key=${ConfigManager.currentConfig.NIFS_API?.apikey}"
             }
             "getRealTimeObservatory" -> {
-                "${CollectionServerConfig.configData.NIFS_API?.endPoint}/${CollectionServerConfig.configData.NIFS_API?.subPath}" +
-                        "?id=${CollectionServerConfig.configData.NIFS_API?.id?.code}&key=${CollectionServerConfig.configData.NIFS_API?.apikey}"
+                "${ConfigManager.currentConfig.NIFS_API?.endPoint}/${ConfigManager.currentConfig.NIFS_API?.subPath}" +
+                        "?id=${ConfigManager.currentConfig.NIFS_API?.id?.code}&key=${ConfigManager.currentConfig.NIFS_API?.apikey}"
             }
             ::getRealTimeOceanWaterQuality_Rocovery.name -> {
 
@@ -313,11 +313,11 @@ class CollectionServerRecoveryCollector {
                 LOGGER.debug("Current time : ${currentTime}, Previous time : ${previous24Hour}")
 
                 val numOfRows = 1000
-                "${CollectionServerConfig.configData.MOF_API?.endPoint}/${CollectionServerConfig.configData.MOF_API?.subPath}" +
+                "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
                         "?wtch_dt_start=${URLEncoder.encode(previous24Hour, StandardCharsets.UTF_8.toString())}" +
                         "&wtch_dt_end=${URLEncoder.encode(currentTime, StandardCharsets.UTF_8.toString())}" +
                         "&numOfRows=${numOfRows}" +
-                        "&ServiceKey=${CollectionServerConfig.configData.MOF_API?.apikey}"
+                        "&ServiceKey=${ConfigManager.currentConfig.MOF_API?.apikey}"
 
 
             }

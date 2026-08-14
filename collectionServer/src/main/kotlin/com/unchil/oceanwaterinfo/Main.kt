@@ -1,6 +1,5 @@
 package com.unchil.oceanwaterinfo
 
-import com.unchil.oceanwaterinfo.CollectionServerConfig.Companion.configData
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.runBlocking
 
@@ -10,7 +9,8 @@ val LOGGER = KtorSimpleLogger( "CollectionServer")
 @Suppress("DefaultLocale")
 fun main(args: Array<String>) = runBlocking {
 
-    val allowedIntervals = configData.COLLECTION_TYPE?.allowedIntervals
+
+    val allowedIntervals = ConfigManager.currentConfig.COLLECTION_TYPE?.allowedIntervals
 
     val interval = if ( args.isNotEmpty() ) {
         args[0].toIntOrNull() ?: 5
@@ -20,6 +20,10 @@ fun main(args: Array<String>) = runBlocking {
     }
 
     if (allowedIntervals?.contains(interval) == true ) {
+
+        // 설정 감시 시작
+    //    ConfigManager.startWatching(this)
+
         val collector = CollectionServerDataCollector()
 
         LOGGER.info("Starting Data Collector with interval: $interval minutes")
@@ -53,7 +57,8 @@ fun main(args: Array<String>) = runBlocking {
         LOGGER.info("[$interval minutes] This is not an allowed schedule interval.")
     }
 
-
+    // 종료 시
+  //  ConfigManager.stopWatching()
     LOGGER.info("Data Collector Stopped.")
 }
 

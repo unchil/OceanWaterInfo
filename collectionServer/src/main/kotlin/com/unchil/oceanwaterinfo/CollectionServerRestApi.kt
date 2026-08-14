@@ -1,6 +1,5 @@
 package com.unchil.oceanwaterinfo
 
-import com.unchil.oceanwaterinfo.CollectionServerConfig.Companion.configData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -63,15 +62,15 @@ class CollectionServerRestApi {
         }
 
         suspend fun callNifsAPI_json(id:String):String{
-            client.get(urlString =  configData.NIFS_API?.endPoint ?: "") {
+            client.get(urlString =  ConfigManager.currentConfig.NIFS_API?.endPoint ?: "") {
                 url{
-                    appendPathSegments( configData.NIFS_API?.subPath ?: "")
+                    appendPathSegments( ConfigManager.currentConfig.NIFS_API?.subPath ?: "")
                     parameters.append("id",  if (id.equals("list")) {
-                        configData.NIFS_API?.id?.list ?: ""
+                        ConfigManager.currentConfig.NIFS_API?.id?.list ?: ""
                     } else{
-                        configData.NIFS_API?.id?.code ?: ""
+                        ConfigManager.currentConfig.NIFS_API?.id?.code ?: ""
                     })
-                    parameters.append("key", configData.NIFS_API?.apikey ?: "" )
+                    parameters.append("key", ConfigManager.currentConfig.NIFS_API?.apikey ?: "" )
                 }
             }.let {
                 return it.bodyAsText(java.nio.charset.Charset.forName("EUC-KR"))
@@ -93,12 +92,12 @@ class CollectionServerRestApi {
 
             LOGGER.debug("Current time : ${currentTime}, Previous time : ${previous2Hour}")
 
-            val url = "${configData.MOF_API?.endPoint}/${configData.MOF_API?.subPath}" +
+            val url = "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
                     "?wtch_dt_start=${URLEncoder.encode(previous2Hour, StandardCharsets.UTF_8.toString())}" +
                     "&wtch_dt_end=${URLEncoder.encode(currentTime, StandardCharsets.UTF_8.toString())}" +
                     "&numOfRows=1000" +
                     "&pageNo=1" +
-                    "&ServiceKey=${configData.MOF_API?.apikey}"
+                    "&ServiceKey=${ConfigManager.currentConfig.MOF_API?.apikey}"
 
             return client.get(urlString = url)
         }
