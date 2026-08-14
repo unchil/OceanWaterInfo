@@ -51,7 +51,7 @@ fun jvmMainCoastalFloodingMap(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val bottomBarHeight = remember{80.dp}
+    val bottomBarHeight = remember{60.dp}
 
 
     val host = "http://localhost:7272"
@@ -200,7 +200,7 @@ fun jvmMainCoastalFloodingMap(
 
 
                         Box(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp),
                             contentAlignment = Alignment.Center,
                         ) {// [Reload, Tooltips, Symbol, Legend]
                             val bottomBarOpt =

@@ -45,7 +45,7 @@ fun webMainCoastalFloodingMap(){
 
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val bottomBarHeight = remember{100.dp}
+    val bottomBarHeight = remember{60.dp}
 
 
     val viewModel: CoastalFloodingInfoViewModel = remember {
@@ -192,7 +192,7 @@ fun webMainCoastalFloodingMap(){
 
 
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp),
                     contentAlignment = Alignment.Center,
                 ) {// [Reload, Tooltips, Symbol, Legend]
                     val bottomBarOpt =
