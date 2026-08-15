@@ -91,7 +91,10 @@ function startAnimation() {
         cancelAnimationFrame(animationId);
     }
     // 데이터가 있는지 확인
-    if (deckData.length === 0) return;
+    if (deckData.length === 0) {
+        hideMapLoader();
+        return;
+    }
 
     // 데이터의 마지막 타임스탬프 값 계산 (예: 데이터 36개 * 간격 30 )
     const maxTime = ( deckData[0].timestamps.length - 1 ) * 10 ;

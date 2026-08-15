@@ -74,7 +74,9 @@ window.initMapWithData = function( values) {
      console.log("deckData 초기화 완료:", deckData.length);
 
 
-     startAnimation();
+    google.maps.event.addListenerOnce(map, 'idle', function() {
+       startAnimation();
+    });
 
        // 최종 렌더링 종료 후 로더 숨김
        setTimeout(() => {
@@ -175,6 +177,7 @@ window.addEventListener("message", (event) => {
     }
 
     if(data.action == 'INIT_DATA'){
+
         initMapWithData(data.values)
     }
 
