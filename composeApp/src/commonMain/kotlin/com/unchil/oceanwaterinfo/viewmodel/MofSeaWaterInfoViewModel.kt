@@ -23,13 +23,11 @@ class MofSeaWaterInfoViewModel( scope:  CoroutineScope){
     init {
         scope.launch {
             repository._seaWaterInfoOneDayMofStateFlow.collectLatest {
-
                 if(it.values.isNotEmpty() && it.values.first().isNotEmpty()){
                     _seaWaterInfo.value = it.values.first()
-
-                    delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
-                    _refreshEvent.emit(Unit)
                 }
+                delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
+                _refreshEvent.emit(Unit)
             }
         }
 

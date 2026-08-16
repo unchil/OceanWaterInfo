@@ -39,6 +39,7 @@ fun OceanWaterInfo_MOF(){
     }
 
     val visibleProgressIndicator = remember { mutableStateOf(false) }
+    val visibleEmptyDataMsg = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
         visibleProgressIndicator.value = true
@@ -47,11 +48,6 @@ fun OceanWaterInfo_MOF(){
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
 
     LaunchedEffect(viewModel){
         while(true){
@@ -69,6 +65,14 @@ fun OceanWaterInfo_MOF(){
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
     val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
+
+
+    LaunchedEffect(viewModel) {
+        viewModel.refreshEvent.collect {
+            visibleProgressIndicator.value = false
+            visibleEmptyDataMsg.value = seaWaterInfo.value.isEmpty()
+        }
+    }
 
     LaunchedEffect(key1= seaWaterInfo.value,  key2=selectedOption){
         if(seaWaterInfo.value.isNotEmpty()){
@@ -143,6 +147,10 @@ fun OceanWaterInfo_MOF(){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )
+        }
+
+        AnimatedVisibility(visibleEmptyDataMsg.value){
+            Text( "수집된 데이터가 존재하지 않습니다.", color = Color.Red, )
         }
 
     } //Box
