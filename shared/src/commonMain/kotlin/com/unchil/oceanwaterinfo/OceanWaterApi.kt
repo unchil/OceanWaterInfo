@@ -34,9 +34,9 @@ class OceanWaterApi {
         }
 
         install(HttpTimeout) {
-            requestTimeoutMillis = 30 * 1000
-            connectTimeoutMillis = 30 * 1000
-            socketTimeoutMillis = 30 * 1000
+            requestTimeoutMillis = 3 * 1000
+            connectTimeoutMillis = 3 * 1000
+            socketTimeoutMillis = 3 * 1000
         }
     }
 
