@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,33 +32,27 @@ import kotlinx.datetime.toLocalDateTime
 fun WaterDegTimeSeries_KHOA(){
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaObservationViewModel = remember {
-        KhoaObservationViewModel(  coroutineScope  )
+        KhoaObservationViewModel(  )
     }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
         coroutineScope.launch {
             viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
             viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
     }
 
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
 
     val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
@@ -102,7 +97,7 @@ fun WaterDegTimeSeries_KHOA(){
             bottomBarOpt = bottomBarOpt
         )
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )

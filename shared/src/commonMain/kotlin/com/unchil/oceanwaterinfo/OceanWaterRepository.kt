@@ -30,13 +30,13 @@ class OceanWaterRepository {
     val _seaWaterInfoOneDayMofStateFlow: MutableStateFlow<List<SeaWaterInformation>>
             = MutableStateFlow(emptyList() )
 
-    val _khoaObservationInfo: MutableStateFlow<Map<Long,List<KhoaObservation>>>
-        = MutableStateFlow(emptyMap() )
+    val _khoaObservationInfo: MutableStateFlow<List<KhoaObservation>>
+        = MutableStateFlow(emptyList() )
 
 
 
-    val _khoaObservationInfoCurrent: MutableStateFlow<Map<Long, List<KhoaObservation>>>
-            = MutableStateFlow(emptyMap() )
+    val _khoaObservationInfoCurrent: MutableStateFlow<List<KhoaObservation>>
+            = MutableStateFlow(emptyList() )
 
     val _khoaTidalCurrentInfo: MutableStateFlow<List<TidalCurrentInfo>>
             = MutableStateFlow(emptyList())
@@ -209,7 +209,7 @@ class OceanWaterRepository {
     suspend fun getKhoaObservationInfo(){
         try {
             oceanWaterApi.getKhoaObservationInfo().let {
-                _khoaObservationInfo.value = mapOf( Clock.System.now().epochSeconds to it)
+                _khoaObservationInfo.value =  it
                 LOGGER.debug("getKhoaObservationInfo() called[${it.count()}]")
             }
         }catch (e:Exception){
@@ -233,7 +233,7 @@ class OceanWaterRepository {
         try {
             oceanWaterApi.getKhoaObservationInfoCurrent().let {
 
-                _khoaObservationInfoCurrent.value = mapOf( Clock.System.now().epochSeconds to it)
+                _khoaObservationInfoCurrent.value =  it
                 LOGGER.debug("getKhoaObservationInfoCurrent() called[${it.count()}]")
             }
         }catch (e:Exception){

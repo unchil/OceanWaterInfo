@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,14 +40,15 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: KhoaObservationCurrentViewModel = remember {
-        KhoaObservationCurrentViewModel(coroutineScope)
+        KhoaObservationCurrentViewModel()
     }
 
     val initCenterPoint = remember{ Point(126.934515, 37.385852) }
     val isReload = remember { mutableStateOf(false) }
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
     val locations = remember{ mutableStateOf( "" )}
     val labels = remember{ mutableStateOf("" )}
     val content = remember{ mutableStateOf("" )}
@@ -56,17 +58,12 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
             viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
+
 
     LaunchedEffect(seaWaterInfo.value) {
             if(seaWaterInfo.value.isNotEmpty()) {
@@ -155,7 +152,6 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
 
     LaunchedEffect(isReload.value){
         if(isReload.value){
-            visibleProgressIndicator.value = true
             viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             isReload.value = false
 
@@ -213,7 +209,7 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
                 },
                 bottomBarOpt = bottomBarOpt
             )
-            if(visibleProgressIndicator.value){
+            if(isLoading){
                 CircularProgressIndicator(
                     color = Color.DarkGray,
                 )

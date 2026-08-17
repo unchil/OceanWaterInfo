@@ -49,13 +49,12 @@ fun WaterInfoGeoChart_KHOA(
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaObservationCurrentViewModel = remember {
-        KhoaObservationCurrentViewModel(coroutineScope)
+        KhoaObservationCurrentViewModel()
     }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
+
         coroutineScope.launch {
             viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
         }
@@ -67,19 +66,13 @@ fun WaterInfoGeoChart_KHOA(
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(KhoaObservationCurrentViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-            onClickPoint(initCenterPoint)
 
-        }
-    }
 
     val geoData = remember { mutableStateOf(emptyList<Point<Double,Double>>()) }
     var featureCollection by remember {
@@ -122,6 +115,13 @@ fun WaterInfoGeoChart_KHOA(
 
 
     val seaWaterInfo = viewModel._observationStateFlow.collectAsState()
+
+
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(isLoading){
+        onClickPoint(initCenterPoint)
+    }
 
     val data = remember { mutableStateOf(emptyList<ChartValuesGeo>() ) }
 
@@ -171,7 +171,7 @@ fun WaterInfoGeoChart_KHOA(
             bottomBarOpt = bottomBarOpt
         )
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )

@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,30 +29,21 @@ fun WindPolarChart_KHOA(){
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: KhoaObservationViewModel = remember {
-        KhoaObservationViewModel(  coroutineScope  )
+        KhoaObservationViewModel(   )
     }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
+
         coroutineScope.launch {
             viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
-
-
 
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
             viewModel.onEvent(KhoaObservationViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
@@ -59,6 +51,8 @@ fun WindPolarChart_KHOA(){
 
 
     val windInfo = viewModel._observationStateFlow.collectAsState()
+
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val chartData: MutableState<  ChartDataPolar> = remember { mutableStateOf(emptyList() ) }
     val chartTitle = remember { mutableStateOf("")}
@@ -109,7 +103,7 @@ fun WindPolarChart_KHOA(){
             bottomBarOpt = bottomBarOpt
         )
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )

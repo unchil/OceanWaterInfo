@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,6 +38,9 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
     }
 
     val radioActiveWasteInfo = viewModel._khnpRadioActiveWasteStateFlow.collectAsState()
+
+    val isLoading by viewModel.isLoading.collectAsState()
+
     val chartData: MutableState< ChartDataStringInt> = remember { mutableStateOf(Triple(emptyList(), emptyList(), emptyMap())) }
 
     LaunchedEffect(key1= radioActiveWasteInfo.value){

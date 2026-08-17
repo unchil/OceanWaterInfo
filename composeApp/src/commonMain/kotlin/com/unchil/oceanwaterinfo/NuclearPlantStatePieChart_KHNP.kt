@@ -42,6 +42,7 @@ fun NuclearPlantStatePieChart_KHNP(){
     val viewModel: KhnpPlantStateViewModel = remember { KhnpPlantStateViewModel() }
 
     val plantstates = viewModel._khnpPlantState.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val filteredPlantState =  remember {
         mutableStateOf(Triple(emptyList<Float>(), emptyList<Color>(), emptyMap<String,Any>()) )

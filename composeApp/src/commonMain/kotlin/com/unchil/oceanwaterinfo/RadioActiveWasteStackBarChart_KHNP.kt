@@ -40,6 +40,8 @@ fun KHNPRadioActiveWasteStackBarChart() {
     }
 
     val radioActiveWasteInfo = viewModel._khnpRadioActiveWasteStateFlow.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
     var selectedOption by remember { mutableStateOf(POWER_PLANT_AREA.POWER_PLANT.entries[0]) }
     val onSelection: ( POWER_PLANT_AREA.POWER_PLANT ) -> Unit = { entry ->
         selectedOption = entry
