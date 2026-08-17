@@ -109,6 +109,15 @@ fun WindPolarChart_KHOA(){
             )
         }
 
+
+        AnimatedVisibility(windInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(windInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
+
     } //Box
 
 

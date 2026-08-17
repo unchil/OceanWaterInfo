@@ -129,6 +129,14 @@ fun RadioRateBarChart(){
             )
         }
 
+        AnimatedVisibility(radioRateInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(radioRateInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
+
     } //Box
 
 

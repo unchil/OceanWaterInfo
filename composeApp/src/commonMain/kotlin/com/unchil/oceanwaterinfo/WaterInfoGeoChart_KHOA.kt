@@ -177,6 +177,15 @@ fun WaterInfoGeoChart_KHOA(
             )
         }
 
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
+
+
     } //Box
 
 

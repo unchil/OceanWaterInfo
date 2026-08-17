@@ -128,9 +128,15 @@ fun OceanWaterInfoBarChart(){
             )
         }
 
-        AnimatedVisibility(seaWaterInfo.value.isEmpty()){
-            Text( "수집된 데이터가 존재하지 않습니다.", color = Color.Red, )
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
         }
+
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
+
     } //Box
 
 

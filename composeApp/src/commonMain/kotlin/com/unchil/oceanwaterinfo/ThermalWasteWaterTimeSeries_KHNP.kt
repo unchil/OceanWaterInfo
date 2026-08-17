@@ -118,6 +118,15 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             )
         }
 
+        AnimatedVisibility(thermalWasterWaterInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(thermalWasterWaterInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
+
+
     } //Box
 
 

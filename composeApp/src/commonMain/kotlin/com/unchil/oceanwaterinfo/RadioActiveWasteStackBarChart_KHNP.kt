@@ -1,5 +1,9 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -14,6 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioActiveWasteViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -68,44 +75,63 @@ fun KHNPRadioActiveWasteStackBarChart() {
         }
     }
 
-    // [Reload, Tooltips, Symbol, Legend]
-    val bottomBarOpt = listOf(true, true, false, true)
+    Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
 
-    ChartDataFlow(
-        chartData = ChartData.XYPlotStringInt(chartData.value),
-        title = "Power Plant Radio Active Waste (Year)",
-        xTitle = "Year",
-        yTitle = "RadioActiveWaste",
-        caption = "from https://www.data.go.kr/data/15157707/openapi.do",
-        chartType = ChartType.StackedVerticalBar,
-        legendTitle = "Month",
-        onReload = onReload,
-        bottomBarOpt = bottomBarOpt
-    ) {
+        // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, true, false, true)
 
-        var selectedTabIndex by remember { mutableIntStateOf(0) }
-        SecondaryTabRow(
-            selectedTabIndex = selectedTabIndex,
-            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+        ChartDataFlow(
+            chartData = ChartData.XYPlotStringInt(chartData.value),
+            title = "Power Plant Radio Active Waste (Year)",
+            xTitle = "Year",
+            yTitle = "RadioActiveWaste",
+            caption = "from https://www.data.go.kr/data/15157707/openapi.do",
+            chartType = ChartType.StackedVerticalBar,
+            legendTitle = "Month",
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
         ) {
-            POWER_PLANT_AREA.POWER_PLANT.entries.forEachIndexed { index, entrie ->
 
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = {
-                        selectedTabIndex = index
-                        onSelection(entrie)
-                    },
-                    text = {
-                        Text(
-                            text = entrie.name,
-                            style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
-                        )
-                    }
-                )
+            var selectedTabIndex by remember { mutableIntStateOf(0) }
+            SecondaryTabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
+                contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+            ) {
+                POWER_PLANT_AREA.POWER_PLANT.entries.forEachIndexed { index, entrie ->
+
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = {
+                            selectedTabIndex = index
+                            onSelection(entrie)
+                        },
+                        text = {
+                            Text(
+                                text = entrie.name,
+                                style = MaterialTheme.typography.titleSmall // 보조 탭에 맞는 스타일
+                            )
+                        }
+                    )
+                }
             }
+
         }
+
+
+        AnimatedVisibility(isLoading){
+            CircularProgressIndicator(
+                color = Color.DarkGray,
+            )
+        }
+
+        AnimatedVisibility(radioActiveWasteInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(radioActiveWasteInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
 
     }
 

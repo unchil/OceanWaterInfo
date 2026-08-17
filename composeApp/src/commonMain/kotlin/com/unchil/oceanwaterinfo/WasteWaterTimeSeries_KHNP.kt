@@ -177,6 +177,15 @@ fun WasteWaterTimeSeries_KHNP() {
             )
         }
 
+
+        AnimatedVisibility(wasterWaterInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(wasterWaterInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
+
     } //Box
 
 

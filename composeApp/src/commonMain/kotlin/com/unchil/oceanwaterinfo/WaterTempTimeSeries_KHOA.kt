@@ -80,11 +80,19 @@ fun WaterTempTimeSeries_KHOA(){
             bottomBarOpt = bottomBarOpt
         )
 
-    AnimatedVisibility(isLoading){
-        CircularProgressIndicator(
-            color = Color.DarkGray,
-        )
-    }
+        AnimatedVisibility(isLoading){
+            CircularProgressIndicator(
+                color = Color.DarkGray,
+            )
+        }
+
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
 
 } //Box
 

@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
@@ -189,6 +188,13 @@ fun OceanWaterInfoGeoChart(
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )
+        }
+
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(seaWaterInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
         }
 
     } //Box

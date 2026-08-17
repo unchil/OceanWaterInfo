@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -69,7 +70,7 @@ fun NuclearPlantStatePieChart_KHNP(){
     }
 
 
-    if(filteredPlantState.value.first.isNotEmpty()){
+
 
         Column (
             modifier = Modifier.fillMaxSize(),
@@ -104,74 +105,104 @@ fun NuclearPlantStatePieChart_KHNP(){
 
             Spacer(Modifier.padding(10.dp))
 
+            Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
 
-            PieChart(
-                    values = filteredPlantState.value.first, // 모든 발전소를 동일한 크기로 표시
-                    slice = { index ->
-                        DefaultSlice(
-                            color = filteredPlantState.value.second[index],
-                            border =
-                                BorderStroke(
-                                    2.dp,
-                                    lerp(
-                                        filteredPlantState.value.second[index],
-                                        Color.LightGray,
-                                        0.2f
+                if(filteredPlantState.value.first.isNotEmpty()) {
+                    PieChart(
+                        values = filteredPlantState.value.first, // 모든 발전소를 동일한 크기로 표시
+                        slice = { index ->
+                            DefaultSlice(
+                                color = filteredPlantState.value.second[index],
+                                border =
+                                    BorderStroke(
+                                        2.dp,
+                                        lerp(
+                                            filteredPlantState.value.second[index],
+                                            Color.LightGray,
+                                            0.2f
+                                        ),
                                     ),
-                                ),
-                            hoverExpandFactor = 1.05f,
-                            antiAlias = true,
-                            gap = 0.1f,
-                        )
-                    },
-                    label = { index ->
-                        val info =
-                            (filteredPlantState.value.third["info"] as List<KHNPPlantOperationInfo>)[index]
-                        Text("${info.unitNm}:${info.unitCd}\n(${info.unitSt})")
-                    },
-                    labelConnector = { index ->
-                        BezierLabelConnector()
-                    },
-                    holeSize = 0.6f,
-                    holeContent = {
-                        val data =
-                            (filteredPlantState.value.third["info"] as List<KHNPPlantOperationInfo>)
-                        val info = data.first()
-                        // 1. 상태별 개수 집계 (운전, 정비, 정지 등)
-                        val statusGroups = data.groupingBy { it.unitSt }.eachCount()
-                        // 2. 표시할 텍스트 생성
-                        val statsText = statusGroups.entries.joinToString("\n") { (status, count) ->
-                            val percentage = (count.toFloat() / data.size * 100).toInt()
-                            "$status: $percentage%"
-                        }
-
-                        val text = "${info.genName}\n${info.siteCd}\n${
-                            Instant.parse(info.unitDttm).toLocalDateTime(
-                                TimeZone.currentSystemDefault()
-                            ).date
-                        }\n" + statsText
-
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(it),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = text,
-                                modifier = Modifier.fillMaxSize(),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.bodyMedium
+                                hoverExpandFactor = 1.05f,
+                                antiAlias = true,
+                                gap = 0.1f,
                             )
-                        }
+                        },
+                        label = { index ->
+                            val info =
+                                (filteredPlantState.value.third["info"] as List<KHNPPlantOperationInfo>)[index]
+                            Text("${info.unitNm}:${info.unitCd}\n(${info.unitSt})")
+                        },
+                        labelConnector = { index ->
+                            BezierLabelConnector()
+                        },
+                        holeSize = 0.6f,
+                        holeContent = {
+                            val data =
+                                (filteredPlantState.value.third["info"] as List<KHNPPlantOperationInfo>)
+                            val info = data.first()
+                            // 1. 상태별 개수 집계 (운전, 정비, 정지 등)
+                            val statusGroups = data.groupingBy { it.unitSt }.eachCount()
+                            // 2. 표시할 텍스트 생성
+                            val statsText = statusGroups.entries.joinToString("\n") { (status, count) ->
+                                val percentage = (count.toFloat() / data.size * 100).toInt()
+                                "$status: $percentage%"
+                            }
 
-                    },
-                )
+                            val text = "${info.genName}\n${info.siteCd}\n${
+                                Instant.parse(info.unitDttm).toLocalDateTime(
+                                    TimeZone.currentSystemDefault()
+                                ).date
+                            }\n" + statsText
+
+                            Box(
+                                modifier = Modifier.fillMaxSize().padding(it),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = text,
+                                    modifier = Modifier.fillMaxSize(),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+
+                        },
+
+                    )
+
+                } else {
+
+                    NotFoundData()
+
+                }
+
+
+                if(isLoading){
+                    CircularProgressIndicator(
+                        color = Color.DarkGray,
+                    )
+                }
+
 
             }
 
 
 
 
-    }
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

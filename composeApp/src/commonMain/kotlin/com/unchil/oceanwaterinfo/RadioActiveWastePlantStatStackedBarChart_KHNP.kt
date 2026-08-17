@@ -1,5 +1,9 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -8,10 +12,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioActiveWasteViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -60,21 +64,38 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
 
     }
 
-    // [Reload, Tooltips, Symbol, Legend]
-    val bottomBarOpt = listOf(true, true, false, true)
+    Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
+        // [Reload, Tooltips, Symbol, Legend]
+        val bottomBarOpt = listOf(true, true, false, true)
 
-    ChartDataFlow(
-        chartData = ChartData.XYPlotStringInt(chartData.value),
-        title = "Power Plant Radio Active Waste (Plant)",
-        xTitle = "Plant",
-        yTitle = "RadioActiveWaste",
-        caption = "from https://www.data.go.kr/data/15157707/openapi.do",
-        chartType = ChartType.StackedVerticalBar,
-        legendTitle = "Year",
-        legendColor = LegendColor(start=Color.Blue, end=Color.Red),
-        onReload = onReload,
-        bottomBarOpt = bottomBarOpt
-    )
+        ChartDataFlow(
+            chartData = ChartData.XYPlotStringInt(chartData.value),
+            title = "Power Plant Radio Active Waste (Plant)",
+            xTitle = "Plant",
+            yTitle = "RadioActiveWaste",
+            caption = "from https://www.data.go.kr/data/15157707/openapi.do",
+            chartType = ChartType.StackedVerticalBar,
+            legendTitle = "Year",
+            legendColor = LegendColor(start = Color.Blue, end = Color.Red),
+            onReload = onReload,
+            bottomBarOpt = bottomBarOpt
+        )
+
+        AnimatedVisibility(isLoading){
+            CircularProgressIndicator(
+                color = Color.DarkGray,
+            )
+        }
+
+        AnimatedVisibility(radioActiveWasteInfo.value.isEmpty() && !isLoading ){
+            NotFoundData()
+        }  
+        AnimatedVisibility(radioActiveWasteInfo.value.isEmpty() && isLoading ) {
+            DataLoading()
+        }
+
+
+    }
 
 
 }
