@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -15,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.unchil.oceanwaterinfo.viewmodel.KhnpThermalWasteWaterViewModel
-import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
@@ -30,26 +30,19 @@ import kotlin.time.Duration.Companion.minutes
 @Composable
 fun ThermalWasteWaterTimeSeries_KHNP() {
     val coroutineScope = rememberCoroutineScope()
-    val viewModel: KhnpThermalWasteWaterViewModel = remember { KhnpThermalWasteWaterViewModel(coroutineScope) }
+    val viewModel: KhnpThermalWasteWaterViewModel = remember { KhnpThermalWasteWaterViewModel() }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
+
         coroutineScope.launch {
             viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
-
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(KhnpThermalWasteWaterViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
@@ -57,6 +50,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
 
     val thermalWasterWaterInfo = viewModel._khnpThermalWasteWaterStateFlow.collectAsState()
 
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
@@ -118,7 +112,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
 
 
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )

@@ -22,7 +22,6 @@ class CoastalFloodingInfoViewModel() {
             is Event.Refresh -> {
                 _isLoading.value = true // 로딩 시작
                 try {
-
                     repository.getCoastalFloodingGeojson_Object(event.grade, event.sido, "select")
                 } finally {
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료

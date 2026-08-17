@@ -2,44 +2,30 @@ package com.unchil.oceanwaterinfo.viewmodel
 
 import com.unchil.oceanwaterinfo.KHNPWasteWater
 import com.unchil.oceanwaterinfo.getPlatform
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
 
-class KhnpWasteWaterViewModel(scope: CoroutineScope){
+class KhnpWasteWaterViewModel(){
     private val repository = getPlatform().repository
 
     val _khnpWasteWaterStateFlow: MutableStateFlow<List<KHNPWasteWater>>
-            = MutableStateFlow(emptyList())
-
-    private val _refreshEvent = MutableSharedFlow<Unit>()
-    val refreshEvent = _refreshEvent.asSharedFlow()
+            = repository._khnpWasteWater
 
 
-    init {
-        scope.launch {
-            repository._khnpWasteWater.collectLatest {
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
-                if(it.values.isNotEmpty() && it.values.first().isNotEmpty()){
-                    _khnpWasteWaterStateFlow.value =  it.values.first()
-
-                    delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
-                    _refreshEvent.emit(Unit)
-                }
-            }
-        }
-
-    }
-    
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                repository.getKhnpWasteWater()
+
+                _isLoading.value = true // 로딩 시작
+                try {
+                    repository.getKhnpWasteWater()
+                } finally {
+                    _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
+                }
             }
         }
     }

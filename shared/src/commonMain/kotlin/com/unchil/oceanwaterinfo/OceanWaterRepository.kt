@@ -47,15 +47,15 @@ class OceanWaterRepository {
     val _sDoTEnvInfoUnion: MutableStateFlow<List<SDoTEnvInfoUnion>>
             = MutableStateFlow(emptyList())
 
-    val _khnpWasteWater: MutableStateFlow<Map<Long,List<KHNPWasteWater>>>
-            = MutableStateFlow(emptyMap())
+    val _khnpWasteWater: MutableStateFlow<List<KHNPWasteWater>>
+            = MutableStateFlow(emptyList())
 
 
-    val _khnpThermalWasteWater: MutableStateFlow<Map<Long, List<KHNPThermalWasteWater>>>
-            = MutableStateFlow(emptyMap() )
+    val _khnpThermalWasteWater: MutableStateFlow< List<KHNPThermalWasteWater>>
+            = MutableStateFlow(emptyList() )
 
-    val _khnpRadioRate: MutableStateFlow<Map<Long, List<KHNPRadioRate>>>
-            = MutableStateFlow(emptyMap())
+    val _khnpRadioRate: MutableStateFlow<List<KHNPRadioRate>>
+            = MutableStateFlow(emptyList())
 
     val _khnpRadioActiveWaste: MutableStateFlow<List<KHNPRadioActiveWaste>>
             = MutableStateFlow(emptyList())
@@ -148,7 +148,7 @@ class OceanWaterRepository {
     suspend fun getKhnpRadioRate(){
         try {
             oceanWaterApi.getKhnpRadioRate().let {
-                _khnpRadioRate.value = mapOf( Clock.System.now().epochSeconds to it)
+                _khnpRadioRate.value =  it
                 LOGGER.debug("getKhnpRadioRate() called[${it.count()}]")
             }
         }catch (e:Exception){
@@ -159,7 +159,7 @@ class OceanWaterRepository {
     suspend fun getKhnpThermalWasteWater(){
         try {
             oceanWaterApi.getKhnpThermalWasteWater().let {
-                _khnpThermalWasteWater.value = mapOf( Clock.System.now().epochSeconds to it)
+                _khnpThermalWasteWater.value =  it
                 LOGGER.debug("getKhnpThermalWasteWater() called[${it.count()}]")
             }
         }catch (e:Exception){
@@ -171,7 +171,7 @@ class OceanWaterRepository {
     suspend fun getKhnpWasteWater(){
         try {
             oceanWaterApi.getKhnpWasteWater().let {
-                _khnpWasteWater.value = mapOf( Clock.System.now().epochSeconds to it)
+                _khnpWasteWater.value = it
                 LOGGER.debug("getKhnpWasteWater() called[${it.count()}]")
             }
         }catch (e:Exception){

@@ -31,27 +31,22 @@ fun RadioRateBarChart(){
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: KhnpRadioRateViewModel = remember {
-        KhnpRadioRateViewModel(  coroutineScope  )
+        KhnpRadioRateViewModel(  )
     }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
+
         coroutineScope.launch {
             viewModel.onEvent(KhnpRadioRateViewModel.Event.Refresh)
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
+
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(KhnpRadioRateViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
@@ -59,6 +54,8 @@ fun RadioRateBarChart(){
 
 
     val radioRateInfo = viewModel._khnpRadioRateStateFlow.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
     var selectedOption by remember { mutableStateOf(POWER_PLANT_AREA.POWER_PLANT.entries[0]) }
     val onSelection: ( POWER_PLANT_AREA.POWER_PLANT ) -> Unit = { entry ->
         selectedOption = entry
@@ -126,7 +123,7 @@ fun RadioRateBarChart(){
 
 
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray
             )

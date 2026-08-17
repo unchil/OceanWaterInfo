@@ -35,7 +35,7 @@ fun OceanWaterInfo_MOF(){
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: MofSeaWaterInfoViewModel = remember {
-        MofSeaWaterInfoViewModel( coroutineScope )
+        MofSeaWaterInfoViewModel(  )
     }
 
 

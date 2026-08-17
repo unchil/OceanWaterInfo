@@ -50,32 +50,28 @@ import kotlin.time.Duration.Companion.minutes
 @Composable
 fun WasteWaterTimeSeries_KHNP() {
     val coroutineScope = rememberCoroutineScope()
-    val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel(coroutineScope) }
+    val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel() }
 
-
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
+
         coroutineScope.launch {
             viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
+
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(KhnpWasteWaterViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
     }
 
     val wasterWaterInfo = viewModel._khnpWasteWaterStateFlow.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
 
     val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
@@ -175,7 +171,7 @@ fun WasteWaterTimeSeries_KHNP() {
 
         }
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )

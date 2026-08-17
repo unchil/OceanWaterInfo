@@ -1,16 +1,10 @@
 package com.unchil.oceanwaterinfo
 
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
-class MofSeaWaterInfoViewModel( scope:  CoroutineScope){
+class MofSeaWaterInfoViewModel( ){
 
     private val repository = getPlatform().repository
 
