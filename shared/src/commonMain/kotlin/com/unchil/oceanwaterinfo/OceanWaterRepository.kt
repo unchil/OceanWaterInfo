@@ -129,6 +129,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhnpPlantState() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khnpPlantState.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -140,6 +141,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhnpRadioActiveWaste() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khnpRadioActiveWaste.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -152,6 +154,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhnpRadioRate() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khnpRadioRate.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -163,6 +166,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhnpThermalWasteWater() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khnpThermalWasteWater.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -175,6 +179,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhnpWasteWater() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khnpWasteWater.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -187,7 +192,8 @@ class OceanWaterRepository {
                 _sDoTEnvInfoUnion.value = it
                 LOGGER.debug("getSDoTEnvInfoUnion() called[${it.count()}]")
             }
-        }catch (e:Exception){
+        } catch (e:Exception){
+            _sDoTEnvInfoUnion.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -200,6 +206,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getSDoTEnvInfo() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _sDoTEnvInfo.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -213,6 +220,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhoaObservationInfo() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khoaObservationInfo.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -225,6 +233,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhoaTidalCurrentInfo() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khoaTidalCurrentInfo.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -237,6 +246,7 @@ class OceanWaterRepository {
                 LOGGER.debug("getKhoaObservationInfoCurrent() called[${it.count()}]")
             }
         }catch (e:Exception){
+            _khoaObservationInfoCurrent.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -275,6 +285,13 @@ class OceanWaterRepository {
             }
 
         }catch (e:Exception){
+            when(division) {
+                DATA_DIVISION.oneday -> _seaWaterInfoOneDayStateFlow.value = emptyList()
+                DATA_DIVISION.grid -> _seaWaterInfoOneDayGridStateFlow.value = emptyList()
+                DATA_DIVISION.current -> _seaWaterInfoCurrentStateFlow.value = emptyList()
+                DATA_DIVISION.mof_oneday -> _seaWaterInfoOneDayMofStateFlow.value = emptyList()
+                else ->  _seaWaterInfoCurrentStateFlow.value = emptyList()
+            }
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -287,6 +304,7 @@ class OceanWaterRepository {
             }
 
         }catch (e:Exception){
+            _seaWaterInfoStatStateFlow.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
@@ -299,6 +317,7 @@ class OceanWaterRepository {
             }
 
         }catch (e:Exception){
+            _observatoryStateFlow.value = emptyList()
             LOGGER.error(e.message ?: "Error ")
         }
     }
