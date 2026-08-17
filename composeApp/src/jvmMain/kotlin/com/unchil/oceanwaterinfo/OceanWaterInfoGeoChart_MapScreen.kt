@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,26 +41,20 @@ fun OceanWaterInfoGeoChart_MapScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
-        NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
+        NifsSeaWaterInfoCurrentViewModel(   )
     }
 
     val initCenterPoint = remember{ Point(126.934515, 37.385852) }
     val isReload = remember { mutableStateOf(false) }
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
 
     val updateTrigger = remember { mutableStateOf(0L) }
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
-        }
-    }
-
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
         }
     }
 
@@ -79,7 +74,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
     }
 
     val observatorys = viewModelObservatory._observatoryStateFlow.collectAsState()
-
+    val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(observatorys.value, seaWaterInfo.value){
 
@@ -197,10 +192,9 @@ fun OceanWaterInfoGeoChart_MapScreen(
 
     LaunchedEffect(isReload.value){
         if(isReload.value){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             isReload.value = false
-
 
             val flyTo = "smoothFlyTo({lat: ${initCenterPoint.y}, lng: ${initCenterPoint.x}})"
             navigator.evaluateJavaScript(flyTo )
@@ -255,7 +249,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
                 },
                 bottomBarOpt = bottomBarOpt
             )
-            if(visibleProgressIndicator.value){
+            if(isLoading){
                 CircularProgressIndicator(
                     color = Color.DarkGray,
                 )

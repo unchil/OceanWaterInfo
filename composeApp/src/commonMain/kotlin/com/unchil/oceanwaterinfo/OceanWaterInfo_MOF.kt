@@ -38,11 +38,9 @@ fun OceanWaterInfo_MOF(){
         MofSeaWaterInfoViewModel( coroutineScope )
     }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
-    val visibleEmptyDataMsg = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
+
         coroutineScope.launch {
             viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
         }
@@ -51,7 +49,7 @@ fun OceanWaterInfo_MOF(){
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(MofSeaWaterInfoViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
@@ -64,15 +62,12 @@ fun OceanWaterInfo_MOF(){
     }
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
+
+    val isLoading by viewModel.isLoading.collectAsState()
+
+
     val chartData: MutableState<  ChartDataList> = remember { mutableStateOf(emptyList() ) }
 
-
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-            visibleEmptyDataMsg.value = seaWaterInfo.value.isEmpty()
-        }
-    }
 
     LaunchedEffect(key1= seaWaterInfo.value,  key2=selectedOption){
         if(seaWaterInfo.value.isNotEmpty()){
@@ -143,13 +138,13 @@ fun OceanWaterInfo_MOF(){
 
         }
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )
         }
 
-        AnimatedVisibility(visibleEmptyDataMsg.value){
+        AnimatedVisibility(seaWaterInfo.value.isEmpty()){
             Text( "수집된 데이터가 존재하지 않습니다.", color = Color.Red, )
         }
 

@@ -46,15 +46,15 @@ fun OceanWaterInfoDataGrid(){
     val coroutineScope = rememberCoroutineScope()
 
     val isReload = remember { mutableStateOf(false) }
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
 
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
-        NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
+        NifsSeaWaterInfoCurrentViewModel(  )
     }
 
     LaunchedEffect(key1 = viewModel){
         while(true){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
@@ -67,19 +67,18 @@ fun OceanWaterInfoDataGrid(){
 
     LaunchedEffect(isReload.value){
         if(isReload.value){
-            visibleProgressIndicator.value = true
+
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             isReload.value = false
         }
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
+
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
+
+    val isLoading by viewModel.isLoading.collectAsState()
+
 
     val gridData = remember { mutableStateOf(mapOf<String, List<Any?>>() ) }
 
@@ -156,7 +155,7 @@ fun OceanWaterInfoDataGrid(){
                             },
                             bottomBarOpt = bottomBarOpt
                         )
-                        if(visibleProgressIndicator.value){
+                        if(isLoading){
                             CircularProgressIndicator(
                                 color = Color.DarkGray,
                             )

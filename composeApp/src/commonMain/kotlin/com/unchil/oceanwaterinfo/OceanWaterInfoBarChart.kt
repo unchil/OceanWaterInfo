@@ -33,34 +33,31 @@ fun OceanWaterInfoBarChart(){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
-        NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
+        NifsSeaWaterInfoCurrentViewModel(  )
     }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
+
         coroutineScope.launch {
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
         }
     }
 
 
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-        }
-    }
+
 
     LaunchedEffect(viewModel){
         while(true){
-            visibleProgressIndicator.value = true
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
         }
     }
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+
     var selectedOption by remember { mutableStateOf(SEA_AREA.GRU_NAME.entries[0]) }
     val onSelection: ( SEA_AREA.GRU_NAME ) -> Unit = { entry ->
         selectedOption = entry
@@ -125,12 +122,15 @@ fun OceanWaterInfoBarChart(){
         }
 
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )
         }
 
+        AnimatedVisibility(seaWaterInfo.value.isEmpty()){
+            Text( "수집된 데이터가 존재하지 않습니다.", color = Color.Red, )
+        }
     } //Box
 
 

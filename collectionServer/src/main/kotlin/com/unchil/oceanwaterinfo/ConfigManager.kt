@@ -114,8 +114,9 @@ object ConfigManager {
      */
     fun stopWatching() {
         println("[ConfigManager] 감시 종료 요청")
-        watchJob?.cancel()
         watchService?.close()
+        watchService = null
+        watchJob?.cancel()
         watchJob = null
     }
 

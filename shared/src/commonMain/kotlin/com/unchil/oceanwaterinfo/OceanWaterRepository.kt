@@ -11,15 +11,15 @@ class OceanWaterRepository {
 
     val oceanWaterApi = OceanWaterApi()
 
-    val _seaWaterInfoOneDayStateFlow: MutableStateFlow<Map<Long,List<SeawaterInformationByObservationPoint>>>
-            = MutableStateFlow(emptyMap())
+    val _seaWaterInfoOneDayStateFlow: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
+            = MutableStateFlow(emptyList())
 
     val _seaWaterInfoOneDayGridStateFlow: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
             = MutableStateFlow(emptyList())
 
 
-    val _seaWaterInfoCurrentStateFlow: MutableStateFlow<Map<Long,List<SeawaterInformationByObservationPoint>>>
-            = MutableStateFlow(emptyMap())
+    val _seaWaterInfoCurrentStateFlow: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
+            = MutableStateFlow(emptyList())
 
     val _seaWaterInfoStatStateFlow: MutableStateFlow<List<SeaWaterInfoByOneHourStat>>
             = MutableStateFlow(emptyList())
@@ -27,8 +27,8 @@ class OceanWaterRepository {
     val _observatoryStateFlow: MutableStateFlow<List<Observatory>>
             = MutableStateFlow(emptyList())
 
-    val _seaWaterInfoOneDayMofStateFlow: MutableStateFlow<Map<Long,List<SeaWaterInformation>>>
-            = MutableStateFlow(emptyMap() )
+    val _seaWaterInfoOneDayMofStateFlow: MutableStateFlow<List<SeaWaterInformation>>
+            = MutableStateFlow(emptyList() )
 
     val _khoaObservationInfo: MutableStateFlow<Map<Long,List<KhoaObservation>>>
         = MutableStateFlow(emptyMap() )
@@ -247,7 +247,7 @@ class OceanWaterRepository {
             when(division) {
                 DATA_DIVISION.oneday -> {
                     oceanWaterApi.getSeaWaterInfo(DATA_DIVISION.oneday.name)?.let { it ->
-                        _seaWaterInfoOneDayStateFlow.value = mapOf(Clock.System.now().epochSeconds to it)
+                        _seaWaterInfoOneDayStateFlow.value = it
                         LOGGER.debug("getSeaWaterInfo() called[${it.count()}]")
                     }
                 }
@@ -259,18 +259,18 @@ class OceanWaterRepository {
                 }
                 DATA_DIVISION.current -> {
                     oceanWaterApi.getSeaWaterInfo(DATA_DIVISION.current.name)?.let { it ->
-                        _seaWaterInfoCurrentStateFlow.value = mapOf(Clock.System.now().epochSeconds to it)
+                        _seaWaterInfoCurrentStateFlow.value = it
                         LOGGER.debug("getSeaWaterInfo() called[${it.count()}]")
                     }
                 }
                 DATA_DIVISION.mof_oneday -> {
                     oceanWaterApi.getSeaWaterInfoMof(DATA_DIVISION.mof_oneday.name)?.let { it ->
-                        _seaWaterInfoOneDayMofStateFlow.value = mapOf(Clock.System.now().epochSeconds to it)
+                        _seaWaterInfoOneDayMofStateFlow.value = it
                         LOGGER.debug("getSeaWaterInfo() called[${it.count()}]")
                     }
                 }
                 else -> {
-                    _seaWaterInfoCurrentStateFlow.value = mapOf(Clock.System.now().epochSeconds to emptyList())
+                    _seaWaterInfoCurrentStateFlow.value = emptyList()
                 }
             }
 

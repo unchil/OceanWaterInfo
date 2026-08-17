@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -14,29 +15,25 @@ class MofSeaWaterInfoViewModel( scope:  CoroutineScope){
     private val repository = getPlatform().repository
 
     val _seaWaterInfo: MutableStateFlow<List<SeaWaterInformation>>
-            = MutableStateFlow(emptyList())
-
-    private val _refreshEvent = MutableSharedFlow<Unit>()
-    val refreshEvent = _refreshEvent.asSharedFlow()
+            = repository._seaWaterInfoOneDayMofStateFlow
 
 
-    init {
-        scope.launch {
-            repository._seaWaterInfoOneDayMofStateFlow.collectLatest {
-                if(it.values.isNotEmpty() && it.values.first().isNotEmpty()){
-                    _seaWaterInfo.value = it.values.first()
-                }
-                delay(500) // visibleProgressIndicator 표현을 위한 인위적 딜레이
-                _refreshEvent.emit(Unit)
-            }
-        }
 
-    }
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
-                repository.getSeaWaterInfo(DATA_DIVISION.mof_oneday)
+                _isLoading.value = true // 로딩 시작
+                try {
+                    repository.getSeaWaterInfo(DATA_DIVISION.mof_oneday)
+                } finally {
+                    _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
+                }
+
             }
         }
     }

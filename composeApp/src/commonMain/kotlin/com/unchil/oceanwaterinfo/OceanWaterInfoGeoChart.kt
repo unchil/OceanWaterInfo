@@ -42,14 +42,12 @@ fun OceanWaterInfoGeoChart(
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
-        NifsSeaWaterInfoCurrentViewModel(  coroutineScope  )
+        NifsSeaWaterInfoCurrentViewModel(    )
     }
 
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
 
     val onReload:()->Unit = {
-        visibleProgressIndicator.value = true
         coroutineScope.launch {
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
         }
@@ -72,13 +70,6 @@ fun OceanWaterInfoGeoChart(
         while(true){
             viewModel.onEvent(NifsSeaWaterInfoCurrentViewModel.Event.Refresh)
             delay(5 * 60 * 1000L)
-        }
-    }
-
-    LaunchedEffect(viewModel) {
-        viewModel.refreshEvent.collect {
-            visibleProgressIndicator.value = false
-            onClickPoint(initCenterPoint)
         }
     }
 
@@ -121,6 +112,15 @@ fun OceanWaterInfoGeoChart(
     }
 
     val seaWaterInfo = viewModel._seaWaterInfo.collectAsState()
+
+    val isLoading by viewModel.isLoading.collectAsState()
+
+
+    LaunchedEffect(isLoading) {
+        onClickPoint(initCenterPoint)
+    }
+
+
 
     val observatorys = viewModelObservatory._observatoryStateFlow.collectAsState()
 
@@ -185,7 +185,7 @@ fun OceanWaterInfoGeoChart(
         bottomBarOpt = bottomBarOpt
     )
 
-        AnimatedVisibility(visibleProgressIndicator.value){
+        AnimatedVisibility(isLoading){
             CircularProgressIndicator(
                 color = Color.DarkGray,
             )
