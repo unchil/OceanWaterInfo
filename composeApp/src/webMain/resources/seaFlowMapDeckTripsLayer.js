@@ -33,9 +33,14 @@ async function initMap() {
 
     });
 
-    overlay = new GoogleMapsOverlay({layers:[]});
-    overlay.setMap(map);
-  //  initMapWithData(values)
+
+
+    google.maps.event.addListenerOnce(map, 'idle', function() {
+        overlay = new GoogleMapsOverlay({layers:[]});
+       overlay.setMap(map);
+    });
+
+
 
 };
 
@@ -73,16 +78,13 @@ window.initMapWithData = function( values) {
 
      console.log("deckData 초기화 완료:", deckData.length);
 
-
-    google.maps.event.addListenerOnce(map, 'idle', function() {
-       startAnimation();
-    });
-
        // 최종 렌더링 종료 후 로더 숨김
        setTimeout(() => {
            hideMapLoader();
        }, 300); // 부드러운 전환을 위해 약간의 지연
 
+
+      startAnimation();
 }
 
 
