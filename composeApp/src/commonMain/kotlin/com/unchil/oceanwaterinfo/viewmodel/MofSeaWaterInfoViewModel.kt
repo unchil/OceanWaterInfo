@@ -1,6 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -25,6 +26,7 @@ class MofSeaWaterInfoViewModel( ){
                 try {
                     repository.getSeaWaterInfo(DATA_DIVISION.mof_oneday)
                 } finally {
+                    delay(500)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
 

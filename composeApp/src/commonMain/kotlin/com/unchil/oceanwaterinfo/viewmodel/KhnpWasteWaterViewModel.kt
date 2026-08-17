@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo.viewmodel
 
 import com.unchil.oceanwaterinfo.KHNPWasteWater
 import com.unchil.oceanwaterinfo.getPlatform
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -24,6 +25,7 @@ class KhnpWasteWaterViewModel(){
                 try {
                     repository.getKhnpWasteWater()
                 } finally {
+                    delay(500)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
             }

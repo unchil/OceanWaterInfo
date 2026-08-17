@@ -4,6 +4,7 @@ import com.unchil.oceanwaterinfo.DATA_DIVISION
 import com.unchil.oceanwaterinfo.KHNPPlantOperationInfo
 import com.unchil.oceanwaterinfo.getPlatform
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -26,6 +27,7 @@ class KhnpPlantStateViewModel (){
                 try {
                     repository.getKhnpPlantState()
                 } finally {
+                    delay(500)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
             }

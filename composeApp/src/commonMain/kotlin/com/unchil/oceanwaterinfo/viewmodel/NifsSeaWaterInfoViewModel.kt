@@ -26,9 +26,9 @@ class NifsSeaWaterInfoViewModel (){
 
                 _isLoading.value = true // 로딩 시작
                 try {
-
                     repository.getSeaWaterInfo(DATA_DIVISION.oneday)
                 } finally {
+                    delay(500)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
             }
