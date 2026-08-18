@@ -71,7 +71,7 @@ fun jvmMainOceanWaterQuality(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                OceanWaterInfo_MOF()
+
                 OceanWaterInfoTimeSeries()
                 OceanWaterInfoBoxPlotChart()
                 OceanWaterInfoBarChart()
@@ -124,6 +124,8 @@ fun jvmMainOceanWaterQuality(
                 }
 
                 OceanWaterInfoDataGrid()
+
+                OceanWaterInfo_MOF()
             }
         }
     }

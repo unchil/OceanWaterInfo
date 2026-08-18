@@ -63,7 +63,7 @@ fun webMainOceanWaterQuality(){
                     .background(color = MaterialTheme.colorScheme.surface),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OceanWaterInfo_MOF()
+
                 OceanWaterInfoTimeSeries()
                 OceanWaterInfoBoxPlotChart()
                 OceanWaterInfoBarChart()
@@ -146,6 +146,8 @@ fun webMainOceanWaterQuality(){
                 }
 
                 OceanWaterInfoDataGrid()
+
+                OceanWaterInfo_MOF()
             }
         }
     }

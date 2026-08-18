@@ -28,21 +28,19 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.statements.api.ExposedBlob
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.batchInsert
+import org.jetbrains.exposed.v1.jdbc.batchReplace
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
-import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
 import org.jetbrains.kotlinx.dataframe.api.flatten
-import org.jetbrains.kotlinx.dataframe.api.forEach
 import org.jetbrains.kotlinx.dataframe.api.groupBy
 import org.jetbrains.kotlinx.dataframe.api.head
 import org.jetbrains.kotlinx.dataframe.api.pivot
@@ -152,43 +150,42 @@ class CollectionServerRepository {
                 }
 
             } catch(e:Exception ){
-              val msg = e.localizedMessage
-
+                LOGGER.error("KHNP_PlantInfo Batch Insert Error: ${e.localizedMessage}")
             }
         }
 
          transaction(ConfigManager.conn) {
              SchemaUtils.create(KHNP_PlantInfo)
-             plantInfo.forEach { item  ->
-                 try{
-                     KHNP_PlantInfo.insertIgnore { it ->
-                         it[siteCd] = item.siteCd
-                         it[siteNm] = item.siteNm
-                         it[siteMm] = item.siteMm
-                     }
-                 }catch (e:Exception){
-                     LOGGER.error("Exception : [" + e.localizedMessage + "]")
+
+             try {
+                 // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                 KHNP_PlantInfo.batchInsert(plantInfo, true, false) { row ->
+                     this[KHNP_PlantInfo.siteCd] = row.siteCd
+                     this[KHNP_PlantInfo.siteNm] = row.siteNm
+                     this[KHNP_PlantInfo.siteMm] = row.siteMm
                  }
+
+             } catch (e: Exception) {
+                 LOGGER.error("KHNP_PlantInfo Batch Insert Error: ${e.localizedMessage}")
              }
 
              SchemaUtils.create(KHNP_PlantOperationInfo)
-             unitInfoList.forEach { item  ->
-                 try{
-                     KHNP_PlantOperationInfo.insertIgnore { it ->
-                         it[collectionTime] = item.collectionTime
-                         it[siteCd] = item.siteCd
-                         it[genName] = item.genName
-                         it[unitCd] = item.unitCd
-                         it[unitDttm] = item.unitDttm
-                         it[unitNm] = item.unitNm
-                         it[unitSt] = item.unitSt
 
-                     }
-                 }catch (e:Exception){
-                     LOGGER.error("Exception : [" + e.localizedMessage + "]")
+             try {
+                 // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                 KHNP_PlantOperationInfo.batchInsert(unitInfoList, true, false) { row ->
+                     this[KHNP_PlantOperationInfo.collectionTime] = row.collectionTime
+                     this[KHNP_PlantOperationInfo.siteCd] = row.siteCd
+                     this[KHNP_PlantOperationInfo.genName] = row.genName
+                     this[KHNP_PlantOperationInfo.unitCd] = row.unitCd
+                     this[KHNP_PlantOperationInfo.unitDttm] = row.unitDttm
+                     this[KHNP_PlantOperationInfo.unitNm] = row.unitNm
+                     this[KHNP_PlantOperationInfo.unitSt] = row.unitSt
                  }
-             }
 
+             } catch (e: Exception) {
+                 LOGGER.error("KHNP_PlantOperationInfo Batch Insert Error: ${e.localizedMessage}")
+             }
 
          }
 
@@ -264,31 +261,32 @@ class CollectionServerRepository {
             "time3" to "rm006_time",
         )
 
-        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
+        LOGGER.debug("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Count:[${result.count()}]")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_ThermalWasteWater)
 
-            result.forEach { item  ->
-                try{
-                    KHNP_ThermalWasteWater.insertIgnore { it ->
-                        it[time] = item["collectionTime"].toString()
-                        it[genName] = item["genName"].toString()
-                        it[rm001] = item["rm001"].toString()
-                        it[rm001_time] = item["rm001_time"].toString()
-                        it[rm002] = item["rm002"].toString()
-                        it[rm002_time] = item["rm002_time"].toString()
-                        it[rm005] = item["rm005"].toString()
-                        it[rm005_time] = item["rm005_time"].toString()
-                        it[rm006] = item["rm006"].toString()
-                        it[rm006_time] = item["rm006_time"].toString()
-                    }
-                }catch (e:Exception){
-                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
 
+            try {
+                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                KHNP_ThermalWasteWater.batchInsert(result.rows(), true, false) { row ->
+                    this[KHNP_ThermalWasteWater.time] = row["collectionTime"].toString()
+                    this[KHNP_ThermalWasteWater.genName] = row["genName"].toString()
+                    this[KHNP_ThermalWasteWater.rm001] = row["rm001"].toString()
+                    this[KHNP_ThermalWasteWater.rm001_time] = row["rm001_time"].toString()
+                    this[KHNP_ThermalWasteWater.rm002] = row["rm002"].toString()
+                    this[KHNP_ThermalWasteWater.rm002_time] = row["rm002_time"].toString()
+                    this[KHNP_ThermalWasteWater.rm005] = row["rm005"].toString()
+                    this[KHNP_ThermalWasteWater.rm005_time] = row["rm005_time"].toString()
+                    this[KHNP_ThermalWasteWater.rm006] = row["rm006"].toString()
+                    this[KHNP_ThermalWasteWater.rm006_time] = row["rm006_time"].toString()
                 }
+
+            } catch (e: Exception) {
+                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
             }
+
         }
 
     }
@@ -322,27 +320,28 @@ class CollectionServerRepository {
         )
 
 
-        LOGGER.info("\n ${::getKHNP_WasteWater.name}  Schema[${result.schema()}]")
+        LOGGER.debug("\n ${::getKHNP_WasteWater.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_WasteWater.name}  Count:[${result.count()}]")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_WasteWater)
 
-            result.forEach { item  ->
-                try{
-                    KHNP_WasteWater.insertIgnore { it ->
-                        it[time] = item["collectionTime"].toString()
-                        it[genName] = item["genName"].toString()
-                        it[tm001] = item["tm001"].toString()
-                        it[tm001_time] = item["tm001_time"].toString()
-                        it[tm002] = item["tm002"].toString()
-                        it[tm002_time] = item["tm002_time"].toString()
-                    }
-                }catch (e:Exception){
-                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
-
+            try {
+                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                KHNP_WasteWater.batchInsert(result.rows(), true, false) { row ->
+                    this[KHNP_WasteWater.time] = row["collectionTime"].toString()
+                    this[KHNP_WasteWater.genName] = row["genName"].toString()
+                    this[KHNP_WasteWater.tm001] = row["tm001"].toString()
+                    this[KHNP_WasteWater.tm001_time] = row["tm001_time"].toString()
+                    this[KHNP_WasteWater.tm002] = row["tm002"].toString()
+                    this[KHNP_WasteWater.tm002_time] = row["tm002_time"].toString()
                 }
+
+            } catch (e: Exception) {
+                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
             }
+
+
         }
 
     }
@@ -353,27 +352,29 @@ class CollectionServerRepository {
         val result = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
 
-        LOGGER.info("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
+        LOGGER.debug("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_RadioRate.name}  Count:[${result.count()}]")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioRate)
 
-            result.forEach { item  ->
-                try{
-                    KHNP_RadioRate.insertIgnore { it ->
-                        it[collectionTime] = item["collectionTime"].toString()
-                        it[time] = item["time"].toString()
-                        it[genName] = item["genName"].toString()
-                        it[name] = item["name"].toString()
-                        it[expl] = item["expl"].toString()
-                        it[value] = item["value"].toString()
-                    }
-                }catch (e:Exception){
-                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
 
+            try {
+                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                KHNP_RadioRate.batchInsert(result.rows(), true, false) { row ->
+                    this[KHNP_RadioRate.collectionTime] = row["collectionTime"].toString()
+                    this[KHNP_RadioRate.time] = row["time"].toString()
+                    this[KHNP_RadioRate.genName] = row["genName"].toString()
+                    this[KHNP_RadioRate.name] = row["name"].toString()
+                    this[KHNP_RadioRate.expl] = row["expl"].toString()
+                    this[KHNP_RadioRate.value] = row["value"].toString()
                 }
+
+            } catch (e: Exception) {
+                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
             }
+
+
         }
     }
 
@@ -382,26 +383,26 @@ class CollectionServerRepository {
         val result = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800") )
 
 
-        LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Schema[${result.schema()}]")
+        LOGGER.debug("\n ${::getKHNP_RadioActiveWaste.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Count:[${result.count()}]")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioActiveWaste)
 
-            result.forEach { item  ->
-                try{
-                    KHNP_RadioActiveWaste.insertIgnore { it ->
-                        it[collectionTime] = item["collectionTime"].toString()
-                        it[spmon] = item["spmon"].toString()
-                        it[genName] = item["genName"].toString()
-                        it[plant] = item["plant"].toString()
-                        it[total] = item["total"].toString()
-                    }
-                }catch (e:Exception){
-                    LOGGER.error("Exception : [" + e.localizedMessage + "]")
-
+            try {
+                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                KHNP_RadioActiveWaste.batchInsert(result.rows(), true, false) { row ->
+                    this[KHNP_RadioActiveWaste.collectionTime] = row["collectionTime"].toString()
+                    this[KHNP_RadioActiveWaste.spmon] = row["spmon"].toString()
+                    this[KHNP_RadioActiveWaste.genName] = row["genName"].toString()
+                    this[KHNP_RadioActiveWaste.plant] = row["plant"].toString()
+                    this[KHNP_RadioActiveWaste.total] = row["total"].toString()
                 }
+
+            } catch (e: Exception) {
+                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
             }
+
         }
     }
 
@@ -739,6 +740,7 @@ class CollectionServerRepository {
         try {
 
             val dfResult = loadDataSDoT(url, 2).concat()
+
             val result = dfResult.rename(
                 "SUA_GAS_DNST_VL" to "SO2",
                 "COMNXD_DNST_VL" to "CO",
@@ -748,44 +750,35 @@ class CollectionServerRepository {
                 "FINEDUST_PM2_5_DNST_VL" to "PM2.5"
             )
 
-            LOGGER.info("\n"+ result.schema().toString())
-            LOGGER.info("\n"+ result.head(5).toString())
+            LOGGER.debug("\n"+ result.schema().toString())
+            LOGGER.debug("\n"+ result.head(5).toString())
 
             transaction(ConfigManager.conn) {
                 SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
 
-                result.forEach {  item  ->
-                    try{
-                        SDoT_EnvInfo_Gyonggi.insertIgnore { it ->
-
-                            it[obs] = item["MESURSTN_NM"].toString()
-                            it[region] = item["MESRNW_NM"].toString()
-                            it[sensing_time] = item["MESURE_DAY_TM"].toString()
-                            it[so2] = item["SO2"].toString()
-                            it[co] = item["CO"].toString()
-                            it[no2] = item["NO2"].toString()
-                            it[o3] = item["O3"].toString()
-                            it[pm10] = item["PM10"].toString()
-                            it[pm25] = item["PM2.5"].toString()
-
-                        }
-                    } catch (e:Exception){
-                        e.localizedMessage?.let { msg ->
-                            LOGGER.debug(msg)
-                            LOGGER.debug("Exception PRIMARYKEY: [" + item["MESURSTN_NM"].toString() + "," + item["MESURE_DAY_TM"].toString() + "]")
-
-                        }
+                try {
+                    // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                    SDoT_EnvInfo_Gyonggi.batchInsert(result.rows(), true, false) { row ->
+                        this[SDoT_EnvInfo_Gyonggi.obs] = row["MESURSTN_NM"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.region] = row["MESRNW_NM"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.sensing_time] = row["MESURE_DAY_TM"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.so2] = row["SO2"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.co] = row["CO"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.no2] = row["NO2"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.o3] = row["O3"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.pm10] = row["PM10"].toString()
+                        this[SDoT_EnvInfo_Gyonggi.pm25] = row["PM2.5"].toString()
                     }
+
+                } catch (e: Exception) {
+                    LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
                 }
-
-
             }
 
-
-
         }catch (e: Exception){
-            val msg = e.localizedMessage
+            LOGGER.error("${::getSDoTEnvInfoGyonggi.name} Error: ${e.localizedMessage}")
         }
+
     }
 
     suspend fun getSDoTEnvInfo(){
@@ -823,77 +816,76 @@ class CollectionServerRepository {
                 val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
                 transaction(ConfigManager.conn) {
                     SchemaUtils.create(SDoT_EnvInfo)
-                    finalData.forEach { item ->
-                        try {
-                            SDoT_EnvInfo.upsert { it ->
-                                it[SDoT_EnvInfo.modelname] = item.MODELNAME
-                                it[SDoT_EnvInfo.serial] = item.SERIAL
-                                it[SDoT_EnvInfo.sensing_time] = item.SENSING_TIME
-                                it[SDoT_EnvInfo.region] = item.REGION
-                                it[SDoT_EnvInfo.autonomous_district] = item.AUTONOMOUS_DISTRICT
-                                it[SDoT_EnvInfo.administrative_district] = item.ADMINISTRATIVE_DISTRICT
-                                it[SDoT_EnvInfo.max_temp] = item.MAX_TEMP
-                                it[SDoT_EnvInfo.avg_temp] = item.AVG_TEMP
-                                it[SDoT_EnvInfo.min_temp] = item.MIN_TEMP
-                                it[SDoT_EnvInfo.max_humi] = item.MAX_HUMI
-                                it[SDoT_EnvInfo.avg_humi] = item.AVG_HUMI
-                                it[SDoT_EnvInfo.min_humi] = item.MIN_HUMI
-                                it[SDoT_EnvInfo.max_wind_speed] = item.MAX_WIND_SPEED
-                                it[SDoT_EnvInfo.avg_wind_speed] = item.AVG_WIND_SPEED
-                                it[SDoT_EnvInfo.min_wind_speed] = item.MIN_WIND_SPEED
-                                it[SDoT_EnvInfo.max_wind_dire] = item.MAX_WIND_DIRE
-                                it[SDoT_EnvInfo.avg_wind_dire] = item.AVG_WIND_DIRE
-                                it[SDoT_EnvInfo.min_wind_dire] = item.MIN_WIND_DIRE
-                                it[SDoT_EnvInfo.max_inte_illu] = item.MAX_INTE_ILLU
-                                it[SDoT_EnvInfo.avg_inte_illu] = item.AVG_INTE_ILLU
-                                it[SDoT_EnvInfo.min_inte_illu] = item.MIN_INTE_ILLU
-                                it[SDoT_EnvInfo.max_ultra_rays] = item.MAX_ULTRA_RAYS
-                                it[SDoT_EnvInfo.avg_ultra_rays] = item.AVG_ULTRA_RAYS
-                                it[SDoT_EnvInfo.min_ultra_rays] = item.MIN_ULTRA_RAYS
-                                it[SDoT_EnvInfo.max_noise] = item.MAX_NOISE
-                                it[SDoT_EnvInfo.avg_noise] = item.AVG_NOISE
-                                it[SDoT_EnvInfo.min_noise] = item.MIN_NOISE
-                                it[SDoT_EnvInfo.max_vibr_x] = item.MAX_VIBR_X
-                                it[SDoT_EnvInfo.avg_vibr_x] = item.AVG_VIBR_X
-                                it[SDoT_EnvInfo.min_vibr_x] = item.MIN_VIBR_X
-                                it[SDoT_EnvInfo.max_vibr_y] = item.MAX_VIBR_Y
-                                it[SDoT_EnvInfo.avg_vibr_y] = item.AVG_VIBR_Y
-                                it[SDoT_EnvInfo.min_vibr_y] = item.MIN_VIBR_Y
-                                it[SDoT_EnvInfo.max_vibr_z] = item.MAX_VIBR_Z
-                                it[SDoT_EnvInfo.avg_vibr_z] = item.AVG_VIBR_Z
-                                it[SDoT_EnvInfo.min_vibr_z] = item.MIN_VIBR_Z
-                                it[SDoT_EnvInfo.max_effe_temp] = item.MAX_EFFE_TEMP
-                                it[SDoT_EnvInfo.avg_effe_temp] = item.AVG_EFFE_TEMP
-                                it[SDoT_EnvInfo.min_effe_temp] = item.MIN_EFFE_TEMP
-                                it[SDoT_EnvInfo.max_no2] = item.MAX_NO2
-                                it[SDoT_EnvInfo.avg_no2] = item.AVG_NO2
-                                it[SDoT_EnvInfo.min_no2] = item.MIN_NO2
-                                it[SDoT_EnvInfo.max_co] = item.MAX_CO
-                                it[SDoT_EnvInfo.avg_co] = item.AVG_CO
-                                it[SDoT_EnvInfo.min_co] = item.MIN_CO
-                                it[SDoT_EnvInfo.max_so2] = item.MAX_SO2
-                                it[SDoT_EnvInfo.avg_so2] = item.AVG_SO2
-                                it[SDoT_EnvInfo.min_so2] = item.MIN_SO2
-                                it[SDoT_EnvInfo.max_nh3] = item.MAX_NH3
-                                it[SDoT_EnvInfo.avg_nh3] = item.AVG_NH3
-                                it[SDoT_EnvInfo.min_nh3] = item.MIN_NH3
-                                it[SDoT_EnvInfo.max_h2s] = item.MAX_H2S
-                                it[SDoT_EnvInfo.avg_h2s] = item.AVG_H2S
-                                it[SDoT_EnvInfo.min_h2s] = item.MIN_H2S
-                                it[SDoT_EnvInfo.max_o3] = item.MAX_O3
-                                it[SDoT_EnvInfo.avg_o3] = item.AVG_O3
-                                it[SDoT_EnvInfo.min_o3] = item.MIN_O3
-                                it[SDoT_EnvInfo.date] = item.DATE
-                                it[SDoT_EnvInfo.data_no] = item.DATA_NO
 
-                            }
-                        } catch (e: Exception) {
-                            e.localizedMessage?.let { msg ->
-                                LOGGER.debug(msg)
-                            }
+                    try {
+                        SDoT_EnvInfo.batchReplace(finalData) { item ->
+                            this[SDoT_EnvInfo.modelname] = item.MODELNAME
+                            this[SDoT_EnvInfo.serial] = item.SERIAL
+                            this[SDoT_EnvInfo.sensing_time] = item.SENSING_TIME
+                            this[SDoT_EnvInfo.region] = item.REGION
+                            this[SDoT_EnvInfo.autonomous_district] = item.AUTONOMOUS_DISTRICT
+                            this[SDoT_EnvInfo.administrative_district] = item.ADMINISTRATIVE_DISTRICT
+                            this[SDoT_EnvInfo.max_temp] = item.MAX_TEMP
+                            this[SDoT_EnvInfo.avg_temp] = item.AVG_TEMP
+                            this[SDoT_EnvInfo.min_temp] = item.MIN_TEMP
+                            this[SDoT_EnvInfo.max_humi] = item.MAX_HUMI
+                            this[SDoT_EnvInfo.avg_humi] = item.AVG_HUMI
+                            this[SDoT_EnvInfo.min_humi] = item.MIN_HUMI
+                            this[SDoT_EnvInfo.max_wind_speed] = item.MAX_WIND_SPEED
+                            this[SDoT_EnvInfo.avg_wind_speed] = item.AVG_WIND_SPEED
+                            this[SDoT_EnvInfo.min_wind_speed] = item.MIN_WIND_SPEED
+                            this[SDoT_EnvInfo.max_wind_dire] = item.MAX_WIND_DIRE
+                            this[SDoT_EnvInfo.avg_wind_dire] = item.AVG_WIND_DIRE
+                            this[SDoT_EnvInfo.min_wind_dire] = item.MIN_WIND_DIRE
+                            this[SDoT_EnvInfo.max_inte_illu] = item.MAX_INTE_ILLU
+                            this[SDoT_EnvInfo.avg_inte_illu] = item.AVG_INTE_ILLU
+                            this[SDoT_EnvInfo.min_inte_illu] = item.MIN_INTE_ILLU
+                            this[SDoT_EnvInfo.max_ultra_rays] = item.MAX_ULTRA_RAYS
+                            this[SDoT_EnvInfo.avg_ultra_rays] = item.AVG_ULTRA_RAYS
+                            this[SDoT_EnvInfo.min_ultra_rays] = item.MIN_ULTRA_RAYS
+                            this[SDoT_EnvInfo.max_noise] = item.MAX_NOISE
+                            this[SDoT_EnvInfo.avg_noise] = item.AVG_NOISE
+                            this[SDoT_EnvInfo.min_noise] = item.MIN_NOISE
+                            this[SDoT_EnvInfo.max_vibr_x] = item.MAX_VIBR_X
+                            this[SDoT_EnvInfo.avg_vibr_x] = item.AVG_VIBR_X
+                            this[SDoT_EnvInfo.min_vibr_x] = item.MIN_VIBR_X
+                            this[SDoT_EnvInfo.max_vibr_y] = item.MAX_VIBR_Y
+                            this[SDoT_EnvInfo.avg_vibr_y] = item.AVG_VIBR_Y
+                            this[SDoT_EnvInfo.min_vibr_y] = item.MIN_VIBR_Y
+                            this[SDoT_EnvInfo.max_vibr_z] = item.MAX_VIBR_Z
+                            this[SDoT_EnvInfo.avg_vibr_z] = item.AVG_VIBR_Z
+                            this[SDoT_EnvInfo.min_vibr_z] = item.MIN_VIBR_Z
+                            this[SDoT_EnvInfo.max_effe_temp] = item.MAX_EFFE_TEMP
+                            this[SDoT_EnvInfo.avg_effe_temp] = item.AVG_EFFE_TEMP
+                            this[SDoT_EnvInfo.min_effe_temp] = item.MIN_EFFE_TEMP
+                            this[SDoT_EnvInfo.max_no2] = item.MAX_NO2
+                            this[SDoT_EnvInfo.avg_no2] = item.AVG_NO2
+                            this[SDoT_EnvInfo.min_no2] = item.MIN_NO2
+                            this[SDoT_EnvInfo.max_co] = item.MAX_CO
+                            this[SDoT_EnvInfo.avg_co] = item.AVG_CO
+                            this[SDoT_EnvInfo.min_co] = item.MIN_CO
+                            this[SDoT_EnvInfo.max_so2] = item.MAX_SO2
+                            this[SDoT_EnvInfo.avg_so2] = item.AVG_SO2
+                            this[SDoT_EnvInfo.min_so2] = item.MIN_SO2
+                            this[SDoT_EnvInfo.max_nh3] = item.MAX_NH3
+                            this[SDoT_EnvInfo.avg_nh3] = item.AVG_NH3
+                            this[SDoT_EnvInfo.min_nh3] = item.MIN_NH3
+                            this[SDoT_EnvInfo.max_h2s] = item.MAX_H2S
+                            this[SDoT_EnvInfo.avg_h2s] = item.AVG_H2S
+                            this[SDoT_EnvInfo.min_h2s] = item.MIN_H2S
+                            this[SDoT_EnvInfo.max_o3] = item.MAX_O3
+                            this[SDoT_EnvInfo.avg_o3] = item.AVG_O3
+                            this[SDoT_EnvInfo.min_o3] = item.MIN_O3
+                            this[SDoT_EnvInfo.date] = item.DATE
+                            this[SDoT_EnvInfo.data_no] = item.DATA_NO
                         }
-
+                    } catch (e: Exception) {
+                        LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
                     }
+
+
+
+
                 }
 
             }
@@ -937,26 +929,24 @@ class CollectionServerRepository {
 
                     val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
 
-                    LOGGER.info("${::getKhoaTidalCurrent.name} [receive count[${response.result.meta.sch_time}]]")
+                    LOGGER.info("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
 
                     transaction(ConfigManager.conn) {
                         SchemaUtils.create(TidalCurrentInfoKHOA)
-                        response.result.data.forEach { item ->
-                            try {
-                                TidalCurrentInfoKHOA.upsert { it ->
-                                    it[TidalCurrentInfoKHOA.sch_time] = response.result.meta.sch_time
-                                    it[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
-                                    it[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
-                                    it[TidalCurrentInfoKHOA.current_dir] = item.current_dir.toDouble()
-                                    it[TidalCurrentInfoKHOA.current_speed] = item.current_speed.toDouble()
-                                }
-                            } catch (e: Exception) {
-                                e.localizedMessage?.let { msg ->
-                                    LOGGER.debug(msg)
-                                }
-                            }
 
+                        try {
+                            TidalCurrentInfoKHOA.batchReplace(response.result.data) { item ->
+                                this[TidalCurrentInfoKHOA.sch_time] = response.result.meta.sch_time
+                                this[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
+                                this[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
+                                this[TidalCurrentInfoKHOA.current_dir] = item.current_dir.toDouble()
+                                this[TidalCurrentInfoKHOA.current_speed] = item.current_speed.toDouble()
+                            }
+                        } catch (e: Exception) {
+                            LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
                         }
+
+
                     }
 
                 }
@@ -1012,30 +1002,31 @@ class CollectionServerRepository {
                                      SchemaUtils.create(ObservationKHOA)
                                      SchemaUtils.create(ObservatoryKHOA)
 
-                                     recvData.body.items.item.forEach { item ->
-                                         try {
-                                             ObservationKHOA.insertIgnore { it ->
-                                                 it[ObservationKHOA.obsCode] = obsCode
-                                                 it[ObservationKHOA.obsrvnDt] = item.obsrvnDt
-                                                 it[ObservationKHOA.wndrct] = item.wndrct?.toString()
-                                                 it[ObservationKHOA.wspd] = item.wspd?.toString()
-                                                 it[ObservationKHOA.maxMmntWspd] =
-                                                     item.maxMmntWspd?.toString()
-                                                 it[ObservationKHOA.artmp] = item.artmp?.toString()
-                                                 it[ObservationKHOA.atmpr] = item.atmpr?.toString()
-                                                 it[ObservationKHOA.wvhgt] = item.wvhgt?.toString()
-                                                 it[ObservationKHOA.wvpd] = item.wvpd?.toString()
-                                                 it[ObservationKHOA.crdir] = item.crdir?.toString()
-                                                 it[ObservationKHOA.crsp] = item.crsp?.toString()
-                                                 it[ObservationKHOA.wtem] = item.wtem?.toString()
-                                                 it[ObservationKHOA.slnty] = item.slnty?.toString()
-                                             }
-                                         } catch (e: Exception) {
-                                             e.localizedMessage?.let { msg ->
-                                                 LOGGER.debug(msg)
-                                             }
+
+                                     try {
+                                         // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                                         ObservationKHOA.batchInsert(recvData.body.items.item, true, false) { row ->
+
+                                             this[ObservationKHOA.obsCode] = obsCode
+                                             this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
+                                             this[ObservationKHOA.wndrct] = row.wndrct?.toString()
+                                             this[ObservationKHOA.wspd] = row.wspd?.toString()
+                                             this[ObservationKHOA.maxMmntWspd] =
+                                                 row.maxMmntWspd?.toString()
+                                             this[ObservationKHOA.artmp] = row.artmp?.toString()
+                                             this[ObservationKHOA.atmpr] = row.atmpr?.toString()
+                                             this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
+                                             this[ObservationKHOA.wvpd] = row.wvpd?.toString()
+                                             this[ObservationKHOA.crdir] = row.crdir?.toString()
+                                             this[ObservationKHOA.crsp] = row.crsp?.toString()
+                                             this[ObservationKHOA.wtem] = row.wtem?.toString()
+                                             this[ObservationKHOA.slnty] = row.slnty?.toString()
                                          }
+
+                                     } catch (e: Exception) {
+                                         LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
                                      }
+
 
                                      if (recvData.body.totalCount > 0) {
                                          try {
@@ -1053,6 +1044,8 @@ class CollectionServerRepository {
                                              }
                                          }
                                      }
+
+
                                  }
                              } else if(recvData.header.resultCode.equals("03")){
                              //    break
@@ -1096,29 +1089,26 @@ class CollectionServerRepository {
 
                         transaction (ConfigManager.conn){
                             SchemaUtils.create( OWQInformationTable)
-                            result.forEach {  item  ->
-                                try{
-                                    OWQInformationTable.insertIgnore { it ->
 
-                                        it[rtmWqWtchDtlDt] = item["rtmWqWtchDtlDt"].toString().substringBefore('.')
-                                        it[rtmWqWtchStaCd] = item["rtmWqWtchStaCd"].toString()
-                                        it[rtmWtchWtem] =  String.format("%.3f", item["rtmWtchWtem"].toString().toDouble())
-                                        it[rtmWqCndctv] = String.format("%.3f", item["rtmWqCndctv"].toString().toFloat())
-                                        it[ph] = String.format("%.2f", item["ph"].toString().toFloat())
-                                        it[rtmWqDoxn] = String.format("%.3f", item["rtmWqDoxn"].toString().toDouble())
-                                        it[rtmWqTu] = item["rtmWqTu"].toString()
-                                        it[rtmWqBgalgsQy] = item["rtmWqBgalgsQy"].toString()
-                                        it[rtmWqChpla] = String.format("%.3f", item["rtmWqChpla"].toString().toDouble())
-                                        it[rtmWqSlnty] = String.format("%.3f", item["rtmWqSlnty"].toString().toFloat())
-                                    }
-                                } catch (e:Exception){
-                                    e.localizedMessage?.let { msg ->
-                                        LOGGER.debug(msg)
-                                        LOGGER.debug("Exception PRIMARYKEY: [" + item["rtmWqWtchDtlDt"].toString() + "," + item["rtmWqWtchStaCd"].toString() + "]")
-
-                                    }
+                            try {
+                                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                                OWQInformationTable.batchInsert(result.rows(), true, false) { row ->
+                                    this[OWQInformationTable.rtmWqWtchDtlDt] = row["rtmWqWtchDtlDt"].toString().substringBefore('.')
+                                    this[OWQInformationTable.rtmWqWtchStaCd] = row["rtmWqWtchStaCd"].toString()
+                                    this[OWQInformationTable.rtmWtchWtem] =  String.format("%.3f", row["rtmWtchWtem"].toString().toDouble())
+                                    this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", row["rtmWqCndctv"].toString().toFloat())
+                                    this[OWQInformationTable.ph] = String.format("%.2f", row["ph"].toString().toFloat())
+                                    this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", row["rtmWqDoxn"].toString().toDouble())
+                                    this[OWQInformationTable.rtmWqTu] = row["rtmWqTu"].toString()
+                                    this[OWQInformationTable.rtmWqBgalgsQy] = row["rtmWqBgalgsQy"].toString()
+                                    this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", row["rtmWqChpla"].toString().toDouble())
+                                    this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", row["rtmWqSlnty"].toString().toFloat())
                                 }
+
+                            } catch (e: Exception) {
+                                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
                             }
+
                         }
                     }
                 }else{
@@ -1145,30 +1135,21 @@ class CollectionServerRepository {
 
                         SchemaUtils.create( ObservationTable)
 
-                        recvData.body.item.forEach { item ->
-
-                            try{
-
-                                if(!item.wtr_tmp.isNullOrBlank()) {
-                                    ObservationTable.insertIgnore { it ->
-                                        it[sta_cde] = item.sta_cde
-                                        it[sta_nam_kor] = item.sta_nam_kor
-                                        it[obs_dat] = item.obs_dat
-                                        it[obs_tim] = item.obs_tim
-                                        it[obs_datetime] = "${item.obs_dat} ${item.obs_tim}"
-                                        it[repair_gbn] = item.repair_gbn
-                                        it[obs_lay] = item.obs_lay
-                                        it[wtr_tmp] = item.wtr_tmp
-                                    }
-                                }
-                            } catch (e:Exception){
-
-                                e.localizedMessage?.let { msg ->
-                                    LOGGER.debug(msg)
-                                    LOGGER.debug("Exception PRIMARYKEY: [" + item.sta_cde + "," + item.obs_dat + "," + item.obs_tim + "," + item.obs_lay + "]")
-                                }
+                        try {
+                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                            ObservationTable.batchInsert(recvData.body.item, true, false) { row ->
+                                this[ObservationTable.sta_cde] = row.sta_cde
+                                this[ObservationTable.sta_nam_kor] = row.sta_nam_kor
+                                this[ObservationTable.obs_dat] = row.obs_dat
+                                this[ObservationTable.obs_tim] = row.obs_tim
+                                this[ObservationTable.obs_datetime] = "${row.obs_dat} ${row.obs_tim}"
+                                this[ObservationTable.repair_gbn] = row.repair_gbn
+                                this[ObservationTable.obs_lay] = row.obs_lay
+                                this[ObservationTable.wtr_tmp] = row.wtr_tmp.toString()
                             }
 
+                        } catch (e: Exception) {
+                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
                         }
                     }
                 }else{
@@ -1194,32 +1175,31 @@ class CollectionServerRepository {
                     transaction (ConfigManager.conn){
                         SchemaUtils.drop( ObservatoryTable)
                         SchemaUtils.create( ObservatoryTable)
-                        recvData.body.item.forEach { item ->
-                            try {
-                                ObservatoryTable.insertIgnore { it ->
-                                    it[sta_cde] = item.sta_cde
-                                    it[sta_nam_kor] = item.sta_nam_kor
-                                    it[bld_dat] = item.bld_dat
-                                    it[end_dat] = item.end_dat
-                                    it[gru_nam] = item.gru_nam
-                                    it[lon] = item.lon
-                                    it[lat] = item.lat
-                                    it[sur_tmp_yn] = item.sur_tmp_yn
-                                    it[mid_tmp_yn] = item.mid_tmp_yn
-                                    it[bot_tmp_yn] = item.bot_tmp_yn
-                                    it[sur_dep] = item.sur_dep
-                                    it[mid_dep] = item.mid_dep
-                                    it[bot_dep] = item.bot_dep
-                                    it[sta_des] = item.sta_des
-                                }
-                            }catch (e:Exception){
-                                e.localizedMessage?.let { msg ->
-                                    LOGGER.debug(msg)
-                                    LOGGER.debug("Exception PRIMARYKEY: [${item.sta_cde}]")
-                                }
+
+
+                        try {
+                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                            ObservatoryTable.batchInsert(recvData.body.item, true, false) { row ->
+                                this[ObservatoryTable.sta_cde] = row.sta_cde
+                                this[ObservatoryTable.sta_nam_kor] = row.sta_nam_kor
+                                this[ObservatoryTable.bld_dat] = row.bld_dat
+                                this[ObservatoryTable.end_dat] = row.end_dat
+                                this[ObservatoryTable.gru_nam] = row.gru_nam
+                                this[ObservatoryTable.lon] = row.lon
+                                this[ObservatoryTable.lat] = row.lat
+                                this[ObservatoryTable.sur_tmp_yn] = row.sur_tmp_yn
+                                this[ObservatoryTable.mid_tmp_yn] = row.mid_tmp_yn
+                                this[ObservatoryTable.bot_tmp_yn] = row.bot_tmp_yn
+                                this[ObservatoryTable.sur_dep] = row.sur_dep
+                                this[ObservatoryTable.mid_dep] = row.mid_dep
+                                this[ObservatoryTable.bot_dep] = row.bot_dep
+                                this[ObservatoryTable.sta_des] = row.sta_des
                             }
 
+                        } catch (e: Exception) {
+                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
                         }
+
                     }
 
                 }else{
