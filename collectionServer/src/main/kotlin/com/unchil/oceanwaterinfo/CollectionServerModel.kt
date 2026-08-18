@@ -427,7 +427,11 @@ data class KhoaTidalCurrentApiConfig(
     val type: String,
     val boundBox: String,
     val interval: Int,
-    val predictedTotalMinute: Int
+    val predictedTotalMinute: Int,
+    val limitedParallelism: Int,
+    val loopdelay:Int
+
+
 )
 
 @Serializable

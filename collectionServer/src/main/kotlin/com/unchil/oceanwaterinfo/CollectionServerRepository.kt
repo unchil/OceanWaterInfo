@@ -895,68 +895,109 @@ class CollectionServerRepository {
         }
     }
 
-    @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun getKhoaTidalCurrent(){
-        var now = Clock.System.now()
-        val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
-        val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
+
+
+
+    suspend fun loadDataTidalCurrent(path:String, interval:Int, predictedTotalMinute:Int, limit:Int, loopDelay:Long): Pair<String,List<KhonTidalCurrentInfo>> = coroutineScope {
+
         val windowSize = predictedTotalMinute / interval
+        val startTime = Clock.System.now() // 시작 시점 고정
+        // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
-        repeat(windowSize){
+        LOGGER.info("loadDataTidalCurrent limitedDispatcher: ${limit}, delay:${loopDelay}")
 
-            var localDateTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul"))
-            localDateTime =  LocalDateTime(
-                localDateTime.year,
-                localDateTime.month,
-                localDateTime.day,
-                localDateTime.hour,
-                (localDateTime.minute / interval) * interval
-            )
+        var sch_time = ""
 
-            now = now.plus(interval, DateTimeUnit.MINUTE)
+        val deferredResults = (0 until windowSize).map{ i ->
 
-            val datetime = localDateTime
-                .format(LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") })
+            delay(loopDelay)
 
-            val date = datetime.substring(0,8)
-            val hour = datetime.substring(8,10)
-            val minute = datetime.substring(10,12)
+            async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
 
-            val url = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}&Date=${date}&Hour=${hour}&Minute=${minute}"
+                retryIO(times = 3) {
 
-            try {
-                CollectionServerRestApi.callKhoaAPI_json(url).let {
+                    val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
 
-                    val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
+                    var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
+                    localDateTime = LocalDateTime(
+                        localDateTime.year,
+                        localDateTime.month,
+                        localDateTime.day,
+                        localDateTime.hour,
+                        (localDateTime.minute / interval) * interval
+                    )
 
-                    LOGGER.info("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
+                    val datetime = localDateTime.format(
+                        LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") }
+                    )
 
-                    transaction(ConfigManager.conn) {
-                        SchemaUtils.create(TidalCurrentInfoKHOA)
+                    val date = datetime.substring(0, 8)
+                    val hour = datetime.substring(8, 10)
+                    val minute = datetime.substring(10, 12)
 
-                        try {
-                            TidalCurrentInfoKHOA.batchReplace(response.result.data) { item ->
-                                this[TidalCurrentInfoKHOA.sch_time] = response.result.meta.sch_time
-                                this[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
-                                this[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
-                                this[TidalCurrentInfoKHOA.current_dir] = item.current_dir.toDouble()
-                                this[TidalCurrentInfoKHOA.current_speed] = item.current_speed.toDouble()
-                            }
-                        } catch (e: Exception) {
-                            LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
+                    val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
+
+                    try {
+
+                        CollectionServerRestApi.callKhoaAPI_json(url).let {
+                            val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
+                            LOGGER.debug("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
+                            sch_time = response.result.meta.sch_time
+                            response.result.data
                         }
 
-
+                    } catch (e: Exception) {
+                        LOGGER.error("첫 페이지 로드 실패: $url", e)
+                        throw e
                     }
 
                 }
-            }catch (e: Exception){
-                val msg = e.localizedMessage
             }
 
         }
+
+        // List<List<KhonTidalCurrentInfo>> 가 반환됨
+        val result = deferredResults.awaitAll().flatten()
+        Pair(sch_time,  result)
+
     }
 
+
+    suspend fun getKhoaTidalCurrent(){
+
+        val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
+        val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
+        val url = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}"
+        val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
+        val loopDelay = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.loopdelay?.toLong() ?: 500L
+
+        loadDataTidalCurrent(path=url, interval=interval, predictedTotalMinute=predictedTotalMinute, limit=limit, loopDelay = loopDelay).let{ (sch_time, result) ->
+
+            LOGGER.info("${::getKhoaTidalCurrent.name} [schTime[${sch_time}], total count[${result.size}}]]")
+
+            suspendTransaction( ConfigManager.conn) {
+
+                SchemaUtils.create(TidalCurrentInfoKHOA)
+
+                try {
+                    TidalCurrentInfoKHOA.batchReplace(result) { item ->
+                        this[TidalCurrentInfoKHOA.sch_time] = sch_time
+                        this[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
+                        this[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
+                        this[TidalCurrentInfoKHOA.current_dir] = item.current_dir.toDouble()
+                        this[TidalCurrentInfoKHOA.current_speed] = item.current_speed.toDouble()
+                    }
+                } catch (e: Exception) {
+                    LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
+                }
+
+                LOGGER.info("TidalCurrentInfoKHOA 테이블 갱신 완료.")
+
+            }
+        }
+
+    }
 
 
      @OptIn(FormatStringsInDatetimeFormats::class)
