@@ -462,7 +462,10 @@ data class  KhoaApiConfig(
     val subPath: String,
     val type: String,
     val min: String,
-    val numOfRows: String
+    val numOfRows: String,
+
+    val limitedParallelismDB: Int,
+    val limitedParallelismREST: Int
 )
 
 @Serializable
