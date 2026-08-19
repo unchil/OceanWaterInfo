@@ -1002,17 +1002,14 @@ class CollectionServerRepository {
 
     suspend fun loadKhoaObservation(codeList:List<String>, url:String, limit:Int):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
 
-
-
-
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
-
+       // val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
         val deferredResults = codeList.map { obsCode ->
 
             val pageUrl = "${url}&pageNo=1&obsCode=${obsCode}"
 
-            async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+      //      async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+
                 retryIO(times = 3) {
                     try {
                         CollectionServerRestApi.callKhoaAPI_json(pageUrl).let {
@@ -1029,14 +1026,15 @@ class CollectionServerRepository {
                         throw e
                     }
                 }
-            }
+         //   }
+
         }
 
-        deferredResults.awaitAll()
+        deferredResults
 
     }
 
-    suspend fun getKhoaObservationNew()  {
+    suspend fun getKhoaObservation()  {
 
         val reqDate =
             kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
@@ -1075,6 +1073,8 @@ class CollectionServerRepository {
 
                 result.forEach { (code, dataList) ->
 
+                    LOGGER.info("${::getKhoaObservation.name}  code[${code}], count[${dataList.size}]}")
+
                     launch(limitedDispatcher) {
 
                         suspendTransaction(ConfigManager.conn) {
@@ -1112,118 +1112,6 @@ class CollectionServerRepository {
             }
         }
     }
-
-
-     @OptIn(FormatStringsInDatetimeFormats::class)
-     suspend fun getKhoaObservation()  {
-
-             val reqDate =
-                 kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
-                     .format(LocalDateTime.Format { byUnicodePattern("yyyyMMdd") })
-
-             val url = "${ConfigManager.currentConfig.KHOA_API?.endPoint}/${ConfigManager.currentConfig.KHOA_API?.subPath}" +
-                     "?serviceKey=${ConfigManager.currentConfig.KHOA_API?.apikey}" +
-                     "&type=${ConfigManager.currentConfig.KHOA_API?.type}" +
-                     "&reqDate=${reqDate}" +
-                     "&min=${ConfigManager.currentConfig.KHOA_API?.min}" +
-                     "&numOfRows=${ConfigManager.currentConfig.KHOA_API?.numOfRows}"
-
-
-             val result = transaction(ConfigManager.conn) {
-                 ObservatoryKHOA.select(ObservatoryKHOA.obsCode).where {
-                     ObservatoryKHOA.obsCode like "HB%"
-                 }.map { resultRow ->
-                     resultRow[ObservatoryKHOA.obsCode]
-                 }
-             }
-
-             result.forEach { obsCode ->
-
-                 var requestPage = 1
-
-              //   do{
-                    val pageUrl = "${url}&pageNo=${requestPage}&obsCode=${obsCode}"
-
-                     try {
-                            CollectionServerRestApi.callKhoaAPI_json(pageUrl).let {
-                             val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(it)
-
-                             if(recvData.header.resultCode.equals("00")) {
-                             //    requestPage += 1
-
-                                 LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
-
-                                 transaction(ConfigManager.conn) {
-                                     SchemaUtils.create(ObservationKHOA)
-                                     SchemaUtils.create(ObservatoryKHOA)
-
-
-                                     try {
-                                         // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                                         ObservationKHOA.batchInsert(recvData.body.items.item, true, false) { row ->
-
-                                             this[ObservationKHOA.obsCode] = obsCode
-                                             this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
-                                             this[ObservationKHOA.wndrct] = row.wndrct?.toString()
-                                             this[ObservationKHOA.wspd] = row.wspd?.toString()
-                                             this[ObservationKHOA.maxMmntWspd] =
-                                                 row.maxMmntWspd?.toString()
-                                             this[ObservationKHOA.artmp] = row.artmp?.toString()
-                                             this[ObservationKHOA.atmpr] = row.atmpr?.toString()
-                                             this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
-                                             this[ObservationKHOA.wvpd] = row.wvpd?.toString()
-                                             this[ObservationKHOA.crdir] = row.crdir?.toString()
-                                             this[ObservationKHOA.crsp] = row.crsp?.toString()
-                                             this[ObservationKHOA.wtem] = row.wtem?.toString()
-                                             this[ObservationKHOA.slnty] = row.slnty?.toString()
-                                         }
-
-                                     } catch (e: Exception) {
-                                         LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
-                                     }
-
-
-                                     if (recvData.body.totalCount > 0) {
-                                         try {
-                                             ObservatoryKHOA.update({ ObservatoryKHOA.obsCode eq obsCode }) { it ->
-                                                 it[ObservatoryKHOA.obsvtrNm] =
-                                                     recvData.body.items.item[0].obsvtrNm
-                                                 it[ObservatoryKHOA.longitude] =
-                                                     recvData.body.items.item[0].lot
-                                                 it[ObservatoryKHOA.latitude] =
-                                                     recvData.body.items.item[0].lat
-                                             }
-                                         } catch (e: Exception) {
-                                             e.localizedMessage?.let { msg ->
-                                                 LOGGER.debug(msg)
-                                             }
-                                         }
-                                     }
-
-
-                                 }
-                             } else if(recvData.header.resultCode.equals("03")){
-                             //    break
-                             }else{
-                                 LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
-                             //    break
-                             }
-
-                         }
-
-                     }catch(e: Exception) {
-                         e.localizedMessage?.let { msg ->
-                             LOGGER.error( "${::getKhoaObservation.name} [${msg}]")
-                      //       break
-                         }
-                     }
-
-               //  } while (requestPage < 100 )
-
-             }
-    }
-
-
 
 
     @Suppress("DefaultLocale")
