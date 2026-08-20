@@ -19,6 +19,8 @@ import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
@@ -1002,37 +1004,47 @@ class CollectionServerRepository {
     }
 
 
+    @OptIn(ExperimentalSerializationApi::class)
     suspend fun loadKhoaObservation(codeList:List<String>, url:String, limit:Int):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
 
-       // val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
         val deferredResults = codeList.map { obsCode ->
 
+            delay(100)
+
             val pageUrl = "${url}&pageNo=1&obsCode=${obsCode}"
 
-      //      async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+       //     async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
 
                 retryIO(times = 3) {
                     try {
-                        CollectionServerRestApi.callKhoaAPI_json(pageUrl).let {
-                            val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(it)
-                            if(recvData.header.resultCode.equals("00")) {
-                                LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
-                            }else {
-                                LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
-                            }
-                            Pair(obsCode , recvData.body.items.item)
+                        val response = CollectionServerRestApi.callKhoaAPI_json(pageUrl)
+                        val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(response)
+                        if(recvData.header.resultCode.equals("00")) {
+                            LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
+                        }else {
+                            LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
                         }
-                    }catch (e: Exception){
-                        LOGGER.error("첫 페이지 로드 실패: $pageUrl", e)
+                        Pair(obsCode , recvData.body.items.item)
+
+                    } catch (e: MissingFieldException) {
+                        // 데이터 필드 누락 시 retry 없이 즉시 async 블록 탈출
+                        LOGGER.error("필드 누락 에러 (obsCode: $obsCode): ${e.message}")
+                        // 빈 리스트를 반환하며 해당 코루틴 종료
+                        return@retryIO Pair(obsCode, emptyList<KhoaObservation>())
+
+                    } catch (e: Exception) {
+                        // 일반적인 네트워크 에러 등은 retryIO가 처리할 수 있도록 다시 던짐
+                        LOGGER.error("데이터 로드 중 에러 발생 ($pageUrl): ${e.localizedMessage}")
                         throw e
                     }
                 }
-         //   }
+      //      }
 
         }
-
         deferredResults
+      //  deferredResults.awaitAll()
 
     }
 
@@ -1052,9 +1064,10 @@ class CollectionServerRepository {
 
 
         val codeList = transaction(ConfigManager.conn) {
-            ObservatoryKHOA.select(ObservatoryKHOA.obsCode).where {
-                ObservatoryKHOA.obsCode like "HB%"
-            }.map { resultRow ->
+            ObservatoryKHOA.select(ObservatoryKHOA.obsCode)
+                .withDistinct()
+             //   .where { ObservatoryKHOA.obsCode like "HB%"  }
+                .map { resultRow ->
                 resultRow[ObservatoryKHOA.obsCode]
             }
         }
@@ -1063,55 +1076,63 @@ class CollectionServerRepository {
         val limit_RestCall = ConfigManager.currentConfig.KHOA_API?.limitedParallelismREST ?: 1
         val limit_DB = ConfigManager.currentConfig.KHOA_API?.limitedParallelismDB ?: 1
 
-        LOGGER.info("${::getKhoaObservation.name}  limitedParallelismREST[${limit_RestCall}], limit_DB[${limit_DB}]}")
+        LOGGER.info("${::getKhoaObservation.name}  codeList[${codeList.size}], limitedParallelismREST[${limit_RestCall}], limit_DB[${limit_DB}]}")
 
         loadKhoaObservation(codeList, url, limit_RestCall).let { result ->
 
-            LOGGER.info("${::getKhoaObservation.name}  total count[${result.size}}")
+            LOGGER.info("${::getKhoaObservation.name}  total listCount[${result.size}}")
 
-            coroutineScope {
 
-                val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit_DB)
+                coroutineScope {
 
-                result.forEach { (code, dataList) ->
+                    val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit_DB)
 
-                    LOGGER.info("${::getKhoaObservation.name}  code[${code}], count[${dataList.size}]}")
+                    result.forEach { (code, dataList) ->
 
-                    launch(limitedDispatcher) {
+                        LOGGER.info("${::getKhoaObservation.name}  code[${code}], count[${dataList.size}]}")
 
-                        suspendTransaction(ConfigManager.conn) {
+                        launch(limitedDispatcher) {
 
-                            SchemaUtils.create(ObservationKHOA)
-                            SchemaUtils.create(ObservatoryKHOA)
+                            suspendTransaction(ConfigManager.conn) {
 
-                            try {
-                                ObservationKHOA.batchInsert(dataList, true, false) { row ->
+                                SchemaUtils.create(ObservationKHOA)
+                                SchemaUtils.create(ObservatoryKHOA)
 
-                                    this[ObservationKHOA.obsCode] = code
-                                    this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
-                                    this[ObservationKHOA.wndrct] = row.wndrct?.toString()
-                                    this[ObservationKHOA.wspd] = row.wspd?.toString()
-                                    this[ObservationKHOA.maxMmntWspd] =
-                                        row.maxMmntWspd?.toString()
-                                    this[ObservationKHOA.artmp] = row.artmp?.toString()
-                                    this[ObservationKHOA.atmpr] = row.atmpr?.toString()
-                                    this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
-                                    this[ObservationKHOA.wvpd] = row.wvpd?.toString()
-                                    this[ObservationKHOA.crdir] = row.crdir?.toString()
-                                    this[ObservationKHOA.crsp] = row.crsp?.toString()
-                                    this[ObservationKHOA.wtem] = row.wtem?.toString()
-                                    this[ObservationKHOA.slnty] = row.slnty?.toString()
+                                retryIO(times = 3) {
+                                    try {
+                                        ObservationKHOA.batchInsert(dataList, true, false) { row ->
+
+                                            this[ObservationKHOA.obsCode] = code
+                                            this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
+                                            this[ObservationKHOA.wndrct] = row.wndrct?.toString()
+                                            this[ObservationKHOA.wspd] = row.wspd?.toString()
+                                            this[ObservationKHOA.maxMmntWspd] =
+                                                row.maxMmntWspd?.toString()
+                                            this[ObservationKHOA.artmp] = row.artmp?.toString()
+                                            this[ObservationKHOA.atmpr] = row.atmpr?.toString()
+                                            this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
+                                            this[ObservationKHOA.wvpd] = row.wvpd?.toString()
+                                            this[ObservationKHOA.crdir] = row.crdir?.toString()
+                                            this[ObservationKHOA.crsp] = row.crsp?.toString()
+                                            this[ObservationKHOA.wtem] = row.wtem?.toString()
+                                            this[ObservationKHOA.slnty] = row.slnty?.toString()
+                                        }
+
+                                    } catch (e: Exception) {
+                                        LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
+                                        throw e
+                                    }
                                 }
-                            } catch (e: Exception) {
-                                LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
+
+
+                                LOGGER.info("ObservationKHOA 테이블 갱신 완료.")
+
                             }
-
-                            LOGGER.info("ObservationKHOA 테이블 갱신 완료.")
-
                         }
                     }
                 }
-            }
+
+
         }
     }
 
