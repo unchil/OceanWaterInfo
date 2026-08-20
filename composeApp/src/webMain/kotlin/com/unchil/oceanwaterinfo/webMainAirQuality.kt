@@ -55,7 +55,7 @@ fun webMainAirQuality(){
     var descriptionBox by remember { mutableStateOf(false) }
 
     val initData = remember{ mutableStateOf("" )}
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
 
     var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
 
@@ -70,6 +70,9 @@ fun webMainAirQuality(){
     }
 
     val sDoTEnvInfo = viewModelSDoTEnvInfoUnion._sDoTEnvInfoUnionFlow.collectAsState()
+
+    val isLoading by viewModelSDoTEnvInfoUnion.isLoading.collectAsState()
+
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
@@ -213,11 +216,9 @@ fun webMainAirQuality(){
                         onChangeFlag = { label, value ->
                             when (label) {
                                 "Reload" ->{
-                                    visibleProgressIndicator.value = true
-                                    sendMsgChangeData.invoke(IFRAME_AIR_INFO, initData.value, selectedOption.name)
                                     coroutineScope.launch {
-                                        delay(1000)
-                                        visibleProgressIndicator.value = false
+                                        viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+                                        //  sendMsgChangeData.invoke(IFRAME_AIR_INFO, initData.value, selectedOption.name)
                                     }
                                 }
                             }
@@ -225,11 +226,13 @@ fun webMainAirQuality(){
                         },
                         bottomBarOpt = bottomBarOpt
                     )
-                    if (visibleProgressIndicator.value) {
+
+                    if (isLoading) {
                         CircularProgressIndicator(
                             color = Color.DarkGray,
                         )
                     }
+
                 }
 
             }
