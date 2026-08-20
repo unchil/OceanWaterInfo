@@ -124,7 +124,7 @@ class CollectionServerRestApi {
             install(HttpTimeout) {
                 requestTimeoutMillis = 10 * 1000
                 connectTimeoutMillis = 10 * 1000
-                socketTimeoutMillis = 5 * 1000
+                socketTimeoutMillis = 10 * 1000
             }
         }
     }
