@@ -217,8 +217,8 @@ fun webMainAirQuality(){
                             when (label) {
                                 "Reload" ->{
                                     coroutineScope.launch {
-                                        viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
-                                        //  sendMsgChangeData.invoke(IFRAME_AIR_INFO, initData.value, selectedOption.name)
+                                         viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+
                                     }
                                 }
                             }
