@@ -25,7 +25,9 @@ class CollectionServerDataCollector {
             collectionServerRepository.getKHNP_RadioRate()
             collectionServerRepository.getKHNP_ThermalWasteWater()
             collectionServerRepository.getKHNP_WasteWater()
-            collectionServerRepository.getRealTimeOceanWaterQuality()
+          //  collectionServerRepository.getRealTimeOceanWaterQuality()
+
+
 
 
             LOGGER.info("Schedule job for 5 Minutes finished.")

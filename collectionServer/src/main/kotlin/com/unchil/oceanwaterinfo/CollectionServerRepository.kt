@@ -905,15 +905,15 @@ class CollectionServerRepository {
         // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
-        LOGGER.info("loadDataTidalCurrent limitedDispatcher: ${limit}, delay:${loopDelay}")
+        LOGGER.info("loadDataTidalCurrent[windowSize:${windowSize}, limitedDispatcher: ${limit}, delay:${loopDelay}]")
 
         var sch_time = ""
 
         val deferredResults = (0 until windowSize).map{ i ->
 
-       //     delay(loopDelay)
+            delay(loopDelay)
 
-         //   async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+            async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
 
                 retryIO(times = 3) {
 
@@ -953,14 +953,14 @@ class CollectionServerRepository {
                     }
 
                 }
-          //  }
+            }
 
         }
 
         // List<List<KhonTidalCurrentInfo>> 가 반환됨
-       // val result = deferredResults.awaitAll().flatten()
+        val result = deferredResults.awaitAll().flatten()
 
-        val result = deferredResults.flatten()
+      //  val result = deferredResults.flatten()
         Pair(sch_time,  result)
 
     }
