@@ -68,7 +68,9 @@ fun jvmMainAirQuality(
         }
     }
 
-    val host = "http://192.168.35.107:7272"
+    //val host = "http://192.168.35.107:7272"
+    val host = "http://localhost:7272"
+
     val servicePage = "sDoTDeckHexagonLayerUnion.html"
     var descriptionBox by remember { mutableStateOf(false) }
     val localUrl = "${host}/${servicePage}"

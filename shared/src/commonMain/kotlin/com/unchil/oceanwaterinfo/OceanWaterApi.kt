@@ -15,8 +15,8 @@ import kotlinx.serialization.json.Json
 
 class OceanWaterApi {
 
-    private val endPoint = "http://${if( getPlatform().name.contains("Android") ) "192.168.35.107" else "192.168.35.107"}:7788"
-
+   // private val endPoint = "http://${if( getPlatform().name.contains("Android") ) "192.168.35.107" else "192.168.35.107"}:7788"
+    private val endPoint = "http://${if( getPlatform().name.contains("Android") ) "192.168.35.107" else "192.168.55.6"}:7788"
 
     private val httpClient = HttpClient() {
 

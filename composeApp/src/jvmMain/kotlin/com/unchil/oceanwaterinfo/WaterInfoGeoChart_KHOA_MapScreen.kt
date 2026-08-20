@@ -125,7 +125,9 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
     }
 
     val center = WaterInfoGeoChartPoint.current
-    val host = "http://192.168.35.107:7272"
+  //  val host = "http://192.168.35.107:7272"
+
+    val host = "http://localhost:7272"
     val servicePage = "waterInfoGoogleMap.html"
     val localUrl = "${host}/${servicePage}"
     val remoteUrl = "https://www.google.com/maps/"
