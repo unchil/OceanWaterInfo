@@ -958,7 +958,7 @@ class CollectionServerRepository {
 
 
 
-    suspend fun loadDataTidalCurrent(path:String, interval:Int, predictedTotalMinute:Int, limit:Int, loopDelay:Long): Pair<String,List<KhonTidalCurrentInfo>> = coroutineScope {
+    suspend fun loadDataTidalCurrent(path:String, interval:Int, predictedTotalMinute:Int, limit:Int, loopDelay:Long):  List<Pair<String, List<KhonTidalCurrentInfo>>> = coroutineScope {
 
         val windowSize = predictedTotalMinute / interval
         val startTime = Clock.System.now() // 시작 시점 고정
@@ -1003,8 +1003,7 @@ class CollectionServerRepository {
                         CollectionServerRestApi.callKhoaAPI_json(url).let {
                             val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
                             LOGGER.debug("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
-                            sch_time = response.result.meta.sch_time
-                            response.result.data
+                            Pair(response.result.meta.sch_time,   response.result.data)
                         }
 
                     } catch (e: Exception) {
@@ -1017,11 +1016,8 @@ class CollectionServerRepository {
 
         }
 
-        // List<List<KhonTidalCurrentInfo>> 가 반환됨
-        val result = deferredResults.awaitAll().flatten()
 
-      //  val result = deferredResults.flatten()
-        Pair(sch_time,  result)
+        deferredResults.awaitAll()
 
     }
 
@@ -1034,29 +1030,42 @@ class CollectionServerRepository {
         val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
         val loopDelay = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.loopdelay?.toLong() ?: 500L
 
-        loadDataTidalCurrent(path=url, interval=interval, predictedTotalMinute=predictedTotalMinute, limit=limit, loopDelay = loopDelay).let{ (sch_time, result) ->
 
-            LOGGER.info("${::getKhoaTidalCurrent.name} [schTime[${sch_time}], total count[${result.size}}]]")
+        LOGGER.info("getKhoaTidalCurrent limitedParallelism: ${limit}")
+        val limitedParallelism = Dispatchers.IO.limitedParallelism(limit)
 
-            suspendTransaction( ConfigManager.conn) {
 
-                SchemaUtils.create(TidalCurrentInfoKHOA)
+        loadDataTidalCurrent(path=url, interval=interval, predictedTotalMinute=predictedTotalMinute, limit=limit, loopDelay = loopDelay).let{ pairList ->
 
-                try {
-                    TidalCurrentInfoKHOA.batchReplace(result) { item ->
-                        this[TidalCurrentInfoKHOA.sch_time] = sch_time
-                        this[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
-                        this[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
-                        this[TidalCurrentInfoKHOA.current_dir] = item.current_dir.toDouble()
-                        this[TidalCurrentInfoKHOA.current_speed] = item.current_speed.toDouble()
+            LOGGER.info("${::getKhoaTidalCurrent.name}  total count[${pairList.size}}]]")
+
+            coroutineScope {
+
+                pairList.forEach { (sch_time, result) ->
+
+                    launch(limitedParallelism) {
+
+                        suspendTransaction(ConfigManager.conn) {
+                            SchemaUtils.create(TidalCurrentInfoKHOA)
+                            try {
+                                TidalCurrentInfoKHOA.batchReplace(result) { item ->
+                                    this[TidalCurrentInfoKHOA.sch_time] = sch_time
+                                    this[TidalCurrentInfoKHOA.pre_lon] = item.pre_lon.toDouble()
+                                    this[TidalCurrentInfoKHOA.pre_lat] = item.pre_lat.toDouble()
+                                    this[TidalCurrentInfoKHOA.current_dir] =
+                                        item.current_dir.toDouble()
+                                    this[TidalCurrentInfoKHOA.current_speed] =
+                                        item.current_speed.toDouble()
+                                }
+                            } catch (e: Exception) {
+                                LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
+                            }
+                            LOGGER.info("TidalCurrentInfoKHOA 테이블 갱신 완료.")
+                        }
                     }
-                } catch (e: Exception) {
-                    LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
                 }
-
-                LOGGER.info("TidalCurrentInfoKHOA 테이블 갱신 완료.")
-
             }
+
         }
 
     }
