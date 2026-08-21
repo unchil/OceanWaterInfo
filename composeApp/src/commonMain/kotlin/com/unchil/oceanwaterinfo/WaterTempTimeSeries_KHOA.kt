@@ -48,9 +48,9 @@ fun WaterTempTimeSeries_KHOA(){
 
     LaunchedEffect(key1= seaWaterInfo.value) {
         if (seaWaterInfo.value.isNotEmpty()) {
-            chartData.value = seaWaterInfo.value.filter {
-                it.obsCode.contains("HB")
-            }.toChartTripleList(
+            chartData.value = seaWaterInfo.value
+                .filter { it.obsCode.contains("HB")  }
+                .toChartTripleList(
                 nameSelector = { it.obsvtrNm },
                 timeSelector = { it.obsrvnDt },
                 timePattern = "yyyy-MM-dd HH:mm",

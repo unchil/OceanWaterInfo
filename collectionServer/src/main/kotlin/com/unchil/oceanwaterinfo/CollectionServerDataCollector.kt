@@ -32,7 +32,7 @@ class CollectionServerDataCollector {
 
             LOGGER.info("Schedule job for 5 Minutes finished.")
         } catch (e: Exception) {
-            LOGGER.error(e.stackTrace.toString())
+            LOGGER.error(e.localizedMessage)
         }
     }
 

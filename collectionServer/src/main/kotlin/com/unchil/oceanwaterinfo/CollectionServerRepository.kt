@@ -37,11 +37,11 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
+import org.jetbrains.kotlinx.dataframe.api.emptyDataFrame
 import org.jetbrains.kotlinx.dataframe.api.flatten
 import org.jetbrains.kotlinx.dataframe.api.groupBy
 import org.jetbrains.kotlinx.dataframe.api.head
@@ -55,6 +55,7 @@ import org.jetbrains.kotlinx.dataframe.api.with
 import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
+import org.jetbrains.kotlinx.dataframe.size
 import org.json.XML
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
@@ -194,47 +195,72 @@ class CollectionServerRepository {
     }
 
 
-    fun loadKHNP_Service(url:String, genNames:List<String>): DataFrame<*> {
+
+    suspend fun loadKHNP_Service(url:String, genNames:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
         val now = Clock.System.now()
         val rows = mutableListOf<DataFrame<*>>()
         val myCollectionTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
 
-        genNames.forEach { genName ->
-            val urlPath = url + "&genName=${genName}"
-            try {
-                val df_json = DataFrame.readJson(
-                    XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
-                )
-                val instanceDf =
-                    df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
 
-                val updatedDf = instanceDf.add {
-                    "collectionTime" from { myCollectionTime }
-                    "genName" from {
-                        when(genName){
-                            "2100" -> "KR"
-                            "2200" -> "WS"
-                            "2300" -> "YK"
-                            "2400" -> "UJ"
-                            "2800" -> "SU"
-                            else -> genName
+        // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
+
+        LOGGER.info("loadKHNP_Service limitedDispatcher: ${limit}")
+
+        // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
+        val deferredResults = genNames.map {  genName ->
+            async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+                retryIO(times = 3) {
+                    try{
+                        val urlPath = url + "&genName=${genName}"
+
+                        val df_json = DataFrame.readJson(
+                            XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
+                        )
+                        val instanceDf =
+                            df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
+
+                        val updatedDf = instanceDf.add {
+                            "collectionTime" from { myCollectionTime }
+                            "genName" from {
+                                when(genName){
+                                    "2100" -> "KR"
+                                    "2200" -> "WS"
+                                    "2300" -> "YK"
+                                    "2400" -> "UJ"
+                                    "2800" -> "SU"
+                                    else -> genName
+                                }
+                            }
+                        }
+                        updatedDf
+
+                    } catch (e: Exception){
+                        if(e.message?.contains("Can not get nested column 'item' from ValueColumn 'items'") == true) {
+                            return@retryIO emptyDataFrame()
+                        }else{
+                            throw  e
                         }
                     }
-                }
-                rows.add(updatedDf)
-            }catch(e:Exception){
-                print(e.localizedMessage)
-                print(urlPath)
-            }
-        }
 
-        return rows.concat()
+                }
+            }
+
+        }
+        // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
+        deferredResults.awaitAll() as List<DataFrame<*>>
     }
 
 
-    fun getKHNP_ThermalWasteWater(){
+
+    suspend  fun getKHNP_ThermalWasteWater(){
+
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
-        val concatDf = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
+
+        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
+
+        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+        val concatDf = response.concat()
 
         val updatedDf = concatDf.update ( "name" ).with {
             val currentName = it.toString() // 현재 행의 name 값
@@ -295,10 +321,15 @@ class CollectionServerRepository {
 
 
 
-    fun getKHNP_WasteWater(){
+    suspend fun getKHNP_WasteWater(){
 
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.WasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
-        val concatDf = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
+
+        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
+
+        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+
+        val concatDf = response.concat()
 
         val updatedDf = concatDf.update ("name" ).with {
             val currentName = it.toString() // 현재 행의 name 값
@@ -349,18 +380,22 @@ class CollectionServerRepository {
     }
 
 
-    fun getKHNP_RadioRate(){
+    suspend fun getKHNP_RadioRate(){
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioRate}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
-        val result = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
 
+        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
+
+        LOGGER.debug("\n ${::getKHNP_RadioRate.name}  limitedParallelism[${limit}]")
+
+        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+
+        val result = response.concat()
 
         LOGGER.debug("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
-        LOGGER.info("\n ${::getKHNP_RadioRate.name}  Count:[${result.count()}]")
+        LOGGER.info("\n ${::getKHNP_RadioRate.name}  List Count:[${result.size()}]")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioRate)
-
-
             try {
                 // 개별 insert 대신 batchInsert 사용 (성능 핵심)
                 KHNP_RadioRate.batchInsert(result.rows(), true, false) { row ->
@@ -380,10 +415,15 @@ class CollectionServerRepository {
         }
     }
 
-    fun getKHNP_RadioActiveWaste(){
-        val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
-        val result = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800") )
 
+    suspend fun getKHNP_RadioActiveWaste(){
+        val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
+
+        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
+
+        val response = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800"), limit )
+
+        val result = response.concat()
 
         LOGGER.debug("\n ${::getKHNP_RadioActiveWaste.name}  Schema[${result.schema()}]")
         LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Count:[${result.count()}]")
@@ -1066,7 +1106,7 @@ class CollectionServerRepository {
         val codeList = transaction(ConfigManager.conn) {
             ObservatoryKHOA.select(ObservatoryKHOA.obsCode)
                 .withDistinct()
-             //   .where { ObservatoryKHOA.obsCode like "HB%"  }
+                .where { ObservatoryKHOA.obsCode like "HB%"  }
                 .map { resultRow ->
                 resultRow[ObservatoryKHOA.obsCode]
             }
