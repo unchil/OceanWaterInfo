@@ -744,28 +744,46 @@ class CollectionServerRepository {
 
 
 
-    fun loadDataSDoT(path:String, maxPage:Int): List<DataFrame<*>> {
-        val rows = mutableListOf<DataFrame<*>>()
-        var requestPage = 1
-        do{
-            val pagePath = "$path&pIndex=$requestPage"
-            val jsonData = DataFrame.readJson(pagePath)
-            try {
-                val instanceDf = (jsonData["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
-                requestPage += 1
-                rows.add(instanceDf)
-            } catch(e: Exception) {
-                print(e.localizedMessage)
-                break
-            }
-        } while (requestPage <= maxPage )
-        return rows
+    fun loadDataSDoT(path:String): List<DataFrame<*>> {
+
+        val numOfRows = 100
+        var url = "$path&pIndex=1"
+
+        val df_first = try {
+            DataFrame.readJson(url)
+        } catch (e: Exception) {
+            LOGGER.error("첫 페이지 로드 실패: $url", e)
+            return emptyList()
+        }
+
+        val dataFrames = mutableListOf<DataFrame<*>>()
+
+        val totalCount:Int = ((df_first["Sidoatmospolutnmesure"][0] as DataFrame<*>)["head"][0] as DataFrame<*>)["list_total_count"][0] as Int
+        val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+
+        LOGGER.info("loadDataSDoT [총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages]")
+
+        val data = (df_first["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
+        dataFrames.add(data)
+
+        for (page in 2..totalPages) {
+            url = "$path&pIndex=$page"
+            val df_page = DataFrame.readJson(url)
+            val data = (df_page["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
+            dataFrames.add(data)
+        }
+
+        return dataFrames
+
     }
+
+
+
      @OptIn(FormatStringsInDatetimeFormats::class)
      fun getSDoTEnvInfoGyonggi(){
 
         val now = Clock.System.now()
-        val previous1Hour = now
+        var previous1Hour = now
             .minus(1, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH")}) + ":00"
@@ -781,7 +799,7 @@ class CollectionServerRepository {
 
         try {
 
-            val dfResult = loadDataSDoT(url, 2).concat()
+            val dfResult = loadDataSDoT(url).concat()
 
             val result = dfResult.rename(
                 "SUA_GAS_DNST_VL" to "SO2",
@@ -793,7 +811,7 @@ class CollectionServerRepository {
             )
 
             LOGGER.debug("\n"+ result.schema().toString())
-            LOGGER.debug("\n"+ result.head(5).toString())
+            LOGGER.info("loadDataSDoT result size:[${result.size()}]")
 
             transaction(ConfigManager.conn) {
                 SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
