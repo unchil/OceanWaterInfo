@@ -7,7 +7,7 @@ class CollectionServerDataCollector {
     fun batchJob(startDate:String, endDate:String){
         LOGGER.info("Data Collector Started. batchJob:startDate[${startDate}], endDate[${endDate}]...")
         try {
-            CollectionServerRecoveryCollector().getRealTimeOceanWaterQuality_Rocovery(startDate, endDate)
+            collectionServerRepository.getRealTimeOceanWaterQuality_Rocovery(startDate, endDate)
             LOGGER.info("Batch job finished.")
         } catch (e: Exception) {
             LOGGER.error(e.stackTrace.toString())

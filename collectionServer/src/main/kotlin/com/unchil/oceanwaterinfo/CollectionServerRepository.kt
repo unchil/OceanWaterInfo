@@ -39,10 +39,14 @@ import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.add
+import org.jetbrains.kotlinx.dataframe.api.colsOf
 import org.jetbrains.kotlinx.dataframe.api.concat
+import org.jetbrains.kotlinx.dataframe.api.convert
 import org.jetbrains.kotlinx.dataframe.api.count
+import org.jetbrains.kotlinx.dataframe.api.describe
 import org.jetbrains.kotlinx.dataframe.api.emptyDataFrame
 import org.jetbrains.kotlinx.dataframe.api.flatten
+import org.jetbrains.kotlinx.dataframe.api.forEach
 import org.jetbrains.kotlinx.dataframe.api.groupBy
 import org.jetbrains.kotlinx.dataframe.api.head
 import org.jetbrains.kotlinx.dataframe.api.pivot
@@ -57,12 +61,17 @@ import org.jetbrains.kotlinx.dataframe.io.readJson
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.jetbrains.kotlinx.dataframe.size
 import org.json.XML
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.sql.Connection
+import java.sql.DriverManager
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.math.ceil
 import kotlin.time.Clock
+import kotlin.use
 
 class CollectionServerRepository {
     internal val LOGGER = KtorSimpleLogger( CollectionServerRepository::class.java.name )
@@ -73,8 +82,125 @@ class CollectionServerRepository {
         }
     }
 
+    private fun createAndPopulateTable(con: Connection, tableName: String) {
+        val stmt = con.createStatement()
+        val sql = """CREATE TABLE IF NOT EXISTS ${tableName} (
+                    rtmWqWtchDtlDt TEXT,
+                    rtmWqWtchStaCd TEXT,
+                    rtmWtchWtem    TEXT,
+                    rtmWqCndctv    TEXT,
+                    ph             TEXT,
+                    rtmWqDoxn      TEXT,
+                    rtmWqTu        TEXT,
+                    rtmWqBgalgsQy  TEXT,
+                    rtmWqChpla     TEXT,
+                    rtmWqSlnty     TEXT,
+                    constraint primaryKey
+                        primary key (rtmWqWtchDtlDt, rtmWqWtchStaCd)
+                );""".trimIndent()
 
-     suspend fun getKHNP_PlantStates() {
+        stmt.executeUpdate(sql)
+
+    }
+
+    fun getRealTimeOceanWaterQuality_Rocovery(wtch_dt_start:String, wtch_dt_end:String){
+        com.unchil.oceanwaterinfo.LOGGER.debug("wtch_dt_start : ${wtch_dt_start}, wtch_dt_end : ${wtch_dt_end}")
+        val maxPage = 500
+        val numOfRows = 1000
+        val url = "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
+                "?wtch_dt_start=${
+                    URLEncoder.encode(
+                        wtch_dt_start,
+                        StandardCharsets.UTF_8.toString()
+                    )
+                }" +
+                "&wtch_dt_end=${
+                    URLEncoder.encode(
+                        wtch_dt_end,
+                        StandardCharsets.UTF_8.toString()
+                    )
+                }" +
+                "&numOfRows=${numOfRows}" +
+                "&ServiceKey=${ConfigManager.currentConfig.MOF_API?.apikey}"
+
+        val dataList = loadData(url , maxPage)
+        val df = dataList.concat()
+
+        com.unchil.oceanwaterinfo.LOGGER.info("\n"+ df.head(5).toString())
+        com.unchil.oceanwaterinfo.LOGGER.info("\n"+ df.describe().toString())
+
+        val tableName = "OWQInformation"
+
+        try {
+
+            DriverManager.getConnection(ConfigManager.currentConfig.SQLITE_DB?.jdbcURL).use { conn ->
+                createAndPopulateTable(conn, tableName)
+
+                val sql = """INSERT INTO ${tableName} ( 
+                    rtmWqWtchDtlDt, rtmWqWtchStaCd, rtmWtchWtem, rtmWqCndctv,
+                    ph, rtmWqDoxn, rtmWqTu, rtmWqBgalgsQy, rtmWqChpla, rtmWqSlnty 
+                ) VALUES (?,?,?,?,?,?,?,?,?,? )""".trimIndent()
+
+                com.unchil.oceanwaterinfo.LOGGER.debug("\n"+ sql)
+
+
+
+                val result = df
+                    .convert{ colsAtAnyDepth().colsOf<Double>() }.with { String.format("%.3f", it) }
+                    .convert { colsAtAnyDepth().colsOf<Float>() }.with{ String.format("%.3f", it)}
+                    .convert("rtmWqWtchDtlDt").with { (it as String).substring(0, 19) }
+
+                result.forEach { it ->
+
+                    try {
+                        conn.prepareStatement(sql)?.use { preparedStatement ->
+                            preparedStatement.setString(1, it["rtmWqWtchDtlDt"].toString())
+                            preparedStatement.setString(2, it["rtmWqWtchStaCd"].toString())
+                            preparedStatement.setString(3, it["rtmWtchWtem"].toString())
+                            preparedStatement.setString(4, it["rtmWqCndctv"].toString())
+                            preparedStatement.setString(5, it["ph"].toString())
+                            preparedStatement.setString(6, it["rtmWqDoxn"].toString())
+                            preparedStatement.setString(7, it["rtmWqTu"].toString())
+                            preparedStatement.setString(8, it["rtmWqBgalgsQy"].toString())
+                            preparedStatement.setString(9, it["rtmWqChpla"].toString())
+                            preparedStatement.setString(10, it["rtmWqSlnty"].toString())
+
+                            preparedStatement.executeUpdate()
+                        }
+                    } catch (e: Exception){
+                        com.unchil.oceanwaterinfo.LOGGER.debug(e.localizedMessage)
+                    }
+                }
+
+            }
+        } catch (e: Exception){
+            com.unchil.oceanwaterinfo.LOGGER.error(e.localizedMessage)
+        }
+    }
+
+    private fun loadData(path:String, maxPage:Int): List<DataFrame<*>> {
+
+        val rows = mutableListOf<DataFrame<*>>()
+        var requestPage = 1
+        do{
+            val pagePath = "$path&pageNo=$requestPage"
+            val jsonData = XML.toJSONObject(DataFrame.read(pagePath).toCsvStr())
+            val df = DataFrame.readJson(jsonData.toString().byteInputStream())
+            try {
+                val instanceDf = df.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
+                requestPage += 1
+                rows.add(instanceDf)
+            } catch(e: Exception) {
+                print(e.localizedMessage)
+                break
+            }
+        } while (requestPage < maxPage )
+        return rows
+    }
+
+
+
+    suspend fun getKHNP_PlantStates() {
 
         val url_PlantStates = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.NuclearPlantStates}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
