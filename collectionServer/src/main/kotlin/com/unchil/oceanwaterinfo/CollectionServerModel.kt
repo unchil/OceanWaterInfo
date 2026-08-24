@@ -452,7 +452,10 @@ data class NifsApiID (
 data class  MofApiConfig(
     val endPoint: String,
     val apikey: String,
-    val subPath: String
+    val subPath: String,
+
+    val limitedParallelism: Int
+
 )
 
 @Serializable

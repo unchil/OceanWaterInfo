@@ -82,121 +82,93 @@ class CollectionServerRepository {
         }
     }
 
-    private fun createAndPopulateTable(con: Connection, tableName: String) {
-        val stmt = con.createStatement()
-        val sql = """CREATE TABLE IF NOT EXISTS ${tableName} (
-                    rtmWqWtchDtlDt TEXT,
-                    rtmWqWtchStaCd TEXT,
-                    rtmWtchWtem    TEXT,
-                    rtmWqCndctv    TEXT,
-                    ph             TEXT,
-                    rtmWqDoxn      TEXT,
-                    rtmWqTu        TEXT,
-                    rtmWqBgalgsQy  TEXT,
-                    rtmWqChpla     TEXT,
-                    rtmWqSlnty     TEXT,
-                    constraint primaryKey
-                        primary key (rtmWqWtchDtlDt, rtmWqWtchStaCd)
-                );""".trimIndent()
 
-        stmt.executeUpdate(sql)
+    suspend fun getRealTimeOceanWaterQuality_Rocovery(wtch_dt_start:String, wtch_dt_end:String){
 
-    }
+        LOGGER.info("wtch_dt_start : ${wtch_dt_start}, wtch_dt_end : ${wtch_dt_end}")
 
-    fun getRealTimeOceanWaterQuality_Rocovery(wtch_dt_start:String, wtch_dt_end:String){
-        com.unchil.oceanwaterinfo.LOGGER.debug("wtch_dt_start : ${wtch_dt_start}, wtch_dt_end : ${wtch_dt_end}")
-        val maxPage = 500
-        val numOfRows = 1000
         val url = "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
-                "?wtch_dt_start=${
-                    URLEncoder.encode(
-                        wtch_dt_start,
-                        StandardCharsets.UTF_8.toString()
-                    )
-                }" +
-                "&wtch_dt_end=${
-                    URLEncoder.encode(
-                        wtch_dt_end,
-                        StandardCharsets.UTF_8.toString()
-                    )
-                }" +
-                "&numOfRows=${numOfRows}" +
+                "?wtch_dt_start=${URLEncoder.encode(wtch_dt_start, StandardCharsets.UTF_8.toString())}" +
+                "&wtch_dt_end=${URLEncoder.encode(wtch_dt_end, StandardCharsets.UTF_8.toString())}" +
                 "&ServiceKey=${ConfigManager.currentConfig.MOF_API?.apikey}"
 
-        val dataList = loadData(url , maxPage)
-        val df = dataList.concat()
+        val limitedParallelism = ConfigManager.currentConfig.MOF_API?.limitedParallelism ?: 1
+        val dataList = loadDataOceanWemo(url, limitedParallelism)
+        val result = dataList.concat()
 
-        com.unchil.oceanwaterinfo.LOGGER.info("\n"+ df.head(5).toString())
-        com.unchil.oceanwaterinfo.LOGGER.info("\n"+ df.describe().toString())
+        LOGGER.debug("\n"+ result.head(5).toString())
+        LOGGER.debug("\n"+ result.describe().toString())
+        LOGGER.info( "${::getRealTimeOceanWaterQuality_Rocovery.name} [receive count[${result.count()}]]")
 
-        val tableName = "OWQInformation"
+        transaction (ConfigManager.conn){
+            SchemaUtils.create( OWQInformationTable)
 
-        try {
-
-            DriverManager.getConnection(ConfigManager.currentConfig.SQLITE_DB?.jdbcURL).use { conn ->
-                createAndPopulateTable(conn, tableName)
-
-                val sql = """INSERT INTO ${tableName} ( 
-                    rtmWqWtchDtlDt, rtmWqWtchStaCd, rtmWtchWtem, rtmWqCndctv,
-                    ph, rtmWqDoxn, rtmWqTu, rtmWqBgalgsQy, rtmWqChpla, rtmWqSlnty 
-                ) VALUES (?,?,?,?,?,?,?,?,?,? )""".trimIndent()
-
-                com.unchil.oceanwaterinfo.LOGGER.debug("\n"+ sql)
-
-
-
-                val result = df
-                    .convert{ colsAtAnyDepth().colsOf<Double>() }.with { String.format("%.3f", it) }
-                    .convert { colsAtAnyDepth().colsOf<Float>() }.with{ String.format("%.3f", it)}
-                    .convert("rtmWqWtchDtlDt").with { (it as String).substring(0, 19) }
-
-                result.forEach { it ->
-
-                    try {
-                        conn.prepareStatement(sql)?.use { preparedStatement ->
-                            preparedStatement.setString(1, it["rtmWqWtchDtlDt"].toString())
-                            preparedStatement.setString(2, it["rtmWqWtchStaCd"].toString())
-                            preparedStatement.setString(3, it["rtmWtchWtem"].toString())
-                            preparedStatement.setString(4, it["rtmWqCndctv"].toString())
-                            preparedStatement.setString(5, it["ph"].toString())
-                            preparedStatement.setString(6, it["rtmWqDoxn"].toString())
-                            preparedStatement.setString(7, it["rtmWqTu"].toString())
-                            preparedStatement.setString(8, it["rtmWqBgalgsQy"].toString())
-                            preparedStatement.setString(9, it["rtmWqChpla"].toString())
-                            preparedStatement.setString(10, it["rtmWqSlnty"].toString())
-
-                            preparedStatement.executeUpdate()
-                        }
-                    } catch (e: Exception){
-                        com.unchil.oceanwaterinfo.LOGGER.debug(e.localizedMessage)
-                    }
+            try {
+                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                OWQInformationTable.batchInsert(result.rows(), true, false) { row ->
+                    this[OWQInformationTable.rtmWqWtchDtlDt] = row["rtmWqWtchDtlDt"].toString().substringBefore('.')
+                    this[OWQInformationTable.rtmWqWtchStaCd] = row["rtmWqWtchStaCd"].toString()
+                    this[OWQInformationTable.rtmWtchWtem] =  String.format("%.3f", row["rtmWtchWtem"].toString().toDouble())
+                    this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", row["rtmWqCndctv"].toString().toFloat())
+                    this[OWQInformationTable.ph] = String.format("%.2f", row["ph"].toString().toFloat())
+                    this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", row["rtmWqDoxn"].toString().toDouble())
+                    this[OWQInformationTable.rtmWqTu] = row["rtmWqTu"].toString()
+                    this[OWQInformationTable.rtmWqBgalgsQy] = row["rtmWqBgalgsQy"].toString()
+                    this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", row["rtmWqChpla"].toString().toDouble())
+                    this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", row["rtmWqSlnty"].toString().toFloat())
                 }
 
+            } catch (e: Exception) {
+                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
             }
-        } catch (e: Exception){
-            com.unchil.oceanwaterinfo.LOGGER.error(e.localizedMessage)
+
         }
+
+
     }
 
-    private fun loadData(path:String, maxPage:Int): List<DataFrame<*>> {
 
-        val rows = mutableListOf<DataFrame<*>>()
-        var requestPage = 1
-        do{
-            val pagePath = "$path&pageNo=$requestPage"
-            val jsonData = XML.toJSONObject(DataFrame.read(pagePath).toCsvStr())
-            val df = DataFrame.readJson(jsonData.toString().byteInputStream())
+    suspend fun loadDataOceanWemo(path:String, limit:Int): List<DataFrame<*>> = coroutineScope {
+        val numOfRows = 100
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
+
+        LOGGER.info("loadDataOceanWemo limitedDispatcher: ${limit}")
+
+        val baseUrl = "${path}&numOfRows=${numOfRows}"
+        val url = "${baseUrl}&pageNo=1"
+
+        val df_first = retryIO(times = 3) {
             try {
-                val instanceDf = df.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
-                requestPage += 1
-                rows.add(instanceDf)
-            } catch(e: Exception) {
-                print(e.localizedMessage)
-                break
+                DataFrame.readJson(url)
+            } catch (e: Exception) {
+                LOGGER.error("첫 페이지 로드 실패: $url", e)
+                throw e
             }
-        } while (requestPage < maxPage )
-        return rows
+        }
+
+        val first_data = df_first["body"]["items"]["item"][0] as DataFrame<*>
+        val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
+        val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+
+        LOGGER.info("총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
+
+        val deferredResults = (2..totalPages).map { pageNo ->
+
+            delay(100)
+
+            async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
+                retryIO(times = 3) {
+                    val pageUrl = "$baseUrl&pageNo=${pageNo}"
+                    val df_page = DataFrame.readJson(pageUrl)
+                    df_page["body"]["items"]["item"][0] as DataFrame<*>
+                }
+            }
+
+        }
+
+        listOf(first_data) +  deferredResults.awaitAll() as List<DataFrame<*>>
     }
+
 
 
 

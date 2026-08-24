@@ -4,13 +4,13 @@ class CollectionServerDataCollector {
 
     val collectionServerRepository = CollectionServerRepository()
 
-    fun batchJob(startDate:String, endDate:String){
+    suspend fun batchJob(startDate:String, endDate:String){
         LOGGER.info("Data Collector Started. batchJob:startDate[${startDate}], endDate[${endDate}]...")
         try {
             collectionServerRepository.getRealTimeOceanWaterQuality_Rocovery(startDate, endDate)
             LOGGER.info("Batch job finished.")
         } catch (e: Exception) {
-            LOGGER.error(e.stackTrace.toString())
+            LOGGER.error(e.localizedMessage)
         }
     }
 
@@ -26,9 +26,6 @@ class CollectionServerDataCollector {
             collectionServerRepository.getKHNP_ThermalWasteWater()
             collectionServerRepository.getKHNP_WasteWater()
           //  collectionServerRepository.getRealTimeOceanWaterQuality()
-
-
-
 
             LOGGER.info("Schedule job for 5 Minutes finished.")
         } catch (e: Exception) {
