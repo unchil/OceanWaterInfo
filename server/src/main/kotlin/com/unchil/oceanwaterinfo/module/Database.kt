@@ -47,6 +47,7 @@ fun Application.configureDatabase() {
 
     fun initSqliteDbTable(db:Database){
         transaction (db){
+            exec("PRAGMA journal_mode=WAL;") // 읽기/쓰기 동시성 확보
             addLogger(DBSqlLogger)
         }
     }
