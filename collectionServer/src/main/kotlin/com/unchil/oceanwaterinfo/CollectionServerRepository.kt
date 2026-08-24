@@ -675,25 +675,26 @@ class CollectionServerRepository {
             loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
 
                 val result = rawDataFrames.concat()
+
+                result.rows().chunked(1000).forEach{ chunk ->
+                    suspendTransaction( ConfigManager.conn) {
+                        try {
+                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                            CoastalFloodingGeoInfo.batchInsert(chunk, true, false) { row ->
+                                this[CoastalFloodingGeoInfo.ctpvNm] = row["ctpvNm"].toString().trim()
+                                this[CoastalFloodingGeoInfo.sggNm] = row["sggNm"].toString().trim()
+                                this[CoastalFloodingGeoInfo.flodVlCn] = row["flodVlCn"].toString().trim()
+                                this[CoastalFloodingGeoInfo.geom] = row["geom"].toString().trim()
+                            }
+                        } catch (e: Exception) {
+                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                        }
+                    }
+                }
+
+
                 // 1. 데이터 수집 및 초기화 단계
                 val updateTargets = suspendTransaction( ConfigManager.conn) {
-
-
-                    // 1. 원본 데이터 테이블 생성
-                    SchemaUtils.create(CoastalFloodingGeoInfo)
-
-                    try {
-                        // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                        CoastalFloodingGeoInfo.batchInsert(result.rows(), true, false) { row ->
-                            this[CoastalFloodingGeoInfo.ctpvNm] = row["ctpvNm"].toString().trim()
-                            this[CoastalFloodingGeoInfo.sggNm] = row["sggNm"].toString().trim()
-                            this[CoastalFloodingGeoInfo.flodVlCn] = row["flodVlCn"].toString().trim()
-                            this[CoastalFloodingGeoInfo.geom] = row["geom"].toString().trim()
-                        }
-
-                    } catch (e: Exception) {
-                        LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
-                    }
 
                     LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
 
