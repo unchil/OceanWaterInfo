@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -62,7 +63,7 @@ fun jvmMainCoastalFloodingMap(
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
 
-    val geojsonObject = remember{ mutableStateOf(byteArrayOf())}
+    val isVisibleAlert = remember{ mutableStateOf(false)}
 
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
@@ -80,24 +81,29 @@ fun jvmMainCoastalFloodingMap(
 
     LaunchedEffect( coastalFloodingInfo.value, webViewState.loadingState){
 
-        if(coastalFloodingInfo.value.isNotEmpty()  &&  webViewState.loadingState is LoadingState.Finished ) {
+        if(webViewState.loadingState is LoadingState.Finished ) {
+            if( coastalFloodingInfo.value.isNotEmpty() ){
 
-            navigator.evaluateJavaScript("removeMapFeature()")
-
-            coastalFloodingInfo.value.forEach { it->
-                if(sidoOption.equals(SiDo.entries[0])){
-                    LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING_ALL")
-                    navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\')")
-                }else {
-                    LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING")
-                    navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\')")
+                navigator.evaluateJavaScript("removeMapFeature()")
+                coastalFloodingInfo.value.forEach { it->
+                    if(sidoOption.equals(SiDo.entries[0])){
+                        LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING_ALL")
+                        navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\')")
+                    }else {
+                        LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING")
+                        navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\')")
+                    }
                 }
             }
         }
     }
 
-
-
+    LaunchedEffect(isLoading) {
+        if(!isLoading && coastalFloodingInfo.value.isEmpty()){
+            isVisibleAlert.value = true
+            navigator.evaluateJavaScript("emptyData()")
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -128,6 +134,7 @@ fun jvmMainCoastalFloodingMap(
                     onClick = {
                         selectedTabIndexGrade = index
                         gradeOption = element
+                        isVisibleAlert.value = false
                     },
                     text = {
                         Text(
@@ -152,6 +159,7 @@ fun jvmMainCoastalFloodingMap(
                     onClick = {
                         selectedTabIndexSido = index
                         sidoOption = element
+                        isVisibleAlert.value = false
                     },
                     text = {
                         Text(
@@ -171,10 +179,18 @@ fun jvmMainCoastalFloodingMap(
             val height = this.maxHeight
             when {
                 initialized -> {
+
                     Column(modifier=Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.CenterHorizontally)
                     {
+
+                        AnimatedVisibility(isVisibleAlert.value) {
+                            AlertBoxDataNotFound{
+                                isVisibleAlert.value = false
+                            }
+                        }
+
                         Column(
                             modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
                             verticalArrangement = Arrangement.Top,
@@ -233,6 +249,7 @@ fun jvmMainCoastalFloodingMap(
 
 
                     }
+
                 }
                 errorMessage.isNotEmpty() -> {
                     Text(errorMessage)

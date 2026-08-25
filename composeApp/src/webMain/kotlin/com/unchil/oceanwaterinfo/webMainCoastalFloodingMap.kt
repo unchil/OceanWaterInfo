@@ -1,6 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -33,11 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
-import io.github.koalaplot.core.xygraph.Point
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 
 @Composable
@@ -55,6 +52,8 @@ fun webMainCoastalFloodingMap(){
 
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
+    val isVisibleAlert = remember{ mutableStateOf(false)}
+
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
@@ -94,6 +93,13 @@ fun webMainCoastalFloodingMap(){
         }
     }
 
+    LaunchedEffect(isLoading) {
+        if(!isLoading && coastalFloodingInfo.value.isEmpty()){
+            isVisibleAlert.value = true
+            sendPostMsg(IFRAME_COASTAL_FLOODING, "EMPTY_DATA" )
+        }
+    }
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -121,6 +127,7 @@ fun webMainCoastalFloodingMap(){
                     onClick = {
                         selectedTabIndexGrade = index
                         gradeOption = element
+                        isVisibleAlert.value = false
                     },
                     text = {
                         Text(
@@ -144,6 +151,7 @@ fun webMainCoastalFloodingMap(){
                     onClick = {
                         selectedTabIndexSido = index
                         sidoOption = element
+                        isVisibleAlert.value = false
                     },
                     text = {
                         Text(
@@ -167,6 +175,12 @@ fun webMainCoastalFloodingMap(){
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+
+                AnimatedVisibility(isVisibleAlert.value) {
+                    AlertBoxDataNotFound{
+                        isVisibleAlert.value = false
+                    }
+                }
 
 
                 Box(

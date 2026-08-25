@@ -75,9 +75,12 @@ function processConfiguration(geometry, callback, thisArg) {
     }
 }
 
+
+
 window.renderingMap = function( geojsonObject, grade, msgKey){
     console.log(`${getTimestamp()} renderingMap Start`);
 
+/*
     // --- [데이터 검증 및 이동 로직 추가] ---
     let isEmpty = true;
 
@@ -97,6 +100,7 @@ window.renderingMap = function( geojsonObject, grade, msgKey){
         smoothFlyTo(center);
         return; // 이후 렌더링 로직 중단
     }
+    */
 
     showMapLoader("loading...");
 
@@ -218,6 +222,10 @@ window.addEventListener("message", async(event) => {
                 switch (messageData.msgKey) {
                     case 'REMOVE_FEATHER':
                         removeFeather();
+                        break;
+                    case 'EMPTY_DATA':
+                        removeFeather();
+                        smoothFlyTo(center);
                         break;
                     case 'COASTAL_FLOODING':
 

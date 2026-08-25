@@ -78,10 +78,18 @@ window.removeMapFeature = function(){
     });
 }
 
+window.emptyData = function(){
+  //  window.alert("선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.");
+    smoothFlyTo(center);
+    removeFeather();
+}
+
 
 window.renderingMap = function( geojsonObject, grade, msgKey){
     console.log(`${getTimestamp()} renderingMap Start`);
     // --- [데이터 검증 및 이동 로직 추가] ---
+
+    /*
     let isEmpty = true;
 
     if (geojsonObject && geojsonObject.features && geojsonObject.features.length > 0) {
@@ -98,6 +106,7 @@ window.renderingMap = function( geojsonObject, grade, msgKey){
         removeFeather();
         return; // 이후 렌더링 로직 중단
     }
+    */
 
     showMapLoader("loading...");
 
