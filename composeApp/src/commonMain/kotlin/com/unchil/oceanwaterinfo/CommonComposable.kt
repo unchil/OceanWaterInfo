@@ -45,43 +45,20 @@ fun AlertBoxDataNotFound(
 ) {
     Surface(
         modifier = Modifier
-            .padding(6.dp)
-            .widthIn(max = 800.dp),
-        shape = RoundedCornerShape(12.dp),
+            .padding(6.dp).fillMaxWidth(),
+        shape = RoundedCornerShape(6.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "알림",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
 
-            Text(
-                text = "선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-
-          //  Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = onClose,
-                modifier = Modifier.width(80.dp),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("확인")
-            }
-        }
+        Text(
+            text = "선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)
+        )
     }
 }
 
