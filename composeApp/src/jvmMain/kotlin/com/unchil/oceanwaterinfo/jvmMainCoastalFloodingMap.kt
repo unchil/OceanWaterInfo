@@ -45,30 +45,19 @@ fun jvmMainCoastalFloodingMap(
     download:Int,
     errorMessage:String,
 ){
-
     val viewModel: CoastalFloodingInfoViewModel = remember {
         CoastalFloodingInfoViewModel()
     }
-
     val coroutineScope = rememberCoroutineScope()
-
     val bottomBarHeight = remember{60.dp}
-
-
     val host = "http://localhost:7272"
     val servicePage = "coastalFloodingMap.html"
-
     val localUrl = "${host}/${servicePage}"
-
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()
-
     val isVisibleAlert = remember{ mutableStateOf(false)}
-
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
-
-
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
         LOGGER.debug("Call Refresh Event")
@@ -105,11 +94,8 @@ fun jvmMainCoastalFloodingMap(
         }
     }
 
-
-
     var selectedGradeIndex by remember { mutableIntStateOf(0) }
     var selectedSidoIndex by remember { mutableIntStateOf(0) }
-
     val tabClick = { tapType:String, grade:CoastalFloodingGrade?, sido:SiDo?, tabIndex:Int ->
         if(tapType.equals("first")){
             selectedGradeIndex = tabIndex
@@ -202,9 +188,6 @@ fun jvmMainCoastalFloodingMap(
         }
 
     }
-
-
-
 
 
 }
