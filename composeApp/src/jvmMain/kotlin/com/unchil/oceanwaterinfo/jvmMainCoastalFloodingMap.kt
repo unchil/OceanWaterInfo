@@ -105,170 +105,105 @@ fun jvmMainCoastalFloodingMap(
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement =   Arrangement.Center
-    ) {
 
 
+    var selectedGradeIndex by remember { mutableIntStateOf(0) }
+    var selectedSidoIndex by remember { mutableIntStateOf(0) }
 
-        Text(
-            "Korea Coastal Flooding Prediction Information",
-            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
-        var selectedTabIndexGrade by remember { mutableIntStateOf(0) }
-        SecondaryTabRow(
-            selectedTabIndex = selectedTabIndexGrade,
-            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
-        ) {
-            CoastalFloodingGrade.entries.forEachIndexed { index, element ->
-                Tab(
-                    selected = selectedTabIndexGrade == index,
-                    onClick = {
-                        selectedTabIndexGrade = index
-                        gradeOption = element
-                        isVisibleAlert.value = false
-                    },
-                    text = {
-                        Text(
-                            text = element.tabTitle(),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                    }
-                )
-            }
+    val tabClick = { tapType:String, grade:CoastalFloodingGrade?, sido:SiDo?, tabIndex:Int ->
+        if(tapType.equals("first")){
+            selectedGradeIndex = tabIndex
+            gradeOption = grade!!
+            isVisibleAlert.value = false
+        }else{
+            selectedSidoIndex = tabIndex
+            sidoOption = sido!!
+            isVisibleAlert.value = false
         }
+    }
 
+    CoastalFloodingMap(selectedGradeIndex, selectedSidoIndex, tabClick){
 
-        var selectedTabIndexSido by remember { mutableIntStateOf(0) }
-        SecondaryTabRow(
-            selectedTabIndex = selectedTabIndexSido,
-            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
-        ) {
-            SiDo.entries.forEachIndexed { index, element ->
-                Tab(
-                    selected = selectedTabIndexSido == index,
-                    onClick = {
-                        selectedTabIndexSido = index
-                        sidoOption = element
-                        isVisibleAlert.value = false
-                    },
-                    text = {
-                        Text(
-                            text = element.name,
-                            style = MaterialTheme.typography.titleSmall
-                        )
+        val height = this.maxHeight
+        when {
+            initialized -> {
+                Column(modifier=Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally)
+                {
+                    AnimatedVisibility(isVisibleAlert.value) {
+                        AlertBoxDataNotFound{
+                            isVisibleAlert.value = false
+                        }
                     }
-                )
-            }
-        }
 
-
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            val height = this.maxHeight
-            when {
-                initialized -> {
-
-                    Column(modifier=Modifier.fillMaxSize(),
+                    Column(
+                        modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
                         verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally)
-                    {
-
-                        AnimatedVisibility(isVisibleAlert.value) {
-                            AlertBoxDataNotFound{
-                                isVisibleAlert.value = false
-                            }
-                        }
-
-                        Column(
-                            modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
-                            verticalArrangement = Arrangement.Top,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-
-
-                            WebView(
-                                state = webViewState,
-                                navigator = navigator,
-                                modifier = Modifier.fillMaxSize()
-                            )
-
-
-                        }
-
-
-
-                        CaptionText(
-                            "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
-                            textAlign = TextAlign.Center
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        WebView(
+                            state = webViewState,
+                            navigator = navigator,
+                            modifier = Modifier.fillMaxSize()
                         )
+                    }
 
+                    CaptionText(
+                        "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
+                        textAlign = TextAlign.Center
+                    )
 
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {// [Reload, Tooltips, Symbol, Legend]
-                            val bottomBarOpt =
-                                listOf(true, false, false, false)
-                            ChartFeatureControls(
-                                onChangeFlag = { label, value ->
-                                    when (label) {
-                                        "Reload" ->{
-                                            coroutineScope.launch {
-                                                selectedTabIndexGrade = 0
-                                                selectedTabIndexSido = 0
-                                                gradeOption = CoastalFloodingGrade.entries[0]
-                                                sidoOption = SiDo.entries[0]
-                                                viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
-                                            }
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {// [Reload, Tooltips, Symbol, Legend]
+                        val bottomBarOpt =
+                            listOf(true, false, false, false)
+                        ChartFeatureControls(
+                            onChangeFlag = { label, value ->
+                                when (label) {
+                                    "Reload" ->{
+                                        coroutineScope.launch {
+                                            selectedGradeIndex = 0
+                                            selectedSidoIndex = 0
+                                            gradeOption = CoastalFloodingGrade.entries[0]
+                                            sidoOption = SiDo.entries[0]
+                                            viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
                                         }
                                     }
+                                }
 
-                                },
-                                bottomBarOpt = bottomBarOpt
+                            },
+                            bottomBarOpt = bottomBarOpt
+                        )
+
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.DarkGray,
                             )
-
-                            if (isLoading) {
-                                CircularProgressIndicator(
-                                    color = Color.DarkGray,
-                                )
-                            }
-
                         }
 
-
                     }
+                }
 
+            }
+            errorMessage.isNotEmpty() -> {
+                Text(errorMessage)
+            }
+            else -> {
+                if (download > -1) {
+                    Text("Downloading: $download%")
+                } else {
+                    Text("Initializing please wait...")
                 }
-                errorMessage.isNotEmpty() -> {
-                    Text(errorMessage)
-                }
-                else -> {
-                    if (download > -1) {
-                        Text("Downloading: $download%")
-                    } else {
-                        Text("Initializing please wait...")
-                    }
-                    CircularProgressIndicator()
-
-                }
+                CircularProgressIndicator()
             }
         }
 
-
-
     }
+
+
 
 
 
