@@ -42,7 +42,58 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 
+@Composable
+fun AirQualityMap(
+    selectedChemicalElementIndex: Int,
+    tabClick:(
+        option: AirQualityManager.ChemicalElement,
+        tabIndex:Int ) -> Unit,
+    content: @Composable @UiComposable (BoxWithConstraintsScope.() -> Unit)
+){
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+
+        Text(
+            "Seoul/Gyonggi SDoT Air Environmental Observation Information",
+            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        SecondaryTabRow(
+            selectedTabIndex = selectedChemicalElementIndex,
+            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
+            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+        ) {
+            AirQualityManager.ChemicalElement.entries.forEachIndexed { index, element ->
+                Tab(
+                    selected = selectedChemicalElementIndex == index,
+                    onClick = {
+                        tabClick(element, index)
+                    },
+                    text = {
+                        Text(
+                            text = element.nameEn(),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                )
+            }
+        }
+
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            content()
+        }
+
+    }
+
+}
 
 @Composable
 fun CoastalFloodingMap(

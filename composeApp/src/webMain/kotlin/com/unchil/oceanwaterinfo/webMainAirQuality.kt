@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,10 +17,6 @@ import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,11 +32,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,15 +44,13 @@ fun webMainAirQuality(){
     val density = LocalDensity.current
     val bottomBarHeight = remember{100.dp}
     var descriptionBox by remember { mutableStateOf(false) }
-
     val initData = remember{ mutableStateOf("" )}
-
-
     var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
 
     val viewModelSDoTEnvInfoUnion: SDoTEnvInfoUnionViewModel = remember {
         SDoTEnvInfoUnionViewModel()
     }
+
     LaunchedEffect(key1 = viewModelSDoTEnvInfoUnion){
         while(true){
             viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
@@ -70,9 +59,7 @@ fun webMainAirQuality(){
     }
 
     val sDoTEnvInfo = viewModelSDoTEnvInfoUnion._sDoTEnvInfoUnionFlow.collectAsState()
-
     val isLoading by viewModelSDoTEnvInfoUnion.isLoading.collectAsState()
-
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
@@ -101,138 +88,99 @@ fun webMainAirQuality(){
 
     }
 
-    Column (modifier= Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+    var selectedChemicalElementIndex by remember { mutableIntStateOf(0) }
+    val tabClick = {  option: AirQualityManager.ChemicalElement, tabIndex:Int ->
+        selectedChemicalElementIndex = tabIndex
+        selectedOption = option
+    }
 
-        Text(
-            "Seoul/Gyonggi SDoT Air Environmental Observation Information",
-            modifier = Modifier.fillMaxWidth()
-                .padding(vertical = 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+    AirQualityMap(  selectedChemicalElementIndex, tabClick ){
 
-        var selectedTabIndexSub by remember { mutableIntStateOf(0) }
+        val totalWidth = constraints.maxWidth.toFloat()
+        val height = this.maxHeight - bottomBarHeight
 
-        SecondaryTabRow(
-            selectedTabIndex = selectedTabIndexSub,
-            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+        Column(
+            modifier= Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            AirQualityManager.ChemicalElement.entries.forEachIndexed { index, element ->
-                Tab(
-                    selected = selectedTabIndexSub == index,
-                    onClick = {
-                        selectedTabIndexSub = index
-                        selectedOption = element
-                    },
-                    text = {
-                        Text(
-                            text = element.nameEn(),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                    }
-                )
-            }
-        }
 
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize()
-        ){
-            val totalWidth = constraints.maxWidth.toFloat()
-            val height = this.maxHeight - bottomBarHeight
+            Row(modifier = Modifier.fillMaxWidth().height(height)) {
 
+                var splitFractionVertical by remember { mutableStateOf(0.3f) }
 
-            Column(
-                modifier= Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-
-                Row(modifier = Modifier.fillMaxWidth().height(height)) {
-
-                    var splitFractionVertical by remember { mutableStateOf(0.3f) }
-
-                    AnimatedVisibility(descriptionBox){
-                        SDoTDescription(sDoTEnvInfo = sDoTEnvInfo.value, selectedOption= selectedOption, splitFractionVertical = splitFractionVertical)
-                    }
-
-                    Box( modifier = Modifier.width(24.dp).fillMaxHeight()
-                        ,contentAlignment = Alignment.Center ){
-
-                        val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
-
-                        IconButton( onClick = { descriptionBox = !descriptionBox }
-                            ,modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon( imageVector = Icons.Default.ArrowCircleRight
-                                ,contentDescription = "Toggle Description"
-                                ,modifier = Modifier.rotate(rotation)
-                            )
-                        }
-                    }
-
-                    DraggableVerticalDivider(
-                        onDrag = { deltaPx ->
-                            val deltaWeight = deltaPx / totalWidth
-                            splitFractionVertical =
-                                (splitFractionVertical + deltaWeight).coerceIn(
-                                    0.1f,
-                                    0.9f
-                                )
-                        }
-                    )
-
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
-                            .height(height )
-                            .onGloballyPositioned { coordinates ->
-                                syncHtmlElementPosition(
-                                    coordinates,
-                                    density,
-                                    DIV_WEB_MAIN,
-                                    DIV_AIR_INFO
-                                )
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
-
-                    }
-
+                AnimatedVisibility(descriptionBox){
+                    SDoTDescription(sDoTEnvInfo = sDoTEnvInfo.value, selectedOption= selectedOption, splitFractionVertical = splitFractionVertical)
                 }
 
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
-                    contentAlignment = Alignment.Center,
-                ) {// [Reload, Tooltips, Symbol, Legend]
-                    val bottomBarOpt =
-                        listOf(true, false, false, false)
-                    ChartFeatureControls(
-                        onChangeFlag = { label, value ->
-                            when (label) {
-                                "Reload" ->{
-                                    coroutineScope.launch {
-                                         viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+                Box( modifier = Modifier.width(24.dp).fillMaxHeight()
+                    ,contentAlignment = Alignment.Center ){
 
-                                    }
-                                }
-                            }
+                    val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
 
-                        },
-                        bottomBarOpt = bottomBarOpt
-                    )
-
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.DarkGray,
+                    IconButton( onClick = { descriptionBox = !descriptionBox }
+                        ,modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon( imageVector = Icons.Default.ArrowCircleRight
+                            ,contentDescription = "Toggle Description"
+                            ,modifier = Modifier.rotate(rotation)
                         )
                     }
+                }
 
+                DraggableVerticalDivider(
+                    onDrag = { deltaPx ->
+                        val deltaWeight = deltaPx / totalWidth
+                        splitFractionVertical =
+                            (splitFractionVertical + deltaWeight).coerceIn(
+                                0.1f,
+                                0.9f
+                            )
+                    }
+                )
+
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                        .height(height )
+                        .onGloballyPositioned { coordinates ->
+                            syncHtmlElementPosition(
+                                coordinates,
+                                density,
+                                DIV_WEB_MAIN,
+                                DIV_AIR_INFO
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    // 여기는 비어있지만, 실제로는 iframe_waterInfo div가 이 위를 덮게 됩니다.
+                }
+            }
+
+            Box(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center,
+            ) {// [Reload, Tooltips, Symbol, Legend]
+                val bottomBarOpt =
+                    listOf(true, false, false, false)
+                ChartFeatureControls(
+                    onChangeFlag = { label, value ->
+                        when (label) {
+                            "Reload" ->{
+                                coroutineScope.launch {
+                                    viewModelSDoTEnvInfoUnion.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+
+                                }
+                            }
+                        }
+
+                    },
+                    bottomBarOpt = bottomBarOpt
+                )
+
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.DarkGray,
+                    )
                 }
 
             }
@@ -240,5 +188,7 @@ fun webMainAirQuality(){
         }
 
     }
+
+
 
 }

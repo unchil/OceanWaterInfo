@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,9 +18,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,15 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
-import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -68,7 +61,6 @@ fun jvmMainAirQuality(
         }
     }
 
-    //val host = "http://192.168.35.107:7272"
     val host = "http://localhost:7272"
 
     val servicePage = "sDoTDeckHexagonLayerUnion.html"
@@ -103,12 +95,8 @@ fun jvmMainAirQuality(
 
                 "{ sensing_time:\"${it.sensing_time}\", obs:\"${it.obs}\", lat:${it.lat}, lng:${it.lng},  addr:\"${it.addr}\", value:${value} }"
             }
-
-
         }
     }
-
-
 
     LaunchedEffect( values.value, webViewState.loadingState){
         if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
@@ -119,172 +107,135 @@ fun jvmMainAirQuality(
     val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-    ) {
+    var selectedChemicalElementIndex by remember { mutableIntStateOf(0) }
+    val tabClick = {  option: AirQualityManager.ChemicalElement, tabIndex:Int ->
+        selectedChemicalElementIndex = tabIndex
+        selectedOption = option
+    }
 
-        Text(
-            "Seoul/Gyonggi SDoT Air Environmental Observation Information",
-            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+    AirQualityMap(
+        selectedChemicalElementIndex,
+        tabClick
+    ){
+        val totalWidth = constraints.maxWidth.toFloat()
+        val height = this.maxHeight - bottomBarHeight
 
-
-
-        var selectedTabIndex by remember { mutableIntStateOf(0) }
-        SecondaryTabRow(
-            selectedTabIndex = selectedTabIndex,
-            containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정
-            contentColor = MaterialTheme.colorScheme.primary,   // 선택된 탭의 콘텐츠 색상
+        Column(
+            modifier= Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            AirQualityManager.ChemicalElement.entries.forEachIndexed { index, element ->
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = {
-                        selectedTabIndex = index
-                        selectedOption = element
-                    },
-                    text = {
-                        Text(
-                            text = element.nameEn(),
-                            style = MaterialTheme.typography.titleSmall
+
+            Row(modifier = Modifier.fillMaxWidth().height(height)) {
+
+                var splitFractionVertical by remember { mutableStateOf(0.3f) }
+
+                AnimatedVisibility(descriptionBox) {
+                    SDoTDescription(
+                        sDoTEnvInfo = sDoTEnvInfo.value,
+                        selectedOption = selectedOption,
+                        splitFractionVertical = splitFractionVertical
+                    )
+                }
+
+                Box(
+                    modifier = Modifier.width(24.dp).fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
+
+                    IconButton(onClick = { descriptionBox = !descriptionBox },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowCircleRight,
+                            contentDescription = "Toggle Description",
+                            modifier = Modifier.rotate(rotation)
                         )
+                    }
+                }
+
+                DraggableVerticalDivider(
+                    onDrag = { deltaPx ->
+                        val deltaWeight = deltaPx / totalWidth
+                        splitFractionVertical =
+                            (splitFractionVertical + deltaWeight).coerceIn(
+                                0.1f,
+                                0.9f
+                            )
                     }
                 )
-            }
-        }
 
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
-            val totalWidth = constraints.maxWidth.toFloat()
-            val height = this.maxHeight - bottomBarHeight
-
-            Column(
-                modifier= Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-
-                Row(modifier = Modifier.fillMaxWidth().height(height)) {
-
-                    var splitFractionVertical by remember { mutableStateOf(0.3f) }
-
-                    AnimatedVisibility(descriptionBox) {
-                        SDoTDescription(
-                            sDoTEnvInfo = sDoTEnvInfo.value,
-                            selectedOption = selectedOption,
-                            splitFractionVertical = splitFractionVertical
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier.width(24.dp).fillMaxHeight(),
-                        contentAlignment = Alignment.Center
-                    ) {
-
-                        val rotation by animateFloatAsState(targetValue = if (descriptionBox) 180f else 0f)
-
-                        IconButton(onClick = { descriptionBox = !descriptionBox },
-                            modifier = Modifier.fillMaxWidth()
+                when {
+                    initialized -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowCircleRight,
-                                contentDescription = "Toggle Description",
-                                modifier = Modifier.rotate(rotation)
+
+                            WebView(
+                                state = webViewState,
+                                navigator = navigator,
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
                     }
 
-                    DraggableVerticalDivider(
-                        onDrag = { deltaPx ->
-                            val deltaWeight = deltaPx / totalWidth
-                            splitFractionVertical =
-                                (splitFractionVertical + deltaWeight).coerceIn(
-                                    0.1f,
-                                    0.9f
-                                )
-                        }
-                    )
-
-
-                    when {
-                        initialized -> {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-
-                                WebView(
-                                    state = webViewState,
-                                    navigator = navigator,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                        }
-
-                        errorMessage.isNotEmpty() -> {
-                            Text(errorMessage)
-                        }
-
-                        else -> {
-                            if (download > -1) {
-                                Text("Downloading: $download%")
-                            } else {
-                                Text("Initializing please wait...")
-                            }
-                            CircularProgressIndicator()
-
-                        }
+                    errorMessage.isNotEmpty() -> {
+                        Text(errorMessage)
                     }
 
-                }
+                    else -> {
+                        if (download > -1) {
+                            Text("Downloading: $download%")
+                        } else {
+                            Text("Initializing please wait...")
+                        }
+                        CircularProgressIndicator()
 
-                CaptionText(
-                    AIR_QUAlITY_UNION.caption,
-                    textAlign = TextAlign.Center
-                )
-
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
-                    contentAlignment = Alignment.Center,
-                ) {// [Reload, Tooltips, Symbol, Legend]
-                    val bottomBarOpt =
-                        listOf(true, false, false, false)
-                    ChartFeatureControls(
-                        onChangeFlag = { label, value ->
-                            when (label) {
-                                "Reload" ->{
-                                    visibleProgressIndicator.value = true
-                                    navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
-                                    coroutineScope.launch {
-                                        delay(1000)
-                                        visibleProgressIndicator.value = false
-                                    }
-                                }
-                            }
-
-                        },
-                        bottomBarOpt = bottomBarOpt
-                    )
-                    if (visibleProgressIndicator.value) {
-                        CircularProgressIndicator(
-                            color = Color.DarkGray,
-                        )
                     }
                 }
-
-
-
 
             }
 
+            CaptionText(
+                AIR_QUAlITY_UNION.caption,
+                textAlign = TextAlign.Center
+            )
 
+            Box(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center,
+            ) {// [Reload, Tooltips, Symbol, Legend]
+                val bottomBarOpt =
+                    listOf(true, false, false, false)
+                ChartFeatureControls(
+                    onChangeFlag = { label, value ->
+                        when (label) {
+                            "Reload" ->{
+                                visibleProgressIndicator.value = true
+                                navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
+                                coroutineScope.launch {
+                                    delay(1000)
+                                    visibleProgressIndicator.value = false
+                                }
+                            }
+                        }
 
+                    },
+                    bottomBarOpt = bottomBarOpt
+                )
+                if (visibleProgressIndicator.value) {
+                    CircularProgressIndicator(
+                        color = Color.DarkGray,
+                    )
+                }
+            }
 
         }
-
     }
+
+
 }
