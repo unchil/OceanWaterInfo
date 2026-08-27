@@ -64,6 +64,9 @@ kotlin {
             implementation(libs.un7datagrid)
             implementation(libs.koalaplot.core)
             implementation(libs.geojson)
+            implementation(libs.compose.treeview)
+            implementation(libs.compose.adaptive)
+            implementation(libs.compose.adaptive.layout)
 
             implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
 

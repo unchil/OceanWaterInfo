@@ -26,6 +26,20 @@ import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
+val SurfaceSeaTemperature = object : SimpleChartView {
+    override val name: String = "SurfaceSeaTemperature"
+
+    override fun toString(): String = name
+
+    @Composable
+    override fun Content() {
+        OceanWaterInfoTimeSeries()
+    }
+}
+
+
+
 @Composable
 fun OceanWaterInfoTimeSeries(){
 

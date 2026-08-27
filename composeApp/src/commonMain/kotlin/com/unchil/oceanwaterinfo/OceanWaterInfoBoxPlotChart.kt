@@ -27,6 +27,21 @@ import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
+
+val OceanWaterOneDayStat = object : SimpleChartView {
+    override val name: String = "OneDayStatSurfaceTemperature"
+
+    override fun toString(): String = name
+
+    @Composable
+    override fun Content() {
+        OceanWaterInfoBoxPlotChart()
+    }
+}
+
+
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OceanWaterInfoBoxPlotChart(){
