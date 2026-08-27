@@ -43,14 +43,10 @@ import io.github.vooft.compose.treeview.core.tree.Tree
 
 @Composable
 private fun envObservationTree(): Tree<ChartViewContent> = Tree {
-    Leaf<ChartViewContent>(SurfaceSeaTemperature)
-    Leaf<ChartViewContent>(SurfaceSeaTemperature)
-    Leaf<ChartViewContent>(SurfaceSeaTemperature)
-    Leaf<ChartViewContent>(SurfaceSeaTemperature)
-    Leaf<ChartViewContent>(OceanWaterOneDayStat)
-    Leaf<ChartViewContent>(SurfaceSeaTemperature)
-
+    Leaf<ChartViewContent>(OceanWaterQuality)
+    Leaf<ChartViewContent>(HydroNuclearPower)
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -92,6 +88,7 @@ fun MainView(modifier: Modifier = Modifier) {
                 scaffoldState,
                 modifier
             )
+
         }
     }
 }
