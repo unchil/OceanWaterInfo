@@ -37,14 +37,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.koalaplot.core.style.KoalaPlotTheme
 import io.github.vooft.compose.treeview.core.TreeView
+import io.github.vooft.compose.treeview.core.node.Branch
 import io.github.vooft.compose.treeview.core.node.Leaf
 import io.github.vooft.compose.treeview.core.tree.Tree
 
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun envObservationTree(): Tree<ChartViewContent> = Tree {
-    Leaf<ChartViewContent>(OceanWaterQuality)
-    Leaf<ChartViewContent>(HydroNuclearPower)
+
+    Branch(ChartViewCategory("Ocean Water Quality")) {
+        Leaf<ChartViewContent>(WaterDegTimeSeries_KHOA)
+        Leaf<ChartViewContent>(OceanWaterInfoTimeSeries)
+        Leaf<ChartViewContent>(OceanWaterInfoBoxPlotChart)
+        Leaf<ChartViewContent>(OceanWaterInfoBarChart)
+    }
+
+    Branch(ChartViewCategory("Hydro Nuclear Power")) {
+        Leaf<ChartViewContent>(NuclearPlantStatePieChart_KHNP)
+        Leaf<ChartViewContent>(RadioActiveWastePlantStatStackedBarChart_KHNP)
+        Leaf<ChartViewContent>(KHNPRadioActiveWasteStackBarChart)
+        Leaf<ChartViewContent>(WaterTempTimeSeries_KHOA)
+        Leaf<ChartViewContent>(RadioRateBarChart)
+        Leaf<ChartViewContent>(WasteWaterTimeSeries_KHNP)
+        Leaf<ChartViewContent>(ThermalWasteWaterTimeSeries_KHNP)
+    }
+
 }
 
 

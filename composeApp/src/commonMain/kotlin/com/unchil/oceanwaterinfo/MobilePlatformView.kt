@@ -9,56 +9,188 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 
-val HydroNuclearPower = object : SimpleChartView {
-    override val name: String = "HydroNuclearPower"
+val NuclearPlantStatePieChart_KHNP = object : SimpleChartView {
+    override val name: String = "NuclearPlantStatePieChart_KHNP"
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        HydroNuclearPower()
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            NuclearPlantStatePieChart_KHNP()
+        }
     }
 }
 
-@Composable
-fun HydroNuclearPower(){
-    Column(
-        modifier = Modifier.fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        NuclearPlantStatePieChart_KHNP()
-        RadioActiveWastePlantStatStackedBarChart_KHNP()
-        KHNPRadioActiveWasteStackBarChart()
-        WaterTempTimeSeries_KHOA()
-        RadioRateBarChart()
-        WasteWaterTimeSeries_KHNP()
-        ThermalWasteWaterTimeSeries_KHNP()
-        WaterDegTimeSeries_KHOA()
+
+val RadioActiveWastePlantStatStackedBarChart_KHNP = object : SimpleChartView {
+    override val name: String = "RadioActiveWastePlantStatStackedBarChart_KHNP"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            RadioActiveWastePlantStatStackedBarChart_KHNP()
+        }
     }
 }
 
-val OceanWaterQuality = object : SimpleChartView {
-    override val name: String = "OceanWaterQuality"
+val KHNPRadioActiveWasteStackBarChart = object : SimpleChartView {
+    override val name: String = "KHNPRadioActiveWasteStackBarChart"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            KHNPRadioActiveWasteStackBarChart()
+        }
+    }
+}
+
+val WaterTempTimeSeries_KHOA = object : SimpleChartView {
+    override val name: String = "WaterTempTimeSeries_KHOA"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            WaterTempTimeSeries_KHOA()
+        }
+    }
+}
+
+val RadioRateBarChart = object : SimpleChartView {
+    override val name: String = "RadioRateBarChart"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            RadioRateBarChart()
+        }
+    }
+}
+
+val WasteWaterTimeSeries_KHNP = object : SimpleChartView {
+    override val name: String = "WasteWaterTimeSeries_KHNP"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            WasteWaterTimeSeries_KHNP()
+        }
+    }
+}
+
+val ThermalWasteWaterTimeSeries_KHNP = object : SimpleChartView {
+    override val name: String = "ThermalWasteWaterTimeSeries_KHNP"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            ThermalWasteWaterTimeSeries_KHNP()
+        }
+    }
+}
+
+
+val WaterDegTimeSeries_KHOA = object : SimpleChartView {
+    override val name: String = "WaterDegTimeSeries_KHOA"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            WaterDegTimeSeries_KHOA()
+        }
+    }
+}
+
+
+val OceanWaterInfoTimeSeries = object : SimpleChartView {
+    override val name: String = "OceanWaterInfoTimeSeries"
 
     override fun toString(): String = name
 
     @Composable
     override fun Content() {
-        OceanWaterQuality()
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            OceanWaterInfoTimeSeries()
+        }
+    }
+}
+
+val OceanWaterInfoBoxPlotChart = object : SimpleChartView {
+    override val name: String = "OceanWaterInfoBoxPlotChart"
+
+    override fun toString(): String = name
+
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            OceanWaterInfoBoxPlotChart()
+        }
     }
 }
 
 
-@Composable
-fun OceanWaterQuality(){
-    Column(
-        modifier = Modifier.fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+val OceanWaterInfoBarChart = object : SimpleChartView {
+    override val name: String = "OceanWaterInfoBarChart"
 
-        OceanWaterInfoTimeSeries()
-        OceanWaterInfoBoxPlotChart()
-        OceanWaterInfoBarChart()
+    override fun toString(): String = name
 
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            OceanWaterInfoBarChart()
+        }
     }
 }
+
+
