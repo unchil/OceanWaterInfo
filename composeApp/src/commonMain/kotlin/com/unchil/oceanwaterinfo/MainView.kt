@@ -65,6 +65,8 @@ private fun envObservationTree(): Tree<ChartViewContent> = Tree {
         Leaf<ChartViewContent>(ThermalWasteWaterTimeSeries_KHNP)
     }
 
+    Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
+
 }
 
 
