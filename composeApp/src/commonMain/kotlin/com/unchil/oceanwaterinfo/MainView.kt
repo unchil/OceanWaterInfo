@@ -69,7 +69,12 @@ private fun envObservationTree(): Tree<ChartViewContent> = Tree {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainView(modifier: Modifier = Modifier) {
-    MaterialTheme {
+
+    MaterialTheme(
+        typography = getTypography(),
+        colorScheme = getColorScheme(false)
+    ){
+
         KoalaPlotTheme {
             val samplesTree = envObservationTree()
             var selectedItem by remember { mutableStateOf<ChartView<*>?>(null) }
@@ -155,7 +160,7 @@ private fun <S> EnvObservationScaffold(
         detailPane = {
             AnimatedPane {
                 Row(Modifier.fillMaxSize()) {
-                    chartPaneView(item, state, false, scaffoldState, Modifier.weight(1f))
+                    ChartPaneView(item, state, false, scaffoldState, Modifier.weight(1f))
                     if (scaffoldState.scaffoldValue.primary == PaneAdaptedValue.Expanded &&
                         scaffoldState.scaffoldValue.tertiary == PaneAdaptedValue.Expanded
                     ) {
@@ -167,7 +172,7 @@ private fun <S> EnvObservationScaffold(
         modifier = modifier,
         extraPane = {
             AnimatedPane {
-                chartPaneView(item, state, true, scaffoldState)
+                ChartPaneView(item, state, true, scaffoldState)
             }
         },
         paneExpansionDragHandle = { VerticalDivider() },
@@ -179,7 +184,7 @@ private fun <S> EnvObservationScaffold(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-private fun <S> chartPaneView(
+private fun <S> ChartPaneView(
     item: ChartView<S>?,
     state: S?,
     isOptions: Boolean,
