@@ -51,9 +51,11 @@ private fun envObservationTree(): Tree<ChartViewContent> = Tree {
         Leaf<ChartViewContent>(OceanWaterInfoTimeSeries)
         Leaf<ChartViewContent>(OceanWaterInfoBoxPlotChart)
         Leaf<ChartViewContent>(OceanWaterInfoBarChart)
+        Leaf<ChartViewContent>(OceanWaterInfoGeoChart)
     }
 
     Branch(ChartViewCategory("Hydro Nuclear Power")) {
+        Leaf<ChartViewContent>(WindPolarChart_KHNP)
         Leaf<ChartViewContent>(NuclearPlantStatePieChart_KHNP)
         Leaf<ChartViewContent>(RadioActiveWastePlantStatStackedBarChart_KHNP)
         Leaf<ChartViewContent>(KHNPRadioActiveWasteStackBarChart)

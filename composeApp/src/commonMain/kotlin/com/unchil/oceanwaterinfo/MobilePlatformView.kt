@@ -9,6 +9,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 
+val WindPolarChart_KHNP = object : SimpleChartView {
+    override val name: String = "WindPolarChart_KHNP"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            WindPolarChart_KHOA()
+        }
+    }
+}
 val NuclearPlantStatePieChart_KHNP = object : SimpleChartView {
     override val name: String = "NuclearPlantStatePieChart_KHNP"
     override fun toString(): String = name
@@ -194,3 +208,17 @@ val OceanWaterInfoBarChart = object : SimpleChartView {
 }
 
 
+val OceanWaterInfoGeoChart = object : SimpleChartView {
+    override val name: String = "OceanWaterInfoGeoChart"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            OceanWaterInfoGeoChart()
+        }
+    }
+}
