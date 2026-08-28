@@ -44,11 +44,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun jvmMainAirQuality(
-    initialized: Boolean,
-    download:Int,
-    errorMessage:String,
-){
+fun jvmMainAirQuality(){
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: SDoTEnvInfoUnionViewModel = remember {
@@ -168,34 +164,17 @@ fun jvmMainAirQuality(
                 )
 
 
-                when {
-                    initialized -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
 
-                            WebView(
-                                state = webViewState,
-                                navigator = navigator,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                    }
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                    errorMessage.isNotEmpty() -> {
-                        Text(errorMessage)
-                    }
-
-                    else -> {
-                        if (download > -1) {
-                            Text("Downloading: $download%")
-                        } else {
-                            Text("Initializing please wait...")
-                        }
-                        CircularProgressIndicator()
-
-                    }
+                    WebView(
+                        state = webViewState,
+                        navigator = navigator,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
             }

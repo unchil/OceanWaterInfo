@@ -32,11 +32,7 @@ import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun jvmMainCoastalFloodingMap(
-    initialized: Boolean,
-    download:Int,
-    errorMessage:String,
-){
+fun jvmMainCoastalFloodingMap(){
     val viewModel: CoastalFloodingInfoViewModel = remember {
         CoastalFloodingInfoViewModel()
     }
@@ -103,81 +99,68 @@ fun jvmMainCoastalFloodingMap(
     CoastalFloodingMap(selectedGradeIndex, selectedSidoIndex, tabClick){
 
         val height = this.maxHeight
-        when {
-            initialized -> {
-                Column(modifier=Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.CenterHorizontally)
-                {
-                    AnimatedVisibility(isVisibleAlert.value) {
-                        AlertBoxDataNotFound{
-                            isVisibleAlert.value = false
-                        }
-                    }
 
-                    Column(
-                        modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        WebView(
-                            state = webViewState,
-                            navigator = navigator,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+        Column(modifier=Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally)
+        {
+            AnimatedVisibility(isVisibleAlert.value) {
+                AlertBoxDataNotFound{
+                    isVisibleAlert.value = false
+                }
+            }
 
-                    CaptionText(
-                        "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
-                        textAlign = TextAlign.Center
-                    )
+            Column(
+                modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                WebView(
+                    state = webViewState,
+                    navigator = navigator,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {// [Reload, Tooltips, Symbol, Legend]
-                        val bottomBarOpt =
-                            listOf(true, false, false, false)
-                        ChartFeatureControls(
-                            onChangeFlag = { label, value ->
-                                when (label) {
-                                    "Reload" ->{
-                                        coroutineScope.launch {
-                                            selectedGradeIndex = 0
-                                            selectedSidoIndex = 0
-                                            gradeOption = CoastalFloodingGrade.entries[0]
-                                            sidoOption = SiDo.entries[0]
-                                            viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
-                                        }
-                                    }
+            CaptionText(
+                "from https://apis.data.go.kr/1192136/waterlogged/GetWaterloggedApiService (Korea Hydrographic And Oceanographic Agency)",
+                textAlign = TextAlign.Center
+            )
+
+            Box(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) {// [Reload, Tooltips, Symbol, Legend]
+                val bottomBarOpt =
+                    listOf(true, false, false, false)
+                ChartFeatureControls(
+                    onChangeFlag = { label, value ->
+                        when (label) {
+                            "Reload" ->{
+                                coroutineScope.launch {
+                                    selectedGradeIndex = 0
+                                    selectedSidoIndex = 0
+                                    gradeOption = CoastalFloodingGrade.entries[0]
+                                    sidoOption = SiDo.entries[0]
+                                    viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
                                 }
-
-                            },
-                            bottomBarOpt = bottomBarOpt
-                        )
-
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                color = Color.DarkGray,
-                            )
+                            }
                         }
 
-                    }
+                    },
+                    bottomBarOpt = bottomBarOpt
+                )
+
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.DarkGray,
+                    )
                 }
 
             }
-            errorMessage.isNotEmpty() -> {
-                Text(errorMessage)
-            }
-            else -> {
-                if (download > -1) {
-                    Text("Downloading: $download%")
-                } else {
-                    Text("Initializing please wait...")
-                }
-                CircularProgressIndicator()
-            }
+
         }
+
 
     }
 

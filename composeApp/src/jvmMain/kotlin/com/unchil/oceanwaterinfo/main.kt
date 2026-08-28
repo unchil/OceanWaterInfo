@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -87,106 +88,107 @@ fun main() = application {
         title = "Environmental Observation Information",
         state = state,
     ) {
+
+       // MainView(modifier = Modifier.fillMaxSize() )
+
+
         MaterialTheme(colorScheme = getColorScheme(false)) {
 
             CompositionLocalProvider(LocalPlatform provides getPlatform()) {
-
-    //            OceanWaterInfo()
 
                 Column(
                     modifier = Modifier.fillMaxSize()
                         .background(color = MaterialTheme.colorScheme.surface)
                 ) {
-                    SecondaryTabRow(
-                        selectedTabIndex,
-                        Modifier.fillMaxWidth(),
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.primary,
-                         { HorizontalDivider() }
-                    ) {
-                        MAIN_TAB_ITEMS.forEachIndexed { index, title ->
+
+                    when {
+
+                        initialized -> {
+                            SecondaryTabRow(
+                                selectedTabIndex,
+                                Modifier.fillMaxWidth(),
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.primary,
+                                { HorizontalDivider() }
+                            ) {
+                                MAIN_TAB_ITEMS.forEachIndexed { index, title ->
 
 
-                            val interactionSource = remember { MutableInteractionSource() }
-                            // InteractionSource의 상태 변화를 직접 감지하는 로직
-                            LaunchedEffect(interactionSource) {
-                                interactionSource.interactions.collectLatest { interaction ->
-                                    when (interaction) {
-                                        is PressInteraction.Press -> {
-                                            if (selectedTabIndex != index) {
-                                                selectedTabIndex = index
+                                    val interactionSource = remember { MutableInteractionSource() }
+                                    // InteractionSource의 상태 변화를 직접 감지하는 로직
+                                    LaunchedEffect(interactionSource) {
+                                        interactionSource.interactions.collectLatest { interaction ->
+                                            when (interaction) {
+                                                is PressInteraction.Press -> {
+                                                    if (selectedTabIndex != index) {
+                                                        selectedTabIndex = index
+                                                    }
+                                                }
                                             }
                                         }
                                     }
+
+                                    Tab(
+                                        selected = selectedTabIndex == index,
+                                        onClick = {
+                                            // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                            if (selectedTabIndex != index) {
+                                                selectedTabIndex = index
+                                            }
+                                        },
+                                        text = {
+                                            Text(
+                                                text = title,
+                                                fontSize = 16.sp,
+                                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                                // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                                softWrap = false,
+                                                maxLines = 1
+                                            )
+                                        },
+                                        // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                        interactionSource = interactionSource
+                                    )
                                 }
                             }
-
-                            Tab(
-                                selected = selectedTabIndex == index,
-                                onClick = {
-                                    // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
-                                    if (selectedTabIndex != index) {
-                                        selectedTabIndex = index
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                when (selectedTabIndex) {
+                                    0 -> {
+                                        jvmMainAirQuality()
                                     }
-                                },
-                                text = {
-                                    Text(
-                                        text = title,
-                                        fontSize = 16.sp,
-                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
-                                        // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
-                                        softWrap = false,
-                                        maxLines = 1
-                                    )
-                                },
-                                // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
-                                interactionSource = interactionSource
-                            )
-                        }
-                    }
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        when (selectedTabIndex) {
-                            0 -> {
-                                jvmMainAirQuality(initialized, download, errorMessage)
-                            }
-                            1 -> {
-                                jvmMainOceanWaterQuality(
-                                    initialized,
-                                    download,
-                                    errorMessage
-                                )
-                            }
-                            2 -> {
-                                jvmMainTidalForecastMap(
-                                    initialized,
-                                    download,
-                                    errorMessage
-                                )
-                            }
-                            3 -> {
-                                jvmMainOceanCurrentSpeedMap(
-                                    initialized,
-                                    download,
-                                    errorMessage
-                                )
-                            }
+                                    1 -> {
+                                        jvmMainOceanWaterQuality( )
+                                    }
+                                    2 -> {
+                                        jvmMainTidalForecastMap( )
+                                    }
+                                    3 -> {
+                                        jvmMainOceanCurrentSpeedMap( )
+                                    }
 
-                            4 -> {
-                                jvmMainHydroNuclearPower(
-                                    initialized,
-                                    download,
-                                    errorMessage
-                                )
-                            }
-                            5 -> {
-                                jvmMainCoastalFloodingMap(
-                                    initialized,
-                                    download,
-                                    errorMessage
-                                )
+                                    4 -> {
+                                        jvmMainHydroNuclearPower( )
+                                    }
+                                    5 -> {
+                                        jvmMainCoastalFloodingMap( )
+                                    }
+                                }
                             }
                         }
+
+                        errorMessage.isNotEmpty() -> {
+                            Text(errorMessage)
+                        }
+                        else -> {
+                            if (download > -1) {
+                                Text("Downloading: $download%")
+                            } else {
+                                Text("Initializing please wait...")
+                            }
+                            CircularProgressIndicator()
+                        }
                     }
+
                 }
 
             }

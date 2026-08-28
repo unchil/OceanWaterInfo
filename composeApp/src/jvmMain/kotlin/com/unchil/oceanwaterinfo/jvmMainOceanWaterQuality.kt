@@ -32,11 +32,7 @@ import io.github.koalaplot.core.xygraph.Point
 import kotlin.Double
 
 @Composable
-fun jvmMainOceanWaterQuality(
-    initialized: Boolean,
-    download:Int,
-    errorMessage:String,
-){
+fun jvmMainOceanWaterQuality(){
 
 
 
@@ -113,12 +109,7 @@ fun jvmMainOceanWaterQuality(
                     CompositionLocalProvider(
                         OceanWaterInfoGeoChartPoint provides clickPointOceanWaterInfoGeoChart.value
                     ) {
-                        OceanWaterInfoGeoChart_MapScreen(
-                            initialized,
-                            download,
-                            errorMessage,
-                            mapScreenHeight
-                        )
+                        OceanWaterInfoGeoChart_MapScreen(  mapScreenHeight  )
                     }
 
                 }

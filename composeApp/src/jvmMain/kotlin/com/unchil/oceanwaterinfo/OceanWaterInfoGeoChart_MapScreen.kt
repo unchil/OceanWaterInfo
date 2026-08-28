@@ -33,9 +33,6 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun OceanWaterInfoGeoChart_MapScreen(
-    initialized: Boolean,
-    download:Int,
-    errorMessage:String,
     height: Dp = 400.dp
 ){
     val coroutineScope = rememberCoroutineScope()
@@ -215,27 +212,12 @@ fun OceanWaterInfoGeoChart_MapScreen(
             modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight).padding(12.dp),
             contentAlignment = Alignment.Center
         ) {
-            when {
-                initialized -> {
-                    WebView(
-                        state = webViewState,
-                        navigator = navigator,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                errorMessage.isNotEmpty() -> {
-                    Text(errorMessage)
-                }
-                else -> {
-                    if (download > -1) {
-                        Text("Downloading: $download%")
-                    } else {
-                        Text("Initializing please wait...")
-                    }
-                    CircularProgressIndicator()
+            WebView(
+                state = webViewState,
+                navigator = navigator,
+                modifier = Modifier.fillMaxSize()
+            )
 
-                }
-            }
         }
 
         Box(

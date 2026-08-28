@@ -31,6 +31,9 @@ fun main(){
 
     ComposeViewport(viewportContainerId = DIV_WEB_MAIN) {
 
+    //    MainView( modifier = Modifier.fillMaxSize() )
+
+
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
 
         LaunchedEffect(selectedTabIndex) {

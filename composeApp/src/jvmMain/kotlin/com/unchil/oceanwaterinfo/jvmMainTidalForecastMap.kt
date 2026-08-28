@@ -30,11 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun jvmMainTidalForecastMap(
-    initialized: Boolean,
-    download:Int,
-    errorMessage:String,
-){
+fun jvmMainTidalForecastMap(){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaTidalCurrentViewModel = remember {
@@ -111,86 +107,68 @@ fun jvmMainTidalForecastMap(
 
         val height = this.maxHeight
 
+        Column(modifier=Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally) {
 
+            Column(
+                modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
 
-        when {
-            initialized -> {
-
-                Column(modifier=Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-
-                        ChartTitle(
-                            "Prediction 3 hour from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }} Tidal Current Map",
-                            modifier = Modifier,
-                        )
+                ChartTitle(
+                    "Prediction 3 hour from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }} Tidal Current Map",
+                    modifier = Modifier,
+                )
 
 
 
-                        WebView(
-                            state = webViewState,
-                            navigator = navigator,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                WebView(
+                    state = webViewState,
+                    navigator = navigator,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
-                    CaptionText(
-                        "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
-                        textAlign = TextAlign.Center
-                    )
+            CaptionText(
+                "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
+                textAlign = TextAlign.Center
+            )
 
 
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {// [Reload, Tooltips, Symbol, Legend]
-                        val bottomBarOpt =
-                            listOf(true, false, false, false)
-                        ChartFeatureControls(
-                            onChangeFlag = { label, value ->
-                                when (label) {
-                                    "Reload" ->{
-                                        visibleProgressIndicator.value = true
-                                        navigator.evaluateJavaScript("initMapWithData( ${values.value})")
-                                        coroutineScope.launch {
-                                            delay(1000)
-                                            visibleProgressIndicator.value = false
-                                        }
-                                    }
+            Box(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center,
+            ) {// [Reload, Tooltips, Symbol, Legend]
+                val bottomBarOpt =
+                    listOf(true, false, false, false)
+                ChartFeatureControls(
+                    onChangeFlag = { label, value ->
+                        when (label) {
+                            "Reload" ->{
+                                visibleProgressIndicator.value = true
+                                navigator.evaluateJavaScript("initMapWithData( ${values.value})")
+                                coroutineScope.launch {
+                                    delay(1000)
+                                    visibleProgressIndicator.value = false
                                 }
-
-                            },
-                            bottomBarOpt = bottomBarOpt
-                        )
-                        if (visibleProgressIndicator.value) {
-                            CircularProgressIndicator(
-                                color = Color.DarkGray,
-                            )
+                            }
                         }
-                    }
+
+                    },
+                    bottomBarOpt = bottomBarOpt
+                )
+                if (visibleProgressIndicator.value) {
+                    CircularProgressIndicator(
+                        color = Color.DarkGray,
+                    )
                 }
-
-
-            }
-            errorMessage.isNotEmpty() -> {
-                Text(errorMessage)
-            }
-            else -> {
-                if (download > -1) {
-                    Text("Downloading: $download%")
-                } else {
-                    Text("Initializing please wait...")
-                }
-                CircularProgressIndicator()
-
             }
         }
+
+
+
     }
 
 

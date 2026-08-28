@@ -32,11 +32,7 @@ import io.github.koalaplot.core.xygraph.Point
 import kotlin.Double
 
 @Composable
-fun jvmMainHydroNuclearPower(
-    initialized: Boolean,
-    download:Int,
-    errorMessage:String,
-){
+fun jvmMainHydroNuclearPower(){
 
     val initCenterPoint = remember{ Point(126.934515, 37.385852) }
 
@@ -131,9 +127,6 @@ fun jvmMainHydroNuclearPower(
                         ) {
                             //WaterInfoGeoChart_KHOA_MapScreen 은 항상 height 값이 fix 되어야 표시됨.
                             WaterInfoGeoChart_KHOA_MapScreen(
-                                initialized,
-                                download,
-                                errorMessage,
                                 height = mapScreenHeight
                             )
                         }
