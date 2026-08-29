@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -37,10 +38,12 @@ import androidx.compose.ui.window.application
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
 import io.ktor.util.logging.KtorSimpleLogger
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.withContext
 import java.io.File
+
+enum class KCEF_PROGRESS_STATE {
+    onDownloading, onLocating, onExtracting, onInstall, onInitializing, onInitialized
+}
 
 
 val LOGGER = KtorSimpleLogger("jvmMain")
@@ -51,33 +54,61 @@ val OceanWaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { err
 
 fun main() = application {
 
-    var downloadProgress by remember { mutableStateOf(-1F) }
-    var initialized by remember { mutableStateOf(false) } // if true, KCEF can be used to create clients, browsers etc
+
     val bundleLocation =  File("/Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/build/")
-    var errorMessage by remember {mutableStateOf("")}
 
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                KCEF.init(
-                    builder = {
-                       installDir(File(bundleLocation, "kcef-bundle")) // recommended, but not necessary
-                        progress {
-                            onDownloading {
-                                downloadProgress = it
-                                // use this if you want to display a download progress for example
-                            }
-                            onInitialized {
-                                initialized = true
-                            }
+    var initialized by remember { mutableStateOf(false) }
+    var initError by remember { mutableStateOf("") }
+    var isRestartRequired by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableStateOf(-1F) }
+    var progressState by remember{mutableStateOf(KCEF_PROGRESS_STATE.onDownloading)}
+
+
+    LaunchedEffect(Unit) {
+        try {
+            // KCEF.init은 JBR에 내장된 JCEF를 자동으로 탐색합니다.
+            KCEF.init(
+                builder = {
+
+                    installDir(File(bundleLocation, "kcef-bundle"))
+
+                    progress {
+                        onDownloading { percent ->
+                            downloadProgress = percent
                         }
-                    },
-                    onError = {
-                        errorMessage = it?.printStackTrace().toString()
-                    },
+                        onLocating {
+                            progressState = KCEF_PROGRESS_STATE.onLocating
+                        }
+                        onExtracting {
+                            progressState = KCEF_PROGRESS_STATE.onExtracting
+                        }
+                        onInstall {
+                            progressState = KCEF_PROGRESS_STATE.onInstall
+                        }
 
-                )
-            }
+                        onInitializing {
+                            progressState = KCEF_PROGRESS_STATE.onInitializing
+                        }
+
+                        onInitialized {
+                            progressState = KCEF_PROGRESS_STATE.onInitialized
+                            initialized = true
+                        }
+
+                    }
+                },
+                onError = { error ->
+                    initError = error?.localizedMessage ?: "KCEF 초기화 실패"
+                },
+                onRestartRequired = {
+                    // 다운로드가 완료되어 재시작이 필요한 상태임을 기록
+                    isRestartRequired = true
+                }
+            )
+        } catch (e: Exception) {
+            initError = e.localizedMessage ?: "알 수 없는 오류"
         }
+    }
 
 
 
@@ -91,7 +122,10 @@ fun main() = application {
 
 
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = {
+            KCEF.disposeBlocking()
+            exitApplication()
+        },
         title = "Environmental Observation Information",
         state = state,
     ) {
@@ -102,105 +136,118 @@ fun main() = application {
 
             CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                        .background(color = MaterialTheme.colorScheme.surface)
-                ) {
-
-                    if(initialized){
-                        SecondaryTabRow(
-                            selectedTabIndex,
-                            Modifier.fillMaxWidth(),
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.primary,
-                            { HorizontalDivider() }
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ){
+                    if (isRestartRequired) {
+                        androidx.compose.material.Text("안전한 브라우저 실행을 위해 앱을 다시 시작해 주세요.")
+                    } else if (initialized) {
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                                .background(color = MaterialTheme.colorScheme.surface)
                         ) {
-                            MAIN_TAB_ITEMS.forEachIndexed { index, title ->
-
-
-                                val interactionSource = remember { MutableInteractionSource() }
-                                // InteractionSource의 상태 변화를 직접 감지하는 로직
-                                LaunchedEffect(interactionSource) {
-                                    interactionSource.interactions.collectLatest { interaction ->
-                                        when (interaction) {
-                                            is PressInteraction.Press -> {
-                                                if (selectedTabIndex != index) {
-                                                    selectedTabIndex = index
+                            SecondaryTabRow(
+                                selectedTabIndex,
+                                Modifier.fillMaxWidth(),
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.primary,
+                                { HorizontalDivider() }
+                            ) {
+                                MAIN_TAB_ITEMS.forEachIndexed { index, title ->
+                                    val interactionSource = remember { MutableInteractionSource() }
+                                    // InteractionSource의 상태 변화를 직접 감지하는 로직
+                                    LaunchedEffect(interactionSource) {
+                                        interactionSource.interactions.collectLatest { interaction ->
+                                            when (interaction) {
+                                                is PressInteraction.Press -> {
+                                                    if (selectedTabIndex != index) {
+                                                        selectedTabIndex = index
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                Tab(
-                                    selected = selectedTabIndex == index,
-                                    onClick = {
-                                        // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
-                                        if (selectedTabIndex != index) {
-                                            selectedTabIndex = index
-                                        }
-                                    },
-                                    text = {
-                                        Text(
-                                            text = title,
-                                            fontSize = 16.sp,
-                                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
-                                            // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
-                                            softWrap = false,
-                                            maxLines = 1
-                                        )
-                                    },
-                                    // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
-                                    interactionSource = interactionSource
-                                )
-                            }
-                        }
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            when (selectedTabIndex) {
-                                0 -> {
-                                    jvmMainAirQuality()
-                                }
-                                1 -> {
-                                    jvmMainOceanWaterQuality( )
-                                }
-                                2 -> {
-                                    jvmMainTidalForecastMap( )
-                                }
-                                3 -> {
-                                    jvmMainOceanCurrentSpeedMap( )
-                                }
-
-                                4 -> {
-                                    jvmMainHydroNuclearPower( )
-                                }
-                                5 -> {
-                                    jvmMainCoastalFloodingMap( )
+                                    Tab(
+                                        selected = selectedTabIndex == index,
+                                        onClick = {
+                                            // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                            if (selectedTabIndex != index) {
+                                                selectedTabIndex = index
+                                            }
+                                        },
+                                        text = {
+                                            Text(
+                                                text = title,
+                                                fontSize = 16.sp,
+                                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                                // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                                softWrap = false,
+                                                maxLines = 1
+                                            )
+                                        },
+                                        // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                        interactionSource = interactionSource
+                                    )
                                 }
                             }
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                when (selectedTabIndex) {
+                                    0 -> {
+                                        jvmMainAirQuality()
+                                    }
+                                    1 -> {
+                                        jvmMainOceanWaterQuality( )
+                                    }
+                                    2 -> {
+                                        jvmMainTidalForecastMap( )
+                                    }
+                                    3 -> {
+                                        jvmMainOceanCurrentSpeedMap( )
+                                    }
+
+                                    4 -> {
+                                        jvmMainHydroNuclearPower( )
+                                    }
+                                    5 -> {
+                                        jvmMainCoastalFloodingMap( )
+                                    }
+                                }
+                            }
                         }
+                    } else if(initError.isNotEmpty()){
+                        androidx.compose.material.Text(initError)
                     }else {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                if (downloadProgress > -1f) {
-                                    // 다운로드 중일 때: 퍼센트 텍스트와 막대형 게이지 표시
-                                    androidx.compose.material.Text("엔진 다운로드 중: ${downloadProgress.toInt()}%")
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    LinearProgressIndicator(progress = downloadProgress / 100f)
-                                } else {
-                                    // 초기 설정 중일 때: 대기 메시지와 회전형 인디케이터 표시
-                                    androidx.compose.material.Text("WebView 엔진을 초기화하고 있습니다...")
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    androidx.compose.material.CircularProgressIndicator()
-                                }
+                        when(progressState){
+                            KCEF_PROGRESS_STATE.onDownloading -> {
+                                androidx.compose.material.Text("엔진 다운로드 중: ${downloadProgress.toInt()}%")
+                                Spacer(modifier = Modifier.height(8.dp))
+                                LinearProgressIndicator(progress = downloadProgress / 100f)
                             }
-
+                            KCEF_PROGRESS_STATE.onLocating -> {
+                                androidx.compose.material.Text("엔진 위치 찾는 중...")
+                            }
+                            KCEF_PROGRESS_STATE.onExtracting -> {
+                                androidx.compose.material.Text("압축 해제 중...")
+                            }
+                            KCEF_PROGRESS_STATE.onInitializing -> {
+                                androidx.compose.material.Text("초기화 중...")
+                            }
+                            KCEF_PROGRESS_STATE.onInstall -> {
+                                androidx.compose.material.Text("설치 중...")
+                            }
+                            KCEF_PROGRESS_STATE.onInitialized -> {
+                                androidx.compose.material.Text("완료!")
+                            }
                         }
 
+                        Spacer(modifier = Modifier.height(8.dp))
+                        CircularProgressIndicator()
                     }
 
-
-
                 }
+
 
             }
         }
