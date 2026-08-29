@@ -128,6 +128,20 @@ compose.desktop {
     application {
         mainClass = "com.unchil.oceanwaterinfo.MainKt"
 
+        jvmArgs(
+            "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED",
+            "--add-opens=java.desktop/java.awt=ALL-UNNAMED", // 추가 권장
+            "--add-exports=java.desktop/sun.awt=ALL-UNNAMED" // AccessError일 경우 export도 도움됨
+        )
+
+        if (System.getProperty("os.name").contains("Mac")) {
+            jvmArgs(
+                "--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED",
+                "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED"
+            )
+        }
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.unchil.oceanwaterinfo"
