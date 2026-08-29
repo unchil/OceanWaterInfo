@@ -1,9 +1,11 @@
 package com.unchil.oceanwaterinfo
 
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,9 +43,6 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.flow.collectLatest
 import java.io.File
 
-enum class KCEF_PROGRESS_STATE {
-    onDownloading, onLocating, onExtracting, onInstall, onInitializing, onInitialized
-}
 
 
 val LOGGER = KtorSimpleLogger("jvmMain")
@@ -58,56 +57,82 @@ fun main() = application {
     val bundleLocation =  File("/Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/build/")
 
     var initialized by remember { mutableStateOf(false) }
-    var initError by remember { mutableStateOf("") }
-    var isRestartRequired by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(-1F) }
-    var progressState by remember{mutableStateOf(KCEF_PROGRESS_STATE.onDownloading)}
-
+    var progressMsg by remember { mutableStateOf("다운로드 중...") }
+    var isDownload by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        try {
-            // KCEF.init은 JBR에 내장된 JCEF를 자동으로 탐색합니다.
-            KCEF.init(
-                builder = {
 
-                    installDir(File(bundleLocation, "kcef-bundle"))
+        KCEF.init(
+            builder = {
 
-                    progress {
-                        onDownloading { percent ->
-                            downloadProgress = percent
-                        }
-                        onLocating {
-                            progressState = KCEF_PROGRESS_STATE.onLocating
-                        }
-                        onExtracting {
-                            progressState = KCEF_PROGRESS_STATE.onExtracting
-                        }
-                        onInstall {
-                            progressState = KCEF_PROGRESS_STATE.onInstall
-                        }
+                installDir(File(bundleLocation, "kcef-bundle"))
 
-                        onInitializing {
-                            progressState = KCEF_PROGRESS_STATE.onInitializing
-                        }
+                progress {
 
-                        onInitialized {
-                            progressState = KCEF_PROGRESS_STATE.onInitialized
-                            initialized = true
+                    onLocating {
+                        isDownload = false
+                        progressMsg = "엔진 위치 찾는 중..."
+                    }
+                    onDownloading { percent ->
+                        isDownload = true
+                        downloadProgress = percent
+                        progressMsg = "다운로드 중: $percent%"
+                    }
+                    onExtracting {
+                        isDownload = false
+                        progressMsg = "압축 해제 중..."
+                    }
+                    onInitializing {
+                        isDownload = false
+                        progressMsg = "초기화 중..."
+                    }
+
+                    onInstall{
+                        isDownload = false
+
+                        progressMsg =  "설치 중..."
+                        // 1. 소스 및 대상 경로 정의
+
+                        val kcefDir = File(bundleLocation, "kcef-bundle") // installDir과 동일한 위치
+                        val sourcePath = "${kcefDir}/Frameworks/cef_server.app/Contents/Frameworks"
+                        val destPath = "${kcefDir}/Frameworks"
+
+                        val sourceDir = File(sourcePath)
+                        val destDir = File(destPath)
+
+                        // 2. 소스 경로가 존재할 경우 파일 이동 수행
+                        if (sourceDir.exists() && sourceDir.isDirectory) {
+                            sourceDir.listFiles()?.forEach { file ->
+                                val targetFile = File(destDir, file.name)
+                                file.renameTo(targetFile)
+                            }
+
+                            // 핵심: 설치 완료를 알리는 lock 파일 생성
+                            val lockFile = File(kcefDir, "install.lock")
+                            if (!lockFile.exists()) {
+                                lockFile.createNewFile()
+                            }
                         }
 
                     }
-                },
-                onError = { error ->
-                    initError = error?.localizedMessage ?: "KCEF 초기화 실패"
-                },
-                onRestartRequired = {
-                    // 다운로드가 완료되어 재시작이 필요한 상태임을 기록
-                    isRestartRequired = true
+
+                    onInitialized {
+                        isDownload = false
+                        progressMsg = "완료!"
+                        initialized = true
+                    }
+
                 }
-            )
-        } catch (e: Exception) {
-            initError = e.localizedMessage ?: "알 수 없는 오류"
-        }
+            },
+            onError = { error ->
+                progressMsg = error?.localizedMessage ?: "알 수 없는 오류"
+            },
+            onRestartRequired = {
+
+            }
+        )
+
     }
 
 
@@ -140,110 +165,107 @@ fun main() = application {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ){
-                    if (isRestartRequired) {
-                        androidx.compose.material.Text("안전한 브라우저 실행을 위해 앱을 다시 시작해 주세요.")
-                    } else if (initialized) {
-                        Column(
-                            modifier = Modifier.fillMaxSize()
-                                .background(color = MaterialTheme.colorScheme.surface)
-                        ) {
-                            SecondaryTabRow(
-                                selectedTabIndex,
-                                Modifier.fillMaxWidth(),
-                                MaterialTheme.colorScheme.surface,
-                                MaterialTheme.colorScheme.primary,
-                                { HorizontalDivider() }
-                            ) {
-                                MAIN_TAB_ITEMS.forEachIndexed { index, title ->
-                                    val interactionSource = remember { MutableInteractionSource() }
-                                    // InteractionSource의 상태 변화를 직접 감지하는 로직
-                                    LaunchedEffect(interactionSource) {
-                                        interactionSource.interactions.collectLatest { interaction ->
-                                            when (interaction) {
-                                                is PressInteraction.Press -> {
-                                                    if (selectedTabIndex != index) {
-                                                        selectedTabIndex = index
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                     if (initialized) {
 
-                                    Tab(
-                                        selected = selectedTabIndex == index,
-                                        onClick = {
-                                            // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
-                                            if (selectedTabIndex != index) {
-                                                selectedTabIndex = index
-                                            }
-                                        },
-                                        text = {
-                                            Text(
-                                                text = title,
-                                                fontSize = 16.sp,
-                                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
-                                                // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
-                                                softWrap = false,
-                                                maxLines = 1
-                                            )
-                                        },
-                                        // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
-                                        interactionSource = interactionSource
-                                    )
-                                }
-                            }
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                when (selectedTabIndex) {
-                                    0 -> {
-                                        jvmMainAirQuality()
-                                    }
-                                    1 -> {
-                                        jvmMainOceanWaterQuality( )
-                                    }
-                                    2 -> {
-                                        jvmMainTidalForecastMap( )
-                                    }
-                                    3 -> {
-                                        jvmMainOceanCurrentSpeedMap( )
-                                    }
+                         if(progressMsg.contains("install.lock") || downloadProgress.equals(100.0f) ){
+                             androidx.compose.material.Text("The WebView installation is complete, so please restart.")
+                         }else{
 
-                                    4 -> {
-                                        jvmMainHydroNuclearPower( )
-                                    }
-                                    5 -> {
-                                        jvmMainCoastalFloodingMap( )
-                                    }
-                                }
-                            }
-                        }
-                    } else if(initError.isNotEmpty()){
-                        androidx.compose.material.Text(initError)
+                             Column(
+                                 modifier = Modifier.fillMaxSize()
+                                     .background(color = MaterialTheme.colorScheme.surface)
+                             ) {
+                                 SecondaryTabRow(
+                                     selectedTabIndex,
+                                     Modifier.fillMaxWidth(),
+                                     MaterialTheme.colorScheme.surface,
+                                     MaterialTheme.colorScheme.primary,
+                                     { HorizontalDivider() }
+                                 ) {
+                                     MAIN_TAB_ITEMS.forEachIndexed { index, title ->
+                                         val interactionSource = remember { MutableInteractionSource() }
+                                         // InteractionSource의 상태 변화를 직접 감지하는 로직
+                                         LaunchedEffect(interactionSource) {
+                                             interactionSource.interactions.collectLatest { interaction ->
+                                                 when (interaction) {
+                                                     is PressInteraction.Press -> {
+                                                         if (selectedTabIndex != index) {
+                                                             selectedTabIndex = index
+                                                         }
+                                                     }
+                                                 }
+                                             }
+                                         }
+
+                                         Tab(
+                                             selected = selectedTabIndex == index,
+                                             onClick = {
+                                                 // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                                 if (selectedTabIndex != index) {
+                                                     selectedTabIndex = index
+                                                 }
+                                             },
+                                             text = {
+                                                 Text(
+                                                     text = title,
+                                                     fontSize = 16.sp,
+                                                     fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                                     // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                                     softWrap = false,
+                                                     maxLines = 1
+                                                 )
+                                             },
+                                             // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                             interactionSource = interactionSource
+                                         )
+                                     }
+                                 }
+                                 Box(modifier = Modifier.fillMaxSize()) {
+                                     when (selectedTabIndex) {
+                                         0 -> {
+                                             jvmMainAirQuality()
+                                         }
+                                         1 -> {
+                                             jvmMainOceanWaterQuality( )
+                                         }
+                                         2 -> {
+                                             jvmMainTidalForecastMap( )
+                                         }
+                                         3 -> {
+                                             jvmMainOceanCurrentSpeedMap( )
+                                         }
+
+                                         4 -> {
+                                             jvmMainHydroNuclearPower( )
+                                         }
+                                         5 -> {
+                                             jvmMainCoastalFloodingMap( )
+                                         }
+                                     }
+                                 }
+                             }
+
+                         }
+
+
+
+
                     }else {
-                        when(progressState){
-                            KCEF_PROGRESS_STATE.onDownloading -> {
-                                androidx.compose.material.Text("엔진 다운로드 중: ${downloadProgress.toInt()}%")
-                                Spacer(modifier = Modifier.height(8.dp))
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ){
+                            androidx.compose.material.Text(progressMsg)
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            if(isDownload){
                                 LinearProgressIndicator(progress = downloadProgress / 100f)
-                            }
-                            KCEF_PROGRESS_STATE.onLocating -> {
-                                androidx.compose.material.Text("엔진 위치 찾는 중...")
-                            }
-                            KCEF_PROGRESS_STATE.onExtracting -> {
-                                androidx.compose.material.Text("압축 해제 중...")
-                            }
-                            KCEF_PROGRESS_STATE.onInitializing -> {
-                                androidx.compose.material.Text("초기화 중...")
-                            }
-                            KCEF_PROGRESS_STATE.onInstall -> {
-                                androidx.compose.material.Text("설치 중...")
-                            }
-                            KCEF_PROGRESS_STATE.onInitialized -> {
-                                androidx.compose.material.Text("완료!")
+                            } else {
+                                CircularProgressIndicator()
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-                        CircularProgressIndicator()
                     }
 
                 }
