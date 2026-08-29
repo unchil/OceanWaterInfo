@@ -574,6 +574,7 @@ class Repository {
 
 
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater> = transaction {
         LOGGER.info("Serving from DB for : fetchKHNPThermalWasteWaterFromDb")
         val previous24Hour =
@@ -612,6 +613,7 @@ class Repository {
 
     }
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater> = transaction {
         LOGGER.info("Serving from DB for : fetchKHNPWasteWaterFromDb")
         val previous24Hour =

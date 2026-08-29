@@ -6,9 +6,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -38,40 +40,45 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
+import java.io.File
+
 
 val LOGGER = KtorSimpleLogger("jvmMain")
-
-
 
 val WaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
 val OceanWaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
 
+
 fun main() = application {
 
-    var initialized by remember { mutableStateOf(false) }
-    var download by remember { mutableStateOf(-1) }
+    var downloadProgress by remember { mutableStateOf(-1F) }
+    var initialized by remember { mutableStateOf(false) } // if true, KCEF can be used to create clients, browsers etc
+    val bundleLocation =  File("/Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/build/")
     var errorMessage by remember {mutableStateOf("")}
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            KCEF.init(
-                builder = {
-                    progress {
-                        onInitialized {
-                            initialized = true
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                KCEF.init(
+                    builder = {
+                       installDir(File(bundleLocation, "kcef-bundle")) // recommended, but not necessary
+                        progress {
+                            onDownloading {
+                                downloadProgress = it
+                                // use this if you want to display a download progress for example
+                            }
+                            onInitialized {
+                                initialized = true
+                            }
                         }
-                        onDownloading {
-                            download = it.toInt()
-                        }
-                    }
-                },
-                onError = {
-                    errorMessage = it?.printStackTrace().toString()
-                },
+                    },
+                    onError = {
+                        errorMessage = it?.printStackTrace().toString()
+                    },
 
-            )
+                )
+            }
         }
-    }
+
 
 
     val state = WindowState(
@@ -89,8 +96,7 @@ fun main() = application {
         state = state,
     ) {
 
-       // MainView(modifier = Modifier.fillMaxSize() )
-
+     //   MainView(modifier = Modifier.fillMaxSize() )
 
         MaterialTheme(colorScheme = getColorScheme(false)) {
 
@@ -101,98 +107,107 @@ fun main() = application {
                         .background(color = MaterialTheme.colorScheme.surface)
                 ) {
 
-                    when {
-
-                        initialized -> {
-                            SecondaryTabRow(
-                                selectedTabIndex,
-                                Modifier.fillMaxWidth(),
-                                MaterialTheme.colorScheme.surface,
-                                MaterialTheme.colorScheme.primary,
-                                { HorizontalDivider() }
-                            ) {
-                                MAIN_TAB_ITEMS.forEachIndexed { index, title ->
+                    if(initialized){
+                        SecondaryTabRow(
+                            selectedTabIndex,
+                            Modifier.fillMaxWidth(),
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.primary,
+                            { HorizontalDivider() }
+                        ) {
+                            MAIN_TAB_ITEMS.forEachIndexed { index, title ->
 
 
-                                    val interactionSource = remember { MutableInteractionSource() }
-                                    // InteractionSource의 상태 변화를 직접 감지하는 로직
-                                    LaunchedEffect(interactionSource) {
-                                        interactionSource.interactions.collectLatest { interaction ->
-                                            when (interaction) {
-                                                is PressInteraction.Press -> {
-                                                    if (selectedTabIndex != index) {
-                                                        selectedTabIndex = index
-                                                    }
+                                val interactionSource = remember { MutableInteractionSource() }
+                                // InteractionSource의 상태 변화를 직접 감지하는 로직
+                                LaunchedEffect(interactionSource) {
+                                    interactionSource.interactions.collectLatest { interaction ->
+                                        when (interaction) {
+                                            is PressInteraction.Press -> {
+                                                if (selectedTabIndex != index) {
+                                                    selectedTabIndex = index
                                                 }
                                             }
                                         }
                                     }
+                                }
 
-                                    Tab(
-                                        selected = selectedTabIndex == index,
-                                        onClick = {
-                                            // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
-                                            if (selectedTabIndex != index) {
-                                                selectedTabIndex = index
-                                            }
-                                        },
-                                        text = {
-                                            Text(
-                                                text = title,
-                                                fontSize = 16.sp,
-                                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
-                                                // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
-                                                softWrap = false,
-                                                maxLines = 1
-                                            )
-                                        },
-                                        // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
-                                        interactionSource = interactionSource
-                                    )
+                                Tab(
+                                    selected = selectedTabIndex == index,
+                                    onClick = {
+                                        // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                        if (selectedTabIndex != index) {
+                                            selectedTabIndex = index
+                                        }
+                                    },
+                                    text = {
+                                        Text(
+                                            text = title,
+                                            fontSize = 16.sp,
+                                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                            // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                            softWrap = false,
+                                            maxLines = 1
+                                        )
+                                    },
+                                    // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                    interactionSource = interactionSource
+                                )
+                            }
+                        }
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            when (selectedTabIndex) {
+                                0 -> {
+                                    jvmMainAirQuality()
+                                }
+                                1 -> {
+                                    jvmMainOceanWaterQuality( )
+                                }
+                                2 -> {
+                                    jvmMainTidalForecastMap( )
+                                }
+                                3 -> {
+                                    jvmMainOceanCurrentSpeedMap( )
+                                }
+
+                                4 -> {
+                                    jvmMainHydroNuclearPower( )
+                                }
+                                5 -> {
+                                    jvmMainCoastalFloodingMap( )
                                 }
                             }
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                when (selectedTabIndex) {
-                                    0 -> {
-                                        jvmMainAirQuality()
-                                    }
-                                    1 -> {
-                                        jvmMainOceanWaterQuality( )
-                                    }
-                                    2 -> {
-                                        jvmMainTidalForecastMap( )
-                                    }
-                                    3 -> {
-                                        jvmMainOceanCurrentSpeedMap( )
-                                    }
-
-                                    4 -> {
-                                        jvmMainHydroNuclearPower( )
-                                    }
-                                    5 -> {
-                                        jvmMainCoastalFloodingMap( )
-                                    }
+                        }
+                    }else {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                if (downloadProgress > -1f) {
+                                    // 다운로드 중일 때: 퍼센트 텍스트와 막대형 게이지 표시
+                                    androidx.compose.material.Text("엔진 다운로드 중: ${downloadProgress.toInt()}%")
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LinearProgressIndicator(progress = downloadProgress / 100f)
+                                } else {
+                                    // 초기 설정 중일 때: 대기 메시지와 회전형 인디케이터 표시
+                                    androidx.compose.material.Text("WebView 엔진을 초기화하고 있습니다...")
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    androidx.compose.material.CircularProgressIndicator()
                                 }
                             }
+
                         }
 
-                        errorMessage.isNotEmpty() -> {
-                            Text(errorMessage)
-                        }
-                        else -> {
-                            if (download > -1) {
-                                Text("Downloading: $download%")
-                            } else {
-                                Text("Initializing please wait...")
-                            }
-                            CircularProgressIndicator()
-                        }
                     }
+
+
 
                 }
 
             }
         }
+
+
+
+
     }
 
 
@@ -204,5 +219,8 @@ fun main() = application {
     }
 
 
-}
 
+
+
+
+}
