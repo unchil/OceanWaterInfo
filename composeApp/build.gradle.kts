@@ -126,7 +126,7 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.unchil.oceanwaterinfo.MainKt"
+        mainClass = "com.unchil.oceanwaterinfo.EnvironmentalObserverKt"
 
         jvmArgs(
             "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",

@@ -1,7 +1,6 @@
 package com.unchil.oceanwaterinfo
 
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -156,7 +155,7 @@ fun main() = application {
             }
 
             val classpath = System.getProperty("java.class.path")
-            val mainClass = "com.unchil.oceanwaterinfo.MainKt"
+            val mainClass = "com.unchil.oceanwaterinfo.EnvironmentalObserverKt"
 
             val command = mutableListOf(java)
             command.addAll(vmArguments)
