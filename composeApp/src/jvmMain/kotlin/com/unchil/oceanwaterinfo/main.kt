@@ -60,7 +60,8 @@ val OceanWaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { err
 fun main() = application {
 
     val coroutineScope = rememberCoroutineScope()
-    val bundleLocation =  File("/Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/build/")
+    // 1. 시스템 프로퍼티에서 홈 디렉토리 경로를 가져옵니다.
+    val userHome = System.getProperty("user.home")
 
     var initialized by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(-1F) }
@@ -72,7 +73,7 @@ fun main() = application {
         KCEF.init(
             builder = {
 
-                installDir(File(bundleLocation, "kcef-bundle"))
+                installDir(File(userHome, ".kcef-bundle"))
 
                 progress {
 
@@ -100,7 +101,7 @@ fun main() = application {
                         progressMsg =  "설치 중..."
                         // 1. 소스 및 대상 경로 정의
 
-                        val kcefDir = File(bundleLocation, "kcef-bundle") // installDir과 동일한 위치
+                        val kcefDir = File(userHome, ".kcef-bundle") // installDir과 동일한 위치
                         val sourcePath = "${kcefDir}/Frameworks/cef_server.app/Contents/Frameworks"
                         val destPath = "${kcefDir}/Frameworks"
 
