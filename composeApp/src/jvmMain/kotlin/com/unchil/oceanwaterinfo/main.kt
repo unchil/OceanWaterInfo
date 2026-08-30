@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.TextButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -26,9 +28,11 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -40,9 +44,11 @@ import androidx.compose.ui.window.application
 import dev.datlag.kcef.KCEF
 import io.github.koalaplot.core.xygraph.Point
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.io.File
-
+import java.lang.management.ManagementFactory
 
 
 val LOGGER = KtorSimpleLogger("jvmMain")
@@ -53,7 +59,7 @@ val OceanWaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { err
 
 fun main() = application {
 
-
+    val coroutineScope = rememberCoroutineScope()
     val bundleLocation =  File("/Users/unchil/AndroidStudioProjects/OceanWaterInfo/composeApp/build/")
 
     var initialized by remember { mutableStateOf(false) }
@@ -77,7 +83,7 @@ fun main() = application {
                     onDownloading { percent ->
                         isDownload = true
                         downloadProgress = percent
-                        progressMsg = "다운로드 중: $percent%"
+                        progressMsg = "다운로드 중: ${percent.toInt()}%"
                     }
                     onExtracting {
                         isDownload = false
@@ -135,7 +141,41 @@ fun main() = application {
 
     }
 
+    val restartHandler = {
+        try {
+            // 2. KCEF 자원 해제 (완료될 때까지 블로킹됨)
+            KCEF.disposeBlocking()
 
+            // 3. 현재 실행 환경 정보 수집
+            val java = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java"
+            //     val vmArguments = ManagementFactory.getRuntimeMXBean().inputArguments
+            // ... ProcessBuilder 부분 수정
+            val vmArguments = ManagementFactory.getRuntimeMXBean().inputArguments.filter {
+                !it.contains("-agentlib:jdwp") && !it.contains("-Xdebug")
+            }
+
+            val classpath = System.getProperty("java.class.path")
+            val mainClass = "com.unchil.oceanwaterinfo.MainKt"
+
+            val command = mutableListOf(java)
+            command.addAll(vmArguments)
+            command.add("-cp")
+            command.add(classpath)
+            command.add(mainClass)
+
+            // 4. 새 프로세스 시작
+            // inheritIO()를 사용하면 새 프로세스의 로그를 현재 콘솔에서도 볼 수 있어 디버깅에 유리합니다.
+            ProcessBuilder(command).inheritIO().start()
+
+
+            // 5. 현재 프로세스 종료
+            System.exit(0)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            System.exit(0)
+            // 에러 발생 시 종료하지 않고 사용자에게 알릴 수 있음
+        }
+    }
 
     val state = WindowState(
         size = DpSize(1400.dp, 1000.dp),
@@ -168,7 +208,21 @@ fun main() = application {
                      if (initialized) {
 
                          if(progressMsg.contains("install.lock") || downloadProgress.equals(100.0f) ){
-                             androidx.compose.material.Text("The WebView installation is complete, so please restart.")
+
+                             TextButton(
+                                 onClick = {
+                                     // 1. 코루틴 스코프 내에서 실행 (필요한 경우)
+                                     coroutineScope.launch(Dispatchers.IO) {
+                                         restartHandler.invoke()
+                                     }
+                                 } ,
+                                 shape = MaterialTheme.shapes.medium,
+                                 border = BorderStroke(1.dp, Color.Red),
+                             ){
+                                 Text("The WebView installation is complete, Restart Application.")
+                             }
+
+
                          }else{
 
                              Column(
