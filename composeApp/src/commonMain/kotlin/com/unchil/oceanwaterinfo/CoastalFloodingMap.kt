@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,23 +31,30 @@ import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun jvmMainCoastalFloodingMap(){
+fun CoastalFloodingMap(){
     val viewModel: CoastalFloodingInfoViewModel = remember {
         CoastalFloodingInfoViewModel()
     }
     val coroutineScope = rememberCoroutineScope()
     val bottomBarHeight = remember{60.dp}
-    val host = "http://localhost:7272"
+
+    val host = if(getPlatform().alias.equals(PlatformAlias.ANDROID)){
+        "http://10.0.2.2:7272"
+    }else {
+        "http://localhost:7272"
+    }
+
     val servicePage = "coastalFloodingMap.html"
     val localUrl = "${host}/${servicePage}"
-    val webViewState = rememberWebViewState(localUrl)
-    val navigator = rememberWebViewNavigator()
+
+    val webController = remember { PlatformWebViewController() }
+
     val isVisibleAlert = remember{ mutableStateOf(false)}
     var gradeOption by remember { mutableStateOf(CoastalFloodingGrade.entries[0]) }
     var sidoOption by remember { mutableStateOf(SiDo.entries[0]) }
 
     LaunchedEffect( viewModel, gradeOption, sidoOption){
-        LOGGER.debug("Call Refresh Event")
+
         viewModel.onEvent(CoastalFloodingInfoViewModel.Event.Refresh(gradeOption.name, sidoOption.name))
     }
 
@@ -56,29 +62,71 @@ fun jvmMainCoastalFloodingMap(){
     // ViewModel의 로딩 상태를 관찰
     val isLoading by viewModel.isLoading.collectAsState()
 
-    LaunchedEffect( coastalFloodingInfo.value, webViewState.loadingState){
 
-        if(webViewState.loadingState is LoadingState.Finished ) {
+    if(getPlatform().alias.equals(PlatformAlias.JVM)){
+        LaunchedEffect( coastalFloodingInfo.value, webController.loadingState){
+            if(webController.loadingState is LoadingState.Finished ) {
+                if( coastalFloodingInfo.value.isNotEmpty() ){
+                    webController.callJavaScript(
+                        functionName = "removeMapFeature",
+                    )
+
+                    coastalFloodingInfo.value.forEach { it->
+                        if(sidoOption.equals(SiDo.entries[0])){
+
+                            webController.callJavaScript(
+                                functionName = "renderingMap",
+                                args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
+                            )
+
+                        }else {
+
+                            webController.callJavaScript(
+                                functionName = "renderingMap",
+                                args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+    }else{
+        LaunchedEffect( coastalFloodingInfo.value) {
             if( coastalFloodingInfo.value.isNotEmpty() ){
-
-                navigator.evaluateJavaScript("removeMapFeature()")
+                webController.callJavaScript(
+                    functionName = "removeMapFeature",
+                )
                 coastalFloodingInfo.value.forEach { it->
                     if(sidoOption.equals(SiDo.entries[0])){
-                        LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING_ALL")
-                        navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\')")
+
+                        webController.callJavaScript(
+                            functionName = "renderingMap",
+                            args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
+                        )
+
                     }else {
-                        LOGGER.debug("Data Receive (Size: ${ it.geojson.length } )\n Call COASTAL_FLOODING")
-                        navigator.evaluateJavaScript("renderingMap( ${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\')")
+
+                        webController.callJavaScript(
+                            functionName = "renderingMap",
+                            args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
+                        )
                     }
                 }
             }
         }
     }
 
+
+
+
     LaunchedEffect(isLoading) {
         if(!isLoading && coastalFloodingInfo.value.isEmpty()){
             isVisibleAlert.value = true
-            navigator.evaluateJavaScript("emptyData()")
+
+            webController.callJavaScript(
+                functionName = "emptyData"
+            )
         }
     }
 
@@ -115,10 +163,10 @@ fun jvmMainCoastalFloodingMap(){
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                WebView(
-                    state = webViewState,
-                    navigator = navigator,
-                    modifier = Modifier.fillMaxSize()
+                PlatformWebView(
+                    url = localUrl,
+                    controller = webController,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
 

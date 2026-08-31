@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,32 +21,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.multiplatform.webview.web.LoadingState
-import com.multiplatform.webview.web.WebView
-import com.multiplatform.webview.web.rememberWebViewNavigator
-import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun jvmMainOceanCurrentSpeedMap(){
+fun TidalForecastMap(){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaTidalCurrentViewModel = remember {
         KhoaTidalCurrentViewModel()
     }
 
-    val host = "http://localhost:7272"
-    val servicePage = "seaFlowMapDeckHexagonLayer.html"
+    val host = if(getPlatform().alias.equals(PlatformAlias.ANDROID)){
+        "http://10.0.2.2:7272"
+    }else {
+        "http://localhost:7272"
+    }
+
+    val servicePage = "seaFlowMapDeckTripsLayer.html"
 
 
     val localUrl = "${host}/${servicePage}"
-    val remoteUrl = "https://www.google.com/maps/"
 
-    val webViewState = rememberWebViewState(localUrl)
-    val navigator = rememberWebViewNavigator()
-
-
+    val webController = remember { PlatformWebViewController() }
 
     LaunchedEffect(key1 = viewModel){
         while(true){
@@ -66,27 +63,51 @@ fun jvmMainOceanCurrentSpeedMap(){
     LaunchedEffect( tidalCurrentInfo.value){
         if(tidalCurrentInfo.value.isNotEmpty()) {
             val tidalCurrentData = tidalCurrentInfo.value.toTidalCurrentDataMap()
-            val data =  transformToHexagonData(tidalCurrentData)
+            updatePrevCoordinates(tidalCurrentData)
 
-            values.value = data.map{it}.joinToString(
+            values.value = tidalCurrentData.map{it}.joinToString(
                 separator = ",",
                 prefix = "[",
                 postfix = "]"
             ){ it ->
-                //Triple(lat,lng,speed)
-                "{lat:${it.first}, lng:${it.second},  speed:${it.third}}"
+                val data = it.value.joinToString (
+                    separator = ",",
+                    prefix = "[",
+                    postfix = "]"
+                ){ (schTime, currentDir, currentSpeed,  prev_lon, prev_lat) ->
+                    "{lat:${prev_lat}, lng:${prev_lon}, speed:${currentSpeed}}"
+                }
+                data
             }
 
 
         }
     }
 
-    LaunchedEffect( values.value, webViewState.loadingState){
-        if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished){
-            //       navigator.evaluateJavaScript("alert(\"It's a Beautiful Day.\");" )
-            navigator.evaluateJavaScript("initMapWithData( ${values.value})")
+
+    if(getPlatform().alias.equals(PlatformAlias.JVM)){
+        LaunchedEffect( values.value,  webController.loadingState) {
+            if( values.value.isNotEmpty() && webController.loadingState is LoadingState.Finished){
+                webController.callJavaScript(
+                    functionName = "initMapWithData",
+                    args = "${values.value}"
+                )
+            }
+        }
+
+    }else{
+        LaunchedEffect( values.value) {
+            if( values.value.isNotEmpty()){
+                webController.callJavaScript(
+                    functionName = "initMapWithData",
+                    args = "${values.value}"
+                )
+            }
         }
     }
+
+
+
 
     val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
@@ -101,8 +122,7 @@ fun jvmMainOceanCurrentSpeedMap(){
 
         Column(modifier=Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally)
-        {
+            horizontalAlignment = Alignment.CenterHorizontally) {
 
             Column(
                 modifier = Modifier.fillMaxWidth().height(height - bottomBarHeight),
@@ -111,20 +131,17 @@ fun jvmMainOceanCurrentSpeedMap(){
             ) {
 
                 ChartTitle(
-                    "Ocean Water Speed",
+                    "Prediction 3 hour from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }} Tidal Current Map",
                     modifier = Modifier,
                 )
 
-
-                WebView(
-                    state = webViewState,
-                    navigator = navigator,
-                    modifier = Modifier.fillMaxSize()
+                PlatformWebView(
+                    url = localUrl,
+                    controller = webController,
+                    modifier = Modifier.fillMaxSize(),
                 )
 
-
             }
-
 
             CaptionText(
                 "from https://khoa.go.kr/oceandata/api/tidalCurrentArea/search.do (Korea Hydrographic And Oceanographic Agency)",
@@ -143,7 +160,12 @@ fun jvmMainOceanCurrentSpeedMap(){
                         when (label) {
                             "Reload" ->{
                                 visibleProgressIndicator.value = true
-                                navigator.evaluateJavaScript("initMapWithData( ${values.value})")
+
+                                webController.callJavaScript(
+                                    functionName = "initMapWithData",
+                                    args = "${values.value}"
+                                )
+
                                 coroutineScope.launch {
                                     delay(1000)
                                     visibleProgressIndicator.value = false
@@ -160,8 +182,9 @@ fun jvmMainOceanCurrentSpeedMap(){
                     )
                 }
             }
-
         }
+
+
 
     }
 

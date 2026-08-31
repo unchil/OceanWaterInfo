@@ -285,17 +285,17 @@ fun main() = application {
                                              jvmMainOceanWaterQuality( )
                                          }
                                          2 -> {
-                                             jvmMainTidalForecastMap( )
+                                             TidalForecastMap( )
                                          }
                                          3 -> {
-                                             jvmMainOceanCurrentSpeedMap( )
+                                             OceanCurrentSpeedMap( )
                                          }
 
                                          4 -> {
                                              jvmMainHydroNuclearPower( )
                                          }
                                          5 -> {
-                                             jvmMainCoastalFloodingMap( )
+                                             CoastalFloodingMap( )
                                          }
                                      }
                                  }
