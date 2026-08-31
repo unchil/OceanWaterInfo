@@ -58,6 +58,8 @@ fun OceanCurrentSpeedMap(){
 
 
     val tidalCurrentInfo = viewModel._tidalCurrentStateFlow.collectAsState()
+    val isLoading = viewModel.isLoading.collectAsState()
+
     val keys = remember{ mutableStateOf("" )}
     val values = remember{ mutableStateOf("" )}
 
@@ -80,30 +82,42 @@ fun OceanCurrentSpeedMap(){
         }
     }
 
-    if(getPlatform().alias.equals(PlatformAlias.JVM)){
-        LaunchedEffect( values.value,  webController.loadingState) {
-            if( values.value.isNotEmpty() && webController.loadingState is LoadingState.Finished){
-                webController.callJavaScript(
-                    functionName = "initMapWithData",
-                    args = "${values.value}"
-                )
+
+    LaunchedEffect(values.value, webController.loadingState){
+        if (values.value.isNotEmpty()){
+            when(getPlatform().alias){
+                PlatformAlias.JVM -> {
+                    if (webController.loadingState is LoadingState.Finished) {
+                        webController.callJavaScript(
+                            functionName = "initMapWithData",
+                            args = "${values.value}"
+                        )
+                    }
+                }
+                PlatformAlias.IOS -> {
+                    if ( webController.loadingState.toString().equals("Finished")) {
+                        delay(500)
+                        webController.callJavaScript(
+                            functionName = "initMapWithData",
+                            args = "${values.value}"
+                        )
+                    }
+                }
+                else -> {
+                    webController.callJavaScript(
+                        functionName = "initMapWithData",
+                        args = "${values.value}"
+                    )
+                }
             }
+
         }
 
-    }else{
-        LaunchedEffect( values.value) {
-            if( values.value.isNotEmpty()){
-                webController.callJavaScript(
-                    functionName = "initMapWithData",
-                    args = "${values.value}"
-                )
-            }
-        }
     }
 
 
+
     val bottomBarHeight = remember{80.dp}
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
 
 
     BoxWithConstraints(
@@ -154,24 +168,20 @@ fun OceanCurrentSpeedMap(){
                     onChangeFlag = { label, value ->
                         when (label) {
                             "Reload" ->{
-                                visibleProgressIndicator.value = true
-
+                                coroutineScope.launch {
+                                    viewModel.onEvent(KhoaTidalCurrentViewModel.Event.Refresh)
+                                }
                                 webController.callJavaScript(
                                     functionName = "initMapWithData",
                                     args = "${values.value}"
                                 )
-
-                                coroutineScope.launch {
-                                    delay(1000)
-                                    visibleProgressIndicator.value = false
-                                }
                             }
                         }
 
                     },
                     bottomBarOpt = bottomBarOpt
                 )
-                if (visibleProgressIndicator.value) {
+                if (isLoading.value) {
                     CircularProgressIndicator(
                         color = Color.DarkGray,
                     )

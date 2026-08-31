@@ -267,3 +267,48 @@ val AirQuality= object : SimpleChartView {
         }
     }
 }
+
+val TidalForecastMap= object : SimpleChartView {
+    override val name: String = "TidalForecastMap"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            //    .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            TidalForecastMap()
+        }
+    }
+}
+
+val OceanCurrentSpeedMap = object : SimpleChartView {
+    override val name: String = "OceanCurrentSpeedMap"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            //    .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            OceanCurrentSpeedMap()
+        }
+    }
+}
+
+val CoastalFloodingMap = object : SimpleChartView {
+    override val name: String = "CoastalFloodingMap"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            //    .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            CoastalFloodingMap()
+        }
+    }
+}

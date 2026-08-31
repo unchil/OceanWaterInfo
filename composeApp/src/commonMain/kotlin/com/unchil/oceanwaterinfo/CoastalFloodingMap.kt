@@ -28,6 +28,7 @@ import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -63,14 +64,63 @@ fun CoastalFloodingMap(){
     val isLoading by viewModel.isLoading.collectAsState()
 
 
-    if(getPlatform().alias.equals(PlatformAlias.JVM)){
-        LaunchedEffect( coastalFloodingInfo.value, webController.loadingState){
-            if(webController.loadingState is LoadingState.Finished ) {
-                if( coastalFloodingInfo.value.isNotEmpty() ){
+    LaunchedEffect(coastalFloodingInfo.value, webController.loadingState){
+        if (coastalFloodingInfo.value.isNotEmpty()){
+            when(getPlatform().alias){
+                PlatformAlias.JVM -> {
+                    if (webController.loadingState is LoadingState.Finished) {
+                        webController.callJavaScript(
+                            functionName = "removeMapFeature",
+                        )
+
+                        coastalFloodingInfo.value.forEach { it->
+                            if(sidoOption.equals(SiDo.entries[0])){
+
+                                webController.callJavaScript(
+                                    functionName = "renderingMap",
+                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
+                                )
+
+                            }else {
+
+                                webController.callJavaScript(
+                                    functionName = "renderingMap",
+                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
+                                )
+                            }
+                        }
+
+                    }
+                }
+                PlatformAlias.IOS -> {
+                    if ( webController.loadingState.toString().equals("Finished")) {
+                        delay(500)
+                        webController.callJavaScript(
+                            functionName = "removeMapFeature",
+                        )
+
+                        coastalFloodingInfo.value.forEach { it->
+                            if(sidoOption.equals(SiDo.entries[0])){
+
+                                webController.callJavaScript(
+                                    functionName = "renderingMap",
+                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
+                                )
+
+                            }else {
+
+                                webController.callJavaScript(
+                                    functionName = "renderingMap",
+                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
+                                )
+                            }
+                        }
+                    }
+                }
+                else -> {
                     webController.callJavaScript(
                         functionName = "removeMapFeature",
                     )
-
                     coastalFloodingInfo.value.forEach { it->
                         if(sidoOption.equals(SiDo.entries[0])){
 
@@ -89,33 +139,12 @@ fun CoastalFloodingMap(){
                     }
                 }
             }
+
         }
 
-    }else{
-        LaunchedEffect( coastalFloodingInfo.value) {
-            if( coastalFloodingInfo.value.isNotEmpty() ){
-                webController.callJavaScript(
-                    functionName = "removeMapFeature",
-                )
-                coastalFloodingInfo.value.forEach { it->
-                    if(sidoOption.equals(SiDo.entries[0])){
-
-                        webController.callJavaScript(
-                            functionName = "renderingMap",
-                            args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
-                        )
-
-                    }else {
-
-                        webController.callJavaScript(
-                            functionName = "renderingMap",
-                            args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
-                        )
-                    }
-                }
-            }
-        }
     }
+
+
 
 
 

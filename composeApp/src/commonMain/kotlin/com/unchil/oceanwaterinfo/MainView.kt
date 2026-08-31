@@ -65,7 +65,21 @@ private fun envObservationTree(): Tree<ChartViewContent> = Tree {
         Leaf<ChartViewContent>(ThermalWasteWaterTimeSeries_KHNP)
     }
 
-    Leaf<ChartViewContent>(TestWebViewScreen)
+    if(getPlatform().alias.equals(PlatformAlias.ANDROID)){
+
+        Leaf<ChartViewContent>(TestWebViewScreen)
+    }else{
+        Branch(ChartViewCategory("Prediction Information Map")){
+            Leaf<ChartViewContent>(AirQuality)
+            Leaf<ChartViewContent>(CoastalFloodingMap)
+            Leaf<ChartViewContent>(TidalForecastMap)
+            Leaf<ChartViewContent>(OceanCurrentSpeedMap)
+        }
+    }
+
+
+
+
     Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
 
 }

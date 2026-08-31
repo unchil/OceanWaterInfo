@@ -73,6 +73,8 @@ fun AirQuality(){
     var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
     val sDoTEnvInfo = viewModel._sDoTEnvInfoUnionFlow.collectAsState()
 
+    val isLoading = viewModel.isLoading.collectAsState()
+
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
 
         if(sDoTEnvInfo.value.isNotEmpty()) {
@@ -133,7 +135,7 @@ fun AirQuality(){
 
 
     val bottomBarHeight = remember{80.dp}
-    val visibleProgressIndicator = remember { mutableStateOf(false) }
+
 
     var selectedChemicalElementIndex by remember { mutableIntStateOf(0) }
     val tabClick = {  option: AirQualityManager.ChemicalElement, tabIndex:Int ->
@@ -226,24 +228,22 @@ fun AirQuality(){
                     onChangeFlag = { label, value ->
                         when (label) {
                             "Reload" ->{
-                                visibleProgressIndicator.value = true
+                                coroutineScope.launch {
+                                    viewModel.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
+                                }
 
                                 webController.callJavaScript(
                                     functionName = "initMapWithData",
                                     args = "${values.value},  \"${selectedOption.name}\""
                                 )
 
-                                coroutineScope.launch {
-                                    delay(1000)
-                                    visibleProgressIndicator.value = false
-                                }
                             }
                         }
 
                     },
                     bottomBarOpt = bottomBarOpt
                 )
-                if (visibleProgressIndicator.value) {
+                if (isLoading.value) {
                     CircularProgressIndicator(
                         color = Color.DarkGray,
                     )
