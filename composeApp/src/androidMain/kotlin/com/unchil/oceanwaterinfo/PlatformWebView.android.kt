@@ -28,7 +28,13 @@ actual fun PlatformWebView(
                     javaScriptEnabled = true
                     domStorageEnabled = true
                 }
-             //   webViewClient = WebViewClient()
+                webViewClient =  object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        // 로딩 완료를 컨트롤러에 알림
+                        controller.loadingState = "Finished"
+                    }
+                }
 
                 // 공통 컨트롤러 콜백을 Android WebView의 evaluateJavascript와 매핑
                 controller.evaluateJavaScriptImpl = { script ->

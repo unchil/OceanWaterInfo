@@ -98,28 +98,38 @@ fun AirQuality(){
         }
     }
 
-    if(getPlatform().alias.equals(PlatformAlias.JVM)){
-        LaunchedEffect( values.value,  webController.loadingState) {
-            if( values.value.isNotEmpty() && webController.loadingState is LoadingState.Finished){
-                webController.callJavaScript(
-                    functionName = "initMapWithData",
-                    args = "${values.value},  \"${selectedOption.name}\""
-                )
+
+    LaunchedEffect(values.value, webController.loadingState){
+        if (values.value.isNotEmpty()){
+            when(getPlatform().alias){
+                PlatformAlias.JVM -> {
+                    if (webController.loadingState is LoadingState.Finished) {
+                        webController.callJavaScript(
+                            functionName = "initMapWithData",
+                            args = "${values.value},  \"${selectedOption.name}\""
+                        )
+                    }
+                }
+                PlatformAlias.IOS -> {
+                    if ( webController.loadingState.toString().equals("Finished")) {
+                        delay(500)
+                        webController.callJavaScript(
+                            functionName = "initMapWithData",
+                            args = "${values.value},  \"${selectedOption.name}\""
+                        )
+                    }
+                }
+                else -> {
+                    webController.callJavaScript(
+                        functionName = "initMapWithData",
+                        args = "${values.value},  \"${selectedOption.name}\""
+                    )
+                }
             }
+
         }
 
-    }else{
-        LaunchedEffect( values.value) {
-            if( values.value.isNotEmpty()){
-                webController.callJavaScript(
-                    functionName = "initMapWithData",
-                    args = "${values.value},  \"${selectedOption.name}\""
-                )
-            }
-        }
     }
-
-
 
 
     val bottomBarHeight = remember{80.dp}

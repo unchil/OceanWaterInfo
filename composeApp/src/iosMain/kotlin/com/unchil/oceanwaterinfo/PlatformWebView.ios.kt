@@ -22,8 +22,27 @@ actual fun PlatformWebView(
     modifier: Modifier
 ) {
 
-    // WKWebView 상태 유지
-    val wkWebView = remember { WKWebView() }
+    // 1. Navigation Delegate 구현 (NSObject 상속 필수)
+    val navigationDelegate = remember {
+
+        object : platform.darwin.NSObject(), platform.WebKit.WKNavigationDelegateProtocol {
+
+            override fun webView(webView: WKWebView, didFailNavigation: platform.WebKit.WKNavigation?, withError: platform.Foundation.NSError) {
+                controller.loadingState = "Error"
+            }
+
+            override fun webView(webView: WKWebView, didFinishNavigation: platform.WebKit.WKNavigation?) {
+                controller.loadingState = "Finished"
+            }
+        }
+    }
+
+    val wkWebView = remember {
+        WKWebView().apply {
+            // 2. 델리게이트 연결
+            this.navigationDelegate = navigationDelegate
+        }
+    }
 
     // 공통 컨트롤러 콜백을 iOS WKWebView의 evaluateJavaScript와 매핑 (메인스레드 보장)
     controller.evaluateJavaScriptImpl = { script ->
