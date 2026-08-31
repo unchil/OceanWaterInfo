@@ -8,7 +8,7 @@ plugins {
 group = "com.unchil.oceanwaterinfo"
 version = "1.0.0"
 application {
-    mainClass.set("com.unchil.oceanwaterinfo.EnviromantalInfoCollectorKt")
+    mainClass.set("com.unchil.oceanwaterinfo.EnvDataCollectorKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")

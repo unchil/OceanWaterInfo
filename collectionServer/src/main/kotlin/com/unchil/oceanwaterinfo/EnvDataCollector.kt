@@ -3,7 +3,7 @@ package com.unchil.oceanwaterinfo
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.runBlocking
 
-val LOGGER = KtorSimpleLogger( "CollectionServer")
+val LOGGER = KtorSimpleLogger( "EnvDataCollector")
 
 
 @Suppress("DefaultLocale")
