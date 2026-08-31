@@ -155,7 +155,7 @@ fun main() = application {
             }
 
             val classpath = System.getProperty("java.class.path")
-            val mainClass = "com.unchil.oceanwaterinfo.EnvironmentalObserverKt"
+            val mainClass = "com.unchil.oceanwaterinfo.EnvObserverKt"
 
             val command = mutableListOf(java)
             command.addAll(vmArguments)
@@ -165,7 +165,8 @@ fun main() = application {
 
             // 4. 새 프로세스 시작
             // inheritIO()를 사용하면 새 프로세스의 로그를 현재 콘솔에서도 볼 수 있어 디버깅에 유리합니다.
-            ProcessBuilder(command).inheritIO().start()
+           // ProcessBuilder(command).inheritIO().start()
+            ProcessBuilder(command).start()
 
 
             // 5. 현재 프로세스 종료
@@ -195,7 +196,8 @@ fun main() = application {
         state = state,
     ) {
 
-     //   MainView(modifier = Modifier.fillMaxSize() )
+      //  MainView(modifier = Modifier.fillMaxSize() )
+
 
         MaterialTheme(colorScheme = getColorScheme(false)) {
 
@@ -277,7 +279,7 @@ fun main() = application {
                                  Box(modifier = Modifier.fillMaxSize()) {
                                      when (selectedTabIndex) {
                                          0 -> {
-                                             jvmMainAirQuality()
+                                             AirQuality()
                                          }
                                          1 -> {
                                              jvmMainOceanWaterQuality( )

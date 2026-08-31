@@ -70,6 +70,8 @@ kotlin {
 
             implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
 
+            implementation(libs.compose.webview.multiplatform)
+
 
         }
         commonTest.dependencies {
@@ -84,7 +86,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(compose.desktop.currentOs)
-            implementation(libs.compose.webview.multiplatform)
+
 
             implementation(libs.ktor.clientLogging)
             implementation(libs.logback)

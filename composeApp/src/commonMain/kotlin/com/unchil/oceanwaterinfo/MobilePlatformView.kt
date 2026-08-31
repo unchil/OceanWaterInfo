@@ -237,3 +237,33 @@ val OceanWaterInfoGeoChart = object : SimpleChartView {
         }
     }
 }
+
+val TestWebViewScreen = object : SimpleChartView {
+    override val name: String = "TestWebViewScreen"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            //    .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            TestWebViewScreen()
+        }
+    }
+}
+
+val AirQuality= object : SimpleChartView {
+    override val name: String = "AirQuality"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            //    .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            AirQuality()
+        }
+    }
+}

@@ -18,7 +18,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,16 +34,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.multiplatform.webview.web.LoadingState
-import com.multiplatform.webview.web.WebView
-import com.multiplatform.webview.web.rememberWebViewNavigator
-import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun jvmMainAirQuality(){
+fun AirQuality(){
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: SDoTEnvInfoUnionViewModel = remember {
@@ -57,13 +53,21 @@ fun jvmMainAirQuality(){
         }
     }
 
-    val host = "http://localhost:7272"
+    val host = if(getPlatform().alias.equals(PlatformAlias.ANDROID)){
+        "http://10.0.2.2:7272"
+    }else {
+        "http://localhost:7272"
+    }
+
 
     val servicePage = "sDoTDeckHexagonLayerUnion.html"
     var descriptionBox by remember { mutableStateOf(false) }
     val localUrl = "${host}/${servicePage}"
-    val webViewState = rememberWebViewState(localUrl)
-    val navigator = rememberWebViewNavigator()
+
+
+    val webController = remember { PlatformWebViewController() }
+
+
     val values = remember{ mutableStateOf("" )}
 
     var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
@@ -94,11 +98,29 @@ fun jvmMainAirQuality(){
         }
     }
 
-    LaunchedEffect( values.value, webViewState.loadingState){
-        if( values.value.isNotEmpty() &&  webViewState.loadingState is LoadingState.Finished ){
-            navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
+    if(getPlatform().alias.equals(PlatformAlias.JVM)){
+        LaunchedEffect( values.value,  webController.loadingState) {
+            if( values.value.isNotEmpty() && webController.loadingState is LoadingState.Finished){
+                webController.callJavaScript(
+                    functionName = "initMapWithData",
+                    args = "${values.value},  \"${selectedOption.name}\""
+                )
+            }
+        }
+
+    }else{
+        LaunchedEffect( values.value) {
+            if( values.value.isNotEmpty()){
+                webController.callJavaScript(
+                    functionName = "initMapWithData",
+                    args = "${values.value},  \"${selectedOption.name}\""
+                )
+            }
         }
     }
+
+
+
 
     val bottomBarHeight = remember{80.dp}
     val visibleProgressIndicator = remember { mutableStateOf(false) }
@@ -170,11 +192,11 @@ fun jvmMainAirQuality(){
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    WebView(
-                        state = webViewState,
-                        navigator = navigator,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                        PlatformWebView(
+                            url = localUrl,
+                            controller = webController,
+                            modifier = Modifier.fillMaxSize(),
+                        )
                 }
 
             }
@@ -195,7 +217,12 @@ fun jvmMainAirQuality(){
                         when (label) {
                             "Reload" ->{
                                 visibleProgressIndicator.value = true
-                                navigator.evaluateJavaScript("initMapWithData( ${values.value},  \"${selectedOption.name}\")")
+
+                                webController.callJavaScript(
+                                    functionName = "initMapWithData",
+                                    args = "${values.value},  \"${selectedOption.name}\""
+                                )
+
                                 coroutineScope.launch {
                                     delay(1000)
                                     visibleProgressIndicator.value = false
