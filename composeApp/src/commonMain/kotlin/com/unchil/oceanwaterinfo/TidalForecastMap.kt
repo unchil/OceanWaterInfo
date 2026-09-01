@@ -33,11 +33,7 @@ fun TidalForecastMap(){
         KhoaTidalCurrentViewModel()
     }
 
-    val host = if(getPlatform().alias.equals(PlatformAlias.ANDROID)){
-        "http://10.0.2.2:7272"
-    }else {
-        "http://localhost:7272"
-    }
+    val host = getPlatform().localServerEndPoint
 
     val servicePage = "seaFlowMapDeckTripsLayer.html"
 

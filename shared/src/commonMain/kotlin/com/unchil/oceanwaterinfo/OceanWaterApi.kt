@@ -15,8 +15,7 @@ import kotlinx.serialization.json.Json
 
 class OceanWaterApi {
 
-   // private val endPoint = "http://${if( getPlatform().name.contains("Android") ) "192.168.35.107" else "192.168.35.107"}:7788"
-    private val endPoint = "http://${if( getPlatform().name.contains("Android") ) "192.168.35.107" else "192.168.55.6"}:7788"
+    private val endPoint = getPlatform().envInfoServerEndPoint
 
     private val httpClient = HttpClient() {
 
@@ -34,9 +33,9 @@ class OceanWaterApi {
         }
 
         install(HttpTimeout) {
-            requestTimeoutMillis = 3 * 1000
-            connectTimeoutMillis = 3 * 1000
-            socketTimeoutMillis = 3 * 1000
+            requestTimeoutMillis = 10 * 1000
+            connectTimeoutMillis = 10 * 1000
+            socketTimeoutMillis = 10 * 1000
         }
     }
 
@@ -197,6 +196,7 @@ class OceanWaterApi {
 
     }
 
+
     suspend fun getSDoTEnvInfoUnion(): List<SDoTEnvInfoUnion>{
 
         return runCatching {
@@ -208,6 +208,8 @@ class OceanWaterApi {
         }
 
     }
+
+
 
     suspend fun getKhnpWasteWater(): List<KHNPWasteWater>{
 
