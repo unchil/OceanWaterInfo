@@ -1,8 +1,12 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -26,6 +30,7 @@ import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldValue
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -148,9 +153,16 @@ private fun <S> EnvObservationScaffold(
 ) {
     val listState: LazyListState = rememberLazyListState()
     val state = key(item) { item?.rememberState() }
+
+    // 1. 드래그 상태 기억
+    val expansionState = rememberPaneExpansionState(scaffoldState.scaffoldValue)
+
+
     ListDetailPaneScaffold(
         directive = scaffoldState.directive,
         value = scaffoldState.scaffoldValue,
+        // 2. 상태 전달
+        paneExpansionState = expansionState,
         listPane = {
             AnimatedPane {
                 Row(Modifier.fillMaxSize()) {
@@ -194,7 +206,23 @@ private fun <S> EnvObservationScaffold(
                 ChartPaneView(item, state, true, scaffoldState)
             }
         },
-        paneExpansionDragHandle = { VerticalDivider() },
+        // 1. 람다 매개변수로 state(PaneExpansionState)를 받습니다.
+        paneExpansionDragHandle = { state ->
+            // 2. 수동으로 드래그 양을 전달하는 로직은 paneExpansionDraggable 모디파이어가 처리합니다.
+            VerticalDivider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(4.dp)
+                    // ThreePaneScaffoldScope 내에서 제공되는 확장 모디파이어 사용
+                    .paneExpansionDraggable(
+                        state = state,
+                        interactionSource=  MutableInteractionSource(),
+                        // 터치 영역을 확장하고 싶다면 아래 값 조절 (기본값 사용 가능)
+                         minTouchTargetSize = 24.dp
+                    ),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+        },
     )
 }
 
