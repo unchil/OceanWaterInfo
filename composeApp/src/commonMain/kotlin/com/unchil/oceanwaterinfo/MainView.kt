@@ -51,41 +51,39 @@ import io.github.vooft.compose.treeview.core.tree.Tree
 @Composable
 private fun envObservationTree(): Tree<ChartViewContent> = Tree {
 
-    Branch(ChartViewCategory("Ocean Water Quality")) {
-        Leaf<ChartViewContent>(WaterDegTimeSeries_KHOA)
-        Leaf<ChartViewContent>(OceanWaterInfoTimeSeries)
-        Leaf<ChartViewContent>(OceanWaterInfoBoxPlotChart)
-        Leaf<ChartViewContent>(OceanWaterInfoBarChart)
-        Leaf<ChartViewContent>(OceanWaterInfoGeoChart)
-    }
 
-    Branch(ChartViewCategory("Hydro Nuclear Power")) {
-        Leaf<ChartViewContent>(WindPolarChart_KHNP)
-        Leaf<ChartViewContent>(NuclearPlantStatePieChart_KHNP)
-        Leaf<ChartViewContent>(RadioActiveWastePlantStatStackedBarChart_KHNP)
-        Leaf<ChartViewContent>(KHNPRadioActiveWasteStackBarChart)
-        Leaf<ChartViewContent>(WaterTempTimeSeries_KHOA)
-        Leaf<ChartViewContent>(RadioRateBarChart)
-        Leaf<ChartViewContent>(WasteWaterTimeSeries_KHNP)
-        Leaf<ChartViewContent>(ThermalWasteWaterTimeSeries_KHNP)
-    }
+        Branch(ChartViewCategory("Ocean Water Quality")) {
+            Leaf<ChartViewContent>(WaterDegTimeSeries_KHOA)
+            Leaf<ChartViewContent>(OceanWaterInfoTimeSeries)
+            Leaf<ChartViewContent>(OceanWaterInfoBoxPlotChart)
+            Leaf<ChartViewContent>(OceanWaterInfoBarChart)
+            Leaf<ChartViewContent>(OceanWaterInfoGeoChart)
+        }
 
-    if(getPlatform().alias.equals(PlatformAlias.ANDROID)){
+        Branch(ChartViewCategory("Hydro Nuclear Power")) {
+            Leaf<ChartViewContent>(WindPolarChart_KHNP)
+            Leaf<ChartViewContent>(NuclearPlantStatePieChart_KHNP)
+            Leaf<ChartViewContent>(RadioActiveWastePlantStatStackedBarChart_KHNP)
+            Leaf<ChartViewContent>(KHNPRadioActiveWasteStackBarChart)
+            Leaf<ChartViewContent>(WaterTempTimeSeries_KHOA)
+            Leaf<ChartViewContent>(RadioRateBarChart)
+            Leaf<ChartViewContent>(WasteWaterTimeSeries_KHNP)
+            Leaf<ChartViewContent>(ThermalWasteWaterTimeSeries_KHNP)
+        }
 
-        Leaf<ChartViewContent>(TestWebViewScreen)
-    }else{
         Branch(ChartViewCategory("Prediction Information Map")){
             Leaf<ChartViewContent>(AirQuality)
             Leaf<ChartViewContent>(CoastalFloodingMap)
             Leaf<ChartViewContent>(TidalForecastMap)
             Leaf<ChartViewContent>(OceanCurrentSpeedMap)
         }
-    }
+
+        Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
 
 
 
 
-    Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
+
 
 }
 

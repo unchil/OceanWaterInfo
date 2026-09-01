@@ -108,7 +108,7 @@ fun AirQuality(){
                         )
                     }
                 }
-                PlatformAlias.IOS -> {
+                PlatformAlias.IOS, PlatformAlias.ANDROID -> {
                     if ( webController.loadingState.toString().equals("Finished")) {
                         delay(500)
                         webController.callJavaScript(
