@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -47,6 +49,15 @@ actual fun PlatformWebView(
                         controller.loadingState = "Finished"
                     }
 
+                    override fun onReceivedError(
+                        view: WebView?,
+                        request: WebResourceRequest?,
+                        error: WebResourceError?
+                    ) {
+                        super.onReceivedError(view, request, error)
+                        controller.loadingState = "Error"
+                    }
+
                 }
                 webChromeClient = object : WebChromeClient() {
                     override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
@@ -54,6 +65,7 @@ actual fun PlatformWebView(
                         println("WebView Console: [${consoleMessage?.messageLevel()}] ${consoleMessage?.message()}")
                         return true
                     }
+
                 }
 
                 // 공통 컨트롤러 콜백을 Android WebView의 evaluateJavascript와 매핑
