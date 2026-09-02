@@ -9,6 +9,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.Database
+import java.io.File
 import java.nio.file.StandardWatchEventKinds
 import kotlin.io.path.Path
 import kotlin.io.path.name
@@ -17,10 +18,10 @@ object ConfigManager {
     // 1. 반드시 'src' 경로가 아닌 실제 실행 환경에서 접근 가능한 경로를 사용하거나
     //  개발 환경이라면 전체 경로를 절대 경로로 지정합니다.
 
-    private const val CONFIG_FILENAME = "application.json"
-
-    private const val CONFIG__FILEPATH = "/Users/unchil/AndroidStudioProjects/OceanWaterInfo/collectionServer/src/main/resources"
-
+    val userHome = System.getProperty("user.home")
+    private const val appHome = ".EnvDataCollector"
+    private const val CONFIG_FILENAME = "envDataCollector.json"
+    val CONFIG__FILEPATH = "${userHome}/${appHome}"
     private  val configFilePath = Path("${CONFIG__FILEPATH}/${CONFIG_FILENAME}")
     private val configFile = configFilePath.toFile()
 
@@ -42,6 +43,7 @@ object ConfigManager {
 
     // 최초 로드 함수
     private fun loadConfig(): ConfigData {
+        println("[ConfigManager] 설정파일: ${configFilePath}")
         return try {
             // ClassLoader가 아닌 File 객체로 직접 읽어야 실시간 변경분이 반영됩니다.
             val content = configFile.readText()
