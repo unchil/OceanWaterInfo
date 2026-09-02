@@ -13,8 +13,11 @@ class JVMPlatform: Platform {
     override val envInfoServerEndPoint: String
         get() = "http://192.168.55.6:7788"
 
+
+
     override val localServerEndPoint: String
-        get() =  "http://localhost:7272"
+        get() =  "http://192.168.55.6:7272"
+
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()
