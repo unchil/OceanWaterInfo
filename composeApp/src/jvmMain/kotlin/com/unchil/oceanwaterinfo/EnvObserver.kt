@@ -41,6 +41,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import dev.datlag.kcef.KCEF
+import dev.datlag.kcef.KCEFAcknowledge
 import io.github.koalaplot.core.xygraph.Point
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
@@ -56,117 +57,155 @@ val WaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { error("N
 val OceanWaterInfoGeoChartPoint = compositionLocalOf<Point<Double,Double>> { error("No Point found!") }
 
 
+@OptIn(KCEFAcknowledge::class)
 fun main() = application {
 
     val coroutineScope = rememberCoroutineScope()
-    // 1. 시스템 프로퍼티에서 홈 디렉토리 경로를 가져옵니다.
-    val userHome = System.getProperty("user.home")
 
     var initialized by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(-1F) }
     var progressMsg by remember { mutableStateOf("다운로드 중...") }
     var isDownload by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) {
 
-        KCEF.init(
-            builder = {
+    // 1. 시스템 프로퍼티에서 홈 디렉토리 경로를 가져옵니다.
+    val userHome = System.getProperty("user.home")
 
-                installDir(File(userHome, ".kcef-bundle"))
+    val jcefPath = System.getProperty("java.home") + "/lib/libjcef.dylib"
+    val installDir = File(userHome, ".kcef-bundle")
 
-                progress {
+    val isJcef = File(jcefPath).exists()
+    LOGGER.info("JAVA_HOME: ${System.getProperty("java.home") }")
+    LOGGER.info("JCEF Library 존재 여부: ${isJcef}")
 
-                    onLocating {
-                        isDownload = false
-                        progressMsg = "엔진 위치 찾는 중..."
-                    }
-                    onDownloading { percent ->
-                        isDownload = true
-                        downloadProgress = percent
-                        progressMsg = "다운로드 중: ${percent.toInt()}%"
-                    }
-                    onExtracting {
-                        isDownload = false
-                        progressMsg = "압축 해제 중..."
-                    }
-                    onInitializing {
-                        isDownload = false
-                        progressMsg = "초기화 중..."
-                    }
 
-                    onInstall{
-                        isDownload = false
 
-                        progressMsg =  "설치 중..."
-                        // 1. 소스 및 대상 경로 정의
+        LaunchedEffect(Unit) {
+            KCEF.init(
+                builder = {
 
-                        val kcefDir = File(userHome, ".kcef-bundle") // installDir과 동일한 위치
-                        val sourcePath = "${kcefDir}/Frameworks/cef_server.app/Contents/Frameworks"
-                        val destPath = "${kcefDir}/Frameworks"
+                    installDir(installDir)
 
-                        val sourceDir = File(sourcePath)
-                        val destDir = File(destPath)
+                    progress {
 
-                        // 2. 소스 경로가 존재할 경우 파일 이동 수행
-                        if (sourceDir.exists() && sourceDir.isDirectory) {
-                            sourceDir.listFiles()?.forEach { file ->
-                                val targetFile = File(destDir, file.name)
-                                file.renameTo(targetFile)
+                        onLocating {
+                            isDownload = false
+                            progressMsg = "엔진 위치 찾는 중..."
+                        }
+                        onDownloading { percent ->
+                            isDownload = true
+                            downloadProgress = percent
+                            progressMsg = "다운로드 중: ${percent.toInt()}%"
+                        }
+                        onExtracting {
+                            isDownload = false
+                            progressMsg = "압축 해제 중..."
+                        }
+                        onInitializing {
+                            isDownload = false
+                            progressMsg = "초기화 중..."
+                        }
+
+                        onInstall{
+                            isDownload = false
+
+                            progressMsg =  "설치 중..."
+                            // 1. 소스 및 대상 경로 정의
+
+                            val kcefDir = File(userHome, ".kcef-bundle") // installDir과 동일한 위치
+                            val sourcePath = "${kcefDir}/Frameworks/cef_server.app/Contents/Frameworks"
+                            val destPath = "${kcefDir}/Frameworks"
+
+                            val sourceDir = File(sourcePath)
+                            val destDir = File(destPath)
+
+                            // 2. 소스 경로가 존재할 경우 파일 이동 수행
+                            if (sourceDir.exists() && sourceDir.isDirectory) {
+                                sourceDir.listFiles()?.forEach { file ->
+                                    val targetFile = File(destDir, file.name)
+                                    file.renameTo(targetFile)
+                                }
+
+                                // 핵심: 설치 완료를 알리는 lock 파일 생성
+                                val lockFile = File(kcefDir, "install.lock")
+                                if (!lockFile.exists()) {
+                                    lockFile.createNewFile()
+                                }
                             }
 
-                            // 핵심: 설치 완료를 알리는 lock 파일 생성
-                            val lockFile = File(kcefDir, "install.lock")
-                            if (!lockFile.exists()) {
-                                lockFile.createNewFile()
-                            }
+                        }
+
+                        onInitialized {
+                            isDownload = false
+                            progressMsg = "완료!"
+                            initialized = true
                         }
 
                     }
-
-                    onInitialized {
-                        isDownload = false
-                        progressMsg = "완료!"
-                        initialized = true
-                    }
+                },
+                onError = { error ->
+                    progressMsg = error?.localizedMessage ?: "알 수 없는 오류"
+                },
+                onRestartRequired = {
 
                 }
-            },
-            onError = { error ->
-                progressMsg = error?.localizedMessage ?: "알 수 없는 오류"
-            },
-            onRestartRequired = {
+            )
+        }
 
-            }
-        )
 
-    }
+
 
     val restartHandler = {
         try {
             // 2. KCEF 자원 해제 (완료될 때까지 블로킹됨)
             KCEF.disposeBlocking()
 
-            // 3. 현재 실행 환경 정보 수집
-            val java = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java"
-            //     val vmArguments = ManagementFactory.getRuntimeMXBean().inputArguments
-            // ... ProcessBuilder 부분 수정
-            val vmArguments = ManagementFactory.getRuntimeMXBean().inputArguments.filter {
-                !it.contains("-agentlib:jdwp") && !it.contains("-Xdebug")
+            val command = mutableListOf<String>()
+            val resourcesDir = System.getProperty("compose.application.resources.dir")
+            val osName = System.getProperty("os.name").lowercase()
+
+            if (resourcesDir != null) {
+                // [패키징된 환경]
+                val exeFile = if (osName.contains("mac")) {
+                    val packageName = "EnvironmentalObservation"
+                    File("/Applications/${packageName}.app/Contents/MacOS").resolve(packageName)
+
+                } else if (osName.contains("win")) {
+                    // Windows: app/ -> GoogleMapSample.exe
+                    File(resourcesDir).parentFile.resolve("GoogleMapSample.exe")
+                } else {
+                    File(resourcesDir).parentFile.resolve("GoogleMapSample")
+                }
+
+                command.add(exeFile.absolutePath)
+            }else {
+                // 3. 현재 실행 환경 정보 수집
+                val java = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java"
+                //     val vmArguments = ManagementFactory.getRuntimeMXBean().inputArguments
+                // ... ProcessBuilder 부분 수정
+                val vmArguments = ManagementFactory.getRuntimeMXBean().inputArguments.filter {
+                    !it.contains("-agentlib:jdwp") && !it.contains("-Xdebug")
+                }
+
+                val classpath = System.getProperty("java.class.path")
+                val mainClass = "com.unchil.oceanwaterinfo.EnvObserverKt"
+
+                command.add(java)
+                command.addAll(vmArguments)
+                command.add("-cp")
+                command.add(classpath)
+                command.add(mainClass)
             }
 
-            val classpath = System.getProperty("java.class.path")
-            val mainClass = "com.unchil.oceanwaterinfo.EnvObserverKt"
 
-            val command = mutableListOf(java)
-            command.addAll(vmArguments)
-            command.add("-cp")
-            command.add(classpath)
-            command.add(mainClass)
+
+
+
 
             // 4. 새 프로세스 시작
             // inheritIO()를 사용하면 새 프로세스의 로그를 현재 콘솔에서도 볼 수 있어 디버깅에 유리합니다.
-           // ProcessBuilder(command).inheritIO().start()
-            ProcessBuilder(command).start()
+            ProcessBuilder(command).inheritIO().start()
+            //ProcessBuilder(command).start()
 
 
             // 5. 현재 프로세스 종료
@@ -196,7 +235,7 @@ fun main() = application {
         state = state,
     ) {
 
-      //  MainView(modifier = Modifier.fillMaxSize() )
+  //      MainView(modifier = Modifier.fillMaxSize() )
 
 
         MaterialTheme(colorScheme = getColorScheme(false)) {

@@ -146,9 +146,14 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.unchil.oceanwaterinfo"
+            packageName = "EnvironmentalObservation"
             packageVersion = "1.0.0"
+
+            javaHome="/Users/unchil/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Home"
+
         }
+
+
     }
 }
 
