@@ -182,28 +182,18 @@ class CollectionServerRepository {
                 CollectionServerRestApi.callKHNP_PlantStates_xml(url).let { it ->
 
                     XML.toJSONObject(it).let { jsonObject ->
-                        val element = Json.parseToJsonElement( jsonObject.toString() )
-                        /*
-                            kotlinx.serialization.json 라이브러리를 사용할 때,
-                            toString() 대신 .jsonPrimitive.content 속성을 사용하면 문자열을 감싸고 있는
-                            큰따옴표(")를 자동으로 제거한 순수 텍스트 값을 가져올 수 있습니다.
-                         */
 
-                       // val resultCode:String = element.jsonObject["response"]?.jsonObject?.get("header")?.jsonObject?.get("resultCode").toString()
-                        val resultCode = element.jsonObject["response"]?.jsonObject?.get("header")?.jsonObject?.get("resultCode")?.jsonPrimitive?.content
+                        val resultCode = jsonObject.query("/response/header/resultCode")?.toString()
 
                         if(resultCode == "00"){
                             // 1. 결과 데이터를 담을 리스트 준비
-                            val itemObj = element.jsonObject["response"]?.jsonObject
-                                ?.get("body")?.jsonObject
-                                ?.get("items")?.jsonObject
-                                ?.get("item")?.jsonObject ?: return
+                            val itemObj = jsonObject.query("/response/body/items/item") as? org.json.JSONObject ?: return@let
 
                             // --- A. 사이트 정보 추출 ---
                             plantInfo.add(KHNPPlantInfo(
-                                itemObj["siteCd"]?.jsonPrimitive?.content ?: "",
-                                itemObj["siteNm"]?.jsonPrimitive?.content ?: "",
-                                itemObj["siteMm"]?.jsonPrimitive?.content ?: ""
+                                itemObj.optString("siteCd"),
+                                itemObj.optString("siteNm"),
+                                itemObj.optString("siteMm")
                             ))
 
                             // --- B. 유닛(호기) 정보 그룹화 및 추출 ---
@@ -211,14 +201,11 @@ class CollectionServerRepository {
                             val unitRegex = """unit_(\d+)(\w+)""".toRegex()
                             val unitsMap = mutableMapOf<String, MutableMap<String, String>>()
 
-                            itemObj.forEach { (key, value) ->
+                            itemObj.keySet().forEach { key ->
                                 unitRegex.matchEntire(key)?.let { match ->
-                                    val number = match.groupValues[1] // "01", "02" 등
-                                    val property = match.groupValues[2] // "Cd", "Dttm", "Nm", "St"
-                                    val content = value.jsonPrimitive.content
-
-                                    // 해당 숫자(호기)에 대한 임시 맵에 저장
-                                    unitsMap.getOrPut(number) { mutableMapOf() }[property] = content
+                                    val number = match.groupValues[1]
+                                    val property = match.groupValues[2]
+                                    unitsMap.getOrPut(number) { mutableMapOf() }[property] = itemObj.get(key).toString()
                                 }
                             }
 
@@ -228,8 +215,8 @@ class CollectionServerRepository {
                                 .map { (_, props) ->
                                     KHNPPlantOperationInfo(
                                         myCollectionTime,
-                                        itemObj["siteCd"]?.jsonPrimitive?.content ?: "",
-                                        itemObj["siteNm"]?.jsonPrimitive?.content ?: "",
+                                        itemObj.optString("siteCd"),
+                                        itemObj.optString("siteNm"),
                                         props["Cd"] ?: "",
                                         props["Dttm"] ?: "",
                                         props["Nm"] ?: "",
