@@ -104,6 +104,16 @@ object POWER_PLANT_AREA {
             POWER_PLANT.SU -> "새울원자력"
         }
     }
+
+    fun POWER_PLANT.site_code():String {
+        return when(this) {
+            POWER_PLANT.KR -> "BR0302"
+            POWER_PLANT.YK -> "BR0303"
+            POWER_PLANT.WS -> "BR0305"
+            POWER_PLANT.UJ -> "BR0304"
+            POWER_PLANT.SU -> "BR0312"
+        }
+    }
 }
 
 

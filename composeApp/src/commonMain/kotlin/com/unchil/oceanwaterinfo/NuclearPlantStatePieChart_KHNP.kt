@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.POWER_PLANT_AREA.site_code
 import com.unchil.oceanwaterinfo.viewmodel.KhnpPlantStateViewModel
 import io.github.koalaplot.core.pie.BezierLabelConnector
 import io.github.koalaplot.core.pie.DefaultSlice
@@ -63,7 +64,7 @@ fun NuclearPlantStatePieChart_KHNP(){
     LaunchedEffect(key1= plantstates.value,  key2=selectedOption){
         if(plantstates.value.size > 0){
             filteredPlantState.value = plantstates.value
-                .filter {  it.genName.equals(selectedOption.name) }
+                .filter {  it.siteCd.equals(selectedOption.site_code()) }
                 .sortedBy{ it.unitNm}
                 .toKHNPPlantState()
         }
