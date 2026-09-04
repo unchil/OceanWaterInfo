@@ -174,7 +174,7 @@ class CollectionServerRepository {
             .format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
 
         val plantInfo = mutableListOf<KHNPPlantInfo>()
-        val unitInfoList = mutableListOf<KHNPPlantOperationInfo>()
+        val unitInfoList = mutableListOf<List<KHNPPlantOperationInfo>>()
 
         genNames.forEach{ genName ->
             val url = "${url_PlantStates}&SITE_CD=${genName}"
@@ -193,66 +193,53 @@ class CollectionServerRepository {
                         val resultCode = element.jsonObject["response"]?.jsonObject?.get("header")?.jsonObject?.get("resultCode")?.jsonPrimitive?.content
 
                         if(resultCode == "00"){
-                            val item = element.jsonObject["response"]?.jsonObject?.get("body")?.jsonObject?.get("items")?.jsonObject?.get("item")
+                            // 1. 결과 데이터를 담을 리스트 준비
+                            val itemObj = element.jsonObject["response"]?.jsonObject
+                                ?.get("body")?.jsonObject
+                                ?.get("items")?.jsonObject
+                                ?.get("item")?.jsonObject ?: return
 
-                            var siteCd = ""
-                            var siteMm = ""
-                            var siteNm = ""
-                            var unitCd = ""
-                            var unitDttm = ""
-                            var unitNm = ""
-                            var unitSt = ""
+                            // --- A. 사이트 정보 추출 ---
+                            plantInfo.add(KHNPPlantInfo(
+                                itemObj["siteCd"]?.jsonPrimitive?.content ?: "",
+                                itemObj["siteNm"]?.jsonPrimitive?.content ?: "",
+                                itemObj["siteMm"]?.jsonPrimitive?.content ?: ""
+                            ))
 
-                            var index = 0
+                            // --- B. 유닛(호기) 정보 그룹화 및 추출 ---
+                            // 정규식: unit_(숫자)(속성명) 구조를 매칭 (예: unit_01Nm -> 1: "01", 2: "Nm")
+                            val unitRegex = """unit_(\d+)(\w+)""".toRegex()
+                            val unitsMap = mutableMapOf<String, MutableMap<String, String>>()
 
-                            item?.jsonObject?.forEach { (key, value) ->
+                            itemObj.forEach { (key, value) ->
+                                unitRegex.matchEntire(key)?.let { match ->
+                                    val number = match.groupValues[1] // "01", "02" 등
+                                    val property = match.groupValues[2] // "Cd", "Dttm", "Nm", "St"
+                                    val content = value.jsonPrimitive.content
 
-
-                                if(key.equals("siteCd")){
-                                    siteCd = value.jsonPrimitive.content
+                                    // 해당 숫자(호기)에 대한 임시 맵에 저장
+                                    unitsMap.getOrPut(number) { mutableMapOf() }[property] = content
                                 }
-
-                                if(key.equals("siteMm")){
-                                    siteMm = value.jsonPrimitive.content
-                                }
-
-                                if(key.equals("siteNm")){
-                                    siteNm = value.jsonPrimitive.content
-                                }
-
-
-                                if(index == 2){
-                                    plantInfo.add(KHNPPlantInfo(siteCd, siteNm, siteMm))
-                                }
-
-                                if(key.contains("^unit_[0-9]+Cd$".toRegex())) {
-                                    unitCd = value.jsonPrimitive.content
-                                }
-                                if(key.contains("^unit_[0-9]+Dttm$".toRegex())) {
-                                    unitDttm = value.jsonPrimitive.content
-                                }
-                                if(key.contains("^unit_[0-9]+Nm$".toRegex())) {
-                                    unitNm = value.jsonPrimitive.content
-                                }
-                                if(key.contains("^unit_[0-9]+St$".toRegex())) {
-                                    unitSt = value.jsonPrimitive.content
-                                }
-
-                                if( index > 3 && index%4 == 2   ){
-                                    unitInfoList.add( KHNPPlantOperationInfo( myCollectionTime, siteCd, genName, unitCd,unitDttm, unitNm, unitSt))
-                                    unitCd = ""
-                                    unitDttm = ""
-                                    unitNm = ""
-                                    unitSt = ""
-                                }
-
-                                index++
-
                             }
+
+                            // Map을 최종 리스트 형식으로 변환 (숫자순 정렬 포함)
+                            val unitInfo = unitsMap.entries
+                                .sortedBy { it.key } // "01", "02" 순으로 정렬
+                                .map { (_, props) ->
+                                    KHNPPlantOperationInfo(
+                                        myCollectionTime,
+                                        itemObj["siteCd"]?.jsonPrimitive?.content ?: "",
+                                        itemObj["siteNm"]?.jsonPrimitive?.content ?: "",
+                                        props["Cd"] ?: "",
+                                        props["Dttm"] ?: "",
+                                        props["Nm"] ?: "",
+                                        props["St"] ?: ""
+                                    )
+                                }
+
+                            unitInfoList.add(unitInfo)
+
                         }
-
-
-
                     }
                 }
 
@@ -280,7 +267,7 @@ class CollectionServerRepository {
 
              try {
                  // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                 KHNP_PlantOperationInfo.batchInsert(unitInfoList, true, false) { row ->
+                 KHNP_PlantOperationInfo.batchInsert(unitInfoList.flatten(), true, false) { row ->
                      this[KHNP_PlantOperationInfo.collectionTime] = row.collectionTime
                      this[KHNP_PlantOperationInfo.siteCd] = row.siteCd
                      this[KHNP_PlantOperationInfo.genName] = row.genName
