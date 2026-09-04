@@ -47,9 +47,11 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import oceanwaterinfo.composeapp.generated.resources.Res
+import oceanwaterinfo.composeapp.generated.resources.app_icon_1024
+import org.jetbrains.compose.resources.painterResource
 import java.io.File
 import java.lang.management.ManagementFactory
-
 
 val LOGGER = KtorSimpleLogger("jvmMain")
 
@@ -157,29 +159,25 @@ fun main() = application {
 
     val restartHandler = {
         try {
-            // 2. KCEF 자원 해제 (완료될 때까지 블로킹됨)
             KCEF.disposeBlocking()
 
             val command = mutableListOf<String>()
-            val resourcesDir = System.getProperty("compose.application.resources.dir")
-            val osName = System.getProperty("os.name").lowercase()
+            val isPackaged = System.getProperty("compose.application.resources.dir") != null
 
-            if (resourcesDir != null) {
-                // [패키징된 환경]
-                val exeFile = if (osName.contains("mac")) {
-                    val packageName = "EnvironmentalObservation"
+            if(isPackaged){
+                val osName = System.getProperty("os.name").lowercase()
+                val packageName = "EnvironmentalObservation"
+
+                val exeFile =  if(osName.contains("mac")) {
                     File("/Applications/${packageName}.app/Contents/MacOS").resolve(packageName)
-
-                } else if (osName.contains("win")) {
-                    // Windows: app/ -> GoogleMapSample.exe
-                    File(resourcesDir).parentFile.resolve("GoogleMapSample.exe")
-                } else {
-                    File(resourcesDir).parentFile.resolve("GoogleMapSample")
+                }else if (osName.contains("win")) {
+                    File("C:\\Program Files\\${packageName}\\${packageName}.exe")
+                }else {
+                    File("/opt/${packageName}/bin/${packageName}")
                 }
-
                 command.add(exeFile.absolutePath)
-            }else {
-                // 3. 현재 실행 환경 정보 수집
+
+            }else{
                 val java = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java"
                 //     val vmArguments = ManagementFactory.getRuntimeMXBean().inputArguments
                 // ... ProcessBuilder 부분 수정
@@ -197,18 +195,9 @@ fun main() = application {
                 command.add(mainClass)
             }
 
-
-
-
-
-
-            // 4. 새 프로세스 시작
             // inheritIO()를 사용하면 새 프로세스의 로그를 현재 콘솔에서도 볼 수 있어 디버깅에 유리합니다.
             ProcessBuilder(command).inheritIO().start()
-            //ProcessBuilder(command).start()
 
-
-            // 5. 현재 프로세스 종료
             System.exit(0)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -233,10 +222,10 @@ fun main() = application {
         },
         title = "Environmental Observation Information",
         state = state,
+        icon = painterResource(Res.drawable.app_icon_1024)
     ) {
 
   //      MainView(modifier = Modifier.fillMaxSize() )
-
 
         MaterialTheme(colorScheme = getColorScheme(false)) {
 

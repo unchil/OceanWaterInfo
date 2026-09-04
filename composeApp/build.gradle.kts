@@ -149,6 +149,20 @@ compose.desktop {
             packageName = "EnvironmentalObservation"
             packageVersion = "1.0.0"
 
+            val iconsRoot = project.projectDir.resolve("src/jvmMain/resources/common")
+            macOS {
+                iconFile.set(iconsRoot.resolve("app_icon_1024.icns"))
+                bundleID = "com.unchil.oceanwaterinfo"
+            }
+
+            windows {
+                iconFile.set(iconsRoot.resolve("app_icon_1024.ico"))
+                // 설치 프로그램의 아이콘 등도 개별 설정 가능
+            }
+
+            linux {
+                iconFile.set(iconsRoot.resolve("app_icon_1024.png"))
+            }
             javaHome="/Users/unchil/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Home"
 
         }

@@ -23,6 +23,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -39,14 +40,11 @@ import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.add
-import org.jetbrains.kotlinx.dataframe.api.colsOf
 import org.jetbrains.kotlinx.dataframe.api.concat
-import org.jetbrains.kotlinx.dataframe.api.convert
 import org.jetbrains.kotlinx.dataframe.api.count
 import org.jetbrains.kotlinx.dataframe.api.describe
 import org.jetbrains.kotlinx.dataframe.api.emptyDataFrame
 import org.jetbrains.kotlinx.dataframe.api.flatten
-import org.jetbrains.kotlinx.dataframe.api.forEach
 import org.jetbrains.kotlinx.dataframe.api.groupBy
 import org.jetbrains.kotlinx.dataframe.api.head
 import org.jetbrains.kotlinx.dataframe.api.pivot
@@ -63,15 +61,12 @@ import org.jetbrains.kotlinx.dataframe.size
 import org.json.XML
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.sql.Connection
-import java.sql.DriverManager
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.math.ceil
 import kotlin.time.Clock
-import kotlin.use
 
 class CollectionServerRepository {
     internal val LOGGER = KtorSimpleLogger( CollectionServerRepository::class.java.name )
@@ -169,9 +164,6 @@ class CollectionServerRepository {
         listOf(first_data) +  deferredResults.awaitAll() as List<DataFrame<*>>
     }
 
-
-
-
     suspend fun getKHNP_PlantStates() {
 
         val url_PlantStates = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.NuclearPlantStates}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
@@ -185,67 +177,81 @@ class CollectionServerRepository {
         val unitInfoList = mutableListOf<KHNPPlantOperationInfo>()
 
         genNames.forEach{ genName ->
-
             val url = "${url_PlantStates}&SITE_CD=${genName}"
-
             try {
-                CollectionServerRestApi.callKHNP_PlantStates_xml(url).let {
+                CollectionServerRestApi.callKHNP_PlantStates_xml(url).let { it ->
 
-                    val element = Json.parseToJsonElement( it )
-                    val item = element.jsonObject["response"]?.jsonObject?.get("body")?.jsonObject?.get("items")?.jsonObject?.get("item")
+                    XML.toJSONObject(it).let { jsonObject ->
+                        val element = Json.parseToJsonElement( jsonObject.toString() )
+                        /*
+                            kotlinx.serialization.json 라이브러리를 사용할 때,
+                            toString() 대신 .jsonPrimitive.content 속성을 사용하면 문자열을 감싸고 있는
+                            큰따옴표(")를 자동으로 제거한 순수 텍스트 값을 가져올 수 있습니다.
+                         */
 
-                    var siteCd = ""
-                    var siteMm = ""
-                    var siteNm = ""
-                    var unitCd = ""
-                    var unitDttm = ""
-                    var unitNm = ""
-                    var unitSt = ""
+                       // val resultCode:String = element.jsonObject["response"]?.jsonObject?.get("header")?.jsonObject?.get("resultCode").toString()
+                        val resultCode = element.jsonObject["response"]?.jsonObject?.get("header")?.jsonObject?.get("resultCode")?.jsonPrimitive?.content
 
-                    var index = 0
+                        if(resultCode == "00"){
+                            val item = element.jsonObject["response"]?.jsonObject?.get("body")?.jsonObject?.get("items")?.jsonObject?.get("item")
 
-                    item?.jsonObject?.forEach { (key, value) ->
+                            var siteCd = ""
+                            var siteMm = ""
+                            var siteNm = ""
+                            var unitCd = ""
+                            var unitDttm = ""
+                            var unitNm = ""
+                            var unitSt = ""
+
+                            var index = 0
+
+                            item?.jsonObject?.forEach { (key, value) ->
 
 
-                        if(key.equals("siteCd")){
-                            siteCd = value.toString().removeSurrounding("\"")
+                                if(key.equals("siteCd")){
+                                    siteCd = value.jsonPrimitive.content
+                                }
+
+                                if(key.equals("siteMm")){
+                                    siteMm = value.jsonPrimitive.content
+                                }
+
+                                if(key.equals("siteNm")){
+                                    siteNm = value.jsonPrimitive.content
+                                }
+
+
+                                if(index == 2){
+                                    plantInfo.add(KHNPPlantInfo(siteCd, siteNm, siteMm))
+                                }
+
+                                if(key.contains("^unit_[0-9]+Cd$".toRegex())) {
+                                    unitCd = value.jsonPrimitive.content
+                                }
+                                if(key.contains("^unit_[0-9]+Dttm$".toRegex())) {
+                                    unitDttm = value.jsonPrimitive.content
+                                }
+                                if(key.contains("^unit_[0-9]+Nm$".toRegex())) {
+                                    unitNm = value.jsonPrimitive.content
+                                }
+                                if(key.contains("^unit_[0-9]+St$".toRegex())) {
+                                    unitSt = value.jsonPrimitive.content
+                                }
+
+                                if( index > 3 && index%4 == 2   ){
+                                    unitInfoList.add( KHNPPlantOperationInfo( myCollectionTime, siteCd, genName, unitCd,unitDttm, unitNm, unitSt))
+                                    unitCd = ""
+                                    unitDttm = ""
+                                    unitNm = ""
+                                    unitSt = ""
+                                }
+
+                                index++
+
+                            }
                         }
 
-                        if(key.equals("siteMm")){
-                            siteMm = value.toString().removeSurrounding("\"")
-                        }
 
-                        if(key.equals("siteNm")){
-                            siteNm = value.toString().removeSurrounding("\"")
-                        }
-
-
-                        if(index == 2){
-                            plantInfo.add(KHNPPlantInfo(siteCd, siteNm, siteMm))
-                        }
-
-                        if(key.contains("^unit_[0-9]+Cd$".toRegex())) {
-                            unitCd = value.toString().removeSurrounding("\"")
-                        }
-                        if(key.contains("^unit_[0-9]+Dttm$".toRegex())) {
-                            unitDttm = value.toString().removeSurrounding("\"")
-                        }
-                        if(key.contains("^unit_[0-9]+Nm$".toRegex())) {
-                            unitNm = value.toString().removeSurrounding("\"")
-                        }
-                        if(key.contains("^unit_[0-9]+St$".toRegex())) {
-                            unitSt = value.toString().removeSurrounding("\"")
-                        }
-
-                        if( index > 3 && index%4 == 2   ){
-                            unitInfoList.add( KHNPPlantOperationInfo( myCollectionTime, siteCd, genName, unitCd,unitDttm, unitNm, unitSt))
-                            unitCd = ""
-                            unitDttm = ""
-                            unitNm = ""
-                            unitSt = ""
-                        }
-
-                        index++
 
                     }
                 }
