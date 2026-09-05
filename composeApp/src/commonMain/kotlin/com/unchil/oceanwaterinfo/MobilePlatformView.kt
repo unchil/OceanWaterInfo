@@ -238,6 +238,25 @@ val OceanWaterInfoGeoChart = object : SimpleChartView {
     }
 }
 
+val OceanWaterInfo_MOF = object : SimpleChartView {
+    override val name: String = "OceanWaterInfo_MOF"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            OceanWaterInfo_MOF()
+        }
+    }
+}
+
+
+
+
+
 val TestWebViewScreen = object : SimpleChartView {
     override val name: String = "TestWebViewScreen"
     override fun toString(): String = name
