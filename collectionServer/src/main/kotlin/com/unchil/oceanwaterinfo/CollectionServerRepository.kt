@@ -21,9 +21,6 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -1289,30 +1286,46 @@ class CollectionServerRepository {
             CollectionServerRestApi.callMofAPI_xml().let { response ->
                 if(response.status.value == 200){
                     XML.toJSONObject(response.bodyAsText()).let { jsonData ->
-                 //   response.bodyAsText().let{ jsonData ->
-                        // val df = DataFrame.readJson(jsonData.byteInputStream())
-                     //  val result = df.get("body").get("items").get("item")[0] as DataFrame<*>
-                        val df = DataFrame.readJson( jsonData.toString().byteInputStream())
-                        val result = df.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
 
-                        LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${result.count()}]]")
+                        val itemNode =jsonData.query("/response/body/items/item")
+
+                        val items: List<org.json.JSONObject> = when (itemNode) {
+                            is org.json.JSONArray -> { // 배열인 경우 리스트로 변환
+                                (0 until itemNode.length()).map { itemNode.getJSONObject(it) }
+                            }
+                            is org.json.JSONObject -> { // 단일 객체인 경우 리스트로 감쌈
+                                listOf(itemNode)
+                            }
+                            else -> { // 데이터가 없는 경우 (null 등)
+                                emptyList()
+                            }
+                        }
+
+                        LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${items.size}]]")
 
                         transaction (ConfigManager.conn){
                             SchemaUtils.create( OWQInformationTable)
 
                             try {
                                 // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                                OWQInformationTable.batchInsert(result.rows(), true, false) { row ->
-                                    this[OWQInformationTable.rtmWqWtchDtlDt] = row["rtmWqWtchDtlDt"].toString().substringBefore('.')
-                                    this[OWQInformationTable.rtmWqWtchStaCd] = row["rtmWqWtchStaCd"].toString()
-                                    this[OWQInformationTable.rtmWtchWtem] =  String.format("%.3f", row["rtmWtchWtem"].toString().toDouble())
-                                    this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", row["rtmWqCndctv"].toString().toFloat())
-                                    this[OWQInformationTable.ph] = String.format("%.2f", row["ph"].toString().toFloat())
-                                    this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", row["rtmWqDoxn"].toString().toDouble())
-                                    this[OWQInformationTable.rtmWqTu] = row["rtmWqTu"].toString()
-                                    this[OWQInformationTable.rtmWqBgalgsQy] = row["rtmWqBgalgsQy"].toString()
-                                    this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", row["rtmWqChpla"].toString().toDouble())
-                                    this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", row["rtmWqSlnty"].toString().toFloat())
+                                OWQInformationTable.batchInsert(items, true, false) { item ->
+
+                                    // optString, optDouble을 사용하면 데이터가 없거나 형식이 틀려도 안전합니다.
+                                    this[OWQInformationTable.rtmWqWtchDtlDt] = item.optString("rtmWqWtchDtlDt", "").substringBefore('.')
+                                    this[OWQInformationTable.rtmWqWtchStaCd] = item.optString("rtmWqWtchStaCd", "")
+
+                                    // 수치 데이터 안전 변환 (String.format 에러 방지)
+                                    this[OWQInformationTable.rtmWtchWtem] = String.format("%.3f", item.optDouble("rtmWtchWtem", 0.0))
+                                    this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", item.optDouble("rtmWqCndctv", 0.0))
+                                    this[OWQInformationTable.ph] = String.format("%.2f", item.optDouble("ph", 0.0))
+                                    this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", item.optDouble("rtmWqDoxn", 0.0))
+
+                                    this[OWQInformationTable.rtmWqTu] = item.optString("rtmWqTu", "")
+                                    this[OWQInformationTable.rtmWqBgalgsQy] = item.optString("rtmWqBgalgsQy", "")
+
+                                    this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", item.optDouble("rtmWqChpla", 0.0))
+                                    this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", item.optDouble("rtmWqSlnty", 0.0))
+
                                 }
 
                             } catch (e: Exception) {
@@ -1321,10 +1334,9 @@ class CollectionServerRepository {
 
                         }
                     }
-                }else{
-                    LOGGER.error( "${::getRealTimeOceanWaterQuality.name} [${response.status.description}]")
                 }
             }
+
         }catch(e: Exception) {
             e.localizedMessage?.let { msg ->
                 LOGGER.error( "${::getRealTimeObservation.name} [${msg}]")

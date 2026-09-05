@@ -19,13 +19,12 @@ class CollectionServerDataCollector {
         LOGGER.info("Data Collector Started. scheduleJob5Minutes...")
 
         try {
-
             collectionServerRepository.getKhoaTidalCurrent()
             collectionServerRepository.getKhoaObservation()
             collectionServerRepository.getKHNP_RadioRate()
             collectionServerRepository.getKHNP_ThermalWasteWater()
             collectionServerRepository.getKHNP_WasteWater()
-          //  collectionServerRepository.getRealTimeOceanWaterQuality()
+            collectionServerRepository.getRealTimeOceanWaterQuality()
 
             LOGGER.info("Schedule job for 5 Minutes finished.")
         } catch (e: Exception) {
