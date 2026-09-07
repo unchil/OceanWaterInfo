@@ -174,31 +174,6 @@ data class Header(
 
 
 @Serializable
-@SerialName("item")
-data class OceanWaterQuality (
-    val num: String, // 순번
-    val rtmWqWtchStaCd: String, // 실시간수질관측정점코드
-    val rtmWqWtchDtlDt: String, // 실시간수질관측상세일시
-    val rtmWtchWtem: String, // 실시간관측수온
-    val rtmWqCndctv: String, // 실시간수질전기전도도
-    val ph: String, // 수소이온농도
-    val rtmWqDoxn: String, // 실시간수질용존산소량
-    val rtmWqTu: String, // 실시간수질탁도
-    val rtmWqBgalgsQy: String?, // 실시간수질남조류량
-    val rtmWqChpla: String, // 실시간수질클로로필
-    val rtmWqSlnty: String // 실시간수질염분
-)
-
-@Serializable
-@SerialName("body")
-data class OceanWaterQualityBody(
-    val items: List<OceanWaterQuality>,
-    val numOfRows: String,
-    val pageNo: String,
-    val totalCount: String
-)
-
-@Serializable
 data class ObservationBody(
     val item: List<Observation>,
 )
@@ -395,14 +370,6 @@ data class ObservatoryResponse(
     val header: Header,
     val body: ObservatoryBody
 )
-
-@Serializable
-@SerialName("response")
-data class OceanWaterResponse(
-    val header: Header,
-    val body: OceanWaterQualityBody
-)
-
 
 // JSON의 최상위 구조에 해당하는 메인 데이터 클래스
 @Serializable

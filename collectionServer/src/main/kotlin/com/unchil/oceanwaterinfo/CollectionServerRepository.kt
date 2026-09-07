@@ -1352,7 +1352,7 @@ class CollectionServerRepository {
             CollectionServerRestApi.callNifsAPI_json("list").let {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
                 if(recvData.header.resultCode.equals("00")){
-                    LOGGER.info( "${::getRealTimeObservation.name} [receive count[${recvData.body.item.size}]]")
+                    LOGGER.info( "${::getRealTimeObservation.name} [datetime[${recvData.body.item[0].obs_tim}], receive count[${recvData.body.item.size}]]")
                     transaction (ConfigManager.conn){
 
                         SchemaUtils.create( ObservationTable)
