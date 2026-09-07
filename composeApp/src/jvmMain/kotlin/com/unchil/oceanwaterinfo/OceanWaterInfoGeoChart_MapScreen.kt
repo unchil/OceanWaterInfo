@@ -156,8 +156,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
 
 
     val center = OceanWaterInfoGeoChartPoint.current
-   // val host = "http://192.168.35.107:7272"
-    val host = "http://localhost:7272"
+    val host = getPlatform().localServerEndPoint
 
     val servicePage = "oceanWaterInfoGoogleMap.html"
 
