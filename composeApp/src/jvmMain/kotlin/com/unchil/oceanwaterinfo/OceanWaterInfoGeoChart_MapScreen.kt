@@ -87,15 +87,14 @@ fun OceanWaterInfoGeoChart_MapScreen(
                 }
 
                 val data = filteredData.map {
-                    Triple(
+                    Pair(
                         it.sta_nam_kor,
-                        Point(it.lon, it.lat),
-                        Pair(it.obs_datetime, it.wtr_tmp.toFloatOrNull() )
+                        Point(it.lon, it.lat)
                     )
                 }
 
-                locations.value = data.map { triple ->
-                    triple.second
+                locations.value = data.map { pair ->
+                    pair.second
                 }.joinToString(
                     separator = ",",
                     prefix = "[",
@@ -104,8 +103,8 @@ fun OceanWaterInfoGeoChart_MapScreen(
                     "{ lat: ${point.y}, lng: ${point.x} }"
                 }
 
-                labels.value = data.map { triple ->
-                    triple.first
+                labels.value = data.map { pair ->
+                    pair.first
                 }.joinToString(
                     separator = ",",
                     prefix = "[",
@@ -114,8 +113,8 @@ fun OceanWaterInfoGeoChart_MapScreen(
                     "\"${sta_nam_kor}\""
                 }
 
-                content.value = data.map { triple ->
-                    triple.second
+                content.value = data.map { pair ->
+                    pair.second
                 }.joinToString(
                     separator = ",",
                     prefix = "[",
