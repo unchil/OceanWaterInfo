@@ -90,7 +90,7 @@ fun OceanWaterInfoGeoChart_MapScreen(
                     Triple(
                         it.sta_nam_kor,
                         Point(it.lon, it.lat),
-                        Pair(it.obs_datetime, it.wtr_tmp.toFloat())
+                        Pair(it.obs_datetime, it.wtr_tmp.toFloatOrNull() )
                     )
                 }
 
