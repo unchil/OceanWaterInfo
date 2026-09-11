@@ -8,6 +8,19 @@ html, body {
     overflow: hidden; /* 스크롤이 필요하다면 auto */
 }
 
+#un7map {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+}
+
+#un7map canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 #webmain {
     width: 100vw;
     height: 100vh;
