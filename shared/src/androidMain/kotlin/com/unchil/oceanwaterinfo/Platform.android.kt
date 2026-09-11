@@ -15,9 +15,9 @@ class AndroidPlatform : Platform {
 
     override val localServerEndPoint: String
         get() = if (isEmulator()) {
-            "http://10.0.2.2:7272/jvmMain/" // 에뮬레이터에서 호스트(PC) 접속용 루프백 IP
+            "http://10.0.2.2:7272" // 에뮬레이터에서 호스트(PC) 접속용 루프백 IP
         } else {
-            "http://192.168.55.6:7272/jvmMain/" // 실물 기기에서 접속할 서버의 실제 로컬 IP
+            "http://192.168.55.6:7272" // 실물 기기에서 접속할 서버의 실제 로컬 IP
         }
 
     override val repository: OceanWaterRepository

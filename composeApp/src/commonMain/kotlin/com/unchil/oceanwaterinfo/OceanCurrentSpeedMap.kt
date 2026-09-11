@@ -38,7 +38,7 @@ fun OceanCurrentSpeedMap(){
 
     val host = getPlatform().localServerEndPoint
 
-    val servicePage = "seaFlowMapDeckHexagonLayer.html"
+    val servicePage = "seaFlowMapHexagonLayer.html"
 
     val localUrl = "${host}/${servicePage}"
 

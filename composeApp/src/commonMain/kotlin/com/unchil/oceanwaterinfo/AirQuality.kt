@@ -56,7 +56,7 @@ fun AirQuality(){
     val host = getPlatform().localServerEndPoint
 
 
-    val servicePage = "sDoTDeckHexagonLayerUnion.html"
+    val servicePage = "sDoTHexagonLayer.html"
     var descriptionBox by remember { mutableStateOf(false) }
     val localUrl = "${host}/${servicePage}"
 

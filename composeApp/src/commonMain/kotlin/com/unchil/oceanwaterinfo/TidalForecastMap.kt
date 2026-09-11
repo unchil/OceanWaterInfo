@@ -35,7 +35,7 @@ fun TidalForecastMap(){
 
     val host = getPlatform().localServerEndPoint
 
-    val servicePage = "seaFlowMapDeckTripsLayer.html"
+    val servicePage = "seaFlowMapTripsLayer.html"
 
 
     val localUrl = "${host}/${servicePage}"

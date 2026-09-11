@@ -17,7 +17,7 @@ class IOSPlatform: Platform {
 
 
     override val localServerEndPoint: String
-        get() =  "http://192.168.55.6:7272/jvmMain/"
+        get() =  "http://192.168.55.6:7272"
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
