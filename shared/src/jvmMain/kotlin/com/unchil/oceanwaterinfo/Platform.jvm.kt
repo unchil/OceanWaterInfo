@@ -16,7 +16,7 @@ class JVMPlatform: Platform {
 
 
     override val localServerEndPoint: String
-        get() =  "http://192.168.55.6:7272"
+        get() =  "http://192.168.55.6:7272/iFrame"
 
 }
 
