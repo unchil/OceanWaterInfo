@@ -147,12 +147,6 @@ function renderLayer() {
 
 
 
-window.initMapWithData =  function( values, type) {
-    showMapLoader("loading..."); // 로더 표시
-    currentType = type;
-    updateData(values)
-
-}
 
 
 async function initMap() {
@@ -178,15 +172,29 @@ async function initMap() {
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
+    // [수정] 맵이 처음으로 'idle' 상태가 되었을 때(초기화 완료) zoom_changed 리스너 등록
+    google.maps.event.addListenerOnce(map, 'idle', () => {
+        console.log("Map is initialized and idle. Registering zoom_changed listener.");
+        map.addListener('zoom_changed', () => {
+            renderLayer();
+        });
 
-    map.addListener('zoom_changed', () => {
-      //  renderLayer();
+        // 데이터가 이미 로드되어 있다면 즉시 렌더링 수행
+        if (deckData && deckData.length > 0) {
+            renderLayer();
+        }
     });
-
 
 
 };
 
+
+window.initMapWithData =  function( values, type) {
+    showMapLoader("loading..."); // 로더 표시
+    currentType = type;
+    updateData(values)
+
+}
 
 
 window.addEventListener("message", (event) => {
@@ -203,9 +211,7 @@ window.addEventListener("message", (event) => {
 
     if(data.action == 'CHANGE_DATA'){
 
-        showMapLoader("loading..."); // 로더 표시
-        currentType = data.type;
-        updateData(data.values)
+        initMapWithData(data.values, data.type)
     }
 
 });
