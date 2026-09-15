@@ -1220,8 +1220,8 @@ class Repository {
                 ObservationKHOA.wtem,
                 ObservationKHOA.slnty
             ).where{
-                (ObservationKHOA.obsrvnDt greaterEq previous24Hour ) and
-                ((ObservationKHOA.obsrvnDt like "%:00" ) or (ObservationKHOA.obsrvnDt like "%:30") )
+                (ObservationKHOA.obsrvnDt greaterEq previous24Hour )//  and
+            //    ((ObservationKHOA.obsrvnDt like "%:00" ) or (ObservationKHOA.obsrvnDt like "%:30") )
             }.map{
                 KhoaObservation(
                     it[ObservatoryKHOA.obsCode],
