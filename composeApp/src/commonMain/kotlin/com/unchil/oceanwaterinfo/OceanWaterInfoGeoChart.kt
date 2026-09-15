@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
@@ -32,6 +33,7 @@ import org.maplibre.spatialk.geojson.Position
 
 @Composable
 fun OceanWaterInfoGeoChart(
+    height: Dp = 600.dp,
     onClickPoint:(Point<Double, Double>)->Unit = { point -> }  ,
     sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String>  )-> Unit)? = null,
     isReload: Int = 0
@@ -178,7 +180,7 @@ fun OceanWaterInfoGeoChart(
         chartType = ChartType.Geo,
         yRangePadding = 0.0f,
         legendTitle = "Observatory",
-        height = 600.dp,
+        height = height,
         visibleBottomBar = true,
         onReload = onReload,
         bottomBarOpt = bottomBarOpt

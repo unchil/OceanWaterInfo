@@ -21,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
@@ -41,7 +43,7 @@ val SurfaceSeaTemperature = object : SimpleChartView {
 
 
 @Composable
-fun OceanWaterInfoTimeSeries(){
+fun OceanWaterInfoTimeSeries(height: Dp = 600.dp){
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -108,6 +110,7 @@ fun OceanWaterInfoTimeSeries(){
             yTitle = "Water Temperature °C",
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.Line,
+            height = height,
             yRangePadding = 1.0f,
             legendTitle = "Observatory",
             onReload = onReload,

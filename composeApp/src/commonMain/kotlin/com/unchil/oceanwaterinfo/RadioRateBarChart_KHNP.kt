@@ -21,12 +21,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioRateViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun RadioRateBarChart(){
+fun RadioRateBarChart(height: Dp = 600.dp){
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -89,6 +91,7 @@ fun RadioRateBarChart(){
             yTitle = "Radio Rate",
             caption = "from https://www.data.go.kr/data/15157701/openapi.do",
             chartType = ChartType.VerticalBar,
+            height = height,
             yRangePadding = 0.05f,
             legendTitle = "Name",
             onReload = onReload,

@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
@@ -40,6 +41,7 @@ import org.maplibre.spatialk.geojson.Position
 )
 @Composable
 fun WaterInfoGeoChart_KHOA(
+    height: Dp = 600.dp,
     onClickPoint:(Point<Double,Double>)->Unit = { }  ,
     sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String> )-> Unit)? = null,
     isReload: Int = 0
@@ -165,7 +167,7 @@ fun WaterInfoGeoChart_KHOA(
             chartType = ChartType.Geo,
             yRangePadding = 0.0f,
             legendTitle = "Observatory",
-            height = 600.dp,
+            height = height,
             visibleBottomBar = true,
             onReload = onReload,
             bottomBarOpt = bottomBarOpt

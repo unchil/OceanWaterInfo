@@ -15,12 +15,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpRadioActiveWasteViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
+fun RadioActiveWastePlantStatStackedBarChart_KHNP(height: Dp = 600.dp){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpRadioActiveWasteViewModel = remember {
@@ -75,6 +77,7 @@ fun RadioActiveWastePlantStatStackedBarChart_KHNP(){
             yTitle = "RadioActiveWaste",
             caption = "from https://www.data.go.kr/data/15157707/openapi.do",
             chartType = ChartType.StackedVerticalBar,
+            height = height,
             legendTitle = "Year",
             legendColor = LegendColor(start = Color.Blue, end = Color.Red),
             onReload = onReload,

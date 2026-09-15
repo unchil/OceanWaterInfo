@@ -15,6 +15,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpThermalWasteWaterViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -28,7 +30,7 @@ import kotlin.time.Duration.Companion.minutes
 
 
 @Composable
-fun ThermalWasteWaterTimeSeries_KHNP() {
+fun ThermalWasteWaterTimeSeries_KHNP(height: Dp = 600.dp) {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpThermalWasteWaterViewModel = remember { KhnpThermalWasteWaterViewModel() }
 
@@ -102,6 +104,7 @@ fun ThermalWasteWaterTimeSeries_KHNP() {
             yTitle = "Water Temperature(°C)",
             caption = "from https://www.data.go.kr/data/15157696/openapi.do (행정안전부 공공데이터포털)",
             chartType = ChartType.Area,
+            height = height,
             yRangePadding = 1.0f,
             legendTitle = "Power Plant",
             // YAxis min/max 에 함께 사용될 secondaryKey

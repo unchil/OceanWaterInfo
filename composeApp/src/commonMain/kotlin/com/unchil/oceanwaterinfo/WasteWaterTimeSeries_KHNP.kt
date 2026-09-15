@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhnpWasteWaterViewModel
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
@@ -48,7 +49,7 @@ import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun WasteWaterTimeSeries_KHNP() {
+fun WasteWaterTimeSeries_KHNP(height: Dp = 600.dp) {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel() }
 
@@ -119,6 +120,7 @@ fun WasteWaterTimeSeries_KHNP() {
             yTitle = "Quality(PH)",
             caption = "from https://www.data.go.kr/data/15157700/openapi.do (행정안전부 공공데이터포털)",
             chartType = ChartType.Point,
+            height = height,
             yRangePadding = 0.1f,
             legendTitle = "Power Plant",
             onReload = onReload,

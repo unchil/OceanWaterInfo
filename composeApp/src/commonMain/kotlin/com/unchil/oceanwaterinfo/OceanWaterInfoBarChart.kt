@@ -22,6 +22,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
@@ -29,7 +31,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OceanWaterInfoBarChart(){
+fun OceanWaterInfoBarChart(height: Dp = 600.dp){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {
@@ -89,6 +91,7 @@ fun OceanWaterInfoBarChart(){
             yTitle = "Water Temperature °C",
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.VerticalBar,
+            height = height,
             yRangePadding = 1.0f,
             legendTitle = "Observatory",
             onReload = onReload,

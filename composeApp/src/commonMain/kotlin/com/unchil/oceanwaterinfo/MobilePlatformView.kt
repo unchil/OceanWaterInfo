@@ -1,5 +1,7 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
@@ -7,7 +9,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
+val ChartBottonBarHeight = 120.dp
 
 val OceanWaterInfoDataGrid = object : SimpleChartView {
     override val name: String = "OceanWaterInfoDataGrid"
@@ -29,13 +33,14 @@ val WindPolarChart_KHNP = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            WindPolarChart_KHOA()
+            WindPolarChart_KHOA(this.maxHeight - ChartBottonBarHeight)
         }
+
     }
 }
 val NuclearPlantStatePieChart_KHNP = object : SimpleChartView {
@@ -43,12 +48,13 @@ val NuclearPlantStatePieChart_KHNP = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+
+
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            NuclearPlantStatePieChart_KHNP()
+            NuclearPlantStatePieChart_KHNP(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -59,13 +65,14 @@ val RadioActiveWastePlantStatStackedBarChart_KHNP = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            RadioActiveWastePlantStatStackedBarChart_KHNP()
+            RadioActiveWastePlantStatStackedBarChart_KHNP(this.maxHeight - ChartBottonBarHeight)
         }
+
     }
 }
 
@@ -75,13 +82,13 @@ val KHNPRadioActiveWasteStackBarChart = object : SimpleChartView {
     @Composable
     override fun Content() {
 
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            KHNPRadioActiveWasteStackBarChart()
+            KHNPRadioActiveWasteStackBarChart(this.maxHeight - ChartBottonBarHeight)
         }
+
     }
 }
 
@@ -90,14 +97,14 @@ val WaterTempTimeSeries_KHOA = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
 
-            WaterTempTimeSeries_KHOA()
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            WaterTempTimeSeries_KHOA(this.maxHeight - ChartBottonBarHeight)
         }
+
     }
 }
 
@@ -107,12 +114,11 @@ val RadioRateBarChart = object : SimpleChartView {
     @Composable
     override fun Content() {
 
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            RadioRateBarChart()
+            RadioRateBarChart(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -122,13 +128,11 @@ val WasteWaterTimeSeries_KHNP = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-
-            WasteWaterTimeSeries_KHNP()
+            WasteWaterTimeSeries_KHNP(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -138,13 +142,11 @@ val ThermalWasteWaterTimeSeries_KHNP = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-
-            ThermalWasteWaterTimeSeries_KHNP()
+            ThermalWasteWaterTimeSeries_KHNP(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -155,13 +157,11 @@ val WaterDegTimeSeries_KHOA = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-
-            WaterDegTimeSeries_KHOA()
+            WaterDegTimeSeries_KHOA(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -174,13 +174,12 @@ val OceanWaterInfoTimeSeries = object : SimpleChartView {
 
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
 
-            OceanWaterInfoTimeSeries()
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            OceanWaterInfoTimeSeries(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -192,13 +191,12 @@ val OceanWaterInfoBoxPlotChart = object : SimpleChartView {
 
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
 
-            OceanWaterInfoBoxPlotChart()
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            OceanWaterInfoBoxPlotChart(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -211,13 +209,11 @@ val OceanWaterInfoBarChart = object : SimpleChartView {
 
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-
-            OceanWaterInfoBarChart()
+            OceanWaterInfoBarChart(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -228,12 +224,12 @@ val OceanWaterInfoGeoChart = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            OceanWaterInfoGeoChart()
+            OceanWaterInfoGeoChart(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -243,12 +239,12 @@ val OceanWaterInfo_MOF = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
-            OceanWaterInfo_MOF()
+            OceanWaterInfo_MOF(this.maxHeight - ChartBottonBarHeight)
         }
     }
 }
@@ -279,7 +275,6 @@ val AirQuality= object : SimpleChartView {
     override fun Content() {
         Column(
             modifier = Modifier.fillMaxSize(),
-            //    .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             AirQuality()
@@ -294,7 +289,6 @@ val TidalForecastMap= object : SimpleChartView {
     override fun Content() {
         Column(
             modifier = Modifier.fillMaxSize(),
-            //    .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             TidalForecastMap()
@@ -309,7 +303,6 @@ val OceanCurrentSpeedMap = object : SimpleChartView {
     override fun Content() {
         Column(
             modifier = Modifier.fillMaxSize(),
-            //    .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             OceanCurrentSpeedMap()
@@ -324,7 +317,6 @@ val CoastalFloodingMap = object : SimpleChartView {
     override fun Content() {
         Column(
             modifier = Modifier.fillMaxSize(),
-            //    .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             CoastalFloodingMap()

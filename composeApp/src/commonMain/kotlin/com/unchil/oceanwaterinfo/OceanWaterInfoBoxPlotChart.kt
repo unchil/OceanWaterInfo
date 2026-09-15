@@ -22,6 +22,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.SEA_AREA.gru_nam
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
@@ -44,7 +46,7 @@ val OceanWaterOneDayStat = object : SimpleChartView {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OceanWaterInfoBoxPlotChart(){
+fun OceanWaterInfoBoxPlotChart(height: Dp = 600.dp){
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: NifsSeaWaterInfoViewModel = remember {
@@ -102,6 +104,7 @@ fun OceanWaterInfoBoxPlotChart(){
             caption = "from https://www.nifs.go.kr (National Institute of Fisheries Science)",
             chartType = ChartType.BoxPlot,
             yRangePadding = 1.0f,
+            height = height,
             legendTitle = "Observatory",
             onReload = onReload,
             bottomBarOpt = bottomBarOpt

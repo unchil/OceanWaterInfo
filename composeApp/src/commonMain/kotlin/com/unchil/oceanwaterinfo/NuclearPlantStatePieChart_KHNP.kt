@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -25,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.POWER_PLANT_AREA.site_code
 import com.unchil.oceanwaterinfo.viewmodel.KhnpPlantStateViewModel
@@ -39,7 +43,7 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalKoalaPlotApi::class)
 @Composable
-fun NuclearPlantStatePieChart_KHNP(){
+fun NuclearPlantStatePieChart_KHNP(height: Dp = 600.dp){
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpPlantStateViewModel = remember { KhnpPlantStateViewModel() }
 
@@ -106,7 +110,7 @@ fun NuclearPlantStatePieChart_KHNP(){
 
             Spacer(Modifier.padding(10.dp))
 
-            Box(modifier=Modifier.fillMaxSize(), contentAlignment = Alignment.Center,) {
+            Box(modifier=Modifier.size(height), contentAlignment = Alignment.Center,) {
 
                 if(filteredPlantState.value.first.isNotEmpty()) {
                     PieChart(

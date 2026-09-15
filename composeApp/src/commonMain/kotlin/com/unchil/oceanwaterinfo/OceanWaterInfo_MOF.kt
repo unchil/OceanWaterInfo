@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.WATER_QUALITY.desc
 import com.unchil.oceanwaterinfo.WATER_QUALITY.name
@@ -30,7 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun OceanWaterInfo_MOF(){
+fun OceanWaterInfo_MOF(height: Dp = 600.dp){
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -105,6 +106,7 @@ fun OceanWaterInfo_MOF(){
             yTitle =  selectedOption.unit(),
             caption = "from https://www.mof.go.kr (Ministry of Oceans and Fisheries)",
             description = selectedOption.desc(),
+            height = height,
             yRangePadding = 0.1f,
             selectedOption = selectedOption,
             legendTitle = "Observatory",

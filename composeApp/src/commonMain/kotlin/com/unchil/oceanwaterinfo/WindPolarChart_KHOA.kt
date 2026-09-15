@@ -15,6 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import io.github.koalaplot.core.polar.DefaultPolarPoint
@@ -24,7 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun WindPolarChart_KHOA(){
+fun WindPolarChart_KHOA(height: Dp = 600.dp){
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -96,7 +97,7 @@ fun WindPolarChart_KHOA(){
             caption = "from https://www.data.go.kr/data/15155516/openapi.do (행정안전부 공공데이터포털)",
             chartType = ChartType.Polar,
             legendTitle = "Observatory",
-            height = 600.dp,
+            height = height,
             maxCrSp = maxCrSp.value,
             visibleBottomBar = true,
             onReload = onReload,
