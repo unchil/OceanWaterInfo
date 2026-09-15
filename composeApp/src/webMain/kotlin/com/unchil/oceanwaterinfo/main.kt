@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 
@@ -32,6 +33,15 @@ fun main(){
     ComposeViewport(viewportContainerId = DIV_WEB_MAIN) {
 
     //    MainView( modifier = Modifier.fillMaxSize() )
+
+        // 1. 초기 로딩 상태 관리
+        var isPageReady by remember { mutableStateOf(false) }
+
+        // 2. 컴포저블이 처음 로드될 때 지연 발생
+        LaunchedEffect(Unit) {
+            delay(100) // 1초 지연 (원하는 시간으로 조절)
+            isPageReady = true
+        }
 
 
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
@@ -49,6 +59,7 @@ fun main(){
                 modifier = Modifier.fillMaxSize()
                     .background(color = MaterialTheme.colorScheme.surface)
             ) {
+
 
                 SecondaryTabRow(
                     selectedTabIndex,
@@ -100,7 +111,9 @@ fun main(){
                 Box(modifier = Modifier.fillMaxSize()) {
                     when (selectedTabIndex) {
                         0 -> {
-                            webMainAirQuality()
+                            if(isPageReady){
+                                webMainAirQuality()
+                            }
                         }
                         1 -> {
                             webMainOceanWaterQuality()
