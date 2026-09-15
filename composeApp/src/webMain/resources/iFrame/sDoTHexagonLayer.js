@@ -51,17 +51,8 @@ function getAirQualityLevel(value, type) {
     return 6;
 }
 
-function updateData(values){
-
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-    }
-
-    deckData = values;
-    renderLayer();
-};
-
 function renderLayer() {
+
     if (!deckData) {
         hideMapLoader();
         return;
@@ -87,6 +78,8 @@ function renderLayer() {
     •줌 레벨 14 (확대): 90 * Math.pow(2, 12 - 14) = 90 * 0.25 = 22.5m (육각형이 너무 커지는 것을 방지)
     •줌 레벨 10 (축소): 90 * Math.pow(2, 12 - 10) = 90 * 4 = 360m (육각형이 너무 작아져서 안 보이는 것을 방지)
     */
+
+
     const currentZoom = map.getZoom();
     const dynamicRadius =   currentZoom >= zoomLevel ? 90 : (90 * Math.pow(2, zoomLevel - currentZoom))
     const dynamicMaxElevation =   currentZoom >= zoomLevel ? 50 : (200 * Math.pow(2, zoomLevel - currentZoom))
@@ -143,13 +136,19 @@ function renderLayer() {
    setTimeout(() => {
        hideMapLoader();
    }, 300); // 부드러운 전환을 위해 약간의 지연
+
 };
 
 
-
-
+// 1. 맵 초기화 상태를 추적할 전역 Promise 변수 선언
+let mapInitPromise;
 
 async function initMap() {
+    // [핵심 변경] 리턴할 Promise의 resolve 함수를 담을 변수
+    let resolveInit;
+    mapInitPromise = new Promise(resolve => {
+        resolveInit = resolve;
+    });
 
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -172,28 +171,34 @@ async function initMap() {
     overlay = new GoogleMapsOverlay({layers:[]});
     overlay.setMap(map);
 
-    // [수정] 맵이 처음으로 'idle' 상태가 되었을 때(초기화 완료) zoom_changed 리스너 등록
+
+  // 맵이 완전히 ready(idle) 상태가 되었을 때 리스너를 등록하고 Promise를 완료(resolve)시킴
     google.maps.event.addListenerOnce(map, 'idle', () => {
+        resolveInit(); // 이 순간 Pending 상태가 Fulfilled 상태로 바뀜!
         console.log("Map is initialized and idle. Registering zoom_changed listener.");
         map.addListener('zoom_changed', () => {
             renderLayer();
         });
-
-        // 데이터가 이미 로드되어 있다면 즉시 렌더링 수행
-        if (deckData && deckData.length > 0) {
-            renderLayer();
-        }
     });
-
 
 };
 
-
-window.initMapWithData =  function( values, type) {
+// 2. window.initMapWithData를 async 함수로 변경하여 대기 로직 추가
+window.initMapWithData =  async function( values, type) {
     showMapLoader("loading..."); // 로더 표시
-    currentType = type;
-    updateData(values)
-
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+    }
+    // [핵심 변경] initMap()의 idle 이벤트가 완료될 때까지 여기서 대기합니다.
+    if(mapInitPromise){
+        await mapInitPromise;
+        // 맵 초기화가 확실히 끝난 후 레이어를 렌더링합니다.
+        deckData = values;
+        currentType = type;
+        renderLayer();
+    } else {
+        console.log("initMapWithData Not Start");
+    }
 }
 
 
@@ -215,8 +220,6 @@ window.addEventListener("message", (event) => {
     }
 
 });
-
-
 
 function startHexagonAnimation(props) {
     let currentTime = 0
