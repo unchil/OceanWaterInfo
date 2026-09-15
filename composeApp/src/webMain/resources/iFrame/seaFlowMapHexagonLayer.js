@@ -23,7 +23,15 @@ let elevationBase = 10; // 기본 높이 배율
 const animatedOpacity = 0.5 + ((Math.sin(currentTime) + 1) *0.25); // 0.5 ~ 1.0 사이 왕복
 
 
+// 1. 맵 초기화 상태를 추적할 전역 Promise 변수 선언
+let mapInitPromise;
+
 async function initMap() {
+    // [핵심 변경] 리턴할 Promise의 resolve 함수를 담을 변수
+    let resolveInit;
+    mapInitPromise = new Promise(resolve => {
+        resolveInit = resolve;
+    });
 
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -46,6 +54,7 @@ async function initMap() {
 
 
     google.maps.event.addListenerOnce(map, 'idle', function() {
+        resolveInit(); // 이 순간 Pending 상태가 Fulfilled 상태로 바뀜!
         overlay = new GoogleMapsOverlay({layers:[]});
        overlay.setMap(map);
     });
@@ -55,31 +64,40 @@ async function initMap() {
 };
 
 
-window.initMapWithData = function( values) {
+window.initMapWithData = async function( values) {
     showMapLoader("loading..."); // 로더 표시
 
-    props = {
-      id: 'hexagon-layer',
-      data: values,
-      gpuAggregation: true,
-      colorRange,
-      extruded: true,
-      getPosition: d => [d.lng, d.lat],
-      getColorWeight: d => d.speed,
-      getElevationWeight: d => d.speed,
-      elevationScale: elevationBase,
-      radius: 4500,
-      pickable: true
+    // [핵심 변경] initMap()의 idle 이벤트가 완료될 때까지 여기서 대기합니다.
+    if(mapInitPromise){
+        await mapInitPromise;
+        // 맵 초기화가 확실히 끝난 후 레이어를 렌더링합니다.
 
-  }
+        props = {
+          id: 'hexagon-layer',
+          data: values,
+          gpuAggregation: true,
+          colorRange,
+          extruded: true,
+          getPosition: d => [d.lng, d.lat],
+          getColorWeight: d => d.speed,
+          getElevationWeight: d => d.speed,
+          elevationScale: elevationBase,
+          radius: 4500,
+          pickable: true
+
+      }
+
+       // 최종 렌더링 종료 후 로더 숨김
+       setTimeout(() => {
+           hideMapLoader();
+       }, 300); // 부드러운 전환을 위해 약간의 지연
+
+      startHexagonAnimation();
+    } else {
+        console.log("initMapWithData Not Start");
+    }
 
 
-   // 최종 렌더링 종료 후 로더 숨김
-   setTimeout(() => {
-       hideMapLoader();
-   }, 300); // 부드러운 전환을 위해 약간의 지연
-
-  startHexagonAnimation();
 
 }
 

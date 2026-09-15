@@ -17,7 +17,15 @@ function getTimestamp() {
     return `[${h}:${m}:${s}.${ms}]`;
 }
 
+
+// 1. 맵 초기화 상태를 추적할 전역 Promise 변수 선언
+let mapInitPromise;
 async function initMap() {
+    // [핵심 변경] 리턴할 Promise의 resolve 함수를 담을 변수
+    let resolveInit;
+    mapInitPromise = new Promise(resolve => {
+        resolveInit = resolve;
+    });
 
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -38,6 +46,10 @@ async function initMap() {
 
     });
 
+  // 맵이 완전히 ready(idle) 상태가 되었을 때 리스너를 등록하고 Promise를 완료(resolve)시킴
+    google.maps.event.addListenerOnce(map, 'idle', () => {
+        resolveInit(); // 이 순간 Pending 상태가 Fulfilled 상태로 바뀜!
+    });
 
 };
 
@@ -77,57 +89,43 @@ function processConfiguration(geometry, callback, thisArg) {
 
 
 
-window.renderingMap = function( geojsonObject, grade, msgKey){
+window.renderingMap = async function( geojsonObject, grade, msgKey){
     console.log(`${getTimestamp()} renderingMap Start`);
-
-/*
-    // --- [데이터 검증 및 이동 로직 추가] ---
-    let isEmpty = true;
-
-    if (geojsonObject && geojsonObject.features && geojsonObject.features.length > 0) {
-        const geometry = geojsonObject.features[0].geometry;
-        // MultiPolygon 구조이므로 coordinates 배열의 길이를 확인
-        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
-            isEmpty = false;
-        }
-    }
-
-    if (isEmpty && msgKey === 'COASTAL_FLOODING') {
-        console.log(`${getTimestamp()} GeoJSON coordinates are empty. Flying to default center.`);
-        window.alert("선택하신 지역 및 등급에 대한 침수 예상 데이터가 존재하지 않습니다.");
-        // 데이터가 없으므로 기존 데이터를 지우고 기본 센터로 이동
-        removeFeather();
-        smoothFlyTo(center);
-        return; // 이후 렌더링 로직 중단
-    }
-    */
 
     showMapLoader("loading...");
 
-    const strokeColor = getGradeColor(grade);
+    // [핵심 변경] initMap()의 idle 이벤트가 완료될 때까지 여기서 대기합니다.
+    if(mapInitPromise){
+        await mapInitPromise;
+        // 맵 초기화가 확실히 끝난 후 레이어를 렌더링합니다.
+        const strokeColor = getGradeColor(grade);
 
-    map.data.addGeoJson(geojsonObject);
+            map.data.addGeoJson(geojsonObject);
 
-    map.data.setStyle({
-        fillColor: strokeColor,   // 면 색상
-        fillOpacity: 0.5,         // 투명도
-        strokeColor: strokeColor, // 선 색상
-        strokeWeight: 2,          // 선 굵기
-        clickable: true
-    });
-    //  지도를 데이터 경계에 맞게 조정
-    const bounds = new google.maps.LatLngBounds();
-    map.data.forEach((feature) => {
-        processConfiguration(feature.getGeometry(), bounds.extend, bounds);
-    });
-    map.fitBounds(bounds);
+            map.data.setStyle({
+                fillColor: strokeColor,   // 면 색상
+                fillOpacity: 0.5,         // 투명도
+                strokeColor: strokeColor, // 선 색상
+                strokeWeight: 2,          // 선 굵기
+                clickable: true
+            });
+            //  지도를 데이터 경계에 맞게 조정
+            const bounds = new google.maps.LatLngBounds();
+            map.data.forEach((feature) => {
+                processConfiguration(feature.getGeometry(), bounds.extend, bounds);
+            });
+            map.fitBounds(bounds);
 
-    console.log(`${getTimestamp()} renderingMap End`);
+            console.log(`${getTimestamp()} renderingMap End`);
 
-    // 최종 렌더링 종료 후 로더 숨김
-    setTimeout(() => {
-       hideMapLoader();
-    }, 300); // 부드러운 전환을 위해 약간의 지연
+            // 최종 렌더링 종료 후 로더 숨김
+            setTimeout(() => {
+               hideMapLoader();
+            }, 300); // 부드러운 전환을 위해 약간의 지연
+    } else {
+        console.log("renderingMap Not Start");
+    }
+
 }
 
 

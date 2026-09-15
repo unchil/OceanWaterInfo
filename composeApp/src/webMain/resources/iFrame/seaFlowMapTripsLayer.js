@@ -11,8 +11,15 @@ let animationId; // 애니메이션 루프 ID를 저장할 변수 추가
 let deckData = []; // 데이터를 전역으로 관리하여 루프에서 참조
 let props;
 
-
+// 1. 맵 초기화 상태를 추적할 전역 Promise 변수 선언
+let mapInitPromise;
 async function initMap() {
+
+    // [핵심 변경] 리턴할 Promise의 resolve 함수를 담을 변수
+    let resolveInit;
+    mapInitPromise = new Promise(resolve => {
+        resolveInit = resolve;
+    });
 
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -36,8 +43,11 @@ async function initMap() {
 
 
     google.maps.event.addListenerOnce(map, 'idle', function() {
+        resolveInit(); // 이 순간 Pending 상태가 Fulfilled 상태로 바뀜!
+
         overlay = new GoogleMapsOverlay({layers:[]});
        overlay.setMap(map);
+
     });
 
 
@@ -45,46 +55,58 @@ async function initMap() {
 };
 
 
-window.initMapWithData = function( values) {
+window.initMapWithData = async function( values) {
     showMapLoader("loading..."); // 로더 표시
 
-    deckData = values.map((particle) => {
-        const path = particle.map(p => [p.lng, p.lat]);
-        const timestamps = particle.map( (_, index) =>  index  *  10  );
-        const speed = particle[0].speed;
-        return {
-            speed: speed,
-            path: path,
-            timestamps: timestamps
-        };
-    });
+    // [핵심 변경] initMap()의 idle 이벤트가 완료될 때까지 여기서 대기합니다.
+    if(mapInitPromise){
+        await mapInitPromise;
+        // 맵 초기화가 확실히 끝난 후 레이어를 렌더링합니다.
 
-    props = {
-      id: 'trips-layer',
-      data: deckData,
-      getPath: d => d.path,
-      getTimestamps: d => d.timestamps,
-      getColor: d => {
-          if (d.speed > 100) return [255, 0, 0];      // Red
-          if (d.speed > 30) return [255, 165, 0];    // Orange
-          return [0, 255, 255];                      // Cyan
-      },
-      opacity: 1.0,
-      widthMinPixels: 3,   // 최소 선 두께
-      trailLength: 360,     // 입자 꼬리의 길이
-      currentTime: currentTime,   // 현재 애니메이션 시간
-      shadowEnabled: true
-  }
+        deckData = values.map((particle) => {
+                const path = particle.map(p => [p.lng, p.lat]);
+                const timestamps = particle.map( (_, index) =>  index  *  10  );
+                const speed = particle[0].speed;
+                return {
+                    speed: speed,
+                    path: path,
+                    timestamps: timestamps
+                };
+            });
 
-     console.log("deckData 초기화 완료:", deckData.length);
+        props = {
+          id: 'trips-layer',
+          data: deckData,
+          getPath: d => d.path,
+          getTimestamps: d => d.timestamps,
+          getColor: d => {
+              if (d.speed > 100) return [255, 0, 0];      // Red
+              if (d.speed > 30) return [255, 165, 0];    // Orange
+              return [0, 255, 255];                      // Cyan
+          },
+          opacity: 1.0,
+          widthMinPixels: 3,   // 최소 선 두께
+          trailLength: 360,     // 입자 꼬리의 길이
+          currentTime: currentTime,   // 현재 애니메이션 시간
+          shadowEnabled: true
+      }
 
-       // 최종 렌더링 종료 후 로더 숨김
-       setTimeout(() => {
+        console.log("deckData 초기화 완료:", deckData.length);
+
+        // 최종 렌더링 종료 후 로더 숨김
+        setTimeout(() => {
            hideMapLoader();
-       }, 300); // 부드러운 전환을 위해 약간의 지연
+        }, 300); // 부드러운 전환을 위해 약간의 지연
 
 
-      startAnimation();
+        startAnimation();
+
+    } else {
+        console.log("initMapWithData Not Start");
+    }
+
+
+
 }
 
 
