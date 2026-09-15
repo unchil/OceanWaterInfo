@@ -1195,13 +1195,15 @@ class Repository {
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 
-
+/*
         val maxDt = ObservationKHOA
             .selectAll()
             .orderBy(ObservationKHOA.obsrvnDt to SortOrder.DESC) // 날짜 내림차순 정렬
             .limit(1)                                            // 제일 위 하나만
             .singleOrNull()
             ?.get(ObservationKHOA.obsrvnDt) ?: ""                   // 해당 날짜 추출
+
+ */
 
         val result = ObservationKHOA
             .join(
@@ -1228,7 +1230,8 @@ class Repository {
                 ObservationKHOA.slnty
             ).where{
                // ObservationKHOA.obsrvnDt eq maxDt
-                ObservationKHOA.obsrvnDt greaterEq previous24Hour
+                (ObservationKHOA.obsrvnDt greaterEq previous24Hour ) and
+                ((ObservationKHOA.obsrvnDt like "%:00" ) or (ObservationKHOA.obsrvnDt like "%:30") )
             }.map{
                 KhoaObservation(
                     it[ObservatoryKHOA.obsCode],
