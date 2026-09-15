@@ -1189,21 +1189,12 @@ class Repository {
     fun fetchKhoaObservationFromDb():List<KhoaObservation> = transaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservationFromDb")
 
-        //2026-03-06 13:59
         val previous24Hour = kotlin.time.Clock.System.now()
             .minus(24, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH:mm")})
 
-/*
-        val maxDt = ObservationKHOA
-            .selectAll()
-            .orderBy(ObservationKHOA.obsrvnDt to SortOrder.DESC) // 날짜 내림차순 정렬
-            .limit(1)                                            // 제일 위 하나만
-            .singleOrNull()
-            ?.get(ObservationKHOA.obsrvnDt) ?: ""                   // 해당 날짜 추출
 
- */
 
         val result = ObservationKHOA
             .join(
@@ -1229,7 +1220,6 @@ class Repository {
                 ObservationKHOA.wtem,
                 ObservationKHOA.slnty
             ).where{
-               // ObservationKHOA.obsrvnDt eq maxDt
                 (ObservationKHOA.obsrvnDt greaterEq previous24Hour ) and
                 ((ObservationKHOA.obsrvnDt like "%:00" ) or (ObservationKHOA.obsrvnDt like "%:30") )
             }.map{
