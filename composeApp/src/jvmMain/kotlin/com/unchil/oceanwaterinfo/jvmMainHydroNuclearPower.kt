@@ -118,7 +118,7 @@ fun jvmMainHydroNuclearPower(){
                         ) {
 
                             WaterInfoGeoChart_KHOA(
-                                onClickPointWaterInfoGeoChart_KHOA
+                                onClickPoint = onClickPointWaterInfoGeoChart_KHOA
                             )
                         }
 

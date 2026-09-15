@@ -128,11 +128,22 @@ val WasteWaterTimeSeries_KHNP = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
+        /*
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
             WasteWaterTimeSeries_KHNP(this.maxHeight - ChartBottonBarHeight)
+        }
+
+         */
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            WasteWaterTimeSeries_KHNP()
         }
     }
 }
