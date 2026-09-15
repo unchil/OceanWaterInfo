@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-val ChartBottonBarHeight = 120.dp
+val ChartBottonBarHeight = 100.dp
 
 val OceanWaterInfoDataGrid = object : SimpleChartView {
     override val name: String = "OceanWaterInfoDataGrid"
