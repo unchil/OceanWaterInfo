@@ -69,7 +69,6 @@ fun main() = application {
     var progressMsg by remember { mutableStateOf("다운로드 중...") }
     var isDownload by remember { mutableStateOf(true) }
 
-
     // 1. 시스템 프로퍼티에서 홈 디렉토리 경로를 가져옵니다.
     val userHome = System.getProperty("user.home")
 
@@ -80,82 +79,77 @@ fun main() = application {
     LOGGER.info("JAVA_HOME: ${System.getProperty("java.home") }")
     LOGGER.info("JCEF Library 존재 여부: ${isJcef}")
 
+    LaunchedEffect(Unit) {
+        KCEF.init(
+            builder = {
 
+                installDir(installDir)
 
-        LaunchedEffect(Unit) {
-            KCEF.init(
-                builder = {
+                progress {
 
-                    installDir(installDir)
+                    onLocating {
+                        isDownload = false
+                        progressMsg = "엔진 위치 찾는 중..."
+                    }
+                    onDownloading { percent ->
+                        isDownload = true
+                        downloadProgress = percent
+                        progressMsg = "다운로드 중: ${percent.toInt()}%"
+                    }
+                    onExtracting {
+                        isDownload = false
+                        progressMsg = "압축 해제 중..."
+                    }
+                    onInitializing {
+                        isDownload = false
+                        progressMsg = "초기화 중..."
+                    }
 
-                    progress {
+                    onInstall{
+                        isDownload = false
 
-                        onLocating {
-                            isDownload = false
-                            progressMsg = "엔진 위치 찾는 중..."
-                        }
-                        onDownloading { percent ->
-                            isDownload = true
-                            downloadProgress = percent
-                            progressMsg = "다운로드 중: ${percent.toInt()}%"
-                        }
-                        onExtracting {
-                            isDownload = false
-                            progressMsg = "압축 해제 중..."
-                        }
-                        onInitializing {
-                            isDownload = false
-                            progressMsg = "초기화 중..."
-                        }
+                        progressMsg =  "설치 중..."
+                        // 1. 소스 및 대상 경로 정의
 
-                        onInstall{
-                            isDownload = false
+                        val kcefDir = File(userHome, ".kcef-bundle") // installDir과 동일한 위치
+                        val sourcePath = "${kcefDir}/Frameworks/cef_server.app/Contents/Frameworks"
+                        val destPath = "${kcefDir}/Frameworks"
 
-                            progressMsg =  "설치 중..."
-                            // 1. 소스 및 대상 경로 정의
+                        val sourceDir = File(sourcePath)
+                        val destDir = File(destPath)
 
-                            val kcefDir = File(userHome, ".kcef-bundle") // installDir과 동일한 위치
-                            val sourcePath = "${kcefDir}/Frameworks/cef_server.app/Contents/Frameworks"
-                            val destPath = "${kcefDir}/Frameworks"
-
-                            val sourceDir = File(sourcePath)
-                            val destDir = File(destPath)
-
-                            // 2. 소스 경로가 존재할 경우 파일 이동 수행
-                            if (sourceDir.exists() && sourceDir.isDirectory) {
-                                sourceDir.listFiles()?.forEach { file ->
-                                    val targetFile = File(destDir, file.name)
-                                    file.renameTo(targetFile)
-                                }
-
-                                // 핵심: 설치 완료를 알리는 lock 파일 생성
-                                val lockFile = File(kcefDir, "install.lock")
-                                if (!lockFile.exists()) {
-                                    lockFile.createNewFile()
-                                }
+                        // 2. 소스 경로가 존재할 경우 파일 이동 수행
+                        if (sourceDir.exists() && sourceDir.isDirectory) {
+                            sourceDir.listFiles()?.forEach { file ->
+                                val targetFile = File(destDir, file.name)
+                                file.renameTo(targetFile)
                             }
 
-                        }
-
-                        onInitialized {
-                            isDownload = false
-                            progressMsg = "완료!"
-                            initialized = true
+                            // 핵심: 설치 완료를 알리는 lock 파일 생성
+                            val lockFile = File(kcefDir, "install.lock")
+                            if (!lockFile.exists()) {
+                                lockFile.createNewFile()
+                            }
                         }
 
                     }
-                },
-                onError = { error ->
-                    progressMsg = error?.localizedMessage ?: "알 수 없는 오류"
-                },
-                onRestartRequired = {
+
+                    onInitialized {
+                        isDownload = false
+                        progressMsg = "완료!"
+                        initialized = true
+                    }
 
                 }
-            )
-        }
+            },
+            onError = { error ->
+                progressMsg = error?.localizedMessage ?: "알 수 없는 오류"
+            },
+            onRestartRequired = {
 
-
-
+            }
+        )
+    }
 
     val restartHandler = {
         try {
@@ -206,14 +200,14 @@ fun main() = application {
         }
     }
 
-    val state = WindowState(
-        size = DpSize(1400.dp, 1000.dp),
-        position = WindowPosition(Alignment.Center)
-    )
-
-
     var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
 
+
+    /*
+    val state = WindowState(
+        size = DpSize(1600.dp, 800.dp),
+        position = WindowPosition(Alignment.Center)
+    )
 
     Window(
         onCloseRequest = {
@@ -224,8 +218,27 @@ fun main() = application {
         state = state,
         icon = painterResource(Res.drawable.app_icon_1024)
     ) {
+        MaterialTheme(colorScheme = getColorScheme(false)) {
+            MainView(modifier = Modifier.fillMaxSize() )
+        }
+    }
+     */
 
-  //      MainView(modifier = Modifier.fillMaxSize() )
+
+    val state = WindowState(
+        size = DpSize(1400.dp, 1000.dp),
+        position = WindowPosition(Alignment.Center)
+    )
+
+    Window(
+        onCloseRequest = {
+            KCEF.disposeBlocking()
+            exitApplication()
+        },
+        title = "Environmental Observation Information",
+        state = state,
+        icon = painterResource(Res.drawable.app_icon_1024)
+    ) {
 
         MaterialTheme(colorScheme = getColorScheme(false)) {
 
@@ -354,26 +367,16 @@ fun main() = application {
 
                 }
 
-
             }
+
         }
-
-
-
-
     }
-
-
 
     DisposableEffect(Unit) {
         onDispose {
             KCEF.disposeBlocking()
         }
     }
-
-
-
-
 
 
 }
