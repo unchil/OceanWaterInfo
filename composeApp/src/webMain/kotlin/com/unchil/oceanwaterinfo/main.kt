@@ -111,6 +111,7 @@ fun main(){
                 Box(modifier = Modifier.fillMaxSize()) {
                     when (selectedTabIndex) {
                         0 -> {
+                            // 첫 iframe의 완전한 로드를 기다리는 인위적 지연
                             if(isPageReady){
                                 webMainAirQuality()
                             }
