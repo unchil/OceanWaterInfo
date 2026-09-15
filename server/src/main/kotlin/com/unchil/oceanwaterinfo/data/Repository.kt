@@ -20,11 +20,8 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.min
-import org.jetbrains.exposed.v1.core.statements.api.ExposedBlob
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.substring
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.deleteWhere
-import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -808,7 +805,8 @@ class Repository {
                     QWQObservatoryTable.lon,
                     QWQObservatoryTable.lat
                 ).where {
-                    OWQInformationTable.rtmWqWtchDtlDt greaterEq previous24Hour
+                    (OWQInformationTable.rtmWqWtchDtlDt greaterEq previous24Hour) and
+                    ((OWQInformationTable.rtmWqWtchDtlDt like "%:00:00") or (OWQInformationTable.rtmWqWtchDtlDt like "%:30:00"))
                 }
                     .orderBy(
                         OWQInformationTable.rtmWqWtchDtlDt to SortOrder.ASC,
