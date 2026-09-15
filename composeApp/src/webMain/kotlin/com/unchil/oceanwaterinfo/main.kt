@@ -39,7 +39,7 @@ fun main(){
 
         // 2. 컴포저블이 처음 로드될 때 지연 발생
         LaunchedEffect(Unit) {
-            delay(100) // 1초 지연 (원하는 시간으로 조절)
+            delay(500) 
             isPageReady = true
         }
 
