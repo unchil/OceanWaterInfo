@@ -4,5 +4,20 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>un7.org</key>
+            <dict>
+                <!-- HTTP 연결 허용 -->
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <!-- Subdomain 포함 여부 -->
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
 </dict>
 </plist>

@@ -10,14 +10,14 @@ class AndroidPlatform : Platform {
         get() = PlatformAlias.ANDROID
 
     override val envInfoServerEndPoint: String
-        get() = "http://192.168.55.6:7788"
+        get() = "http://un7.org:7788"
 
 
     override val localServerEndPoint: String
         get() = if (isEmulator()) {
             "http://10.0.2.2:7272/iFrame" // 에뮬레이터에서 호스트(PC) 접속용 루프백 IP
         } else {
-            "http://192.168.55.6:7272/iFrame" // 실물 기기에서 접속할 서버의 실제 로컬 IP
+            "http://un7.org:7272/iFrame" // 실물 기기에서 접속할 서버의 실제 로컬 IP
         }
 
     override val repository: OceanWaterRepository
