@@ -20,7 +20,9 @@ import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 @Composable
 fun WaterTempTimeSeries_KHOA(height: Dp = 600.dp){
     val coroutineScope = rememberCoroutineScope()
@@ -51,7 +53,10 @@ fun WaterTempTimeSeries_KHOA(height: Dp = 600.dp){
     LaunchedEffect(key1= seaWaterInfo.value) {
         if (seaWaterInfo.value.isNotEmpty()) {
             chartData.value = seaWaterInfo.value
-                .filter { it.obsCode.contains("HB")  }
+                .filter {
+                    it.obsCode.contains("HB") &&
+                    ( it.obsrvnDt.endsWith(":00") || it.obsrvnDt.endsWith(":30") )
+                }
                 .toChartTripleList(
                 nameSelector = { it.obsvtrNm },
                 timeSelector = { it.obsrvnDt },
