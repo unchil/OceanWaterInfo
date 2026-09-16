@@ -24,7 +24,7 @@ import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 @Composable
-fun WaterTempTimeSeries_KHOA(height: Dp = 600.dp){
+fun WaterTempTimeSeries_KHOA(height: Dp = ChartSize.small.height()){
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaObservationViewModel = remember {
         KhoaObservationViewModel(    )

@@ -46,7 +46,7 @@ val OceanWaterOneDayStat = object : SimpleChartView {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OceanWaterInfoBoxPlotChart(height: Dp = 600.dp){
+fun OceanWaterInfoBoxPlotChart(height: Dp = ChartSize.small.height()){
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: NifsSeaWaterInfoViewModel = remember {

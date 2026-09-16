@@ -31,7 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun OceanWaterInfo_MOF(height: Dp = 600.dp){
+fun OceanWaterInfo_MOF(height: Dp = ChartSize.middle.height()){
 
     val coroutineScope = rememberCoroutineScope()
 

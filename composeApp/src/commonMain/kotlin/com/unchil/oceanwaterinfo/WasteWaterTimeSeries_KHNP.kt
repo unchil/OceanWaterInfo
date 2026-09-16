@@ -49,7 +49,7 @@ import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun WasteWaterTimeSeries_KHNP(height: Dp = 600.dp) {
+fun WasteWaterTimeSeries_KHNP(height: Dp = ChartSize.small.height()) {
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpWasteWaterViewModel = remember { KhnpWasteWaterViewModel() }
 

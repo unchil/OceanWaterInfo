@@ -43,7 +43,7 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalKoalaPlotApi::class)
 @Composable
-fun NuclearPlantStatePieChart_KHNP(height: Dp = 600.dp){
+fun NuclearPlantStatePieChart_KHNP(height: Dp = ChartSize.large.height()){
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpPlantStateViewModel = remember { KhnpPlantStateViewModel() }
 

@@ -28,7 +28,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun RadioRateBarChart(height: Dp = 600.dp){
+fun RadioRateBarChart(height: Dp = ChartSize.small.height()){
 
     val coroutineScope = rememberCoroutineScope()
 

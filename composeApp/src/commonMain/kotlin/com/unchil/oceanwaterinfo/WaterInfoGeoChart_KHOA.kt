@@ -41,7 +41,7 @@ import org.maplibre.spatialk.geojson.Position
 )
 @Composable
 fun WaterInfoGeoChart_KHOA(
-    height: Dp = 600.dp,
+    height: Dp = ChartSize.large.height(),
     onClickPoint:(Point<Double,Double>)->Unit = { }  ,
     sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String> )-> Unit)? = null,
     isReload: Int = 0

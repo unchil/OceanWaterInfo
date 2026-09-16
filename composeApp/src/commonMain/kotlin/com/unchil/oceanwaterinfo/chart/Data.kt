@@ -19,6 +19,18 @@ import io.github.koalaplot.core.xygraph.TickPosition
 import kotlin.Any
 
 
+enum class ChartSize {
+    small, middle, large
+}
+
+fun ChartSize.height():Dp {
+    return when(this){
+        ChartSize.small -> 400.dp
+        ChartSize.middle -> 500.dp
+        ChartSize.large -> 600.dp
+    }
+}
+
 sealed class ChartUiState {
 
     object Loading : ChartUiState()
@@ -202,6 +214,7 @@ object AirQualityManager {
     }
 
     val caption =  "https://data.seoul.go.kr https://data.gg.go.kr"
+
 
     /**
      * 공기질 데이터를 담는 데이터 클래스 (단위: 수치 입력 기준)

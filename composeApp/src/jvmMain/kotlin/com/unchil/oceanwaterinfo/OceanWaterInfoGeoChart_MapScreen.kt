@@ -33,7 +33,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun OceanWaterInfoGeoChart_MapScreen(
-    height: Dp = 400.dp
+    height: Dp = ChartSize.large.height()
 ){
     val coroutineScope = rememberCoroutineScope()
 

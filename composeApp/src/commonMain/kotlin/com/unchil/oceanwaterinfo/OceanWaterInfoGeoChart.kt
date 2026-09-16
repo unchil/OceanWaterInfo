@@ -33,7 +33,7 @@ import org.maplibre.spatialk.geojson.Position
 
 @Composable
 fun OceanWaterInfoGeoChart(
-    height: Dp = 600.dp,
+    height: Dp = ChartSize.large.height(),
     onClickPoint:(Point<Double, Double>)->Unit = { point -> }  ,
     sendAddMarkerClusterer:((iframeId:String,  tripleData :Triple<String, String, String>  )-> Unit)? = null,
     isReload: Int = 0

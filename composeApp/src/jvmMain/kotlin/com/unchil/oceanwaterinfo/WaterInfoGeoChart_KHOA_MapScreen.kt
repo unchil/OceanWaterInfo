@@ -32,7 +32,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun WaterInfoGeoChart_KHOA_MapScreen(
-    height: Dp = 400.dp
+    height: Dp = ChartSize.large.height()
 ){
     val coroutineScope = rememberCoroutineScope()
 

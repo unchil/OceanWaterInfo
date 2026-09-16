@@ -22,7 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun RadioActiveWastePlantStatStackedBarChart_KHNP(height: Dp = 600.dp){
+fun RadioActiveWastePlantStatStackedBarChart_KHNP(height: Dp = ChartSize.small.height()){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhnpRadioActiveWasteViewModel = remember {

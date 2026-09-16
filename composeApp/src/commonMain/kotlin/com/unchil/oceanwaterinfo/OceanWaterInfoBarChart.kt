@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OceanWaterInfoBarChart(height: Dp = 600.dp){
+fun OceanWaterInfoBarChart(height: Dp = ChartSize.small.height()){
 
     val coroutineScope = rememberCoroutineScope()
     val viewModel: NifsSeaWaterInfoCurrentViewModel = remember {

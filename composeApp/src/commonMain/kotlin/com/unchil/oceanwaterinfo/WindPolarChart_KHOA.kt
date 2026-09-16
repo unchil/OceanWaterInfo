@@ -25,7 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun WindPolarChart_KHOA(height: Dp = 600.dp){
+fun WindPolarChart_KHOA(height: Dp = ChartSize.large.height()){
 
     val coroutineScope = rememberCoroutineScope()
 

@@ -31,7 +31,7 @@ import kotlinx.datetime.toLocalDateTime
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 @Composable
-fun WaterDegTimeSeries_KHOA(height: Dp = 600.dp){
+fun WaterDegTimeSeries_KHOA(height: Dp = ChartSize.small.height()){
     val coroutineScope = rememberCoroutineScope()
     val viewModel: KhoaObservationViewModel = remember {
         KhoaObservationViewModel(  )
