@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.multiplatform.webview.web.LoadingState
 import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -89,7 +88,7 @@ fun TidalForecastMap(){
         if (values.value.isNotEmpty()){
             when(getPlatform().alias){
                 PlatformAlias.JVM -> {
-                    if (webController.loadingState is LoadingState.Finished) {
+                    if ( webController.loadingState?.equals(WebViewLoadingState.Finished) ?: false ) {
                         webController.callJavaScript(
                             functionName = "initMapWithData",
                             args = "${values.value}"
@@ -97,7 +96,7 @@ fun TidalForecastMap(){
                     }
                 }
                 PlatformAlias.IOS, PlatformAlias.ANDROID -> {
-                    if ( webController.loadingState.toString().equals("Finished")) {
+                    if ( webController.loadingState?.equals(WebViewLoadingState.Finished) ?: false ) {
                         delay(500)
                         webController.callJavaScript(
                             functionName = "initMapWithData",

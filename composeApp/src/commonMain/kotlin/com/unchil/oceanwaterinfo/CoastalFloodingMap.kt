@@ -23,12 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.multiplatform.webview.web.LoadingState
-import com.multiplatform.webview.web.WebView
-import com.multiplatform.webview.web.rememberWebViewNavigator
-import com.multiplatform.webview.web.rememberWebViewState
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -64,7 +59,7 @@ fun CoastalFloodingMap(){
         if (coastalFloodingInfo.value.isNotEmpty()){
             when(getPlatform().alias){
                 PlatformAlias.JVM -> {
-                    if (webController.loadingState is LoadingState.Finished) {
+                    if ( webController.loadingState?.equals(WebViewLoadingState.Finished) ?: false ) {
 
                         webController.callJavaScript(
                             functionName = "removeFeather"
@@ -81,7 +76,7 @@ fun CoastalFloodingMap(){
                     }
                 }
                 PlatformAlias.IOS, PlatformAlias.ANDROID -> {
-                    if ( webController.loadingState.toString().equals("Finished")) {
+                    if ( webController.loadingState?.equals(WebViewLoadingState.Finished) ?: false ) {
 
                         webController.callJavaScript(
                             functionName = "removeFeather",

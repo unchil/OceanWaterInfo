@@ -28,11 +28,11 @@ actual fun PlatformWebView(
         object : platform.darwin.NSObject(), platform.WebKit.WKNavigationDelegateProtocol {
 
             override fun webView(webView: WKWebView, didFailNavigation: platform.WebKit.WKNavigation?, withError: platform.Foundation.NSError) {
-                controller.loadingState = "Error"
+                controller.loadingState = WebViewLoadingState.Error
             }
 
             override fun webView(webView: WKWebView, didFinishNavigation: platform.WebKit.WKNavigation?) {
-                controller.loadingState = "Finished"
+                controller.loadingState = WebViewLoadingState.Finished
             }
         }
     }

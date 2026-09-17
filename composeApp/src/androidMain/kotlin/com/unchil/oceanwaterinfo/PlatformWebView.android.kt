@@ -46,7 +46,7 @@ actual fun PlatformWebView(
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         // 로딩 완료를 컨트롤러에 알림
-                        controller.loadingState = "Finished"
+                        controller.loadingState = WebViewLoadingState.Finished
                     }
 
                     override fun onReceivedError(
@@ -55,7 +55,7 @@ actual fun PlatformWebView(
                         error: WebResourceError?
                     ) {
                         super.onReceivedError(view, request, error)
-                        controller.loadingState = "Error"
+                        controller.loadingState = WebViewLoadingState.Error
                     }
 
                 }

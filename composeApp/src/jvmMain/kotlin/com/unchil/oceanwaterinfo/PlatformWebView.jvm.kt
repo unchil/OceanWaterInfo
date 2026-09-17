@@ -17,13 +17,20 @@ actual fun PlatformWebView(
     val state = rememberWebViewState(url)
     val navigator = rememberWebViewNavigator()
 
-    // KevinnZou 라이브러리의 navigator가 가진 JS 실행 기능을 공통 controller와 매핑
     LaunchedEffect(state.loadingState) {
-        controller.loadingState = state.loadingState
 
-        if(state.loadingState is LoadingState.Finished) {
-            controller.evaluateJavaScriptImpl = { script ->
-                navigator.evaluateJavaScript(script)
+        when(state.loadingState){
+            LoadingState.Finished -> {
+                controller.loadingState = WebViewLoadingState.Finished
+                controller.evaluateJavaScriptImpl = { script ->
+                    navigator.evaluateJavaScript(script)
+                }
+            }
+            LoadingState.Initializing -> {
+                controller.loadingState = WebViewLoadingState.Initializing
+            }
+            is LoadingState.Loading -> {
+                controller.loadingState = WebViewLoadingState.Loading
             }
         }
     }
