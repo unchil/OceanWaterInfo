@@ -65,74 +65,49 @@ fun CoastalFloodingMap(){
             when(getPlatform().alias){
                 PlatformAlias.JVM -> {
                     if (webController.loadingState is LoadingState.Finished) {
+
                         webController.callJavaScript(
-                            functionName = "removeMapFeature",
+                            functionName = "removeFeather"
                         )
 
                         coastalFloodingInfo.value.forEach { it->
-                            if(sidoOption.equals(SiDo.entries[0])){
 
-                                webController.callJavaScript(
-                                    functionName = "renderingMap",
-                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
-                                )
-
-                            }else {
-
-                                webController.callJavaScript(
-                                    functionName = "renderingMap",
-                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
-                                )
-                            }
+                            webController.callJavaScript(
+                                functionName = "renderingMap",
+                                args = "${it.geojson},  \"${gradeOption.name}\""
+                            )
                         }
 
                     }
                 }
                 PlatformAlias.IOS, PlatformAlias.ANDROID -> {
                     if ( webController.loadingState.toString().equals("Finished")) {
-                        delay(500)
+
                         webController.callJavaScript(
-                            functionName = "removeMapFeature",
+                            functionName = "removeFeather",
                         )
 
                         coastalFloodingInfo.value.forEach { it->
-                            if(sidoOption.equals(SiDo.entries[0])){
-
-                                webController.callJavaScript(
-                                    functionName = "renderingMap",
-                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
-                                )
-
-                            }else {
-
-                                webController.callJavaScript(
-                                    functionName = "renderingMap",
-                                    args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
-                                )
-                            }
+                            webController.callJavaScript(
+                                functionName = "renderingMap",
+                                args = "${it.geojson},  \"${gradeOption.name}\""
+                            )
                         }
                     }
                 }
                 else -> {
                     webController.callJavaScript(
-                        functionName = "removeMapFeature",
+                        functionName = "removeFeather",
                     )
+
                     coastalFloodingInfo.value.forEach { it->
-                        if(sidoOption.equals(SiDo.entries[0])){
 
-                            webController.callJavaScript(
-                                functionName = "renderingMap",
-                                args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING_ALL\'"
-                            )
-
-                        }else {
-
-                            webController.callJavaScript(
-                                functionName = "renderingMap",
-                                args = "${it.geojson},  \"${gradeOption.name}\", \'COASTAL_FLOODING\'"
-                            )
-                        }
+                        webController.callJavaScript(
+                            functionName = "renderingMap",
+                            args = "${it.geojson},  \"${gradeOption.name}\""
+                        )
                     }
+
                 }
             }
 

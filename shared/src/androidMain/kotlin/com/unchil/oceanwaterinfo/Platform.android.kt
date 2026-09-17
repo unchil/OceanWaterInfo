@@ -10,7 +10,11 @@ class AndroidPlatform : Platform {
         get() = PlatformAlias.ANDROID
 
     override val envInfoServerEndPoint: String
-        get() = "http://un7.org:7788"
+        get() = if (isEmulator()) {
+            "http://10.0.2.2:7788" // 에뮬레이터에서 호스트(PC) 접속용 루프백 IP
+        } else {
+            "http://un7.org:7788" // 실물 기기에서 접속할 서버의 실제 로컬 IP
+        }
 
 
     override val localServerEndPoint: String
