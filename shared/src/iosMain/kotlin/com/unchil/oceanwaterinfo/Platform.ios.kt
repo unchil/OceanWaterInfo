@@ -13,11 +13,11 @@ class IOSPlatform: Platform {
 
 
     override val envInfoServerEndPoint: String
-        get() = "http://un7.org:7788"
+        get() = "http://un7.local:7788"
 
 
     override val localServerEndPoint: String
-        get() =  "http://un7.org:7272/iFrame"
+        get() =  "http://un7.local:7272/iFrame"
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()

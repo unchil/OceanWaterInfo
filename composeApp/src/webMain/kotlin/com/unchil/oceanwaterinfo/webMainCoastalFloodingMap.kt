@@ -59,17 +59,10 @@ fun webMainCoastalFloodingMap(){
             sendPostMsg(IFRAME_COASTAL_FLOODING, "REMOVE_FEATHER" )
 
             coastalFloodingInfo.value.forEach { it ->
-                if(sidoOption.equals(SiDo.entries[0])){
-                    println( "[Kotlin] Data Receive (Size: ${it.geojson.length} )")
-                    val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${it.geojson}}"
-                    sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING_ALL", values )
-                } else {
-                    println( "[Kotlin] Data Receive (Size: ${it.geojson.length})")
+                println( "[Kotlin] Data Receive (Size: ${it.geojson.length})")
+                val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${it.geojson}}"
+                sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING", values )
 
-                    val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${it.geojson}}"
-
-                    sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING", values )
-                }
             }
         }
     }

@@ -1,4 +1,3 @@
-import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -58,9 +57,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-
             implementation(libs.kotlinx.datetime)
-
             implementation(libs.un7datagrid)
             implementation(libs.koalaplot.core)
             implementation(libs.geojson)
@@ -70,9 +67,8 @@ kotlin {
 
             implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
 
+
             implementation(libs.compose.webview.multiplatform)
-
-
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -86,8 +82,6 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(compose.desktop.currentOs)
-
-
             implementation(libs.ktor.clientLogging)
             implementation(libs.logback)
 

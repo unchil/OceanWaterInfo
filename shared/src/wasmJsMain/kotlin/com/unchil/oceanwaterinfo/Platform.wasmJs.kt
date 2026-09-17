@@ -11,10 +11,10 @@ class WasmPlatform: Platform {
 
 
     override val envInfoServerEndPoint: String
-        get() = "http://un7.org:7788"
+        get() = "http://un7.local:7788"
 
     override val localServerEndPoint: String
-        get() =  "http://un7.org:7272"
+        get() =  "http://un7.local:7272"
 }
 
 actual fun getPlatform(): Platform = WasmPlatform()

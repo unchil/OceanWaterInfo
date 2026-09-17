@@ -89,7 +89,7 @@ function processConfiguration(geometry, callback, thisArg) {
 
 
 
-window.renderingMap = async function( geojsonObject, grade, msgKey){
+window.renderingMap = async function( geojsonObject, grade){
     console.log(`${getTimestamp()} renderingMap Start`);
 
     showMapLoader("loading...");
@@ -158,11 +158,12 @@ function getBoundsFromGeoJson(geojson) {
     return bounds;
 }
 
-function removeFeather(){
+window.removeFeather =  async function( ) {
     map.data.forEach((feature) => {
         map.data.remove(feature);
     });
 }
+
 
 
 
@@ -193,6 +194,31 @@ window.addEventListener("message", async(event) => {
 
     console.log(`${getTimestamp()} EventListener Receive Message!`);
 
+    if (typeof event.data === 'string') {
+        try {
+            let messageData = JSON.parse(event.data);
+            switch (messageData.msgKey) {
+                case 'REMOVE_FEATHER':
+                    removeFeather();
+                    break;
+                case 'EMPTY_DATA':
+                    removeFeather();
+                    smoothFlyTo(center);
+                    break;
+                case 'COASTAL_FLOODING':
+                    renderingMap(messageData.values.geoJsonData, messageData.values.grade);
+                    break;
+                default:
+                    console.log(`${getTimestamp()} Unknown msgKey: ${messageData.msgKey}`);
+                    break;
+            }
+        } catch (e) {
+            console.error("JSON String 파싱 에러:", e);
+            return;
+        }
+    }
+
+/*
     if( event.data.msgKey === 'COASTAL_FLOODING'){
         // 단일 데이터 전송 (Main 스레드 디코딩)
 
@@ -226,11 +252,6 @@ window.addEventListener("message", async(event) => {
                         smoothFlyTo(center);
                         break;
                     case 'COASTAL_FLOODING':
-
-                        renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
-                        break;
-                    case 'COASTAL_FLOODING_ALL':
-
                         renderingMap(messageData.values.geoJsonData, messageData.values.grade, messageData.msgKey);
                         break;
                     default:
@@ -244,6 +265,7 @@ window.addEventListener("message", async(event) => {
         }
 
     }
+    */
 
 
 });
