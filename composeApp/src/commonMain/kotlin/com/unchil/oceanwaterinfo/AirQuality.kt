@@ -40,11 +40,13 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AirQuality(){
+
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: SDoTEnvInfoUnionViewModel = remember {
         SDoTEnvInfoUnionViewModel()
     }
+
     LaunchedEffect(key1 = viewModel){
         while(true){
             viewModel.onEvent(SDoTEnvInfoUnionViewModel.Event.Refresh)
@@ -53,25 +55,16 @@ fun AirQuality(){
     }
 
     val host = getPlatform().localServerEndPoint
-
-
     val servicePage = "sDoTHexagonLayer.html"
     var descriptionBox by remember { mutableStateOf(false) }
     val localUrl = "${host}/${servicePage}"
-
-
     val webController = remember { PlatformWebViewController() }
-
-
     val values = remember{ mutableStateOf("" )}
-
     var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }
     val sDoTEnvInfo = viewModel._sDoTEnvInfoUnionFlow.collectAsState()
-
     val isLoading = viewModel.isLoading.collectAsState()
 
     LaunchedEffect( sDoTEnvInfo.value, key2=selectedOption){
-
         if(sDoTEnvInfo.value.isNotEmpty()) {
 
             values.value = sDoTEnvInfo.value.map{it}.joinToString(
@@ -95,10 +88,9 @@ fun AirQuality(){
         }
     }
 
-
     LaunchedEffect(values.value, webController.loadingState){
-        if (values.value.isNotEmpty()){
 
+        if (values.value.isNotEmpty()){
             when(getPlatform().alias){
                 PlatformAlias.JVM -> {
                     if ( webController.loadingState?.equals(WebViewLoadingState.Finished) ?: false ) {
@@ -109,6 +101,8 @@ fun AirQuality(){
                     }
                 }
                 PlatformAlias.IOS, PlatformAlias.ANDROID -> {
+                    // Android 에뮬레이터에서 WebView를 통해 Google Maps의 벡터 맵(Vector Map)이나 WebGL 기능을 정상적으로 구동하려면
+                    // 에뮬레이터의 하드웨어 가속 설정과 Google Maps API 설정 두 가지를 모두 확인해야 합니다.
                     if ( webController.loadingState?.equals(WebViewLoadingState.Finished) ?: false ) {
                         delay(500)
                         webController.callJavaScript(
@@ -129,11 +123,9 @@ fun AirQuality(){
 
     }
 
-
     val bottomBarHeight = remember{80.dp}
-
-
     var selectedChemicalElementIndex by remember { mutableIntStateOf(0) }
+
     val tabClick = {  option: AirQualityManager.ChemicalElement, tabIndex:Int ->
         selectedChemicalElementIndex = tabIndex
         selectedOption = option

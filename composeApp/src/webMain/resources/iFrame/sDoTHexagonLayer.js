@@ -12,6 +12,14 @@ let elevationBase = 0; // 기본 높이 배율
 const animatedOpacity = 1.0 ;
 let currentType = 'o3';
 
+function getTimestamp() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    return `[${h}:${m}:${s}.${ms}]`;
+}
 
 
 // Data.kt의 AirQualityStage 색상과 매칭 (RGB 형식)
@@ -52,6 +60,8 @@ function getAirQualityLevel(value, type) {
 }
 
 function renderLayer() {
+
+     console.log(`${getTimestamp()} renderLayer Start`);
 
     if (!deckData) {
         hideMapLoader();
@@ -137,6 +147,7 @@ function renderLayer() {
        hideMapLoader();
    }, 300); // 부드러운 전환을 위해 약간의 지연
 
+    console.log(`${getTimestamp()} renderLayer End`);
 };
 
 
@@ -185,19 +196,24 @@ async function initMap() {
 
 // 2. window.initMapWithData를 async 함수로 변경하여 대기 로직 추가
 window.initMapWithData =  async function( values, type) {
+
+    console.log(`${getTimestamp()} initMapWithData Start`);
+
     showMapLoader("loading..."); // 로더 표시
     if (animationId) {
         cancelAnimationFrame(animationId);
     }
     // [핵심 변경] initMap()의 idle 이벤트가 완료될 때까지 여기서 대기합니다.
     if(mapInitPromise){
+        console.log(`${getTimestamp()} await mapInitPromise`);
         await mapInitPromise;
         // 맵 초기화가 확실히 끝난 후 레이어를 렌더링합니다.
         deckData = values;
         currentType = type;
         renderLayer();
     } else {
-        console.log("initMapWithData Not Start");
+        console.log(`${getTimestamp()} initMapWithData Not Start`);
+
     }
 }
 

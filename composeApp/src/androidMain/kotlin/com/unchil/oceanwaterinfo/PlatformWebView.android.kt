@@ -20,6 +20,8 @@ actual fun PlatformWebView(
     modifier: Modifier
 ) {
 
+    // Android 에뮬레이터에서 WebView를 통해 Google Maps의 벡터 맵(Vector Map)이나 WebGL 기능을 정상적으로 구동하려면
+    // 에뮬레이터의 하드웨어 가속 설정과 Google Maps API 설정 두 가지를 모두 확인해야 합니다.
     AndroidView(
         modifier = modifier,
         factory = { context ->
