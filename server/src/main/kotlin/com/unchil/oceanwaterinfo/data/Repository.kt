@@ -12,10 +12,12 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.FloatColumnType
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.avg
 import org.jetbrains.exposed.v1.core.castTo
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.eqSubQuery
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.max
@@ -25,6 +27,7 @@ import org.jetbrains.exposed.v1.core.substring
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.unionAll
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
@@ -640,62 +643,91 @@ class Repository {
         return@transaction result
 
     }
-
     fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion> = transaction {
-        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoUnionFromDb")
+        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoUnionFromDb (Exposed UnionAll)")
 
-        // 1. 서울(SDoT) 최신 시간 조회
-        val maxSensingTime = SDoT_EnvInfo.sensing_time.max()
-        val seoulLastTime = SDoT_EnvInfo.select(maxSensingTime).limit(1).map {
-            it[maxSensingTime]
-        }.firstOrNull()
+        // 패딩용 빈 문자열 리터럴 (pm10, pm25, nh3, h2s 자리에 사용)
+        val empty = org.jetbrains.exposed.v1.core.stringLiteral("")
 
-        // 2. 경기도(Gyonggi) 최신 시간 조회
-        val maxSensingTimeGyonggi = SDoT_EnvInfo_Gyonggi.sensing_time.max()
-        val gyonggiLastTime = SDoT_EnvInfo_Gyonggi.select(maxSensingTimeGyonggi).limit(1).map {
-            it[maxSensingTimeGyonggi]
-        }.firstOrNull()
+        val sensing_time = SDoT_EnvInfo.sensing_time.alias("sensing_time")
+        val serial = SDoT_EnvInfo.serial.alias("serial")
+        val region = SDoT_EnvInfo.region.alias("region")
+        val addr = SDoT_Location.addr.alias("addr")
+        val lat = SDoT_Location.lat.alias("lat")
+        val lng = SDoT_Location.lng.alias("lng")
+        val so2 = SDoT_EnvInfo.max_so2.alias("so2")
+        val co = SDoT_EnvInfo.max_co.alias("co")
+        val no2 = SDoT_EnvInfo.max_no2.alias("no2")
+        val o3 = SDoT_EnvInfo.max_o3.alias("o3")
+        val nh3 = SDoT_EnvInfo.max_nh3.alias("nh3")
+        val h2s = SDoT_EnvInfo.max_h2s.alias("h2s")
+        val pm10 = empty.alias("pm10")
+        val pm25 = empty.alias("pm25")
 
-        // 3. 서울 데이터 쿼리 (Join + Select)
-        // 경기도에만 있는 pm10, pm25는 빈 값(stringLiteral)으로 대체
+        // 1. 서울(SDoT) 시간 서브쿼리: SELECT sensing_time FROM SDoT_EnvInfo LIMIT 1
+        val seoulTimeSub = SDoT_EnvInfo.select(SDoT_EnvInfo.sensing_time).limit(1)
+
+        // 2. 경기(Gyonggi) 시간 서브쿼리: SELECT sensing_time FROM SDoT_EnvInfo_Gyonggi LIMIT 1
+        val gyonggiTimeSub = SDoT_EnvInfo_Gyonggi.select(SDoT_EnvInfo_Gyonggi.sensing_time).limit(1)
+
+        // 3. 서울 데이터 쿼리 (A.serial as obs, ... nh3, h2s, '', '')
         val seoulQuery = SDoT_EnvInfo.join(
             SDoT_Location,
             JoinType.INNER,
             onColumn = SDoT_EnvInfo.serial,
             otherColumn = SDoT_Location.serial
         ).select(
-                SDoT_EnvInfo.sensing_time, SDoT_EnvInfo.serial, SDoT_EnvInfo.region,
-                SDoT_Location.addr, SDoT_Location.lat, SDoT_Location.lng,
-                SDoT_EnvInfo.max_so2, SDoT_EnvInfo.max_co, SDoT_EnvInfo.max_no2,
-                SDoT_EnvInfo.max_o3, SDoT_EnvInfo.max_nh3, SDoT_EnvInfo.max_h2s
-            ).where { SDoT_EnvInfo.sensing_time eq (seoulLastTime ?: "") }
-            .map { resultRow ->
-                toSDoTEnvInfoUnionFromSDoT_EnvInfo(resultRow)
-            }
+            sensing_time, serial, region, addr, lat, lng, so2, co, no2, o3, nh3, h2s, pm10, pm25
+        ).where {
+            SDoT_EnvInfo.sensing_time eqSubQuery seoulTimeSub
+        }
 
-
-        // 4. 경기도 데이터 쿼리 (Join + Select)
-        // 서울에만 있는 nh3, h2s는 빈 값(stringLiteral)으로 대체
+        // 4. 경기도 데이터 쿼리 (A.obs as obs, ... '', '', pm10, pm25)
         val gyonggiQuery = SDoT_EnvInfo_Gyonggi.join(
             SDoT_Location_Gyonggi,
             JoinType.INNER,
             onColumn = SDoT_EnvInfo_Gyonggi.obs,
             otherColumn = SDoT_Location_Gyonggi.obs
         ).select(
-                SDoT_EnvInfo_Gyonggi.sensing_time, SDoT_EnvInfo_Gyonggi.obs, SDoT_EnvInfo_Gyonggi.region,
-                SDoT_Location_Gyonggi.addr, SDoT_Location_Gyonggi.lat, SDoT_Location_Gyonggi.lng,
-                SDoT_EnvInfo_Gyonggi.so2, SDoT_EnvInfo_Gyonggi.co, SDoT_EnvInfo_Gyonggi.no2,
-                SDoT_EnvInfo_Gyonggi.o3,
-                SDoT_EnvInfo_Gyonggi.pm10, SDoT_EnvInfo_Gyonggi.pm25
-            ).where { SDoT_EnvInfo_Gyonggi.sensing_time eq (gyonggiLastTime ?: "") }
-            .map { resultRow ->
-                toSDoTEnvInfoUnionFromSDoT_EnvInfoGyonggi(resultRow)
-            }
+            SDoT_EnvInfo_Gyonggi.sensing_time.alias("sensing_time"),
+            SDoT_EnvInfo_Gyonggi.obs.alias("serial"),
+            SDoT_EnvInfo_Gyonggi.region.alias("region"),
+            SDoT_Location_Gyonggi.addr.alias("addr"),
+            SDoT_Location_Gyonggi.lat.alias("lat"),
+            SDoT_Location_Gyonggi.lng.alias("lng"),
+            SDoT_EnvInfo_Gyonggi.so2.alias("so2"),
+            SDoT_EnvInfo_Gyonggi.co.alias("co"),
+            SDoT_EnvInfo_Gyonggi.no2.alias("no2"),
+            SDoT_EnvInfo_Gyonggi.o3.alias("o3"),
+            empty.alias("nh3"),
+            empty.alias("h2s"),
+            SDoT_EnvInfo_Gyonggi.pm10.alias("pm10"),
+            SDoT_EnvInfo_Gyonggi.pm25.alias("pm25"),
+        ).where {
+            SDoT_EnvInfo_Gyonggi.sensing_time eqSubQuery gyonggiTimeSub
+        }
 
-        // 5. Union 실행 및 결과 매핑
-        // Union을 위해 컬럼 순서와 개수를 동일하게 맞췄습니다.
-        return@transaction seoulQuery + gyonggiQuery
+        // 5. UNION ALL 실행 및 결과 매핑
+        return@transaction seoulQuery.unionAll(gyonggiQuery).map { resultRow ->
+            SDoTEnvInfoUnion(
+                sensing_time = resultRow[sensing_time],
+                obs = resultRow[serial],
+                region = resultRow[region],
+                addr = resultRow[addr],
+                lat = resultRow[lat],
+                lng = resultRow[lng],
+                so2 = resultRow[so2],
+                co = resultRow[co],
+                no2 = resultRow[no2],
+                o3 = resultRow[o3],
+                nh3 = resultRow[nh3],
+                h2s = resultRow[h2s],
+                pm10 = resultRow[pm10],
+                pm25 = resultRow[pm25]
+            )
+        }
     }
+
 
     fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi> = transaction {
         LOGGER.info("Serving from DB for : fetchSDoTEnvInfoGyonggiFromDb")
