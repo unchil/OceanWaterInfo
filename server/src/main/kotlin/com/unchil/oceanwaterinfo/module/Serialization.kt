@@ -12,7 +12,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
-fun Application.configureSerialization(repository: Repository) {
+fun Application.configureSerialization() {
 
     install(ContentNegotiation) {
         json()
@@ -30,7 +30,7 @@ fun Application.configureSerialization(repository: Repository) {
         route("/seoul"){
             get("/sdot_env_info"){
                 try {
-                    val result = repository.sDoTEnvInfo()
+                    val result = Repository.sDoTEnvInfo()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -45,7 +45,7 @@ fun Application.configureSerialization(repository: Repository) {
         route("/gyonggi"){
             get("/sdot_env_info"){
                 try {
-                    val result = repository.sDoTEnvInfoGyonggi()
+                    val result = Repository.sDoTEnvInfoGyonggi()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -61,7 +61,7 @@ fun Application.configureSerialization(repository: Repository) {
 
         get("/sdot_env_info"){
             try {
-                val result = repository.sDoTEnvInfoUnion()
+                val result = Repository.sDoTEnvInfoUnion()
                 if (result.isEmpty()) {
                     call.respond(HttpStatusCode.NotFound)
                     return@get
@@ -75,7 +75,7 @@ fun Application.configureSerialization(repository: Repository) {
         route("/khnp"){
             get("/wastewater"){
                 try {
-                    val result = repository.khnp_WasteWater()
+                    val result = Repository.khnp_WasteWater()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -89,7 +89,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/thermalwastewater"){
                 try {
-                    val result = repository.khnp_ThermalWasteWater()
+                    val result = Repository.khnp_ThermalWasteWater()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -102,7 +102,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/radiorate"){
                 try {
-                    val result = repository.khnp_RadioRate()
+                    val result = Repository.khnp_RadioRate()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -118,7 +118,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/radioactivewaste"){
                 try {
-                    val result = repository.khnp_RadioActiveWaste()
+                    val result = Repository.khnp_RadioActiveWaste()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -132,7 +132,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/plantstate"){
                 try {
-                    val result = repository.khnp_PlantState()
+                    val result = Repository.khnp_PlantState()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -159,7 +159,7 @@ fun Application.configureSerialization(repository: Repository) {
                 LOGGER.info("service call: /coastal_flooding_info/geojson_object:grade:${grade}, sido:${sido}")
 
                 try {
-                    val result = repository.coastalFloodingGeoJsonObject(grade, sido,type)
+                    val result = Repository.coastalFloodingGeoJsonObject(grade, sido,type)
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -186,7 +186,7 @@ fun Application.configureSerialization(repository: Repository) {
                 val sido = call.parameters["sido"]?.trim() ?: ""
 
                 try {
-                    val result = repository.coastalFloodingGeo(page, size, grade, sido)
+                    val result = Repository.coastalFloodingGeo(page, size, grade, sido)
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -199,7 +199,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/tidal_current_info"){
                 try {
-                    val result = repository.khoaTidalCurrentInfo()
+                    val result = Repository.khoaTidalCurrentInfo()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -212,7 +212,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/observationinfo_current"){
                 try {
-                    val result = repository.khoaObservationInfoCurrent()
+                    val result = Repository.khoaObservationInfoCurrent()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -224,7 +224,7 @@ fun Application.configureSerialization(repository: Repository) {
             }
             get("/observationinfo"){
                 try {
-                    val result = repository.khoaObservationInfo()
+                    val result = Repository.khoaObservationInfo()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -237,7 +237,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/observatoryinfo"){
                 try {
-                    val result = repository.khoaObservatoryInfo()
+                    val result = Repository.khoaObservatoryInfo()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -258,7 +258,7 @@ fun Application.configureSerialization(repository: Repository) {
                     return@get
                 }
                 try {
-                    val result = repository.seaWaterInfo(division)
+                    val result = Repository.seaWaterInfo(division)
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -271,7 +271,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get("/seawaterinfo/oneDayBoxPlot"){
                 try {
-                    val result = repository.seaWaterInfoOneDayBoxPlot("oneDayBoxPlot")
+                    val result = Repository.seaWaterInfoOneDayBoxPlot("oneDayBoxPlot")
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -285,7 +285,7 @@ fun Application.configureSerialization(repository: Repository) {
             get ("/stat"){
 
                 try {
-                    val result = repository.seaWaterInfoStatistics()
+                    val result = Repository.seaWaterInfoStatistics()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -299,7 +299,7 @@ fun Application.configureSerialization(repository: Repository) {
 
             get ("/observatory"){
                 try {
-                    val result = repository.observatoryInfo()
+                    val result = Repository.observatoryInfo()
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
@@ -321,7 +321,7 @@ fun Application.configureSerialization(repository: Repository) {
                     return@get
                 }
                 try {
-                    val result = repository.swi(division)
+                    val result = Repository.swi(division)
                     if (result.isEmpty()) {
                         call.respond(HttpStatusCode.NotFound)
                         return@get

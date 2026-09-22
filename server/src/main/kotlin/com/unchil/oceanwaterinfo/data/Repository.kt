@@ -55,7 +55,7 @@ private val cacheStorage_CoastalFloodingGeoJsonObject = ConcurrentHashMap<String
 
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 
-class Repository {
+object Repository {
 
 
     fun coastalFloodingGeoJsonObject( grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
