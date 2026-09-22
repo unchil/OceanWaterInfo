@@ -27,7 +27,6 @@ import org.jetbrains.exposed.v1.core.substring
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.unionAll
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -56,19 +55,15 @@ private val cacheStorage_CoastalFloodingGeo = ConcurrentHashMap<String, Pair<Lis
 
 private val cacheStorage_CoastalFloodingGeoJsonObject = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeoJsonObject>, Long>>()
 
-private const val CACHE_EXPIRY_SECONDS =  1 * 60L
-
-object Repository {
-
+class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long = 86400L) {
 
     suspend fun coastalFloodingGeoJsonObject(grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
 
         val key = "cache_coastalFloodingGeoJsonObject_${grade}_${sido}"
         val now = System.currentTimeMillis()
-        val duration =  24 * 60 * 60L // 24 hour
 
         cacheStorage_CoastalFloodingGeoJsonObject[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(duration)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_DAY)) {
                 LOGGER.info("Serving from cache for ID:${key}")
                 return cachedData.first
             }
@@ -87,10 +82,9 @@ object Repository {
 
         val key = "cache_coastalFloodingGeo_${grade}_${sido}"
         val now = System.currentTimeMillis()
-        val duration =  24 * 60 * 60L // 24 hour
 
         cacheStorage_CoastalFloodingGeo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(duration)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_DAY)) {
                 LOGGER.info("Serving from cache for ID:${key}")
                 return cachedData.first
             }
