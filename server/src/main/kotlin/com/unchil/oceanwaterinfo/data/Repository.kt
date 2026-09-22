@@ -52,6 +52,8 @@ private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHN
 private val cacheStorage_KHNPRadioActiveWaste = ConcurrentHashMap<String, Pair<List<KHNPRadioActiveWaste>, Long>>()
 private val cacheStorage_KHNPPlantState = ConcurrentHashMap<String, Pair<List<KHNPPlantOperationInfo>, Long>>()
 
+private val cacheStorage_CoastalFloodingGeo = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeo>, Long>>()
+
 private val cacheStorage_CoastalFloodingGeoJsonObject = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeoJsonObject>, Long>>()
 
 private const val CACHE_EXPIRY_SECONDS =  1 * 60L
@@ -60,10 +62,10 @@ object Repository {
 
 
     suspend fun coastalFloodingGeoJsonObject(grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
-        /*
+
         val key = "cache_coastalFloodingGeoJsonObject_${grade}_${sido}"
         val now = System.currentTimeMillis()
-        val duration =  12 * 60 * 60L
+        val duration =  24 * 60 * 60L // 24 hour
 
         cacheStorage_CoastalFloodingGeoJsonObject[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(duration)) {
@@ -71,44 +73,34 @@ object Repository {
                 return cachedData.first
             }
         }
-*/
+
         val resultFromDb = fetchCoastalFloodingGeoJsonObjectFromDb(grade, sido, type)
-/*
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_CoastalFloodingGeoJsonObject[key] = Pair(resultFromDb, now)
         }
-
- */
 
         return resultFromDb
     }
 
 
     suspend fun coastalFloodingGeo(page: Int, size: Int, grade:String, sido:String):List<CoastalFloodingGeo> {
-        /*
-        val key = "cache_coastalFloodingGeo"
-        val now = System.currentTimeMillis()
 
-        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        val key = "cache_coastalFloodingGeo_${grade}_${sido}"
+        val now = System.currentTimeMillis()
+        val duration =  24 * 60 * 60L // 24 hour
 
         cacheStorage_CoastalFloodingGeo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(duration)) {
                 LOGGER.info("Serving from cache for ID:${key}")
                 return cachedData.first
             }
         }
 
-         */
-
         val resultFromDb = fetchCoastalFloodingGeoFromDb(page, size, grade, sido)
-        /*
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_CoastalFloodingGeo[key] = Pair(resultFromDb, now)
         }
-
-         */
         return resultFromDb
-
     }
 
 
