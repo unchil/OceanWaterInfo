@@ -26,6 +26,7 @@ import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.substring
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.unionAll
 import java.util.concurrent.ConcurrentHashMap
@@ -58,7 +59,7 @@ private const val CACHE_EXPIRY_SECONDS =  1 * 60L
 object Repository {
 
 
-    fun coastalFloodingGeoJsonObject( grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
+    suspend fun coastalFloodingGeoJsonObject(grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
         /*
         val key = "cache_coastalFloodingGeoJsonObject_${grade}_${sido}"
         val now = System.currentTimeMillis()
@@ -83,7 +84,7 @@ object Repository {
     }
 
 
-    fun coastalFloodingGeo(page: Int, size: Int, grade:String, sido:String):List<CoastalFloodingGeo> {
+    suspend fun coastalFloodingGeo(page: Int, size: Int, grade:String, sido:String):List<CoastalFloodingGeo> {
         /*
         val key = "cache_coastalFloodingGeo"
         val now = System.currentTimeMillis()
@@ -111,7 +112,7 @@ object Repository {
     }
 
 
-    fun khnp_PlantState():List<KHNPPlantOperationInfo> {
+    suspend fun khnp_PlantState():List<KHNPPlantOperationInfo> {
         val key = "cache_khnp_plantstate"
         val now = System.currentTimeMillis()
 
@@ -132,7 +133,7 @@ object Repository {
     }
 
 
-    fun khnp_RadioActiveWaste():List<KHNPRadioActiveWaste> {
+    suspend fun khnp_RadioActiveWaste():List<KHNPRadioActiveWaste> {
         val key = "cache_khnp_radioactivewaste"
         val now = System.currentTimeMillis()
 
@@ -153,7 +154,7 @@ object Repository {
     }
 
 
-    fun khnp_RadioRate():List<KHNPRadioRate> {
+    suspend fun khnp_RadioRate():List<KHNPRadioRate> {
         val key = "cache_khnp_radiorate"
         val now = System.currentTimeMillis()
 
@@ -175,7 +176,7 @@ object Repository {
 
 
 
-    fun khnp_ThermalWasteWater():List<KHNPThermalWasteWater> {
+    suspend fun khnp_ThermalWasteWater():List<KHNPThermalWasteWater> {
         val key = "cache_khnp_thermalwastewater"
         val now = System.currentTimeMillis()
 
@@ -196,7 +197,7 @@ object Repository {
     }
 
 
-    fun khnp_WasteWater():List<KHNPWasteWater> {
+    suspend fun khnp_WasteWater():List<KHNPWasteWater> {
         val key = "cache_khnp_wastewater"
         val now = System.currentTimeMillis()
 
@@ -217,7 +218,7 @@ object Repository {
     }
 
 
-    fun sDoTEnvInfoUnion():List<SDoTEnvInfoUnion> {
+    suspend fun sDoTEnvInfoUnion():List<SDoTEnvInfoUnion> {
         val key = "cache_sdot_envinfo_union"
         val now = System.currentTimeMillis()
 
@@ -239,7 +240,7 @@ object Repository {
 
 
 
-    fun sDoTEnvInfoGyonggi():List<SDoTEnvInformationGyonggi> {
+    suspend  fun sDoTEnvInfoGyonggi():List<SDoTEnvInformationGyonggi> {
         val key = "cache_sdot_envinfo_gyonggi"
         val now = System.currentTimeMillis()
 
@@ -261,7 +262,7 @@ object Repository {
 
 
 
-    fun sDoTEnvInfo():List<SDoTEnvInformation> {
+    suspend fun sDoTEnvInfo():List<SDoTEnvInformation> {
         val key = "cache_sdot_envinfo"
         val now = System.currentTimeMillis()
 
@@ -282,7 +283,7 @@ object Repository {
     }
 
 
-    fun khoaTidalCurrentInfo():List<TidalCurrentInfo>{
+    suspend fun khoaTidalCurrentInfo():List<TidalCurrentInfo>{
         val key = "cache_khoa_tidal"
         val now = System.currentTimeMillis()
 
@@ -303,7 +304,7 @@ object Repository {
     }
 
 
-    fun khoaObservationInfoCurrent(): List<KhoaObservation> {
+    suspend fun khoaObservationInfoCurrent(): List<KhoaObservation> {
         val key = "cache_khoa_current"
         val now = System.currentTimeMillis()
 
@@ -322,7 +323,7 @@ object Repository {
         return resultFromDb
     }
 
-    fun khoaObservationInfo(): List<KhoaObservation> {
+    suspend fun khoaObservationInfo(): List<KhoaObservation> {
         val key = "cache_khoa"
         val now = System.currentTimeMillis()
 
@@ -341,7 +342,7 @@ object Repository {
         return resultFromDb
     }
 
-    fun khoaObservatoryInfo(): List<KhonObservatory> {
+    suspend fun khoaObservatoryInfo(): List<KhonObservatory> {
         val key = "cache_khoa_observatory"
         val now = System.currentTimeMillis()
 
@@ -363,7 +364,7 @@ object Repository {
 
 
     // 캐시 로직과 DB 조회 호출을 담당하는 메인 함수
-    fun seaWaterInfo(division: String): List<SeawaterInformationByObservationPoint> {
+    suspend fun seaWaterInfo(division: String): List<SeawaterInformationByObservationPoint> {
         val key = "cache_$division"
         val now = System.currentTimeMillis()
 
@@ -382,7 +383,7 @@ object Repository {
         return resultFromDb
     }
 
-    fun swi(division:String):List<SeaWaterInformation?>{
+    suspend fun swi(division:String):List<SeaWaterInformation?>{
         val key = "cache_$division"
         val now = System.currentTimeMillis()
 
@@ -403,7 +404,7 @@ object Repository {
     }
 
 
-    fun seaWaterInfoOneDayBoxPlot(division:String):List<SeaWaterBoxPlotStat?>{
+    suspend fun seaWaterInfoOneDayBoxPlot(division:String):List<SeaWaterBoxPlotStat?>{
         val key = "cache_$division"
         val now = System.currentTimeMillis()
 
@@ -423,7 +424,7 @@ object Repository {
         return resultFromDb
     }
 
-    fun fetchCoastalFloodingGeoJsonObjectFromDb(grade:String, ctpvNm:String, type:String): List<CoastalFloodingGeoJsonObject> = transaction {
+    suspend fun fetchCoastalFloodingGeoJsonObjectFromDb(grade:String, ctpvNm:String, type:String): List<CoastalFloodingGeoJsonObject> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb Start")
 
         val result = when(type){
@@ -470,10 +471,10 @@ object Repository {
             }
         }
         LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb End")
-        return@transaction result
+        return@suspendTransaction result
     }
 
-    fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String, ctpvNm:String): List<CoastalFloodingGeo> = transaction {
+    suspend fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String, ctpvNm:String): List<CoastalFloodingGeo> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoFromDb")
 
 
@@ -506,10 +507,10 @@ object Repository {
                     geom = it[CoastalFloodingGeoTbl.geom]
                 )
             }
-        return@transaction result
+        return@suspendTransaction result
     }
 
-    fun fetchKHNPPlantStateFromDb(): List<KHNPPlantOperationInfo> = transaction {
+    suspend fun fetchKHNPPlantStateFromDb(): List<KHNPPlantOperationInfo> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKHNPPlantStateFromDb")
 
 
@@ -526,11 +527,11 @@ object Repository {
                 )
             }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
-    fun fetchKHNPRadioActiveWasteFromDb(): List<KHNPRadioActiveWaste> = transaction {
+    suspend fun fetchKHNPRadioActiveWasteFromDb(): List<KHNPRadioActiveWaste> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKHNPRadioActiveWasteFromDb")
 
 
@@ -548,10 +549,10 @@ object Repository {
                 )
             }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
-    fun fetchKHNPRadioRateFromDb(): List<KHNPRadioRate> = transaction {
+    suspend fun fetchKHNPRadioRateFromDb(): List<KHNPRadioRate> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKHNPRadioRateFromDb")
         val maxCollectionTime = KHNP_RadioRate.collectionTime.max()
         val lastTime = KHNP_RadioRate.select(maxCollectionTime).limit(1).map {
@@ -569,13 +570,13 @@ object Repository {
                 )
             }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater> = transaction {
+    suspend fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKHNPThermalWasteWaterFromDb")
         val previous24Hour =
             kotlin.time.Clock.System.now()
@@ -609,12 +610,12 @@ object Repository {
                     it[KHNP_ThermalWasteWater.rm006_time]
                 )
             }
-        return@transaction result
+        return@suspendTransaction result
 
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater> = transaction {
+    suspend fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKHNPWasteWaterFromDb")
         val previous24Hour =
             kotlin.time.Clock.System.now()
@@ -640,10 +641,10 @@ object Repository {
                     it[KHNP_WasteWater.tm002_time]
                 )
             }
-        return@transaction result
+        return@suspendTransaction result
 
     }
-    fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion> = transaction {
+    suspend fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchSDoTEnvInfoUnionFromDb (Exposed UnionAll)")
 
         // 패딩용 빈 문자열 리터럴 (pm10, pm25, nh3, h2s 자리에 사용)
@@ -708,7 +709,7 @@ object Repository {
         }
 
         // 5. UNION ALL 실행 및 결과 매핑
-        return@transaction seoulQuery.unionAll(gyonggiQuery).map { resultRow ->
+        return@suspendTransaction seoulQuery.unionAll(gyonggiQuery).map { resultRow ->
             SDoTEnvInfoUnion(
                 sensing_time = resultRow[sensing_time],
                 obs = resultRow[serial],
@@ -729,7 +730,7 @@ object Repository {
     }
 
 
-    fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi> = transaction {
+    suspend fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchSDoTEnvInfoGyonggiFromDb")
 
         val lastTimeExpression = SDoT_EnvInfo_Gyonggi.sensing_time.max()
@@ -758,11 +759,11 @@ object Repository {
             toSDoTEnvInformationGyonggi(resultRow)
         }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
-    fun fetchSDoTEnvInfoFromDb():List<SDoTEnvInformation> = transaction {
+    suspend fun fetchSDoTEnvInfoFromDb():List<SDoTEnvInformation> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchSDoTEnvInfoFromDb")
 
         val lastTimeExpression = SDoT_EnvInfo.sensing_time.max()
@@ -802,13 +803,13 @@ object Repository {
             toSDoTEnvInformation(resultRow)
         }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchSeaWaterInfoFromDb_Mof(division: String): List<SeaWaterInformation>  = transaction {
+    suspend fun fetchSeaWaterInfoFromDb_Mof(division: String): List<SeaWaterInformation>  = suspendTransaction {
         LOGGER.info("Serving from DB for ID: $division")
 
         val result = when(division) {
@@ -852,11 +853,11 @@ object Repository {
         }
 
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchSeaWaterInfoFromDb(division: String): List<SeawaterInformationByObservationPoint>  = transaction {
+    suspend fun fetchSeaWaterInfoFromDb(division: String): List<SeawaterInformationByObservationPoint>  = suspendTransaction {
         LOGGER.info("Serving from DB for ID: $division")
         val result = when(division) {
             "oneday" -> {
@@ -963,12 +964,12 @@ object Repository {
 
             else -> {emptyList()}
         }
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchSeaWaterInfoOneDayBoxPlotFromDb(): List<SeaWaterBoxPlotStat>  = transaction {
+    suspend fun fetchSeaWaterInfoOneDayBoxPlotFromDb(): List<SeaWaterBoxPlotStat>  = suspendTransaction {
 
         val previous24Hour =
             kotlin.time.Clock.System.now()
@@ -1044,11 +1045,11 @@ object Repository {
                 )
             }
 
-        return@transaction result
+        return@suspendTransaction result
 
     }
 
-    fun seaWaterInfoStatistics(): List<SeaWaterInfoByOneHourStat>{
+    suspend fun seaWaterInfoStatistics(): List<SeaWaterInfoByOneHourStat>{
         val key = "cache_stat"
         val now = System.currentTimeMillis()
         cacheStorage_SeaWaterInfoStatistics[key]?.let { it ->
@@ -1068,7 +1069,7 @@ object Repository {
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchSeaWaterInfoStatisticsFromDb(): List<SeaWaterInfoByOneHourStat>  = transaction {
+    suspend fun fetchSeaWaterInfoStatisticsFromDb(): List<SeaWaterInfoByOneHourStat>  = suspendTransaction {
 
         LOGGER.info("Serving from DB for ID: stat")
         val previous24Hour = kotlin.time.Clock.System.now()
@@ -1112,10 +1113,10 @@ object Repository {
                     it[tmp_avg].toString()
                 )
             }
-        return@transaction result
+        return@suspendTransaction result
     }
 
-    fun fetchKhoaObservatoryFromDb():List<KhonObservatory> = transaction {
+    suspend fun fetchKhoaObservatoryFromDb():List<KhonObservatory> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservatoryFromDb")
         val result = ObservatoryKHOA.select(
                 ObservatoryKHOA.obsCode,
@@ -1131,11 +1132,11 @@ object Repository {
                 it[ObservatoryKHOA.latitude],
             )
         }
-        return@transaction result
+        return@suspendTransaction result
     }
 
     @OptIn(ExperimentalTime::class, FormatStringsInDatetimeFormats::class)
-    fun fetchKhoaTidalCurrentInfoFromDb():List<TidalCurrentInfo> = transaction  {
+    suspend fun fetchKhoaTidalCurrentInfoFromDb():List<TidalCurrentInfo> = suspendTransaction  {
         LOGGER.info("Serving from DB for : fetchKhoaTidalCurrentInfoFromDb")
 
         val now = kotlin.time.Clock.System.now()
@@ -1150,12 +1151,12 @@ object Repository {
             toTidalCurrentInfo(it)
         }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation> = transaction {
+    suspend fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservationCurrentFromDb")
 
 
@@ -1212,13 +1213,13 @@ object Repository {
                 )
             }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    fun fetchKhoaObservationFromDb():List<KhoaObservation> = transaction {
+    suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {
         LOGGER.info("Serving from DB for : fetchKhoaObservationFromDb")
 
         val previous24Hour = kotlin.time.Clock.System.now()
@@ -1275,12 +1276,12 @@ object Repository {
                 )
             }
 
-        return@transaction result
+        return@suspendTransaction result
     }
 
 
 
-    fun observatoryInfo(): List<Observatory> = transaction {
+    suspend fun observatoryInfo(): List<Observatory> = suspendTransaction {
         ObservatoryTable.selectAll()
             .map {
                 toObservatory(it)
