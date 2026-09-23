@@ -1,6 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 
+import com.unchil.oceanwaterinfo.data.RepositoryLogHeader
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -50,46 +51,44 @@ private val cacheStorage_KHNPThermalWasteWater = ConcurrentHashMap<String, Pair<
 private val cacheStorage_KHNPRadioRate = ConcurrentHashMap<String, Pair<List<KHNPRadioRate>, Long>>()
 private val cacheStorage_KHNPRadioActiveWaste = ConcurrentHashMap<String, Pair<List<KHNPRadioActiveWaste>, Long>>()
 private val cacheStorage_KHNPPlantState = ConcurrentHashMap<String, Pair<List<KHNPPlantOperationInfo>, Long>>()
-
 private val cacheStorage_CoastalFloodingGeo = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeo>, Long>>()
-
 private val cacheStorage_CoastalFloodingGeoJsonObject = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeoJsonObject>, Long>>()
+
+const val KEYHEADER = "CACHE"
 
 class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long = 86400L) {
 
     suspend fun coastalFloodingGeoJsonObject(grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
-
-        val key = "cache_coastalFloodingGeoJsonObject_${grade}_${sido}"
+        val funcName = ::coastalFloodingGeoJsonObject.name
+        val key = "${KEYHEADER}_${funcName}_${grade}_${sido}"
         val now = System.currentTimeMillis()
 
         cacheStorage_CoastalFloodingGeoJsonObject[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_DAY)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchCoastalFloodingGeoJsonObjectFromDb(grade, sido, type)
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_CoastalFloodingGeoJsonObject[key] = Pair(resultFromDb, now)
         }
-
         return resultFromDb
     }
 
 
     suspend fun coastalFloodingGeo(page: Int, size: Int, grade:String, sido:String):List<CoastalFloodingGeo> {
-
-        val key = "cache_coastalFloodingGeo_${grade}_${sido}"
+        val funcName = ::coastalFloodingGeo.name
+        val key = "${KEYHEADER}_${funcName}_${grade}_${sido}"
         val now = System.currentTimeMillis()
-
         cacheStorage_CoastalFloodingGeo[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_DAY)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchCoastalFloodingGeoFromDb(page, size, grade, sido)
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_CoastalFloodingGeo[key] = Pair(resultFromDb, now)
@@ -97,19 +96,19 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         return resultFromDb
     }
 
-
     suspend fun khnp_PlantState():List<KHNPPlantOperationInfo> {
-        val key = "cache_khnp_plantstate"
+        val funcName = ::khnp_PlantState.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPPlantState[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKHNPPlantStateFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KHNPPlantState[key] = Pair(resultFromDb, now)
@@ -120,17 +119,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun khnp_RadioActiveWaste():List<KHNPRadioActiveWaste> {
-        val key = "cache_khnp_radioactivewaste"
+        val funcName = ::khnp_RadioActiveWaste.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPRadioActiveWaste[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKHNPRadioActiveWasteFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KHNPRadioActiveWaste[key] = Pair(resultFromDb, now)
@@ -141,17 +141,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun khnp_RadioRate():List<KHNPRadioRate> {
-        val key = "cache_khnp_radiorate"
+        val funcName = ::khnp_RadioRate.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPRadioRate[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKHNPRadioRateFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KHNPRadioRate[key] = Pair(resultFromDb, now)
@@ -163,17 +164,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun khnp_ThermalWasteWater():List<KHNPThermalWasteWater> {
-        val key = "cache_khnp_thermalwastewater"
+        val funcName = ::khnp_ThermalWasteWater.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPThermalWasteWater[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKHNPThermalWasteWaterFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KHNPThermalWasteWater[key] = Pair(resultFromDb, now)
@@ -184,38 +186,39 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun khnp_WasteWater():List<KHNPWasteWater> {
-        val key = "cache_khnp_wastewater"
+        val funcName = ::khnp_WasteWater.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPWasteWater[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKHNPWasteWaterFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KHNPWasteWater[key] = Pair(resultFromDb, now)
         }
         return resultFromDb
-
     }
 
 
     suspend fun sDoTEnvInfoUnion():List<SDoTEnvInfoUnion> {
-        val key = "cache_sdot_envinfo_union"
+        val funcName = ::sDoTEnvInfoUnion.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SDoTEnvInfoUnion[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchSDoTEnvInfoUnionFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_SDoTEnvInfoUnion[key] = Pair(resultFromDb, now)
@@ -227,17 +230,17 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend  fun sDoTEnvInfoGyonggi():List<SDoTEnvInformationGyonggi> {
-        val key = "cache_sdot_envinfo_gyonggi"
+        val funcName = ::sDoTEnvInfoGyonggi.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
-        // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SDoTEnvInfoGyonggi[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchSDoTEnvInfoGyonggiFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_SDoTEnvInfoGyonggi[key] = Pair(resultFromDb, now)
@@ -249,38 +252,38 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun sDoTEnvInfo():List<SDoTEnvInformation> {
-        val key = "cache_sdot_envinfo"
+        val funcName = ::sDoTEnvInfo.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
-        // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SDoTEnvInfo[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID:${key}")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchSDoTEnvInfoFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_SDoTEnvInfo[key] = Pair(resultFromDb, now)
         }
         return resultFromDb
-
     }
 
 
     suspend fun khoaTidalCurrentInfo():List<TidalCurrentInfo>{
-        val key = "cache_khoa_tidal"
+        val funcName = ::khoaTidalCurrentInfo.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaTidalCurrentInfo[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID: khoa_tidal")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKhoaTidalCurrentInfoFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KhoaTidalCurrentInfo[key] = Pair(resultFromDb, now)
@@ -291,17 +294,19 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun khoaObservationInfoCurrent(): List<KhoaObservation> {
-        val key = "cache_khoa_current"
+
+        val funcName = ::khoaTidalCurrentInfo.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaObservationInfoCurrent[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID: khoa_current")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKhoaObservationCurrentFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KhoaObservationInfoCurrent[key] = Pair(resultFromDb, now)
@@ -310,17 +315,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
     }
 
     suspend fun khoaObservationInfo(): List<KhoaObservation> {
-        val key = "cache_khoa"
+        val funcName = ::khoaTidalCurrentInfo.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaObservationInfo[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID: khoa")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKhoaObservationFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KhoaObservationInfo[key] = Pair(resultFromDb, now)
@@ -329,17 +335,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
     }
 
     suspend fun khoaObservatoryInfo(): List<KhonObservatory> {
-        val key = "cache_khoa_observatory"
+        val funcName = ::khoaObservatoryInfo.name
+        val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaObservatoryInfo[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID: khoa_observatory")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchKhoaObservatoryFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KhoaObservatoryInfo[key] = Pair(resultFromDb, now)
@@ -351,17 +358,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     // 캐시 로직과 DB 조회 호출을 담당하는 메인 함수
     suspend fun seaWaterInfo(division: String): List<SeawaterInformationByObservationPoint> {
-        val key = "cache_$division"
+        val funcName = ::seaWaterInfo.name
+        val key = "${KEYHEADER}_${funcName}_${division}"
         val now = System.currentTimeMillis()
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SeawaterInfo[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID: $division")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
-        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchSeaWaterInfoFromDb(division)
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_SeawaterInfo[key] = Pair(resultFromDb, now)
@@ -370,18 +378,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
     }
 
     suspend fun swi(division:String):List<SeaWaterInformation?>{
-        val key = "cache_$division"
+        val funcName = ::swi.name
+        val key = "${KEYHEADER}_${funcName}_${division}"
         val now = System.currentTimeMillis()
 
-        // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SeawaterInfo_Mof[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID: $division")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
 
-        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchSeaWaterInfoFromDb_Mof(division)
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_SeawaterInfo_Mof[key] = Pair(resultFromDb, now)
@@ -391,18 +399,18 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun seaWaterInfoOneDayBoxPlot(division:String):List<SeaWaterBoxPlotStat?>{
-        val key = "cache_$division"
+        val funcName = ::seaWaterInfoOneDayBoxPlot.name
+        val key = "${KEYHEADER}_${funcName}_${division}"
         val now = System.currentTimeMillis()
 
-        // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SeaWaterInfoBoxPlot[key]?.let { cachedData ->
             if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
-                LOGGER.info("Serving from cache for ID: $division")
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
         }
 
-        // 캐시에 없거나 만료된 경우 DB에서 데이터 조회 (suspendTransaction 내부 호출)
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchSeaWaterInfoOneDayBoxPlotFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_SeaWaterInfoBoxPlot[key] = Pair(resultFromDb, now)
@@ -410,8 +418,35 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         return resultFromDb
     }
 
+
+
+    suspend fun seaWaterInfoStatistics(): List<SeaWaterInfoByOneHourStat>{
+        val funcName = ::seaWaterInfoStatistics.name
+        val key = "${KEYHEADER}_${funcName}"
+        val now = System.currentTimeMillis()
+        cacheStorage_SeaWaterInfoStatistics[key]?.let { it ->
+            if( (now - it.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS) ){
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
+                return it.first
+            }
+        }
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
+        val resultFromDb = fetchSeaWaterInfoStatisticsFromDb()
+        if (resultFromDb.isNotEmpty()) {
+            cacheStorage_SeaWaterInfoStatistics[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+
+
+    }
+
+
+
+
+
+
+
     suspend fun fetchCoastalFloodingGeoJsonObjectFromDb(grade:String, ctpvNm:String, type:String): List<CoastalFloodingGeoJsonObject> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb Start")
 
         val result = when(type){
             "all" -> {
@@ -456,13 +491,11 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
             }
         }
-        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoJsonObjectFromDb End")
+
         return@suspendTransaction result
     }
 
     suspend fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String, ctpvNm:String): List<CoastalFloodingGeo> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchCoastalFloodingGeoFromDb")
-
 
         val offset = ((page - 1) * size).toLong()
 
@@ -497,8 +530,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
     }
 
     suspend fun fetchKHNPPlantStateFromDb(): List<KHNPPlantOperationInfo> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKHNPPlantStateFromDb")
-
 
         val result = KHNP_PlantOperationInfo.selectAll()
             .map { it ->
@@ -518,8 +549,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun fetchKHNPRadioActiveWasteFromDb(): List<KHNPRadioActiveWaste> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKHNPRadioActiveWasteFromDb")
-
 
         val result = KHNP_RadioActiveWaste.selectAll()
             .map { it ->
@@ -539,7 +568,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
     }
 
     suspend fun fetchKHNPRadioRateFromDb(): List<KHNPRadioRate> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKHNPRadioRateFromDb")
+
         val maxCollectionTime = KHNP_RadioRate.collectionTime.max()
         val lastTime = KHNP_RadioRate.select(maxCollectionTime).limit(1).map {
             it[maxCollectionTime]
@@ -563,7 +592,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKHNPThermalWasteWaterFromDb")
+
         val previous24Hour =
             kotlin.time.Clock.System.now()
                 .minus(24, DateTimeUnit.HOUR)
@@ -602,7 +631,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKHNPWasteWaterFromDb")
+
         val previous24Hour =
             kotlin.time.Clock.System.now()
                 .minus(6, DateTimeUnit.HOUR)
@@ -631,7 +660,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     }
     suspend fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoUnionFromDb (Exposed UnionAll)")
 
         // 패딩용 빈 문자열 리터럴 (pm10, pm25, nh3, h2s 자리에 사용)
         val empty = org.jetbrains.exposed.v1.core.stringLiteral("")
@@ -717,7 +745,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoGyonggiFromDb")
 
         val lastTimeExpression = SDoT_EnvInfo_Gyonggi.sensing_time.max()
 
@@ -750,7 +777,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
 
     suspend fun fetchSDoTEnvInfoFromDb():List<SDoTEnvInformation> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchSDoTEnvInfoFromDb")
 
         val lastTimeExpression = SDoT_EnvInfo.sensing_time.max()
 
@@ -796,7 +822,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchSeaWaterInfoFromDb_Mof(division: String): List<SeaWaterInformation>  = suspendTransaction {
-        LOGGER.info("Serving from DB for ID: $division")
 
         val result = when(division) {
             "mof_oneday" -> {
@@ -844,7 +869,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchSeaWaterInfoFromDb(division: String): List<SeawaterInformationByObservationPoint>  = suspendTransaction {
-        LOGGER.info("Serving from DB for ID: $division")
+
         val result = when(division) {
             "oneday" -> {
                 val previous24Hour = kotlin.time.Clock.System.now()
@@ -1035,29 +1060,9 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     }
 
-    suspend fun seaWaterInfoStatistics(): List<SeaWaterInfoByOneHourStat>{
-        val key = "cache_stat"
-        val now = System.currentTimeMillis()
-        cacheStorage_SeaWaterInfoStatistics[key]?.let { it ->
-            if( (now - it.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS) ){
-                LOGGER.info("Serving from cache for ID: stat")
-                return it.first
-            }
-        }
-
-        val resultFromDb = fetchSeaWaterInfoStatisticsFromDb()
-        if (resultFromDb.isNotEmpty()) {
-            cacheStorage_SeaWaterInfoStatistics[key] = Pair(resultFromDb, now)
-        }
-        return resultFromDb
-
-
-    }
-
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchSeaWaterInfoStatisticsFromDb(): List<SeaWaterInfoByOneHourStat>  = suspendTransaction {
 
-        LOGGER.info("Serving from DB for ID: stat")
         val previous24Hour = kotlin.time.Clock.System.now()
             .minus(24, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
@@ -1103,7 +1108,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
     }
 
     suspend fun fetchKhoaObservatoryFromDb():List<KhonObservatory> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKhoaObservatoryFromDb")
+
         val result = ObservatoryKHOA.select(
                 ObservatoryKHOA.obsCode,
                 ObservatoryKHOA.obsvtrNm,
@@ -1123,7 +1128,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     @OptIn(ExperimentalTime::class, FormatStringsInDatetimeFormats::class)
     suspend fun fetchKhoaTidalCurrentInfoFromDb():List<TidalCurrentInfo> = suspendTransaction  {
-        LOGGER.info("Serving from DB for : fetchKhoaTidalCurrentInfoFromDb")
 
         val now = kotlin.time.Clock.System.now()
 
@@ -1143,8 +1147,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKhoaObservationCurrentFromDb")
-
 
         val maxDt = ObservationKHOA
             .selectAll()
@@ -1206,7 +1208,6 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {
-        LOGGER.info("Serving from DB for : fetchKhoaObservationFromDb")
 
         val previous24Hour = kotlin.time.Clock.System.now()
             .minus(24, DateTimeUnit.HOUR)
