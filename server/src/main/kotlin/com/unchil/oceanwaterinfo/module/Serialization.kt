@@ -189,27 +189,27 @@ fun Application.configureSerialization() {
 
         route("/khoa"){
             get("/coastal_flooding_info/geojson_object"){
-                val callUrl = "/khoa/coastal_flooding_info/geojson_object"
-
                 val grade = call.parameters["grade"]?.trim() ?: "F"
                 val sido = call.parameters["sido"]?.trim() ?: "경기도"
                 val type = call.parameters["type"]?.trim() ?: "select"
 
-                LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}?grade=${grade}&sido=${sido}")
+                val callUrl = "/khoa/coastal_flooding_info/geojson_object?grade=${grade}&sido=${sido}"
+
+                LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
 
                 try {
                     val result = repository.coastalFloodingGeoJsonObject(grade, sido,type)
                     if (result.isEmpty()) {
-                        LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}: ${callUrl}?grade=${grade}&sido=${sido}")
+                        LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
                         return@get
                     }
 
-                    LOGGER.debug("${ApplicationLogHeader.Respond_Data.name}: ${callUrl}: ${callUrl}?grade=${grade}&sido=${sido}")
+                    LOGGER.debug("${ApplicationLogHeader.Respond_Data.name}: ${callUrl}: ${callUrl}")
                     call.respond(result)
 
                 } catch (ex: IllegalArgumentException) {
-                    LOGGER.error("${ApplicationLogHeader.Respond_Error.name}: ${callUrl}: ${callUrl}?grade=${grade}&sido=${sido}[${ex.localizedMessage}]")
+                    LOGGER.error("${ApplicationLogHeader.Respond_Error.name}: ${callUrl}: ${callUrl}[${ex.localizedMessage}]")
                     call.respond(HttpStatusCode.BadRequest)
                 }
 
