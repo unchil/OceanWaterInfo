@@ -16,9 +16,8 @@ import io.ktor.server.routing.routing
 
 
 fun Application.configureSerialization() {
-    val cacheExpiryMinute = environment.config.property("cache.expiryMinute").getString().toLong()
-    val cacheExpiryDay = environment.config.property("cache.expiryDay").getString().toLong()
-    val repository = Repository(cacheExpiryMinute, cacheExpiryDay)
+
+    Repository.init(environment.config)
 
     install(ContentNegotiation) {
         json()
@@ -38,7 +37,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/seoul/sdot_env_info"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.sDoTEnvInfo()
+                    val result = Repository.sDoTEnvInfo()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -58,7 +57,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/gyonggi/sdot_env_info"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.sDoTEnvInfoGyonggi()
+                    val result = Repository.sDoTEnvInfoGyonggi()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -77,7 +76,7 @@ fun Application.configureSerialization() {
             val callUrl = "/sdot_env_info"
             LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
             try {
-                val result = repository.sDoTEnvInfoUnion()
+                val result = Repository.sDoTEnvInfoUnion()
                 if (result.isEmpty()) {
                     LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                     call.respond(HttpStatusCode.NotFound)
@@ -96,7 +95,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khnp/wastewater"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.khnp_WasteWater()
+                    val result = Repository.khnp_WasteWater()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -115,7 +114,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khnp/thermalwastewater"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.khnp_ThermalWasteWater()
+                    val result = Repository.khnp_ThermalWasteWater()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -133,7 +132,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khnp/radiorate"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.khnp_RadioRate()
+                    val result = Repository.khnp_RadioRate()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -151,7 +150,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khnp/radioactivewaste"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.khnp_RadioActiveWaste()
+                    val result = Repository.khnp_RadioActiveWaste()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -170,7 +169,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khnp/plantstate"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.khnp_PlantState()
+                    val result = Repository.khnp_PlantState()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -198,7 +197,7 @@ fun Application.configureSerialization() {
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
 
                 try {
-                    val result = repository.coastalFloodingGeoJsonObject(grade, sido,type)
+                    val result = Repository.coastalFloodingGeoJsonObject(grade, sido,type)
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -229,7 +228,7 @@ fun Application.configureSerialization() {
 
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.coastalFloodingGeo(page, size, grade, sido)
+                    val result = Repository.coastalFloodingGeo(page, size, grade, sido)
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -247,7 +246,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khoa/tidal_current_info"
                 LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
                 try {
-                    val result = repository.khoaTidalCurrentInfo()
+                    val result = Repository.khoaTidalCurrentInfo()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -265,7 +264,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khoa/observationinfo_current"
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.khoaObservationInfoCurrent()
+                    val result = Repository.khoaObservationInfoCurrent()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -282,7 +281,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khoa/observationinfo"
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.khoaObservationInfo()
+                    val result = Repository.khoaObservationInfo()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -300,7 +299,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/khoa/observatoryinfo"
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.khoaObservatoryInfo()
+                    val result = Repository.khoaObservatoryInfo()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -328,7 +327,7 @@ fun Application.configureSerialization() {
                 }
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.seaWaterInfo(division)
+                    val result = Repository.seaWaterInfo(division)
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -346,7 +345,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/nifs/seawaterinfo/oneDayBoxPlot"
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.seaWaterInfoOneDayBoxPlot("oneDayBoxPlot")
+                    val result = Repository.seaWaterInfoOneDayBoxPlot("oneDayBoxPlot")
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -365,7 +364,7 @@ fun Application.configureSerialization() {
 
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.seaWaterInfoStatistics()
+                    val result = Repository.seaWaterInfoStatistics()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -384,7 +383,7 @@ fun Application.configureSerialization() {
                 val callUrl = "/nifs/seawaterinfo/observatory"
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.observatoryInfo()
+                    val result = Repository.observatoryInfo()
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)
@@ -413,7 +412,7 @@ fun Application.configureSerialization() {
                 }
                 try {
                     LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
-                    val result = repository.swi(division)
+                    val result = Repository.swi(division)
                     if (result.isEmpty()) {
                         LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
                         call.respond(HttpStatusCode.NotFound)

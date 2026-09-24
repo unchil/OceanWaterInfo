@@ -2,6 +2,7 @@ package com.unchil.oceanwaterinfo
 
 
 import com.unchil.oceanwaterinfo.data.RepositoryLogHeader
+import io.ktor.server.config.ApplicationConfig
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -56,7 +57,22 @@ private val cacheStorage_CoastalFloodingGeoJsonObject = ConcurrentHashMap<String
 
 const val KEYHEADER = "CACHE"
 
-class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long = 86400L) {
+object Repository{
+
+    private lateinit var config: ApplicationConfig
+    // Application 시작 시 초기화할 메서드
+    fun init(environmentConfig: ApplicationConfig) {
+        config = environmentConfig
+    }
+
+
+    val cacheExpiryMinute: Long
+        get() = config.property("cache.expiryMinute").getString().toLong()
+
+
+    val cacheExpiryDay: Long
+        get() = config.property("cache.expiryDay").getString().toLong()
+
 
     suspend fun coastalFloodingGeoJsonObject(grade:String, sido:String, type:String ):List<CoastalFloodingGeoJsonObject> {
         val funcName = ::coastalFloodingGeoJsonObject.name
@@ -64,7 +80,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         val now = System.currentTimeMillis()
 
         cacheStorage_CoastalFloodingGeoJsonObject[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_DAY)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryDay)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -83,7 +99,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         val key = "${KEYHEADER}_${funcName}_${grade}_${sido}"
         val now = System.currentTimeMillis()
         cacheStorage_CoastalFloodingGeo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_DAY)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryDay)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -103,7 +119,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPPlantState[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -125,7 +141,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPRadioActiveWaste[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -147,7 +163,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPRadioRate[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -170,7 +186,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPThermalWasteWater[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -192,7 +208,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KHNPWasteWater[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -213,7 +229,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SDoTEnvInfoUnion[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -235,7 +251,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         val now = System.currentTimeMillis()
 
         cacheStorage_SDoTEnvInfoGyonggi[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -257,7 +273,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         val now = System.currentTimeMillis()
 
         cacheStorage_SDoTEnvInfo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -278,7 +294,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaTidalCurrentInfo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -301,7 +317,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaObservationInfoCurrent[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -321,7 +337,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaObservationInfo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -341,7 +357,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_KhoaObservatoryInfo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -364,7 +380,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
 
         // 캐시에서 데이터 조회 (suspendTransaction 외부)
         cacheStorage_SeawaterInfo[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -383,7 +399,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         val now = System.currentTimeMillis()
 
         cacheStorage_SeawaterInfo_Mof[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -404,7 +420,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         val now = System.currentTimeMillis()
 
         cacheStorage_SeaWaterInfoBoxPlot[key]?.let { cachedData ->
-            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS)) {
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return cachedData.first
             }
@@ -425,7 +441,7 @@ class Repository(val CACHE_EXPIRY_SECONDS:Long = 60L, val CACHE_EXPIRY_DAY:Long 
         val key = "${KEYHEADER}_${funcName}"
         val now = System.currentTimeMillis()
         cacheStorage_SeaWaterInfoStatistics[key]?.let { it ->
-            if( (now - it.second) < TimeUnit.SECONDS.toMillis(CACHE_EXPIRY_SECONDS) ){
+            if( (now - it.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute) ){
                 LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
                 return it.first
             }
