@@ -1284,59 +1284,56 @@ class CollectionServerRepository {
     suspend fun  getRealTimeOceanWaterQuality(){
         try {
             CollectionServerRestApi.callMofAPI_xml().let { response ->
-                if(response.status.value == 200){
-                    XML.toJSONObject(response.bodyAsText()).let { jsonData ->
+                XML.toJSONObject(response).let { jsonData ->
 
-                        val itemNode =jsonData.query("/response/body/items/item")
+                    val itemNode =jsonData.query("/response/body/items/item")
 
-                        val items: List<org.json.JSONObject> = when (itemNode) {
-                            is org.json.JSONArray -> { // 배열인 경우 리스트로 변환
-                                (0 until itemNode.length()).map { itemNode.getJSONObject(it) }
+                    val items: List<org.json.JSONObject> = when (itemNode) {
+                        is org.json.JSONArray -> { // 배열인 경우 리스트로 변환
+                            (0 until itemNode.length()).map { itemNode.getJSONObject(it) }
+                        }
+                        is org.json.JSONObject -> { // 단일 객체인 경우 리스트로 감쌈
+                            listOf(itemNode)
+                        }
+                        else -> { // 데이터가 없는 경우 (null 등)
+                            emptyList()
+                        }
+                    }
+
+                    LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${items.size}]]")
+
+                    transaction (ConfigManager.conn){
+                        SchemaUtils.create( OWQInformationTable)
+
+                        try {
+                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                            OWQInformationTable.batchInsert(items, true, false) { item ->
+
+                                // optString, optDouble을 사용하면 데이터가 없거나 형식이 틀려도 안전합니다.
+                                this[OWQInformationTable.rtmWqWtchDtlDt] = item.optString("rtmWqWtchDtlDt", "").substringBefore('.')
+                                this[OWQInformationTable.rtmWqWtchStaCd] = item.optString("rtmWqWtchStaCd", "")
+
+                                // 수치 데이터 안전 변환 (String.format 에러 방지)
+                                this[OWQInformationTable.rtmWtchWtem] = String.format("%.3f", item.optDouble("rtmWtchWtem", 0.0))
+                                this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", item.optDouble("rtmWqCndctv", 0.0))
+                                this[OWQInformationTable.ph] = String.format("%.2f", item.optDouble("ph", 0.0))
+                                this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", item.optDouble("rtmWqDoxn", 0.0))
+
+                                this[OWQInformationTable.rtmWqTu] = item.optString("rtmWqTu", "")
+                                this[OWQInformationTable.rtmWqBgalgsQy] = item.optString("rtmWqBgalgsQy", "")
+
+                                this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", item.optDouble("rtmWqChpla", 0.0))
+                                this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", item.optDouble("rtmWqSlnty", 0.0))
+
                             }
-                            is org.json.JSONObject -> { // 단일 객체인 경우 리스트로 감쌈
-                                listOf(itemNode)
-                            }
-                            else -> { // 데이터가 없는 경우 (null 등)
-                                emptyList()
-                            }
+
+                        } catch (e: Exception) {
+                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
                         }
 
-                        LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${items.size}]]")
-
-                        transaction (ConfigManager.conn){
-                            SchemaUtils.create( OWQInformationTable)
-
-                            try {
-                                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                                OWQInformationTable.batchInsert(items, true, false) { item ->
-
-                                    // optString, optDouble을 사용하면 데이터가 없거나 형식이 틀려도 안전합니다.
-                                    this[OWQInformationTable.rtmWqWtchDtlDt] = item.optString("rtmWqWtchDtlDt", "").substringBefore('.')
-                                    this[OWQInformationTable.rtmWqWtchStaCd] = item.optString("rtmWqWtchStaCd", "")
-
-                                    // 수치 데이터 안전 변환 (String.format 에러 방지)
-                                    this[OWQInformationTable.rtmWtchWtem] = String.format("%.3f", item.optDouble("rtmWtchWtem", 0.0))
-                                    this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", item.optDouble("rtmWqCndctv", 0.0))
-                                    this[OWQInformationTable.ph] = String.format("%.2f", item.optDouble("ph", 0.0))
-                                    this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", item.optDouble("rtmWqDoxn", 0.0))
-
-                                    this[OWQInformationTable.rtmWqTu] = item.optString("rtmWqTu", "")
-                                    this[OWQInformationTable.rtmWqBgalgsQy] = item.optString("rtmWqBgalgsQy", "")
-
-                                    this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", item.optDouble("rtmWqChpla", 0.0))
-                                    this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", item.optDouble("rtmWqSlnty", 0.0))
-
-                                }
-
-                            } catch (e: Exception) {
-                                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
-                            }
-
-                        }
                     }
                 }
             }
-
         }catch(e: Exception) {
             e.localizedMessage?.let { msg ->
                 LOGGER.error( "${::getRealTimeObservation.name} [${msg}]")
