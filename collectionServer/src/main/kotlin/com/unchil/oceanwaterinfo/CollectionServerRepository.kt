@@ -273,57 +273,45 @@ class CollectionServerRepository {
 
     suspend fun loadKHNP_Service(url:String, genNames:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
         val now = Clock.System.now()
-        val rows = mutableListOf<DataFrame<*>>()
         val myCollectionTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
-
-
-        // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
-
-        LOGGER.info("loadKHNP_Service limitedDispatcher: ${limit}")
-
-        // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = genNames.map {  genName ->
-            async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
-                retryIO(times = 3) {
-                    try{
-                        val urlPath = url + "&genName=${genName}"
+            retryIO(times = 3) {
+                try{
+                    val urlPath = url + "&genName=${genName}"
+                    LOGGER.info("loadKHNP_Service Start: ${urlPath}")
+                    val df_json = DataFrame.readJson(
+                        XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
+                    )
+                    val instanceDf =
+                        df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
 
-                        val df_json = DataFrame.readJson(
-                            XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
-                        )
-                        val instanceDf =
-                            df_json.get("response").get("body").get("items").get("item")[0] as DataFrame<*>
-
-                        val updatedDf = instanceDf.add {
-                            "collectionTime" from { myCollectionTime }
-                            "genName" from {
-                                when(genName){
-                                    "2100" -> "KR"
-                                    "2200" -> "WS"
-                                    "2300" -> "YK"
-                                    "2400" -> "UJ"
-                                    "2800" -> "SU"
-                                    else -> genName
-                                }
+                    val updatedDf = instanceDf.add {
+                        "collectionTime" from { myCollectionTime }
+                        "genName" from {
+                            when(genName){
+                                "2100" -> "KR"
+                                "2200" -> "WS"
+                                "2300" -> "YK"
+                                "2400" -> "UJ"
+                                "2800" -> "SU"
+                                else -> genName
                             }
                         }
-                        updatedDf
-
-                    } catch (e: Exception){
-                        if(e.message?.contains("Can not get nested column 'item' from ValueColumn 'items'") == true) {
-                            return@retryIO emptyDataFrame()
-                        }else{
-                            throw  e
-                        }
                     }
+                    LOGGER.info("loadKHNP_Service End: ${urlPath}")
+                    updatedDf
 
+                } catch (e: Exception){
+                    if(e.message?.contains("Can not get nested column 'item' from ValueColumn 'items'") == true) {
+                        return@retryIO emptyDataFrame()
+                    }else{
+                        throw  e
+                    }
                 }
             }
 
         }
-        // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
-        deferredResults.awaitAll() as List<DataFrame<*>>
+        deferredResults
     }
 
 
@@ -334,7 +322,10 @@ class CollectionServerRepository {
 
         val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
 
+        LOGGER.info("getKHNP_ThermalWasteWater loadKHNP_Service End: ${url}")
         val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+        LOGGER.info("getKHNP_ThermalWasteWater loadKHNP_Service End: ${url}")
+
         val concatDf = response.concat()
 
         val updatedDf = concatDf.update ( "name" ).with {
@@ -401,8 +392,10 @@ class CollectionServerRepository {
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.WasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
         val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
-
+        LOGGER.info("getKHNP_WasteWater Start: ${url}")
         val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+        LOGGER.info("getKHNP_WasteWater End: ${url}")
+
 
         val concatDf = response.concat()
 
@@ -462,7 +455,9 @@ class CollectionServerRepository {
 
         LOGGER.debug("\n ${::getKHNP_RadioRate.name}  limitedParallelism[${limit}]")
 
+        LOGGER.info("getKHNP_RadioRate loadKHNP_Service Start: ${url}")
         val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+        LOGGER.info("getKHNP_RadioRate loadKHNP_Service End: ${url}")
 
         val result = response.concat()
 
@@ -496,7 +491,9 @@ class CollectionServerRepository {
 
         val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
 
+        LOGGER.info("getKHNP_RadioActiveWaste loadKHNP_Service Start: ${url}")
         val response = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800"), limit )
+        LOGGER.info("getKHNP_RadioActiveWaste loadKHNP_Service End: ${url}")
 
         val result = response.concat()
 
