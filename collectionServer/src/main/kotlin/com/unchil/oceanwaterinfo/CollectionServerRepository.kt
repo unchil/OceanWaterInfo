@@ -532,7 +532,7 @@ class CollectionServerRepository {
     suspend fun loadDataCoastalFlooding(path:String, codeList:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
         val numOfRows = 300
 
-        // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
+        // Dispatchers.IO에서 설정한 갯수의 스레드만 사용하도록 제한된 디스패처 생성
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
         LOGGER.info("loadDataCoastalFlooding limitedDispatcher: ${limit}")
@@ -621,188 +621,171 @@ class CollectionServerRepository {
 
     suspend fun getCoastalFloodingInfo() {
 
-        try{
-            val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
-                    "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
+        val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
+                "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
 
-            // 1. 시군구 코드 목록 추출 (짧은 트랜잭션)
-            val codeList = transaction(ConfigManager.conn) {
-                SggCode.select(SggCode.sgg_code).map { it ->
-                    it[SggCode.sgg_code].trim()
-                }
-            }
-
-            // 2. [핵심 수정] 네트워크로부터 데이터 비동기 수집 (트랜잭션 밖에서 수행)
-            // List<List<DataFrame>>을 받아오게 되므로 flatten 후 concat
-
-            val limit = ConfigManager.currentConfig.WATER_LOGGED?.limitedParallelism ?: 1
-
-            loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
-
-                val result = rawDataFrames.concat()
-
-                result.rows().chunked(1000).forEach{ chunk ->
-                    suspendTransaction( ConfigManager.conn) {
-                        try {
-                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                            CoastalFloodingGeoInfo.batchInsert(chunk, true, false) { row ->
-                                this[CoastalFloodingGeoInfo.ctpvNm] = row["ctpvNm"].toString().trim()
-                                this[CoastalFloodingGeoInfo.sggNm] = row["sggNm"].toString().trim()
-                                this[CoastalFloodingGeoInfo.flodVlCn] = row["flodVlCn"].toString().trim()
-                                this[CoastalFloodingGeoInfo.geom] = row["geom"].toString().trim()
-                            }
-                        } catch (e: Exception) {
-                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
-                        }
-                    }
-                }
-
-
-                // 1. 데이터 수집 및 초기화 단계
-                val updateTargets = suspendTransaction( ConfigManager.conn) {
-
-                    LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
-
-                    // ---------------------------------------------------------------------------
-                    // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
-                    // ---------------------------------------------------------------------------
-
-                    // 요약 테이블 생성 및 기존 데이터 삭제
-                    SchemaUtils.create(CoastalFloodingGeoTbl)
-                    CoastalFloodingGeoTbl.deleteAll()
-                    LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
-
-                    // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
-                    // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
-                    val aggregateSql = """
-                INSERT INTO CoastalFloodingGeoTbl (grade, flodVlCn, ctpvNm, geom)
-                SELECT
-                    MAX(grade) AS grade,
-                    MAX(flodVlCn) AS flodVlCn,
-                    MAX(ctpvNm) AS ctpvNm,
-                    geom
-                FROM (
-                    SELECT
-                        CASE
-                            WHEN flodVlCn = '0.0-0.5' THEN 'A'
-                            WHEN flodVlCn = '0.5-1.0' THEN 'B'
-                            WHEN flodVlCn = '1.0-1.5' THEN 'C'
-                            WHEN flodVlCn = '1.5-2.0' THEN 'D'
-                            WHEN flodVlCn = '2.0-2.5' THEN 'E'
-                            WHEN flodVlCn = '2.5-3.0' THEN 'E'
-                            WHEN flodVlCn = '2.0-3.0' THEN 'E'
-                            ELSE 'F'
-                        END AS grade,
-                        geom,
-                        ctpvNm,
-                        flodVlCn
-                    FROM CoastalFloodingGeoInfo
-                ) AS A
-                GROUP BY A.geom
-            """.trimIndent()
-
-                    // Exposed의 exec 함수를 통해 네이티브 쿼리 실행
-                    exec(aggregateSql)
-
-                    LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
-
-                    SggCode
-                        .select(SggCode.sd_name)
-                        .withDistinct() // 중복된 grade-sido 쌍 제거
-                        .map { it[SggCode.sd_name] }
-                }
-
-
-
-                coroutineScope {
-                    // SQLite와 CPU 부하를 고려하여 동시 실행 작업 수를 3개로 제한
-                    val mapShaperLimit = ConfigManager.currentConfig.WATER_LOGGED?.mapshaperLimitedParallelism ?: 3
-                    LOGGER.info("loadDataCoastalFlooding mapShaperLimitedDispatcher: ${mapShaperLimit}")
-                    val mapShaperLimitedDispatcher = Dispatchers.IO.limitedParallelism(mapShaperLimit)
-
-                    updateTargets.forEach { ctpvNm ->
-
-                        listOf("F", "E", "D", "C", "B", "A").forEach { grade ->
-
-                            launch(mapShaperLimitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
-
-                                    val geoJsonObject = suspendTransaction( ConfigManager.conn) {
-                                        CoastalFloodingGeoTbl
-                                            .select(
-                                                CoastalFloodingGeoTbl.grade,
-                                                CoastalFloodingGeoTbl.flodVlCn,
-                                                CoastalFloodingGeoTbl.ctpvNm,
-                                                CoastalFloodingGeoTbl.geom
-                                            )
-                                            .where {
-                                                (CoastalFloodingGeoTbl.grade eq grade) and
-                                                        (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
-                                            }
-                                            .map {
-                                                CoastalFloodingGeo(
-                                                    grade = it[CoastalFloodingGeoTbl.grade],
-                                                    flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
-                                                    ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
-                                                    geom = it[CoastalFloodingGeoTbl.geom]
-                                                )
-                                            }.toGeoJsonObject(Pair(ctpvNm, grade))
-                                    } // suspendTransaction
-
-                                    if (geoJsonObject.length < 100) return@launch // 데이터 없으면 스킵
-
-
-
-                                    // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
-                                    val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
-
-                                    LOGGER.info("\nOptimization Done for $ctpvNm $grade :[Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB]")
-
-
-                                    if (simplifyGeoJsonObject.isEmpty()) return@launch
-
-                                    suspendTransaction( ConfigManager.conn) {
-
-                                        val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
-
-
-
-                                        SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
-
-                                        CoastalFloodingGeoJsonObjectTbl.deleteWhere {
-                                            (CoastalFloodingGeoJsonObjectTbl.grade eq grade) and
-                                                    (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
-                                        }
-
-                                        CoastalFloodingGeoJsonObjectTbl.insert {
-                                            it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
-                                            it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
-                                            it[CoastalFloodingGeoJsonObjectTbl.geojson] = originalBlob
-                                            it[CoastalFloodingGeoJsonObjectTbl.simplegeojson] = simplifyGeoJsonObject
-
-                                        }
-                                    } // suspendTransaction
-
-                                    LOGGER.info("Successfully saved $ctpvNm $grade")
-
-                            } // launch
-
-                        } // grade List
-                    } // sido List
-
-                }// coroutineScope
-
-            }
-
-
-        }catch (err: Exception){
-            LOGGER.error("[getCoastalFloodingInfo] Process Error: ${err.message}")
-        }finally {
-            suspendTransaction( ConfigManager.conn) {
-                CoastalFloodingGeoInfo.deleteAll()
-                LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+        // 1. 시군구 코드 목록 추출 (짧은 트랜잭션)
+        val codeList = transaction(ConfigManager.conn) {
+            SggCode.select(SggCode.sgg_code).map { it ->
+                it[SggCode.sgg_code].trim()
             }
         }
+        // 2. [핵심 수정] 네트워크로부터 데이터 비동기 수집 (트랜잭션 밖에서 수행)
+        // List<List<DataFrame>>을 받아오게 되므로 flatten 후 concat
+        val limit = ConfigManager.currentConfig.WATER_LOGGED?.limitedParallelism ?: 1
 
+        loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
+            val result = rawDataFrames.concat()
+            result.rows().chunked(1000).forEach{ chunk ->
+                suspendTransaction( ConfigManager.conn) {
+                    try {
+                        // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                        CoastalFloodingGeoInfo.batchInsert(chunk, true, false) { row ->
+                            this[CoastalFloodingGeoInfo.ctpvNm] = row["ctpvNm"].toString().trim()
+                            this[CoastalFloodingGeoInfo.sggNm] = row["sggNm"].toString().trim()
+                            this[CoastalFloodingGeoInfo.flodVlCn] = row["flodVlCn"].toString().trim()
+                            this[CoastalFloodingGeoInfo.geom] = row["geom"].toString().trim()
+                        }
+                    } catch (e: Exception) {
+                        LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                    }
+                }
+            }
+            // 1. 데이터 수집 및 초기화 단계
+            val updateTargets = suspendTransaction( ConfigManager.conn) {
+
+                LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
+
+                // ---------------------------------------------------------------------------
+                // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
+                // ---------------------------------------------------------------------------
+
+                // 요약 테이블 생성 및 기존 데이터 삭제
+                SchemaUtils.create(CoastalFloodingGeoTbl)
+                CoastalFloodingGeoTbl.deleteAll()
+                LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
+
+                // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
+                // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
+                val aggregateSql = """
+            INSERT INTO CoastalFloodingGeoTbl (grade, flodVlCn, ctpvNm, geom)
+            SELECT
+                MAX(grade) AS grade,
+                MAX(flodVlCn) AS flodVlCn,
+                MAX(ctpvNm) AS ctpvNm,
+                geom
+            FROM (
+                SELECT
+                    CASE
+                        WHEN flodVlCn = '0.0-0.5' THEN 'A'
+                        WHEN flodVlCn = '0.5-1.0' THEN 'B'
+                        WHEN flodVlCn = '1.0-1.5' THEN 'C'
+                        WHEN flodVlCn = '1.5-2.0' THEN 'D'
+                        WHEN flodVlCn = '2.0-2.5' THEN 'E'
+                        WHEN flodVlCn = '2.5-3.0' THEN 'E'
+                        WHEN flodVlCn = '2.0-3.0' THEN 'E'
+                        ELSE 'F'
+                    END AS grade,
+                    geom,
+                    ctpvNm,
+                    flodVlCn
+                FROM CoastalFloodingGeoInfo
+            ) AS A
+            GROUP BY A.geom
+        """.trimIndent()
+
+                // Exposed의 exec 함수를 통해 네이티브 쿼리 실행
+                exec(aggregateSql)
+
+                LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
+
+                SggCode
+                    .select(SggCode.sd_name)
+                    .withDistinct() // 중복된 grade-sido 쌍 제거
+                    .map { it[SggCode.sd_name] }
+            }
+            coroutineScope {
+                // SQLite와 CPU 부하를 고려하여 동시 실행 작업 수를 3개로 제한
+                val mapShaperLimit = ConfigManager.currentConfig.WATER_LOGGED?.mapshaperLimitedParallelism ?: 3
+                LOGGER.info("loadDataCoastalFlooding mapShaperLimitedDispatcher: ${mapShaperLimit}")
+                val mapShaperLimitedDispatcher = Dispatchers.IO.limitedParallelism(mapShaperLimit)
+
+                updateTargets.forEach { ctpvNm ->
+
+                    listOf("F", "E", "D", "C", "B", "A").forEach { grade ->
+
+                        launch(mapShaperLimitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+
+                                val geoJsonObject = suspendTransaction( ConfigManager.conn) {
+                                    CoastalFloodingGeoTbl
+                                        .select(
+                                            CoastalFloodingGeoTbl.grade,
+                                            CoastalFloodingGeoTbl.flodVlCn,
+                                            CoastalFloodingGeoTbl.ctpvNm,
+                                            CoastalFloodingGeoTbl.geom
+                                        )
+                                        .where {
+                                            (CoastalFloodingGeoTbl.grade eq grade) and
+                                                    (CoastalFloodingGeoTbl.ctpvNm eq ctpvNm)
+                                        }
+                                        .map {
+                                            CoastalFloodingGeo(
+                                                grade = it[CoastalFloodingGeoTbl.grade],
+                                                flodVlCn = it[CoastalFloodingGeoTbl.flodVlCn],
+                                                ctpvNm = it[CoastalFloodingGeoTbl.ctpvNm],
+                                                geom = it[CoastalFloodingGeoTbl.geom]
+                                            )
+                                        }.toGeoJsonObject(Pair(ctpvNm, grade))
+                                } // suspendTransaction
+
+                                if (geoJsonObject.length < 100) return@launch // 데이터 없으면 스킵
+
+
+
+                                // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
+                                val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
+
+                                LOGGER.info("\nOptimization Done for $ctpvNm $grade :[Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB]")
+
+
+                                if (simplifyGeoJsonObject.isEmpty()) return@launch
+
+                                suspendTransaction( ConfigManager.conn) {
+
+                                    val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
+
+
+
+                                    SchemaUtils.create(CoastalFloodingGeoJsonObjectTbl)
+
+                                    CoastalFloodingGeoJsonObjectTbl.deleteWhere {
+                                        (CoastalFloodingGeoJsonObjectTbl.grade eq grade) and
+                                                (CoastalFloodingGeoJsonObjectTbl.ctpvNm eq ctpvNm)
+                                    }
+
+                                    CoastalFloodingGeoJsonObjectTbl.insert {
+                                        it[CoastalFloodingGeoJsonObjectTbl.grade] = grade
+                                        it[CoastalFloodingGeoJsonObjectTbl.ctpvNm] = ctpvNm
+                                        it[CoastalFloodingGeoJsonObjectTbl.geojson] = originalBlob
+                                        it[CoastalFloodingGeoJsonObjectTbl.simplegeojson] = simplifyGeoJsonObject
+
+                                    }
+                                } // suspendTransaction
+
+                                LOGGER.info("Successfully saved $ctpvNm $grade")
+
+                        } // launch
+
+                    } // grade List
+                } // sido List
+
+            }// coroutineScope
+        }
+
+        suspendTransaction( ConfigManager.conn) {
+            CoastalFloodingGeoInfo.deleteAll()
+            LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+        }
 
     }
 
@@ -1006,12 +989,7 @@ class CollectionServerRepository {
                     } catch (e: Exception) {
                         LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
                     }
-
-
-
-
                 }
-
             }
 
         } catch (e: Exception){
@@ -1022,66 +1000,52 @@ class CollectionServerRepository {
 
 
 
-    suspend fun loadDataTidalCurrent(path:String, interval:Int, predictedTotalMinute:Int, limit:Int, loopDelay:Long):  List<Pair<String, List<KhonTidalCurrentInfo>>> = coroutineScope {
+    suspend fun loadDataTidalCurrent(path:String, interval:Int, predictedTotalMinute:Int):  List<Pair<String, List<KhonTidalCurrentInfo>>> = coroutineScope {
 
         val windowSize = predictedTotalMinute / interval
         val startTime = Clock.System.now() // 시작 시점 고정
-        // Dispatchers.IO에서 최대 10개의 스레드만 사용하도록 제한된 디스패처 생성
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
-        LOGGER.info("loadDataTidalCurrent[windowSize:${windowSize}, limitedDispatcher: ${limit}, delay:${loopDelay}]")
+        LOGGER.info("loadDataTidalCurrent[windowSize:${windowSize}")
 
-        var sch_time = ""
+        (0 until windowSize).map{ i ->
+            retryIO(times = 3) {
 
-        val deferredResults = (0 until windowSize).map{ i ->
+                val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
 
-            delay(loopDelay)
+                var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
+                localDateTime = LocalDateTime(
+                    localDateTime.year,
+                    localDateTime.month,
+                    localDateTime.day,
+                    localDateTime.hour,
+                    (localDateTime.minute / interval) * interval
+                )
 
-            async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+                val datetime = localDateTime.format(
+                    LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") }
+                )
 
-                retryIO(times = 3) {
+                val date = datetime.substring(0, 8)
+                val hour = datetime.substring(8, 10)
+                val minute = datetime.substring(10, 12)
 
-                    val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
+                val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
-                    var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
-                    localDateTime = LocalDateTime(
-                        localDateTime.year,
-                        localDateTime.month,
-                        localDateTime.day,
-                        localDateTime.hour,
-                        (localDateTime.minute / interval) * interval
-                    )
+                try {
 
-                    val datetime = localDateTime.format(
-                        LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") }
-                    )
-
-                    val date = datetime.substring(0, 8)
-                    val hour = datetime.substring(8, 10)
-                    val minute = datetime.substring(10, 12)
-
-                    val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
-
-                    try {
-
-                        CollectionServerRestApi.callKhoaAPI_json(url).let {
-                            val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
-                            LOGGER.debug("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
-                            Pair(response.result.meta.sch_time,   response.result.data)
-                        }
-
-                    } catch (e: Exception) {
-                        LOGGER.error("첫 페이지 로드 실패: $url", e)
-                        throw e
+                    CollectionServerRestApi.callKhoaAPI_json(url).let {
+                        val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
+                        LOGGER.debug("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
+                        Pair(response.result.meta.sch_time,   response.result.data)
                     }
 
+                } catch (e: Exception) {
+                    LOGGER.error("첫 페이지 로드 실패: $url", e)
+                    throw e
                 }
+
             }
-
         }
-
-
-        deferredResults.awaitAll()
 
     }
 
@@ -1092,14 +1056,11 @@ class CollectionServerRepository {
         val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
         val url = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}"
         val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
-        val loopDelay = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.loopdelay?.toLong() ?: 500L
-
 
         LOGGER.info("getKhoaTidalCurrent limitedParallelism: ${limit}")
         val limitedParallelism = Dispatchers.IO.limitedParallelism(limit)
 
-
-        loadDataTidalCurrent(path=url, interval=interval, predictedTotalMinute=predictedTotalMinute, limit=limit, loopDelay = loopDelay).let{ pairList ->
+        loadDataTidalCurrent(path=url, interval=interval, predictedTotalMinute=predictedTotalMinute).let{ pairList ->
 
             LOGGER.info("${::getKhoaTidalCurrent.name}  total count[${pairList.size}}]]")
 
@@ -1136,55 +1097,42 @@ class CollectionServerRepository {
 
 
     @OptIn(ExperimentalSerializationApi::class)
-    suspend fun loadKhoaObservation(codeList:List<String>, url:String, limit:Int):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
-
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
-
-        val deferredResults = codeList.map { obsCode ->
-
-            delay(100)
-
+    suspend fun loadKhoaObservation(codeList:List<String>, url:String):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
+        codeList.map { obsCode ->
             val pageUrl = "${url}&pageNo=1&obsCode=${obsCode}"
 
-       //     async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
-
-                retryIO(times = 3) {
-                    try {
-                        val response = CollectionServerRestApi.callKhoaAPI_json(pageUrl)
-                        val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(response)
-                        if(recvData.header.resultCode.equals("00")) {
-                            LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
-                        }else {
-                            LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
-                        }
-                        Pair(obsCode , recvData.body.items.item)
-
-                    } catch (e: MissingFieldException) {
-                        // 데이터 필드 누락 시 retry 없이 즉시 async 블록 탈출
-                        LOGGER.error("필드 누락 에러 (obsCode: $obsCode): ${e.message}")
-                        // 빈 리스트를 반환하며 해당 코루틴 종료
-                        return@retryIO Pair(obsCode, emptyList<KhoaObservation>())
-
-                    } catch (e: Exception) {
-                        // 일반적인 네트워크 에러 등은 retryIO가 처리할 수 있도록 다시 던짐
-                        LOGGER.error("데이터 로드 중 에러 발생 ($pageUrl): ${e.localizedMessage}")
-                        throw e
+            retryIO(times = 3) {
+                try {
+                    val response = CollectionServerRestApi.callKhoaAPI_json(pageUrl)
+                    val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(response)
+                    if(recvData.header.resultCode.equals("00")) {
+                        LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
+                    }else {
+                        LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
                     }
-                }
-      //      }
+                    Pair(obsCode , recvData.body.items.item)
 
+                } catch (e: MissingFieldException) {
+                    // 데이터 필드 누락 시 retry 없이 즉시 async 블록 탈출
+                    LOGGER.error("필드 누락 에러 (obsCode: $obsCode): ${e.message}")
+                    // 빈 리스트를 반환하며 해당 코루틴 종료
+                    return@retryIO Pair(obsCode, emptyList<KhoaObservation>())
+
+                } catch (e: Exception) {
+                    // 일반적인 네트워크 에러 등은 retryIO가 처리할 수 있도록 다시 던짐
+                    LOGGER.error("데이터 로드 중 에러 발생 ($pageUrl): ${e.localizedMessage}")
+                    throw e
+                }
+            }
         }
-        deferredResults
-      //  deferredResults.awaitAll()
 
     }
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun getKhoaObservation()  {
 
-        val reqDate =
-            kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
+        val reqDate = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format { byUnicodePattern("yyyyMMdd") })
-
 
         val url = "${ConfigManager.currentConfig.KHOA_API?.endPoint}/${ConfigManager.currentConfig.KHOA_API?.subPath}" +
                 "?serviceKey=${ConfigManager.currentConfig.KHOA_API?.apikey}" +
@@ -1203,16 +1151,13 @@ class CollectionServerRepository {
             }
         }
 
-
-        val limit_RestCall = ConfigManager.currentConfig.KHOA_API?.limitedParallelismREST ?: 1
         val limit_DB = ConfigManager.currentConfig.KHOA_API?.limitedParallelismDB ?: 1
 
-        LOGGER.info("${::getKhoaObservation.name}  codeList[${codeList.size}], limitedParallelismREST[${limit_RestCall}], limit_DB[${limit_DB}]}")
+        LOGGER.info("${::getKhoaObservation.name}  codeList[${codeList.size}], limit_DB[${limit_DB}]}")
 
-        loadKhoaObservation(codeList, url, limit_RestCall).let { result ->
+        loadKhoaObservation(codeList, url).let { result ->
 
             LOGGER.info("${::getKhoaObservation.name}  total listCount[${result.size}}")
-
 
                 coroutineScope {
 
@@ -1255,9 +1200,7 @@ class CollectionServerRepository {
                                     }
                                 }
 
-
                                 LOGGER.info("ObservationKHOA 테이블 갱신 완료.")
-
                             }
                         }
                     }

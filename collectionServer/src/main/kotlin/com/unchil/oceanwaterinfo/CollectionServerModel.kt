@@ -396,8 +396,6 @@ data class KhoaTidalCurrentApiConfig(
     val interval: Int,
     val predictedTotalMinute: Int,
     val limitedParallelism: Int,
-    val loopdelay:Int
-
 
 )
 
@@ -433,9 +431,8 @@ data class  KhoaApiConfig(
     val type: String,
     val min: String,
     val numOfRows: String,
-
     val limitedParallelismDB: Int,
-    val limitedParallelismREST: Int
+
 )
 
 @Serializable
