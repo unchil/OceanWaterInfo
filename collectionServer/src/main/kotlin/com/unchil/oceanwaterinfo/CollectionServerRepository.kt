@@ -271,7 +271,7 @@ class CollectionServerRepository {
 
 
 
-    suspend fun loadKHNP_Service(url:String, genNames:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
+    suspend fun loadKHNP_Service(url:String, genNames:List<String>): List<DataFrame<*>> = coroutineScope {
         val now = Clock.System.now()
         val myCollectionTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
         val deferredResults = genNames.map {  genName ->
@@ -320,10 +320,8 @@ class CollectionServerRepository {
 
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
-        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
-
         LOGGER.info("getKHNP_ThermalWasteWater loadKHNP_Service End: ${url}")
-        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
         LOGGER.info("getKHNP_ThermalWasteWater loadKHNP_Service End: ${url}")
 
         val concatDf = response.concat()
@@ -391,9 +389,8 @@ class CollectionServerRepository {
 
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.WasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
-        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
         LOGGER.info("getKHNP_WasteWater Start: ${url}")
-        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
         LOGGER.info("getKHNP_WasteWater End: ${url}")
 
 
@@ -451,12 +448,8 @@ class CollectionServerRepository {
     suspend fun getKHNP_RadioRate(){
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioRate}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
-        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
-
-        LOGGER.debug("\n ${::getKHNP_RadioRate.name}  limitedParallelism[${limit}]")
-
         LOGGER.info("getKHNP_RadioRate loadKHNP_Service Start: ${url}")
-        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"), limit)
+        val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
         LOGGER.info("getKHNP_RadioRate loadKHNP_Service End: ${url}")
 
         val result = response.concat()
@@ -489,10 +482,8 @@ class CollectionServerRepository {
     suspend fun getKHNP_RadioActiveWaste(){
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
-        val limit = ConfigManager.currentConfig.KHNP?.limitedParallelism ?: 1
-
         LOGGER.info("getKHNP_RadioActiveWaste loadKHNP_Service Start: ${url}")
-        val response = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800"), limit )
+        val response = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800") )
         LOGGER.info("getKHNP_RadioActiveWaste loadKHNP_Service End: ${url}")
 
         val result = response.concat()

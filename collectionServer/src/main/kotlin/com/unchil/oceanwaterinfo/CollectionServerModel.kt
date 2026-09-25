@@ -451,10 +451,7 @@ data class KHNP_SUBURL(
 data class KHNP(
     val endPoint: String,
     val subPath: KHNP_SUBURL,
-    val serviceKey: String,
-
-    val limitedParallelism: Int
-
+    val serviceKey: String
 )
 
 @Serializable
