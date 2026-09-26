@@ -583,8 +583,11 @@ class CollectionServerRepository {
                     val df_first = retryIO(times = 3) {
                         try {
                             // Ktor Client를 사용해 타임아웃 적용된 HTTP GET 요청
+                            /*
                             val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
                             DataFrame.readJsonStr(jsonString)
+                             */
+                            DataFrame.readJson(url)
                         } catch (e: Exception) {
                             msg = "Rest Client Url Call Fail: [${e.localizedMessage}]"
                             LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
@@ -607,10 +610,13 @@ class CollectionServerRepository {
                         retryIO(times = 3) {
                             try {
                                 url = "$baseUrl&pageNo=$page"
+                                /*
                                 val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
                                 val df_page = DataFrame.readJsonStr(jsonString)
-                                val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
+                                 */
+                                val df_page = DataFrame.readJson(url)
 
+                                val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
                                 msg = "sggCd[${it}] page[${page}] count[${data.rowsCount()}]"
                                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
@@ -636,7 +642,6 @@ class CollectionServerRepository {
         }
         // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
         deferredResults.awaitAll() as List<DataFrame<*>>
-
     }
 
 
