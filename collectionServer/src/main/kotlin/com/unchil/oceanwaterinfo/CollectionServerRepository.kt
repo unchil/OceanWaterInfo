@@ -1,6 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 
+import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.logging.KtorSimpleLogger
@@ -53,6 +54,7 @@ import org.jetbrains.kotlinx.dataframe.api.values
 import org.jetbrains.kotlinx.dataframe.api.with
 import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
+import org.jetbrains.kotlinx.dataframe.io.readJsonStr
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.jetbrains.kotlinx.dataframe.size
 import org.json.XML
@@ -574,59 +576,70 @@ class CollectionServerRepository {
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
             async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+                try {
+                    val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
+                    var url = "${baseUrl}&pageNo=1"
 
-                val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
-                var url = "${baseUrl}&pageNo=1"
-
-                val df_first = retryIO(times = 3) {
-                    try {
-                        DataFrame.readJson(url)
-                    } catch (e: Exception) {
-                        msg = "Rest Client Url Call Fail: [${url} ][${e.localizedMessage}]"
-                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                        throw Exception(funcName)
-                    }
-                }
-
-                val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
-                val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
-                val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
-
-                msg = "ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
-                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
-                val dataFrames = mutableListOf<DataFrame<*>>()
-                dataFrames.add(data)
-
-                for (page in 2..totalPages) {
-
-                   retryIO(times = 3) {
+                    val df_first = retryIO(times = 3) {
                         try {
-                            url = "$baseUrl&pageNo=$page"
-                            val df_page = DataFrame.readJson(url)
-                            val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
-
-                            msg = "url[${url}] count[${data.rowsCount()}]"
-                            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
-                            dataFrames.add(data)
+                            // Ktor Client를 사용해 타임아웃 적용된 HTTP GET 요청
+                            val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
+                            DataFrame.readJsonStr(jsonString)
+                           // DataFrame.readJson(url)
                         } catch (e: Exception) {
-                            msg = "Rest Client Url Call Fail: [$baseUrl&pageNo=$page][${e.localizedMessage}]"
+                        //    msg = "Rest Client Url Call Fail: [${it}][${url}]"
+                            msg = e.localizedMessage
                             LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                             throw Exception(funcName)
                         }
                     }
 
+                    val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
+                    val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
+                    val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+
+                    msg = "ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+                    val dataFrames = mutableListOf<DataFrame<*>>()
+                    dataFrames.add(data)
+
+                    for (page in 2..totalPages) {
+
+                        retryIO(times = 3) {
+                            try {
+                                url = "$baseUrl&pageNo=$page"
+                                val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
+                                val df_page = DataFrame.readJsonStr(jsonString)
+                               // val df_page = DataFrame.readJson(url)
+                                val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
+
+                                msg = "sggCd[${it}] page[${page}] count[${data.rowsCount()}]"
+                                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+                                dataFrames.add(data)
+                            } catch (e: Exception) {
+                                msg = "Rest Client Url Call Fail: [$baseUrl&pageNo=$page][${e.localizedMessage}]"
+                                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                                throw Exception(funcName)
+                            }
+                        }
+
+                    }
+
+                    dataFrames.concat()
+
+                } catch (e:Exception){
+                    msg = e.localizedMessage
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    emptyDataFrame()
                 }
 
-
-                dataFrames.concat()
-
             }
-
         }
         // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
         deferredResults.awaitAll() as List<DataFrame<*>>
+    //    deferredResults
 
     }
 
