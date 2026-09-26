@@ -540,6 +540,21 @@ class CollectionServerRepository {
         }
     }
 
+    fun <T> retryIO2(
+        times: Int = 3,
+        block:  () -> T
+    ): T {
+        repeat(times - 1) {
+            try {
+                return block()
+            } catch (e: Exception) {
+                val msg = "요청 실패 재시도..."
+                LOGGER.warn("${LoggerHeader.CollectionServerRepository.name} : ${e.localizedMessage}: ${msg}")
+            }
+        }
+        return block() // 마지막 시도
+    }
+
     suspend fun <T> retryIO(
         times: Int = 3,
         initialDelay: Long = 1000,
@@ -560,12 +575,16 @@ class CollectionServerRepository {
         return block() // 마지막 시도
     }
 
-    suspend fun loadDataCoastalFlooding(path:String, codeList:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
+    suspend fun loadDataCoastalFlooding(codeList:List<String>): List<DataFrame<*>> = coroutineScope {
+        val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
+                "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
+
+        val limit = ConfigManager.currentConfig.WATER_LOGGED?.limitedParallelism ?: 1
+        val numOfRows =  100
+
         val funcName = ::loadDataCoastalFlooding.name
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
-        val numOfRows = 300
 
         // Dispatchers.IO에서 설정한 갯수의 스레드만 사용하도록 제한된 디스패처 생성
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
@@ -575,18 +594,16 @@ class CollectionServerRepository {
 
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
-            async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+         //   async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
                 try {
                     val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
                     var url = "${baseUrl}&pageNo=1"
 
-                    val df_first = retryIO(times = 3) {
+                    val df_first = retryIO2(times = 3) {
                         try {
                             // Ktor Client를 사용해 타임아웃 적용된 HTTP GET 요청
-                            /*
-                            val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
-                            DataFrame.readJsonStr(jsonString)
-                             */
+                        //    val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
+                        //    DataFrame.readJsonStr(jsonString)
                             DataFrame.readJson(url)
                         } catch (e: Exception) {
                             msg = "Rest Client Url Call Fail: [${e.localizedMessage}]"
@@ -607,15 +624,12 @@ class CollectionServerRepository {
 
                     for (page in 2..totalPages) {
 
-                        retryIO(times = 3) {
+                        retryIO2(times = 3) {
                             try {
                                 url = "$baseUrl&pageNo=$page"
-                                /*
-                                val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
-                                val df_page = DataFrame.readJsonStr(jsonString)
-                                 */
+                            //    val jsonString = CollectionServerRestApi.client.get(url).bodyAsText()
+                            //    val df_page = DataFrame.readJsonStr(jsonString)
                                 val df_page = DataFrame.readJson(url)
-
                                 val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
                                 msg = "sggCd[${it}] page[${page}] count[${data.rowsCount()}]"
                                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
@@ -638,10 +652,11 @@ class CollectionServerRepository {
                     emptyDataFrame()
                 }
 
-            }
+           // }
         }
         // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
-        deferredResults.awaitAll() as List<DataFrame<*>>
+     //   deferredResults.awaitAll() as List<DataFrame<*>>
+        deferredResults
     }
 
 
@@ -705,9 +720,6 @@ class CollectionServerRepository {
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
-                "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
-
         // 1. 시군구 코드 목록 추출 (짧은 트랜잭션)
         val codeList = transaction(ConfigManager.conn) {
             SggCode.select(SggCode.sgg_code).map { it ->
@@ -716,9 +728,8 @@ class CollectionServerRepository {
         }
         // 2. [핵심 수정] 네트워크로부터 데이터 비동기 수집 (트랜잭션 밖에서 수행)
         // List<List<DataFrame>>을 받아오게 되므로 flatten 후 concat
-        val limit = ConfigManager.currentConfig.WATER_LOGGED?.limitedParallelism ?: 1
 
-        loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
+        loadDataCoastalFlooding( codeList).let { rawDataFrames ->
             val result = rawDataFrames.concat()
 
             msg = "Count:[${result.count()}]"
