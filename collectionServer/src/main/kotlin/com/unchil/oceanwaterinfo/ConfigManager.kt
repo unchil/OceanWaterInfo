@@ -78,7 +78,7 @@ object ConfigManager {
                     StandardWatchEventKinds.ENTRY_MODIFY,
                     StandardWatchEventKinds.ENTRY_CREATE
                 )
-                LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : file[${configFilePath.parent.name}] 감시 시작.")
+                LOGGER.debug("${LoggerHeader.ConfigManager}: ${funcName} : file[${configFilePath.parent.name}] 감시 시작.")
 
                 while (isActive) {
                     // 3. 이벤트 대기 (Blocking 호출)
@@ -100,13 +100,13 @@ object ConfigManager {
 
             } catch (e: Exception) {
                 if (e is java.nio.file.ClosedWatchServiceException) {
-                    LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : 감시 코루틴 취소.")
+                    LOGGER.debug("${LoggerHeader.ConfigManager}: ${funcName} : 감시 코루틴 취소.")
                 } else {
                     LOGGER.error("${LoggerHeader.ConfigManager}: ${funcName} : [${e.localizedMessage}]")
                 }
             } finally {
                 watchService?.close()
-                LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : 감시 종료.")
+                LOGGER.debug("${LoggerHeader.ConfigManager}: ${funcName} : 감시 종료.")
 
             }
         }
@@ -119,7 +119,7 @@ object ConfigManager {
      */
     fun stopWatching() {
         val funcName = ::stopWatching.name
-        LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : 감시 종료 요청.")
+        LOGGER.debug("${LoggerHeader.ConfigManager}: ${funcName} : 감시 종료 요청.")
         watchService?.close()
         watchService = null
         watchJob?.cancel()
