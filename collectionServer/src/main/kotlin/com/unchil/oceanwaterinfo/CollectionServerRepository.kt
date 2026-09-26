@@ -66,7 +66,6 @@ import kotlin.math.ceil
 import kotlin.time.Clock
 
 class CollectionServerRepository {
-    internal val LOGGER = KtorSimpleLogger( CollectionServerRepository::class.java.name )
 
     init {
         transaction(ConfigManager.conn) {
@@ -76,8 +75,9 @@ class CollectionServerRepository {
 
 
     suspend fun getRealTimeOceanWaterQuality_Rocovery(wtch_dt_start:String, wtch_dt_end:String){
-
-        LOGGER.info("wtch_dt_start : ${wtch_dt_start}, wtch_dt_end : ${wtch_dt_end}")
+        val funcName = ::getRealTimeOceanWaterQuality_Rocovery.name
+        var msg = "wtch_dt_start : ${wtch_dt_start}, wtch_dt_end : ${wtch_dt_end}"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val url = "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
                 "?wtch_dt_start=${URLEncoder.encode(wtch_dt_start, StandardCharsets.UTF_8.toString())}" +
@@ -88,9 +88,8 @@ class CollectionServerRepository {
         val dataList = loadDataOceanWemo(url, limitedParallelism)
         val result = dataList.concat()
 
-        LOGGER.debug("\n"+ result.head(5).toString())
-        LOGGER.debug("\n"+ result.describe().toString())
-        LOGGER.info( "${::getRealTimeOceanWaterQuality_Rocovery.name} [receive count[${result.count()}]]")
+        msg = "receive count[${result.count()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction (ConfigManager.conn){
             SchemaUtils.create( OWQInformationTable)
@@ -111,20 +110,21 @@ class CollectionServerRepository {
                 }
 
             } catch (e: Exception) {
-                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                msg = e.localizedMessage
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
 
         }
-
-
     }
 
 
     suspend fun loadDataOceanWemo(path:String, limit:Int): List<DataFrame<*>> = coroutineScope {
+        val funcName = ::loadDataOceanWemo.name
+        var msg = "limitedDispatcher: ${limit}"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val numOfRows = 100
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
-
-        LOGGER.info("loadDataOceanWemo limitedDispatcher: ${limit}")
 
         val baseUrl = "${path}&numOfRows=${numOfRows}"
         val url = "${baseUrl}&pageNo=1"
@@ -133,8 +133,9 @@ class CollectionServerRepository {
             try {
                 DataFrame.readJson(url)
             } catch (e: Exception) {
-                LOGGER.error("첫 페이지 로드 실패: $url", e)
-                throw e
+                msg = "${url}:[${e.localizedMessage}"
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                throw Exception(funcName)
             }
         }
 
@@ -142,12 +143,11 @@ class CollectionServerRepository {
         val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
         val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
 
-        LOGGER.info("총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
+        msg = "총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val deferredResults = (2..totalPages).map { pageNo ->
-
             delay(100)
-
             async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
                 retryIO(times = 3) {
                     val pageUrl = "$baseUrl&pageNo=${pageNo}"
@@ -155,13 +155,15 @@ class CollectionServerRepository {
                     df_page["body"]["items"]["item"][0] as DataFrame<*>
                 }
             }
-
         }
-
         listOf(first_data) +  deferredResults.awaitAll() as List<DataFrame<*>>
     }
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun getKHNP_PlantStates() {
+        val funcName = ::getKHNP_PlantStates.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val url_PlantStates = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.NuclearPlantStates}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
@@ -228,7 +230,8 @@ class CollectionServerRepository {
                 }
 
             } catch(e:Exception ){
-                LOGGER.error("KHNP_PlantInfo Batch Insert Error: ${e.localizedMessage}")
+                msg = e.localizedMessage
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
         }
 
@@ -244,7 +247,8 @@ class CollectionServerRepository {
                  }
 
              } catch (e: Exception) {
-                 LOGGER.error("KHNP_PlantInfo Batch Insert Error: ${e.localizedMessage}")
+                 msg = e.localizedMessage
+                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
              }
 
              SchemaUtils.create(KHNP_PlantOperationInfo)
@@ -262,23 +266,28 @@ class CollectionServerRepository {
                  }
 
              } catch (e: Exception) {
-                 LOGGER.error("KHNP_PlantOperationInfo Batch Insert Error: ${e.localizedMessage}")
+                 msg = e.localizedMessage
+                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
              }
-
          }
-
     }
 
 
-
     suspend fun loadKHNP_Service(url:String, genNames:List<String>): List<DataFrame<*>> = coroutineScope {
+        val funcName = ::loadKHNP_Service.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val now = Clock.System.now()
         val myCollectionTime = now.toLocalDateTime(TimeZone.of("Asia/Seoul")).format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
         val deferredResults = genNames.map {  genName ->
             retryIO(times = 3) {
                 try{
                     val urlPath = url + "&genName=${genName}"
-                    LOGGER.info("loadKHNP_Service Start: ${urlPath}")
+
+                    msg = "Start: ${urlPath}"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                     val df_json = DataFrame.readJson(
                         XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
                     )
@@ -298,14 +307,15 @@ class CollectionServerRepository {
                             }
                         }
                     }
-                    LOGGER.info("loadKHNP_Service End: ${urlPath}")
+                    msg = "End: ${urlPath}"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     updatedDf
 
                 } catch (e: Exception){
                     if(e.message?.contains("Can not get nested column 'item' from ValueColumn 'items'") == true) {
                         return@retryIO emptyDataFrame()
                     }else{
-                        throw  e
+                        throw Exception(funcName)
                     }
                 }
             }
@@ -317,12 +327,13 @@ class CollectionServerRepository {
 
 
     suspend  fun getKHNP_ThermalWasteWater(){
+        val funcName = ::getKHNP_ThermalWasteWater.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.ThermalWasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
-        LOGGER.info("getKHNP_ThermalWasteWater loadKHNP_Service End: ${url}")
         val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
-        LOGGER.info("getKHNP_ThermalWasteWater loadKHNP_Service End: ${url}")
 
         val concatDf = response.concat()
 
@@ -353,8 +364,10 @@ class CollectionServerRepository {
             "time3" to "rm006_time",
         )
 
-        LOGGER.debug("\n ${::getKHNP_ThermalWasteWater.name}  Schema[${result.schema()}]")
-        LOGGER.info("\n ${::getKHNP_ThermalWasteWater.name}  Count:[${result.count()}]")
+
+        msg = "Count:[${result.count()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_ThermalWasteWater)
@@ -376,7 +389,8 @@ class CollectionServerRepository {
                 }
 
             } catch (e: Exception) {
-                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                msg = e.localizedMessage
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
 
         }
@@ -386,13 +400,12 @@ class CollectionServerRepository {
 
 
     suspend fun getKHNP_WasteWater(){
+        val funcName = ::getKHNP_WasteWater.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.WasteWater}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
-
-        LOGGER.info("getKHNP_WasteWater Start: ${url}")
         val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
-        LOGGER.info("getKHNP_WasteWater End: ${url}")
-
 
         val concatDf = response.concat()
 
@@ -417,9 +430,8 @@ class CollectionServerRepository {
             "time1" to "tm002_time"
         )
 
-
-        LOGGER.debug("\n ${::getKHNP_WasteWater.name}  Schema[${result.schema()}]")
-        LOGGER.info("\n ${::getKHNP_WasteWater.name}  Count:[${result.count()}]")
+        msg = "Count:[${result.count()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_WasteWater)
@@ -436,26 +448,27 @@ class CollectionServerRepository {
                 }
 
             } catch (e: Exception) {
-                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                msg = e.localizedMessage
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
-
-
         }
 
     }
 
 
     suspend fun getKHNP_RadioRate(){
+        val funcName = ::getKHNP_RadioRate.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioRate}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
-        LOGGER.info("getKHNP_RadioRate loadKHNP_Service Start: ${url}")
         val response = loadKHNP_Service(url,  listOf("WS", "KR", "YK", "SU", "UJ"))
-        LOGGER.info("getKHNP_RadioRate loadKHNP_Service End: ${url}")
 
         val result = response.concat()
 
-        LOGGER.debug("\n ${::getKHNP_RadioRate.name}  Schema[${result.schema()}]")
-        LOGGER.info("\n ${::getKHNP_RadioRate.name}  List Count:[${result.size()}]")
+        msg = "Count:[${result.size()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioRate)
@@ -471,25 +484,30 @@ class CollectionServerRepository {
                 }
 
             } catch (e: Exception) {
-                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                msg = e.localizedMessage
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
-
 
         }
     }
 
 
     suspend fun getKHNP_RadioActiveWaste(){
+
+        val funcName = ::getKHNP_RadioActiveWaste.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
 
-        LOGGER.info("getKHNP_RadioActiveWaste loadKHNP_Service Start: ${url}")
+
         val response = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800") )
-        LOGGER.info("getKHNP_RadioActiveWaste loadKHNP_Service End: ${url}")
+
 
         val result = response.concat()
 
-        LOGGER.debug("\n ${::getKHNP_RadioActiveWaste.name}  Schema[${result.schema()}]")
-        LOGGER.info("\n ${::getKHNP_RadioActiveWaste.name}  Count:[${result.count()}]")
+        msg = "Count:[${result.count()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioActiveWaste)
@@ -505,7 +523,8 @@ class CollectionServerRepository {
                 }
 
             } catch (e: Exception) {
-                LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                msg = e.localizedMessage
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
 
         }
@@ -516,12 +535,15 @@ class CollectionServerRepository {
         initialDelay: Long = 1000,
         block: suspend () -> T
     ): T {
+
         var currentDelay = initialDelay
         repeat(times - 1) {
             try {
                 return block()
             } catch (e: Exception) {
-                LOGGER.warn("요청 실패, $currentDelay ms 후 재시도... (${e.message})")
+                val funcName = ""
+                val msg = "요청 실패, $currentDelay ms 후 재시도..."
+                LOGGER.warn("${LoggerHeader.CollectionServerRepository.name} : ${e.localizedMessage}: ${msg}")
                 delay(currentDelay)
                 currentDelay *= 2 // 점진적으로 대기 시간 증가 (Exponential Backoff)
             }
@@ -530,12 +552,17 @@ class CollectionServerRepository {
     }
 
     suspend fun loadDataCoastalFlooding(path:String, codeList:List<String>, limit:Int): List<DataFrame<*>> = coroutineScope {
+        val funcName = ::loadDataCoastalFlooding.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val numOfRows = 300
 
         // Dispatchers.IO에서 설정한 갯수의 스레드만 사용하도록 제한된 디스패처 생성
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
-        LOGGER.info("loadDataCoastalFlooding limitedDispatcher: ${limit}")
+        msg = "limitedDispatcher: ${limit}"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
@@ -547,14 +574,18 @@ class CollectionServerRepository {
                     val df_first = try {
                         DataFrame.readJson(url)
                     } catch (e: Exception) {
-                        LOGGER.error("첫 페이지 로드 실패: $url", e)
-                        throw e
+                        msg = "첫 페이지 로드 실패: $url [${e.localizedMessage}]"
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        throw Exception(funcName)
                     }
 
                     val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
                     val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
                     val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
-                    LOGGER.info("ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages")
+
+                    msg = "ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                     val dataFrames = mutableListOf<DataFrame<*>>()
                     dataFrames.add(data)
                     for (page in 2..totalPages) {
@@ -576,6 +607,11 @@ class CollectionServerRepository {
 
 
     suspend fun simplifyGeoJsonWithMapshaper(inputJson: String, percentage: String = "20%"): String {
+        val funcName = ::simplifyGeoJsonWithMapshaper.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+
         // 1. Kotlin Path API를 사용하여 임시 파일 생성
         val inputPath = createTempFile("mapshaper_in_", ".json")
         val outputPath = createTempFile("mapshaper_out_", ".json")
@@ -583,7 +619,9 @@ class CollectionServerRepository {
         return runCatching {
             // 2. 파일 쓰기
             inputPath.writeText(inputJson)
-            LOGGER.debug("[Mapshaper] Input: ${inputPath.toAbsolutePath()} (${inputPath.toFile().length() / 1024} KB)")
+
+            msg = "[Mapshaper] Input: ${inputPath.toAbsolutePath()} (${inputPath.toFile().length() / 1024} KB)"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
             // 3. CLI 명령어 리스트 작성 (Kotlin 스타일)
             val command = listOf(
@@ -606,11 +644,14 @@ class CollectionServerRepository {
 
             // 5. 결과 읽기
             val simplifiedJson = outputPath.readText()
-            LOGGER.debug("[Mapshaper] Success. Reduced Length: ${simplifiedJson.length}")
+
+            msg = "[Mapshaper] Success. Reduced Length: ${simplifiedJson.length}"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
             simplifiedJson
         }.onFailure { e ->
-            LOGGER.error("[Mapshaper] Process Error: ${e.message}")
+            msg = e.localizedMessage
+            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }.also {
             // 6. finally 대신 임시 파일 삭제
             inputPath.deleteIfExists()
@@ -620,6 +661,10 @@ class CollectionServerRepository {
 
 
     suspend fun getCoastalFloodingInfo() {
+        val funcName = ::getCoastalFloodingInfo.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
 
         val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
                 "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
@@ -647,14 +692,18 @@ class CollectionServerRepository {
                             this[CoastalFloodingGeoInfo.geom] = row["geom"].toString().trim()
                         }
                     } catch (e: Exception) {
-                        LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                        msg = e.localizedMessage
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                     }
                 }
             }
             // 1. 데이터 수집 및 초기화 단계
             val updateTargets = suspendTransaction( ConfigManager.conn) {
 
-                LOGGER.info("CoastalFloodingGeoInfo 테이블 갱신 완료.")
+                msg = "CoastalFloodingGeoInfo 테이블 갱신 완료"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
 
                 // ---------------------------------------------------------------------------
                 // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
@@ -663,7 +712,10 @@ class CollectionServerRepository {
                 // 요약 테이블 생성 및 기존 데이터 삭제
                 SchemaUtils.create(CoastalFloodingGeoTbl)
                 CoastalFloodingGeoTbl.deleteAll()
-                LOGGER.info("CoastalFloodingGeoTbl  테이블 삭제 완료.")
+
+                msg = "CoastalFloodingGeoTbl  테이블 삭제 완료"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
 
                 // T-SQL/SQLite 스타일의 INSERT INTO ... SELECT 쿼리 실행
                 // 가공 로직(CASE WHEN)을 DB 엔진에서 수행하여 성능 극대화
@@ -697,7 +749,8 @@ class CollectionServerRepository {
                 // Exposed의 exec 함수를 통해 네이티브 쿼리 실행
                 exec(aggregateSql)
 
-                LOGGER.info("CoastalFloodingGeoTbl 요약 테이블 갱신 완료.")
+                msg = "CoastalFloodingGeoTbl 요약 테이블 갱신 완료"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                 SggCode
                     .select(SggCode.sd_name)
@@ -707,7 +760,10 @@ class CollectionServerRepository {
             coroutineScope {
                 // SQLite와 CPU 부하를 고려하여 동시 실행 작업 수를 3개로 제한
                 val mapShaperLimit = ConfigManager.currentConfig.WATER_LOGGED?.mapshaperLimitedParallelism ?: 3
-                LOGGER.info("loadDataCoastalFlooding mapShaperLimitedDispatcher: ${mapShaperLimit}")
+
+                msg = "mapShaperLimitedDispatcher: ${mapShaperLimit}"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                 val mapShaperLimitedDispatcher = Dispatchers.IO.limitedParallelism(mapShaperLimit)
 
                 updateTargets.forEach { ctpvNm ->
@@ -745,8 +801,9 @@ class CollectionServerRepository {
                                 // 20%의 정점만 남기고 단순화 (필요에 따라 10%, 5%로 조정 가능)
                                 val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
 
-                                LOGGER.info("\nOptimization Done for $ctpvNm $grade :[Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB]")
 
+                                msg = "\nOptimization Done for $ctpvNm $grade :[Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB]"
+                                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                                 if (simplifyGeoJsonObject.isEmpty()) return@launch
 
@@ -772,7 +829,8 @@ class CollectionServerRepository {
                                     }
                                 } // suspendTransaction
 
-                                LOGGER.info("Successfully saved $ctpvNm $grade")
+                                msg = "Successfully saved $ctpvNm $grade"
+                                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                         } // launch
 
@@ -784,7 +842,8 @@ class CollectionServerRepository {
 
         suspendTransaction( ConfigManager.conn) {
             CoastalFloodingGeoInfo.deleteAll()
-            LOGGER.info("CoastalFloodingGeoInfo  테이블 삭제 완료.")
+            msg = "CoastalFloodingGeoInfo  테이블 삭제 완료"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
 
     }
@@ -793,13 +852,18 @@ class CollectionServerRepository {
 
     fun loadDataSDoT(path:String): List<DataFrame<*>> {
 
+        val funcName = ::loadDataSDoT.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val numOfRows = 100
         var url = "$path&pIndex=1"
 
         val df_first = try {
             DataFrame.readJson(url)
         } catch (e: Exception) {
-            LOGGER.error("첫 페이지 로드 실패: $url", e)
+            msg = "첫 페이지 로드 실패: $url :[${e.localizedMessage}]"
+            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             return emptyList()
         }
 
@@ -808,7 +872,9 @@ class CollectionServerRepository {
         val totalCount:Int = ((df_first["Sidoatmospolutnmesure"][0] as DataFrame<*>)["head"][0] as DataFrame<*>)["list_total_count"][0] as Int
         val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
 
-        LOGGER.info("loadDataSDoT [총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages]")
+
+        msg = "총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val data = (df_first["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
         dataFrames.add(data)
@@ -829,7 +895,12 @@ class CollectionServerRepository {
      @OptIn(FormatStringsInDatetimeFormats::class)
      fun getSDoTEnvInfoGyonggi(){
 
-        val now = Clock.System.now()
+         val funcName = ::getSDoTEnvInfoGyonggi.name
+         var msg = "Start"
+         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+
+         val now = Clock.System.now()
         var previous1Hour = now
             .minus(1, DateTimeUnit.HOUR)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
@@ -842,9 +913,12 @@ class CollectionServerRepository {
                  "&MESURE_DAY_TM=${previous1Hour.encodeURLParameter()}"
 
 
-        LOGGER.info( "${::getSDoTEnvInfoGyonggi.name} [MESURE_DAY_TM:${previous1Hour}, Url:${url}]")
 
-        try {
+         msg = "MESURE_DAY_TM:${previous1Hour}, Url:${url}"
+         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+
+         try {
 
             val dfResult = loadDataSDoT(url).concat()
 
@@ -857,8 +931,8 @@ class CollectionServerRepository {
                 "FINEDUST_PM2_5_DNST_VL" to "PM2.5"
             )
 
-            LOGGER.debug("\n"+ result.schema().toString())
-            LOGGER.info("loadDataSDoT result size:[${result.size()}]")
+             msg = "result size:[${result.size()}"
+             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
             transaction(ConfigManager.conn) {
                 SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
@@ -878,17 +952,23 @@ class CollectionServerRepository {
                     }
 
                 } catch (e: Exception) {
-                    LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                    msg = e.localizedMessage
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                 }
             }
 
         }catch (e: Exception){
-            LOGGER.error("${::getSDoTEnvInfoGyonggi.name} Error: ${e.localizedMessage}")
+             msg = e.localizedMessage
+             LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
 
     }
 
     suspend fun getSDoTEnvInfo(){
+        val funcName = ::getSDoTEnvInfo.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
 
         //http://openapi.seoul.go.kr:8088/6e4a49477579656f393876794a6a63/json/sDoTEnv/1001/1200/
         // 1. 현재 S-DoT 장비의 unique count 값이 1170.
@@ -905,7 +985,10 @@ class CollectionServerRepository {
 
             CollectionServerRestApi.callSDoT_EnvInfo_json(url+"1/1000/").let{
                 val response = CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
-                LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
+
+                msg = "receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                 receiveData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
                 uniqueSensingTimeCount = receiveData.map { it.SENSING_TIME }.distinct().size
             }
@@ -913,7 +996,10 @@ class CollectionServerRepository {
             if(uniqueSensingTimeCount == 1){
                 CollectionServerRestApi.callSDoT_EnvInfo_json(url+"1001/1200/").let{
                     val response = CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
-                    LOGGER.info("[receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]]")
+
+                    msg = "receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                     receiveData.addAll(response.sDoTEnv.row as MutableList<SDoTEnvInformation>)
                 }
             }
@@ -988,24 +1074,33 @@ class CollectionServerRepository {
                         }
                     } catch (e: Exception) {
                         LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
+                        msg = e.localizedMessage
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     }
                 }
             }
 
         } catch (e: Exception){
-            val msg = e.localizedMessage
+            msg = e.localizedMessage
+            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
     }
 
 
 
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun loadDataTidalCurrent(path:String, interval:Int, predictedTotalMinute:Int):  List<Pair<String, List<KhonTidalCurrentInfo>>> = coroutineScope {
+
+        val funcName = ::loadDataTidalCurrent.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val windowSize = predictedTotalMinute / interval
         val startTime = Clock.System.now() // 시작 시점 고정
 
-        LOGGER.info("loadDataTidalCurrent[windowSize:${windowSize}")
+        msg = "windowSize:${windowSize}"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         (0 until windowSize).map{ i ->
             retryIO(times = 3) {
@@ -1040,8 +1135,9 @@ class CollectionServerRepository {
                     }
 
                 } catch (e: Exception) {
-                    LOGGER.error("첫 페이지 로드 실패: $url", e)
-                    throw e
+                    msg = "첫 페이지 로드 실패: $url ${e.localizedMessage}"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    throw Exception(funcName)
                 }
 
             }
@@ -1052,17 +1148,25 @@ class CollectionServerRepository {
 
     suspend fun getKhoaTidalCurrent(){
 
+        val funcName = ::getKhoaTidalCurrent.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
         val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
         val url = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}"
         val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
 
-        LOGGER.info("getKhoaTidalCurrent limitedParallelism: ${limit}")
+
+        msg = "limitedParallelism: ${limit}"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         val limitedParallelism = Dispatchers.IO.limitedParallelism(limit)
 
         loadDataTidalCurrent(path=url, interval=interval, predictedTotalMinute=predictedTotalMinute).let{ pairList ->
 
-            LOGGER.info("${::getKhoaTidalCurrent.name}  total count[${pairList.size}}]]")
+            msg = "total count[${pairList.size}}]"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
             coroutineScope {
 
@@ -1083,9 +1187,11 @@ class CollectionServerRepository {
                                         item.current_speed.toDouble()
                                 }
                             } catch (e: Exception) {
-                                LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
+                                msg = e.localizedMessage
+                                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                             }
-                            LOGGER.info("TidalCurrentInfoKHOA 테이블 갱신 완료.")
+                            msg = "TidalCurrentInfoKHOA 테이블 갱신 완료"
+                            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         }
                     }
                 }
@@ -1098,6 +1204,10 @@ class CollectionServerRepository {
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun loadKhoaObservation(codeList:List<String>, url:String):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
+        val funcName = ::loadKhoaObservation.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         codeList.map { obsCode ->
             val pageUrl = "${url}&pageNo=1&obsCode=${obsCode}"
 
@@ -1106,22 +1216,26 @@ class CollectionServerRepository {
                     val response = CollectionServerRestApi.callKhoaAPI_json(pageUrl)
                     val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(response)
                     if(recvData.header.resultCode.equals("00")) {
-                        LOGGER.info("${::getKhoaObservation.name} [receive count[${recvData.body.totalCount}]]")
+                        msg = "receive count[${recvData.body.totalCount}]"
+                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     }else {
-                        LOGGER.error( "${::getKhoaObservation.name} [receive message[${recvData.header.resultMsg}]]")
+                        msg = "receive message[${recvData.header.resultMsg}]"
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     }
                     Pair(obsCode , recvData.body.items.item)
 
                 } catch (e: MissingFieldException) {
                     // 데이터 필드 누락 시 retry 없이 즉시 async 블록 탈출
-                    LOGGER.error("필드 누락 에러 (obsCode: $obsCode): ${e.message}")
+                    msg = "필드 누락 에러 (obsCode: $obsCode): [${e.localizedMessage}]"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     // 빈 리스트를 반환하며 해당 코루틴 종료
                     return@retryIO Pair(obsCode, emptyList<KhoaObservation>())
 
                 } catch (e: Exception) {
                     // 일반적인 네트워크 에러 등은 retryIO가 처리할 수 있도록 다시 던짐
-                    LOGGER.error("데이터 로드 중 에러 발생 ($pageUrl): ${e.localizedMessage}")
-                    throw e
+                    msg = "데이터 로드 중 에러 발생 ($pageUrl): ${e.localizedMessage}"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    throw Exception(funcName)
                 }
             }
         }
@@ -1130,6 +1244,10 @@ class CollectionServerRepository {
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun getKhoaObservation()  {
+
+        val funcName = ::getKhoaObservation.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val reqDate = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
                 .format(LocalDateTime.Format { byUnicodePattern("yyyyMMdd") })
@@ -1153,11 +1271,14 @@ class CollectionServerRepository {
 
         val limit_DB = ConfigManager.currentConfig.KHOA_API?.limitedParallelismDB ?: 1
 
-        LOGGER.info("${::getKhoaObservation.name}  codeList[${codeList.size}], limit_DB[${limit_DB}]}")
+        msg = "codeList[${codeList.size}], limit_DB[${limit_DB}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         loadKhoaObservation(codeList, url).let { result ->
 
-            LOGGER.info("${::getKhoaObservation.name}  total listCount[${result.size}}")
+            msg = "total listCount[${result.size}]"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
 
                 coroutineScope {
 
@@ -1165,7 +1286,9 @@ class CollectionServerRepository {
 
                     result.forEach { (code, dataList) ->
 
-                        LOGGER.info("${::getKhoaObservation.name}  code[${code}], count[${dataList.size}]}")
+                        msg = "code[${code}], count[${dataList.size}]"
+                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
 
                         launch(limitedDispatcher) {
 
@@ -1195,12 +1318,14 @@ class CollectionServerRepository {
                                         }
 
                                     } catch (e: Exception) {
-                                        LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
-                                        throw e
+                                        msg = e.localizedMessage
+                                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                                        throw Exception(funcName)
                                     }
                                 }
+                                msg = "ObservationKHOA 테이블 갱신 완료"
+                                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                                LOGGER.info("ObservationKHOA 테이블 갱신 완료.")
                             }
                         }
                     }
@@ -1213,6 +1338,9 @@ class CollectionServerRepository {
 
     @Suppress("DefaultLocale")
     suspend fun  getRealTimeOceanWaterQuality(){
+        val funcName = ::getRealTimeOceanWaterQuality.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         try {
             CollectionServerRestApi.callMofAPI_xml().let { response ->
                 XML.toJSONObject(response).let { jsonData ->
@@ -1231,7 +1359,8 @@ class CollectionServerRepository {
                         }
                     }
 
-                    LOGGER.info( "${::getRealTimeOceanWaterQuality.name} [receive count[${items.size}]]")
+                    msg = "receive count[${items.size}]"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                     transaction (ConfigManager.conn){
                         SchemaUtils.create( OWQInformationTable)
@@ -1259,28 +1388,37 @@ class CollectionServerRepository {
                             }
 
                         } catch (e: Exception) {
-                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                            msg = e.localizedMessage
+                            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         }
 
                     }
                 }
             }
         }catch(e: Exception) {
-            e.localizedMessage?.let { msg ->
-                LOGGER.error( "${::getRealTimeObservation.name} [${msg}]")
-            }
+            msg = e.localizedMessage
+            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
 
     }
 
     @Suppress("DefaultLocale")
     suspend fun getRealTimeObservation(){
+        val funcName = ::getRealTimeObservation.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         try{
 
             CollectionServerRestApi.callNifsAPI_json("list").let {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
                 if(recvData.header.resultCode.equals("00")){
-                    LOGGER.info( "${::getRealTimeObservation.name} [datetime[${recvData.body.item[0].obs_tim}], receive count[${recvData.body.item.size}]]")
+
+
+                    msg = "datetime[${recvData.body.item[0].obs_tim}], receive count[${recvData.body.item.size}]"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+
                     transaction (ConfigManager.conn){
 
                         SchemaUtils.create( ObservationTable)
@@ -1299,28 +1437,35 @@ class CollectionServerRepository {
                             }
 
                         } catch (e: Exception) {
-                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                            msg = e.localizedMessage
+                            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                         }
                     }
                 }else{
-                    LOGGER.error( "${::getRealTimeObservation.name} [receive message[${recvData.header.resultMsg}]]")
+                    msg = "receive message[${recvData.header.resultMsg}]"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                 }
             }
         } catch(e: Exception) {
-            e.localizedMessage?.let { msg ->
-                LOGGER.error( "${::getRealTimeObservation.name} [${msg}]")
-            }
+            msg = e.localizedMessage
+            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
     }
 
     @Suppress("DefaultLocale")
     suspend fun getRealTimeObservatory(){
+        val funcName = ::getRealTimeObservatory.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         try{
             CollectionServerRestApi.callNifsAPI_json("code").let {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
                 if(recvData.header.resultCode.equals("00")) {
 
-                    LOGGER.info( "${::getRealTimeObservatory.name} [receive count[${recvData.body.item.size}]]")
+                    msg = "receive count[${recvData.body.item.size}]"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                     transaction (ConfigManager.conn){
                         SchemaUtils.drop( ObservatoryTable)
@@ -1347,19 +1492,19 @@ class CollectionServerRepository {
                             }
 
                         } catch (e: Exception) {
-                            LOGGER.error("Batch Insert Error: ${e.localizedMessage}")
+                            msg = e.localizedMessage
+                            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         }
-
                     }
 
                 }else{
-                    LOGGER.error( "${::getRealTimeObservatory.name} [receive message[${recvData.header.resultMsg}]]")
+                    msg = "receive message[${recvData.header.resultMsg}]"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                 }
             }
         } catch (e: Exception){
-            e.localizedMessage?.let { msg ->
-                LOGGER.error( "${::getRealTimeObservatory.name} [${msg}]")
-            }
+            msg = e.localizedMessage
+            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
     }
 

@@ -8,14 +8,14 @@ val LOGGER = KtorSimpleLogger( "EnvDataCollector")
 
 @Suppress("DefaultLocale")
 fun main(args: Array<String>) = runBlocking {
-
+    LOGGER.info(LoggerHeader.Main_Start.name)
 
     val allowedIntervals = ConfigManager.currentConfig.COLLECTION_TYPE?.allowedIntervals
 
     val interval = if ( args.isNotEmpty() ) {
         args[0].toIntOrNull() ?: 5
     } else {
-        LOGGER.info("There are no arguments to drive the schedule job.")
+        LOGGER.error("${LoggerHeader.Main_Error.name}: There are no arguments to drive the schedule job")
         return@runBlocking
     }
 
@@ -25,8 +25,6 @@ fun main(args: Array<String>) = runBlocking {
         ConfigManager.startWatching(this)
 
         val collector = CollectionServerDataCollector()
-
-        LOGGER.info("Starting Data Collector with interval: $interval minutes")
 
         when(interval){
             0 -> {
@@ -50,16 +48,14 @@ fun main(args: Array<String>) = runBlocking {
                 collector.scheduleJob1440Minutes()
             }
             else -> {
-                LOGGER.info("[$interval minutes] There are no jobs set for the corresponding schedule interval.")
+                LOGGER.info("${LoggerHeader.Main_Error.name}: [$interval minutes] There are no jobs set for the corresponding schedule interval.")
             }
         }
-    }else{
-        LOGGER.info("[$interval minutes] This is not an allowed schedule interval.")
+    } else{
+        LOGGER.error("${LoggerHeader.Main_Error.name}: [$interval minutes] This is not an allowed schedule interval.")
     }
-
     // 종료 시 (선택 사항)
     ConfigManager.stopWatching()
-
-    LOGGER.info("Data Collector Stopped.")
+    LOGGER.info(LoggerHeader.Main_End.name)
 }
 

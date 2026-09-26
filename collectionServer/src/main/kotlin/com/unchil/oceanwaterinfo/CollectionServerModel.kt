@@ -8,6 +8,13 @@ import kotlinx.serialization.Serializable
 import java.io.File
 import java.util.concurrent.TimeUnit
 
+
+
+enum class LoggerHeader {
+    Collector_Start, Collector_End, Collector_Error, Main_Error, Main_End, Main_Start, ConfigManager, CollectionServerRepository
+}
+
+
 // 프로세스 실행 결과를 담을 객체
 data class ProcessResult(val exitCode: Int, val output: String, val error: String)
 

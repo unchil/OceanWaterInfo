@@ -5,19 +5,21 @@ class CollectionServerDataCollector {
     val collectionServerRepository = CollectionServerRepository()
 
     suspend fun batchJob(startDate:String, endDate:String){
-        LOGGER.info("Data Collector Started. batchJob:startDate[${startDate}], endDate[${endDate}]...")
+        val funcName = ::batchJob.name
+        LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}: [startDate[${startDate}], endDate[${endDate}]")
         try {
             collectionServerRepository.getRealTimeOceanWaterQuality_Rocovery(startDate, endDate)
-            LOGGER.info("Batch job finished.")
+
+            LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
         } catch (e: Exception) {
-            LOGGER.error(e.localizedMessage)
+            LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")
+
         }
     }
 
     suspend fun scheduleJob5Minutes(){
-
-        LOGGER.info("Data Collector Started. scheduleJob5Minutes...")
-
+        val funcName = ::scheduleJob5Minutes.name
+        LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
         try {
             collectionServerRepository.getKhoaTidalCurrent()
             collectionServerRepository.getKhoaObservation()
@@ -25,62 +27,72 @@ class CollectionServerDataCollector {
             collectionServerRepository.getKHNP_ThermalWasteWater()
             collectionServerRepository.getKHNP_WasteWater()
             collectionServerRepository.getRealTimeOceanWaterQuality()
-
-            LOGGER.info("Schedule job for 5 Minutes finished.")
+            LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
         } catch (e: Exception) {
-            LOGGER.error(e.localizedMessage)
+            LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")
         }
     }
 
     suspend fun scheduleJob10Minutes(){
 
-        LOGGER.info("Data Collector Started. scheduleJob10Minutes...")
+        val funcName = ::scheduleJob10Minutes.name
+        LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
 
         try {
             // 30 Minutes Gap Data
             collectionServerRepository.getRealTimeObservation()
             collectionServerRepository.getRealTimeObservatory()
 
-            LOGGER.info("Schedule job for 10 Minutes finished.")
+            LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
         } catch (e: Exception) {
-            LOGGER.error(e.stackTrace.toString())
+            LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")
+
         }
 
     }
 
     suspend fun scheduleJob30Minutes(){
-        LOGGER.info("Data Collector Started. scheduleJob30Minutes...")
-
+        val funcName = ::scheduleJob30Minutes.name
+        LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
             try {
                 // 60 Minutes Gap Data
                 collectionServerRepository.getSDoTEnvInfo()
                 collectionServerRepository.getSDoTEnvInfoGyonggi()
 
-                LOGGER.info("Schedule job for 30 Minutes finished.")
+                LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
             } catch (e: Exception) {
-                LOGGER.error(e.stackTrace.toString())
+                LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")
+
             }
 
     }
 
     suspend fun scheduleJob720Minutes(){
-        LOGGER.info("Data Collector Started. scheduleJob720Minutes...")
+        val funcName = ::scheduleJob720Minutes.name
+        LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
         try {
             collectionServerRepository.getCoastalFloodingInfo()
+
+            LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
         } catch (e: Exception) {
-            LOGGER.error(e.localizedMessage)
+            LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")
+
         }
     }
 
     suspend fun scheduleJob1440Minutes(){
-        LOGGER.info("Data Collector Started. scheduleJob1440Minutes...")
+        val funcName = ::scheduleJob1440Minutes.name
+        LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
+
 
         try {
             collectionServerRepository.getKHNP_RadioActiveWaste()
             collectionServerRepository.getKHNP_PlantStates()
-            LOGGER.info("Schedule job for 1440 Minutes finished.")
+
+            LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
         } catch (e: Exception) {
-            LOGGER.error(e.stackTrace.toString())
+            LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")
+
         }
 
     }

@@ -9,12 +9,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.jdbc.Database
-import java.io.File
 import java.nio.file.StandardWatchEventKinds
 import kotlin.io.path.Path
 import kotlin.io.path.name
 
+
 object ConfigManager {
+
     // 1. 반드시 'src' 경로가 아닌 실제 실행 환경에서 접근 가능한 경로를 사용하거나
     //  개발 환경이라면 전체 경로를 절대 경로로 지정합니다.
 
@@ -43,15 +44,15 @@ object ConfigManager {
 
     // 최초 로드 함수
     private fun loadConfig(): ConfigData {
-        println("[ConfigManager] 설정파일: ${configFilePath}")
+        val funcName = ::loadConfig.name
         return try {
             // ClassLoader가 아닌 File 객체로 직접 읽어야 실시간 변경분이 반영됩니다.
             val content = configFile.readText()
             json.decodeFromString<ConfigData>(content).also {
-                println("[ConfigManager] application.json 로드 성공")
+                LOGGER.debug("${LoggerHeader.ConfigManager}: ${funcName} : file[${configFilePath}] load success.")
             }
         }catch (e:Exception){
-            println("[ConfigManager] 로드 실패: ${e.message}")
+            LOGGER.error("${LoggerHeader.ConfigManager}: ${funcName} : file[${configFilePath}][${e.localizedMessage}]")
             currentConfig
         }
     }
@@ -60,6 +61,8 @@ object ConfigManager {
      * 파일 변화 감지 시작
      */
     fun startWatching(scope: CoroutineScope) {
+        val funcName = ::startWatching.name
+
         // 이미 실행 중이면 중복 실행 방지
         if (watchJob?.isActive == true) return
 
@@ -75,8 +78,7 @@ object ConfigManager {
                     StandardWatchEventKinds.ENTRY_MODIFY,
                     StandardWatchEventKinds.ENTRY_CREATE
                 )
-
-                println("[ConfigManager] 감시 시작: ${configFilePath.parent.name}")
+                LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : file[${configFilePath.parent.name}] 감시 시작.")
 
                 while (isActive) {
                     // 3. 이벤트 대기 (Blocking 호출)
@@ -98,13 +100,14 @@ object ConfigManager {
 
             } catch (e: Exception) {
                 if (e is java.nio.file.ClosedWatchServiceException) {
-                    println("[ConfigManager] 감시 코루틴이 취소되었습니다.")
+                    LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : 감시 코루틴 취소.")
                 } else {
-                    println("[ConfigManager] 감시 중 에러 발생: ${e.message}")
+                    LOGGER.error("${LoggerHeader.ConfigManager}: ${funcName} : [${e.localizedMessage}]")
                 }
             } finally {
                 watchService?.close()
-                println("[ConfigManager] 감시 리소스 정리 중...")
+                LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : 감시 종료.")
+
             }
         }
 
@@ -115,7 +118,8 @@ object ConfigManager {
      * 파일 변화 감지 종료
      */
     fun stopWatching() {
-        println("[ConfigManager] 감시 종료 요청")
+        val funcName = ::stopWatching.name
+        LOGGER.info("${LoggerHeader.ConfigManager}: ${funcName} : 감시 종료 요청.")
         watchService?.close()
         watchService = null
         watchJob?.cancel()
