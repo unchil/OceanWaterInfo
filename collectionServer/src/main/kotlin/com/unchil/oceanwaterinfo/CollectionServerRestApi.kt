@@ -92,7 +92,10 @@ object CollectionServerRestApi {
         val currentTime = now.toLocalDateTime(timeZone).format(dateTimeFormat)
         val previous2Hour = now.minus(2, DateTimeUnit.HOUR).toLocalDateTime(timeZone).format(dateTimeFormat)
 
-        LOGGER.debug("Current time : ${currentTime}, Previous time : ${previous2Hour}")
+        val funcName = ::callMofAPI_xml.name
+        val msg = "Current time : ${currentTime}, Previous time : ${previous2Hour}"
+        LOGGER.debug("${LoggerHeader.CollectionServerRestApi.name} : ${funcName}: ${msg}")
+
 
         val mofConfig = ConfigManager.currentConfig.MOF_API
         val baseUrl = "${mofConfig?.endPoint}/${mofConfig?.subPath}?ServiceKey=${mofConfig?.apikey ?: ""}"

@@ -133,7 +133,7 @@ class CollectionServerRepository {
             try {
                 DataFrame.readJson(url)
             } catch (e: Exception) {
-                msg = "${url}:[${e.localizedMessage}"
+                msg = "Rest Client Url Call Fail: [$url][${e.localizedMessage}]"
                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                 throw Exception(funcName)
             }
@@ -150,9 +150,15 @@ class CollectionServerRepository {
             delay(100)
             async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
                 retryIO(times = 3) {
-                    val pageUrl = "$baseUrl&pageNo=${pageNo}"
-                    val df_page = DataFrame.readJson(pageUrl)
-                    df_page["body"]["items"]["item"][0] as DataFrame<*>
+                    try {
+                        val pageUrl = "$baseUrl&pageNo=${pageNo}"
+                        val df_page = DataFrame.readJson(pageUrl)
+                        df_page["body"]["items"]["item"][0] as DataFrame<*>
+                    } catch (e: Exception) {
+                        msg = "Rest Client Url Call Fail: [$baseUrl&pageNo=${pageNo}][${e.localizedMessage}]"
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        throw Exception(funcName)
+                    }
                 }
             }
         }
@@ -315,6 +321,8 @@ class CollectionServerRepository {
                     if(e.message?.contains("Can not get nested column 'item' from ValueColumn 'items'") == true) {
                         return@retryIO emptyDataFrame()
                     }else{
+                        msg = "Rest Client Url Call Fail: [${url} + &genName=${genName}][${e.localizedMessage}]"
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         throw Exception(funcName)
                     }
                 }
@@ -541,7 +549,6 @@ class CollectionServerRepository {
             try {
                 return block()
             } catch (e: Exception) {
-                val funcName = ""
                 val msg = "요청 실패, $currentDelay ms 후 재시도..."
                 LOGGER.warn("${LoggerHeader.CollectionServerRepository.name} : ${e.localizedMessage}: ${msg}")
                 delay(currentDelay)
@@ -567,41 +574,60 @@ class CollectionServerRepository {
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
             async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
-                retryIO(times = 3) {
-                    val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
-                    var url = "${baseUrl}&pageNo=1"
 
-                    val df_first = try {
+                val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
+                var url = "${baseUrl}&pageNo=1"
+
+                val df_first = retryIO(times = 3) {
+                    try {
                         DataFrame.readJson(url)
                     } catch (e: Exception) {
-                        msg = "첫 페이지 로드 실패: $url [${e.localizedMessage}]"
+                        msg = "Rest Client Url Call Fail: [${url} ][${e.localizedMessage}]"
                         LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         throw Exception(funcName)
                     }
+                }
 
-                    val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
-                    val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
-                    val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+                val data = df_first["body"]["items"]["item"][0] as DataFrame<*>
+                val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
+                val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
 
-                    msg = "ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
-                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                msg = "ssgNm:${it}, 시군구:${data[0][0]}/${data[0][1]}, 총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                    val dataFrames = mutableListOf<DataFrame<*>>()
-                    dataFrames.add(data)
-                    for (page in 2..totalPages) {
-                        url = "$baseUrl&pageNo=$page"
-                        val df_page = DataFrame.readJson(url)
-                        val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
-                        dataFrames.add(data)
+                val dataFrames = mutableListOf<DataFrame<*>>()
+                dataFrames.add(data)
+
+                for (page in 2..totalPages) {
+
+                   retryIO(times = 3) {
+                        try {
+                            url = "$baseUrl&pageNo=$page"
+                            val df_page = DataFrame.readJson(url)
+                            val data = df_page["body"]["items"]["item"][0] as DataFrame<*>
+
+                            msg = "url[${url}] count[${data.rowsCount()}]"
+                            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+                            dataFrames.add(data)
+                        } catch (e: Exception) {
+                            msg = "Rest Client Url Call Fail: [$baseUrl&pageNo=$page][${e.localizedMessage}]"
+                            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                            throw Exception(funcName)
+                        }
                     }
-                    dataFrames.concat()
 
                 }
+
+
+                dataFrames.concat()
+
             }
 
         }
         // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
         deferredResults.awaitAll() as List<DataFrame<*>>
+
     }
 
 
@@ -665,7 +691,6 @@ class CollectionServerRepository {
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-
         val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
                 "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
 
@@ -681,6 +706,10 @@ class CollectionServerRepository {
 
         loadDataCoastalFlooding(path, codeList, limit).let { rawDataFrames ->
             val result = rawDataFrames.concat()
+
+            msg = "Count:[${result.count()}]"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
             result.rows().chunked(1000).forEach{ chunk ->
                 suspendTransaction( ConfigManager.conn) {
                     try {
@@ -703,7 +732,6 @@ class CollectionServerRepository {
 
                 msg = "CoastalFloodingGeoInfo 테이블 갱신 완료"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
 
                 // ---------------------------------------------------------------------------
                 // 3. 요약 테이블(CoastalFloodingGeoTbl) 생성 및 가공 데이터 삽입 시작
@@ -1103,7 +1131,6 @@ class CollectionServerRepository {
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         (0 until windowSize).map{ i ->
-            retryIO(times = 3) {
 
                 val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
 
@@ -1126,21 +1153,25 @@ class CollectionServerRepository {
 
                 val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
+            retryIO(times = 3) {
                 try {
-
                     CollectionServerRestApi.callKhoaAPI_json(url).let {
-                        val response = CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(it)
+                        val response =
+                            CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
+                                it
+                            )
                         LOGGER.debug("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
-                        Pair(response.result.meta.sch_time,   response.result.data)
+                        Pair(response.result.meta.sch_time, response.result.data)
                     }
 
                 } catch (e: Exception) {
-                    msg = "첫 페이지 로드 실패: $url ${e.localizedMessage}"
+                    msg = "Rest Client Url Call Fail: [${url}][${e.localizedMessage}]"
                     LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     throw Exception(funcName)
                 }
-
             }
+
+
         }
 
     }
@@ -1233,7 +1264,7 @@ class CollectionServerRepository {
 
                 } catch (e: Exception) {
                     // 일반적인 네트워크 에러 등은 retryIO가 처리할 수 있도록 다시 던짐
-                    msg = "데이터 로드 중 에러 발생 ($pageUrl): ${e.localizedMessage}"
+                    msg = "Rest Client Url Call Fail: $pageUrl: ${e.localizedMessage}"
                     LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     throw Exception(funcName)
                 }

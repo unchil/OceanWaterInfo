@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 
 
 enum class LoggerHeader {
-    Collector_Start, Collector_End, Collector_Error, Main_Error, Main_End, Main_Start, ConfigManager, CollectionServerRepository
+    Collector_Start, Collector_End, Collector_Error, Main_Error, Main_End, Main_Start, ConfigManager, CollectionServerRepository, CollectionServerRestApi
 }
 
 
