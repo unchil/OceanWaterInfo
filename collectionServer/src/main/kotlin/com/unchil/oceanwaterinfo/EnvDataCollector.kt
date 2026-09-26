@@ -22,7 +22,7 @@ fun main(args: Array<String>) = runBlocking {
     if (allowedIntervals?.contains(interval) == true ) {
 
         // 감시 시작
-        ConfigManager.startWatching(this)
+    //    ConfigManager.startWatching(this)
 
         val collector = CollectionServerDataCollector()
 
@@ -55,7 +55,7 @@ fun main(args: Array<String>) = runBlocking {
         LOGGER.error("${LoggerHeader.Main_Error.name}: [$interval minutes] This is not an allowed schedule interval.")
     }
     // 종료 시 (선택 사항)
-    ConfigManager.stopWatching()
+//    ConfigManager.stopWatching()
     LOGGER.info(LoggerHeader.Main_End.name)
 }
 

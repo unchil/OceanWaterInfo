@@ -467,7 +467,9 @@ data class Water_LoggedConfig(
     val nodeOption: String,
     val mapshaper: String,
     val limitedParallelism: Int,
-    val mapshaperLimitedParallelism: Int
+    val mapshaperLimitedParallelism: Int,
+    val numOfRows:Int
+
 )
 
 @Serializable

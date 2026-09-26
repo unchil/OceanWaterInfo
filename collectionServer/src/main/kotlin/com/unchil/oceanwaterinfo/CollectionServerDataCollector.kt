@@ -72,7 +72,6 @@ class CollectionServerDataCollector {
         LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
         try {
             collectionServerRepository.getCoastalFloodingInfo()
-
             LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
         } catch (e: Exception) {
             LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")

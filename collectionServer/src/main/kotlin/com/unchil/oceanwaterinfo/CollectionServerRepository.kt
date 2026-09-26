@@ -580,21 +580,18 @@ class CollectionServerRepository {
                 "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
 
         val limit = ConfigManager.currentConfig.WATER_LOGGED?.limitedParallelism ?: 1
-        val numOfRows =  100
-
-        val funcName = ::loadDataCoastalFlooding.name
-        var msg = "Start"
-        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        val numOfRows =   ConfigManager.currentConfig.WATER_LOGGED?.numOfRows ?: 100
 
         // Dispatchers.IO에서 설정한 갯수의 스레드만 사용하도록 제한된 디스패처 생성
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
-        msg = "limitedDispatcher: ${limit}"
+        val funcName = ::loadDataCoastalFlooding.name
+        var msg = "numOfRows[$numOfRows], limitedDispatcher[$limit]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         // 각 코드를 비동기(async)로 실행하여 List<Deferred<DataFrame>> 생성
         val deferredResults = codeList.map {  it ->
-         //   async(limitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
+            async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
                 try {
                     val baseUrl = "${path}&numOfRows=${numOfRows}&sggCd=${it}"
                     var url = "${baseUrl}&pageNo=1"
@@ -652,11 +649,10 @@ class CollectionServerRepository {
                     emptyDataFrame()
                 }
 
-           // }
+            }
         }
         // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
-     //   deferredResults.awaitAll() as List<DataFrame<*>>
-        deferredResults
+        deferredResults.awaitAll() as List<DataFrame<*>>
     }
 
 
@@ -855,7 +851,7 @@ class CollectionServerRepository {
                                 val simplifyGeoJsonObject = simplifyGeoJsonWithMapshaper(geoJsonObject, "20%")
 
 
-                                msg = "\nOptimization Done for $ctpvNm $grade :[Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB]"
+                                msg = "Optimization Done for $ctpvNm $grade :[Original size: ${geoJsonObject.length / 1024} KB => Reduced size: ${simplifyGeoJsonObject.length / 1024} KB]"
                                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                                 if (simplifyGeoJsonObject.isEmpty()) return@launch
