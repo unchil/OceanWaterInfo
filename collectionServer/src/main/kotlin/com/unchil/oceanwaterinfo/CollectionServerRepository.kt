@@ -1169,13 +1169,13 @@ class CollectionServerRepository {
 
             val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
-            async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
+       //     async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
                 retryIO(times = 3) {
                     try {
                         val response =CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
                             CollectionServerRestApi.client.get(url).bodyAsText(StandardCharsets.UTF_8)
                         )
-                        msg = "receive count[${response.result.data.size}]"
+                        msg = "Date[${date}],Hour[${hour}],Minute[${minute}],receive count[${response.result.data.size}]"
                         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         Pair(response.result.meta.sch_time, response.result.data)
 
@@ -1186,10 +1186,11 @@ class CollectionServerRepository {
                         throw Exception(funcName)
                     }
                 }
-            }
+       //     }
         }
 
-        deferredResults.awaitAll() as List<Pair<String, List<KhonTidalCurrentInfo>>>
+       // deferredResults.awaitAll() as List<Pair<String, List<KhonTidalCurrentInfo>>>
+        deferredResults
     }
 
 
@@ -1230,7 +1231,7 @@ class CollectionServerRepository {
                                 msg = e.localizedMessage
                                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                             }
-                            msg = "TidalCurrentInfoKHOA 테이블 갱신 완료"
+                            msg = "sch_time[$sch_time],TidalCurrentInfoKHOA 테이블 갱신 완료"
                             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         }
                     }
