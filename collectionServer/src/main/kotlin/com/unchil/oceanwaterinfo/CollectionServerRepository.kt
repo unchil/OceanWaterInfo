@@ -906,7 +906,7 @@ class CollectionServerRepository {
         val df_first = try {
             DataFrame.readJson(url)
         } catch (e: Exception) {
-            msg = "첫 페이지 로드 실패: $url :[${e.localizedMessage}]"
+            msg = "첫 페이지 로드 실패:[${e.localizedMessage}]"
             LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             return emptyList()
         }
@@ -917,7 +917,7 @@ class CollectionServerRepository {
         val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
 
 
-        msg = "총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
+        msg = "총 데이터 개수[$totalCount], 전체 페이지 수[$totalPages]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val data = (df_first["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
@@ -975,7 +975,7 @@ class CollectionServerRepository {
                 "FINEDUST_PM2_5_DNST_VL" to "PM2.5"
             )
 
-             msg = "result size:[${result.size()}"
+             msg = "result size:[${result.size()}]"
              LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
             transaction(ConfigManager.conn) {
