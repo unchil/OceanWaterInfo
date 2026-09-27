@@ -1,6 +1,8 @@
 package com.unchil.oceanwaterinfo
 
 
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -1137,7 +1139,6 @@ class CollectionServerRepository {
         val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
 
         val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
-
         val windowSize = predictedTotalMinute / interval
         val startTime = Clock.System.now() // 시작 시점 고정
 
@@ -1168,33 +1169,27 @@ class CollectionServerRepository {
 
             val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
-
-           // async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
-
-
+            async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
                 retryIO(times = 3) {
                     try {
-                        CollectionServerRestApi.callKhoaAPI_json(url).let {
-                            val response =
-                                CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
-                                    it
-                                )
-                            msg = "receive count[${response.result.data.size}]"
-                            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                            Pair(response.result.meta.sch_time, response.result.data)
-                        }
+                        val response =CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
+                            CollectionServerRestApi.client.get(url).bodyAsText(StandardCharsets.UTF_8)
+                        )
+                        msg = "receive count[${response.result.data.size}]"
+                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        Pair(response.result.meta.sch_time, response.result.data)
+
+
                     } catch (e: Exception) {
                         msg = "Rest Client Url Call Fail:[${e.localizedMessage}]"
                         LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         throw Exception(funcName)
                     }
                 }
-
-          //  }
+            }
         }
 
-   //     deferredResults.awaitAll() as List<Pair<String, List<KhonTidalCurrentInfo>>>
-        deferredResults
+        deferredResults.awaitAll() as List<Pair<String, List<KhonTidalCurrentInfo>>>
     }
 
 
