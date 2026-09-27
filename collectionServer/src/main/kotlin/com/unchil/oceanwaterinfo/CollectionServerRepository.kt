@@ -561,7 +561,7 @@ class CollectionServerRepository {
             try {
                 return block()
             } catch (e: Exception) {
-                val msg = "요청 실패, $currentDelay ms 후 재시도..."
+                val msg = "[${e.localizedMessage}] 요청 실패, $currentDelay ms 후 재시도..."
                 LOGGER.warn("${LoggerHeader.CollectionServerRepository.name} : ${e.localizedMessage}: ${msg}")
                 delay(currentDelay)
                 currentDelay *= 2 // 점진적으로 대기 시간 증가 (Exponential Backoff)
@@ -1242,28 +1242,37 @@ class CollectionServerRepository {
     }
 
 
-    @OptIn(ExperimentalSerializationApi::class)
-    suspend fun loadKhoaObservation(codeList:List<String>, url:String):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
+    @OptIn(ExperimentalSerializationApi::class, FormatStringsInDatetimeFormats::class)
+    suspend fun loadKhoaObservation(codeList:List<String>):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
         val funcName = ::loadKhoaObservation.name
-        var msg = "Start"
-        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        var msg = ""
+        val reqDate = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .format(LocalDateTime.Format { byUnicodePattern("yyyyMMdd") })
+
+        val url = "${ConfigManager.currentConfig.KHOA_API?.endPoint}/${ConfigManager.currentConfig.KHOA_API?.subPath}" +
+                "?serviceKey=${ConfigManager.currentConfig.KHOA_API?.apikey}" +
+                "&type=${ConfigManager.currentConfig.KHOA_API?.type}" +
+                "&reqDate=${reqDate}" +
+                "&min=${ConfigManager.currentConfig.KHOA_API?.min}" +
+                "&numOfRows=${ConfigManager.currentConfig.KHOA_API?.numOfRows}"
+
 
         codeList.map { obsCode ->
             val pageUrl = "${url}&pageNo=1&obsCode=${obsCode}"
 
             retryIO(times = 3) {
                 try {
-                    val response = CollectionServerRestApi.callKhoaAPI_json(pageUrl)
-                    val recvData = CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(response)
+                    val recvData =CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(
+                        CollectionServerRestApi.client.get(pageUrl).bodyAsText(StandardCharsets.UTF_8)
+                    )
+
                     if(recvData.header.resultCode.equals("00")) {
-                        msg = "receive count[${recvData.body.totalCount}]"
-                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        Pair(obsCode , recvData.body.items.item)
                     }else {
                         msg = "receive message[${recvData.header.resultMsg}]"
                         LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        Pair(obsCode , emptyList())
                     }
-                    Pair(obsCode , recvData.body.items.item)
-
                 } catch (e: MissingFieldException) {
                     // 데이터 필드 누락 시 retry 없이 즉시 async 블록 탈출
                     msg = "필드 누락 에러 (obsCode: $obsCode): [${e.localizedMessage}]"
@@ -1273,7 +1282,7 @@ class CollectionServerRepository {
 
                 } catch (e: Exception) {
                     // 일반적인 네트워크 에러 등은 retryIO가 처리할 수 있도록 다시 던짐
-                    msg = "Rest Client Url Call Fail: $pageUrl: ${e.localizedMessage}"
+                    msg = "Rest Client Url Call Fail: [${e.localizedMessage}]"
                     LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     throw Exception(funcName)
                 }
@@ -1284,21 +1293,6 @@ class CollectionServerRepository {
 
     @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun getKhoaObservation()  {
-
-        val funcName = ::getKhoaObservation.name
-        var msg = "Start"
-        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
-        val reqDate = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
-                .format(LocalDateTime.Format { byUnicodePattern("yyyyMMdd") })
-
-        val url = "${ConfigManager.currentConfig.KHOA_API?.endPoint}/${ConfigManager.currentConfig.KHOA_API?.subPath}" +
-                "?serviceKey=${ConfigManager.currentConfig.KHOA_API?.apikey}" +
-                "&type=${ConfigManager.currentConfig.KHOA_API?.type}" +
-                "&reqDate=${reqDate}" +
-                "&min=${ConfigManager.currentConfig.KHOA_API?.min}" +
-                "&numOfRows=${ConfigManager.currentConfig.KHOA_API?.numOfRows}"
-
 
         val codeList = transaction(ConfigManager.conn) {
             ObservatoryKHOA.select(ObservatoryKHOA.obsCode)
@@ -1311,24 +1305,22 @@ class CollectionServerRepository {
 
         val limit_DB = ConfigManager.currentConfig.KHOA_API?.limitedParallelismDB ?: 1
 
-        msg = "codeList[${codeList.size}], limit_DB[${limit_DB}]"
+        val funcName = ::getKhoaObservation.name
+        var msg = "codeList[${codeList.size}], limit_DB[${limit_DB}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        loadKhoaObservation(codeList, url).let { result ->
+        loadKhoaObservation(codeList).let { result ->
 
             msg = "total listCount[${result.size}]"
             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-
                 coroutineScope {
-
                     val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit_DB)
 
                     result.forEach { (code, dataList) ->
 
                         msg = "code[${code}], count[${dataList.size}]"
                         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
 
                         launch(limitedDispatcher) {
 
@@ -1337,33 +1329,31 @@ class CollectionServerRepository {
                                 SchemaUtils.create(ObservationKHOA)
                                 SchemaUtils.create(ObservatoryKHOA)
 
-                                retryIO(times = 3) {
-                                    try {
-                                        ObservationKHOA.batchInsert(dataList, true, false) { row ->
+                                try {
+                                    ObservationKHOA.batchInsert(dataList, true, false) { row ->
 
-                                            this[ObservationKHOA.obsCode] = code
-                                            this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
-                                            this[ObservationKHOA.wndrct] = row.wndrct?.toString()
-                                            this[ObservationKHOA.wspd] = row.wspd?.toString()
-                                            this[ObservationKHOA.maxMmntWspd] =
-                                                row.maxMmntWspd?.toString()
-                                            this[ObservationKHOA.artmp] = row.artmp?.toString()
-                                            this[ObservationKHOA.atmpr] = row.atmpr?.toString()
-                                            this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
-                                            this[ObservationKHOA.wvpd] = row.wvpd?.toString()
-                                            this[ObservationKHOA.crdir] = row.crdir?.toString()
-                                            this[ObservationKHOA.crsp] = row.crsp?.toString()
-                                            this[ObservationKHOA.wtem] = row.wtem?.toString()
-                                            this[ObservationKHOA.slnty] = row.slnty?.toString()
-                                        }
-
-                                    } catch (e: Exception) {
-                                        msg = e.localizedMessage
-                                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                                        throw Exception(funcName)
+                                        this[ObservationKHOA.obsCode] = code
+                                        this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
+                                        this[ObservationKHOA.wndrct] = row.wndrct?.toString()
+                                        this[ObservationKHOA.wspd] = row.wspd?.toString()
+                                        this[ObservationKHOA.maxMmntWspd] =
+                                            row.maxMmntWspd?.toString()
+                                        this[ObservationKHOA.artmp] = row.artmp?.toString()
+                                        this[ObservationKHOA.atmpr] = row.atmpr?.toString()
+                                        this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
+                                        this[ObservationKHOA.wvpd] = row.wvpd?.toString()
+                                        this[ObservationKHOA.crdir] = row.crdir?.toString()
+                                        this[ObservationKHOA.crsp] = row.crsp?.toString()
+                                        this[ObservationKHOA.wtem] = row.wtem?.toString()
+                                        this[ObservationKHOA.slnty] = row.slnty?.toString()
                                     }
+
+                                } catch (e: Exception) {
+                                    msg = e.localizedMessage
+                                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                                 }
-                                msg = "ObservationKHOA 테이블 갱신 완료"
+
+                                msg = "code[${code}] ObservationKHOA 테이블 갱신 완료"
                                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                             }
