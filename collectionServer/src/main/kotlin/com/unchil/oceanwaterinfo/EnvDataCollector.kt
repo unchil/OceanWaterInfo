@@ -10,6 +10,7 @@ val LOGGER = KtorSimpleLogger( "EnvDataCollector")
 fun main(args: Array<String>) = runBlocking {
     LOGGER.info(LoggerHeader.Main_Start.name)
 
+    // 실제 환경파일은 사용자의 홈 디렉토리에 있음.
     val allowedIntervals = ConfigManager.currentConfig.COLLECTION_TYPE?.allowedIntervals
 
     val interval = if ( args.isNotEmpty() ) {

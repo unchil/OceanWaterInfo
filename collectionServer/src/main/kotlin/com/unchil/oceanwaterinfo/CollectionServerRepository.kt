@@ -1,10 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
-import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -40,21 +37,17 @@ import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
-import org.jetbrains.kotlinx.dataframe.api.describe
 import org.jetbrains.kotlinx.dataframe.api.emptyDataFrame
 import org.jetbrains.kotlinx.dataframe.api.flatten
 import org.jetbrains.kotlinx.dataframe.api.groupBy
-import org.jetbrains.kotlinx.dataframe.api.head
 import org.jetbrains.kotlinx.dataframe.api.pivot
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.rows
-import org.jetbrains.kotlinx.dataframe.api.schema
 import org.jetbrains.kotlinx.dataframe.api.update
 import org.jetbrains.kotlinx.dataframe.api.values
 import org.jetbrains.kotlinx.dataframe.api.with
 import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
-import org.jetbrains.kotlinx.dataframe.io.readJsonStr
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.jetbrains.kotlinx.dataframe.size
 import org.json.XML
@@ -1136,86 +1129,86 @@ class CollectionServerRepository {
     }
 
 
-
-
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun loadDataTidalCurrent(path:String, interval:Int, predictedTotalMinute:Int):  List<Pair<String, List<KhonTidalCurrentInfo>>> = coroutineScope {
+    suspend fun loadDataTidalCurrent():  List<Pair<String, List<KhonTidalCurrentInfo>>> = coroutineScope {
+        val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
+        val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
+        val path = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}"
+        val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
 
-        val funcName = ::loadDataTidalCurrent.name
-        var msg = "Start"
-        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
 
         val windowSize = predictedTotalMinute / interval
         val startTime = Clock.System.now() // 시작 시점 고정
 
-        msg = "windowSize:${windowSize}"
+        val funcName = ::loadDataTidalCurrent.name
+        var msg = "interval[$interval], predictedTotalMinute[$predictedTotalMinute], windowSize[$windowSize], limitedDispatcher[$limit]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        (0 until windowSize).map{ i ->
+        val deferredResults = (0 until windowSize).map{ i ->
 
-                val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
+            val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
 
-                var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
-                localDateTime = LocalDateTime(
-                    localDateTime.year,
-                    localDateTime.month,
-                    localDateTime.day,
-                    localDateTime.hour,
-                    (localDateTime.minute / interval) * interval
-                )
+            var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            localDateTime = LocalDateTime(
+                localDateTime.year,
+                localDateTime.month,
+                localDateTime.day,
+                localDateTime.hour,
+                (localDateTime.minute / interval) * interval
+            )
 
-                val datetime = localDateTime.format(
-                    LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") }
-                )
+            val datetime = localDateTime.format(
+                LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") }
+            )
 
-                val date = datetime.substring(0, 8)
-                val hour = datetime.substring(8, 10)
-                val minute = datetime.substring(10, 12)
+            val date = datetime.substring(0, 8)
+            val hour = datetime.substring(8, 10)
+            val minute = datetime.substring(10, 12)
 
-                val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
+            val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
-            retryIO(times = 3) {
-                try {
-                    CollectionServerRestApi.callKhoaAPI_json(url).let {
-                        val response =
-                            CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
-                                it
-                            )
-                        LOGGER.debug("${::getKhoaTidalCurrent.name} [receive count[${response.result.data.size}]]")
-                        Pair(response.result.meta.sch_time, response.result.data)
+
+           // async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
+
+
+                retryIO(times = 3) {
+                    try {
+                        CollectionServerRestApi.callKhoaAPI_json(url).let {
+                            val response =
+                                CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
+                                    it
+                                )
+                            msg = "receive count[${response.result.data.size}]"
+                            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                            Pair(response.result.meta.sch_time, response.result.data)
+                        }
+                    } catch (e: Exception) {
+                        msg = "Rest Client Url Call Fail:[${e.localizedMessage}]"
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        throw Exception(funcName)
                     }
-
-                } catch (e: Exception) {
-                    msg = "Rest Client Url Call Fail: [${url}][${e.localizedMessage}]"
-                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                    throw Exception(funcName)
                 }
-            }
 
-
+          //  }
         }
 
+   //     deferredResults.awaitAll() as List<Pair<String, List<KhonTidalCurrentInfo>>>
+        deferredResults
     }
 
 
     suspend fun getKhoaTidalCurrent(){
 
+       val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
+        var msg = "limitedParallelism: ${limit}"
+
         val funcName = ::getKhoaTidalCurrent.name
-        var msg = "Start"
-        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
-        val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
-        val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
-        val url = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}"
-        val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
-
-
-        msg = "limitedParallelism: ${limit}"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val limitedParallelism = Dispatchers.IO.limitedParallelism(limit)
 
-        loadDataTidalCurrent(path=url, interval=interval, predictedTotalMinute=predictedTotalMinute).let{ pairList ->
+        loadDataTidalCurrent().let{ pairList ->
 
             msg = "total count[${pairList.size}}]"
             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
