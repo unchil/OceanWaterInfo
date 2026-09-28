@@ -63,7 +63,9 @@ import kotlin.io.path.writeText
 import kotlin.math.ceil
 import kotlin.time.Clock
 
-@OptIn(FormatStringsInDatetimeFormats::class)
+@OptIn(FormatStringsInDatetimeFormats::class, ExperimentalSerializationApi::class)
+@Suppress("DefaultLocale")
+
 class CollectionServerRepository {
 
     init {
@@ -1245,7 +1247,7 @@ class CollectionServerRepository {
 
 
 
-    @OptIn(ExperimentalSerializationApi::class)
+
     suspend fun loadKhoaObservation(codeList:List<String>):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
         val funcName = ::loadKhoaObservation.name
         var msg = ""
@@ -1369,7 +1371,6 @@ class CollectionServerRepository {
     }
 
 
-    @Suppress("DefaultLocale")
     suspend fun  getRealTimeOceanWaterQuality(){
         val funcName = ::getRealTimeOceanWaterQuality.name
         val now = kotlin.time.Clock.System.now()
@@ -1470,7 +1471,7 @@ class CollectionServerRepository {
 
     }
 
-    @Suppress("DefaultLocale")
+
     suspend fun getRealTimeObservation(){
         val funcName = ::getRealTimeObservation.name
         var msg = "Start"
@@ -1521,7 +1522,7 @@ class CollectionServerRepository {
         }
     }
 
-    @Suppress("DefaultLocale")
+
     suspend fun getRealTimeObservatory(){
         val funcName = ::getRealTimeObservatory.name
         var msg = "Start"
