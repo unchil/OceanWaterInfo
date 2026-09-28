@@ -63,6 +63,7 @@ import kotlin.io.path.writeText
 import kotlin.math.ceil
 import kotlin.time.Clock
 
+@OptIn(FormatStringsInDatetimeFormats::class)
 class CollectionServerRepository {
 
     init {
@@ -163,7 +164,7 @@ class CollectionServerRepository {
         listOf(first_data) +  deferredResults.awaitAll()
     }
 
-    @OptIn(FormatStringsInDatetimeFormats::class)
+
     suspend fun getKHNP_PlantStates() {
         val funcName = ::getKHNP_PlantStates.name
         var msg = "Start"
@@ -278,7 +279,6 @@ class CollectionServerRepository {
     }
 
 
-    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun loadKHNP_Service(url:String, genNames:List<String>): List<DataFrame<*>> = coroutineScope {
         val funcName = ::loadKHNP_Service.name
         var msg = "Start"
@@ -938,8 +938,6 @@ class CollectionServerRepository {
     }
 
 
-
-     @OptIn(FormatStringsInDatetimeFormats::class)
      fun getSDoTEnvInfoGyonggi(){
 
          val funcName = ::getSDoTEnvInfoGyonggi.name
@@ -1135,7 +1133,6 @@ class CollectionServerRepository {
     }
 
 
-    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun loadDataTidalCurrent():  List<Pair<String, List<KhonTidalCurrentInfo>>> = coroutineScope {
         val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
         val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
@@ -1247,7 +1244,8 @@ class CollectionServerRepository {
     }
 
 
-    @OptIn(ExperimentalSerializationApi::class, FormatStringsInDatetimeFormats::class)
+
+    @OptIn(ExperimentalSerializationApi::class)
     suspend fun loadKhoaObservation(codeList:List<String>):List<Pair<String,List<KhoaObservation>>>  = coroutineScope {
         val funcName = ::loadKhoaObservation.name
         var msg = ""
@@ -1296,7 +1294,7 @@ class CollectionServerRepository {
 
     }
 
-    @OptIn(FormatStringsInDatetimeFormats::class)
+
     suspend fun getKhoaObservation()  {
 
         val codeList = transaction(ConfigManager.conn) {
@@ -1371,7 +1369,6 @@ class CollectionServerRepository {
     }
 
 
-    @OptIn(FormatStringsInDatetimeFormats::class)
     @Suppress("DefaultLocale")
     suspend fun  getRealTimeOceanWaterQuality(){
         val funcName = ::getRealTimeOceanWaterQuality.name
