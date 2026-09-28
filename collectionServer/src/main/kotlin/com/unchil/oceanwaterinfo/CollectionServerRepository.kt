@@ -1,8 +1,8 @@
 package com.unchil.oceanwaterinfo
 
-
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.appendPathSegments
 import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -54,6 +54,7 @@ import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.jetbrains.kotlinx.dataframe.size
 import org.json.XML
 import java.net.URLEncoder
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
@@ -159,7 +160,7 @@ class CollectionServerRepository {
                 }
             }
         }
-        listOf(first_data) +  deferredResults.awaitAll() as List<DataFrame<*>>
+        listOf(first_data) +  deferredResults.awaitAll()
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
@@ -181,7 +182,7 @@ class CollectionServerRepository {
         genNames.forEach{ genName ->
             val url = "${url_PlantStates}&SITE_CD=${genName}"
             try {
-                CollectionServerRestApi.callKHNP_PlantStates_xml(url).let { it ->
+                CollectionServerRestApi.client.get(url).bodyAsText(StandardCharsets.UTF_8).let {
 
                     XML.toJSONObject(it).let { jsonObject ->
 
@@ -232,8 +233,9 @@ class CollectionServerRepository {
                     }
                 }
 
+
             } catch(e:Exception ){
-                msg = e.localizedMessage
+                msg = "SITE_CD[${genName}][${e.localizedMessage}]"
                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
         }
@@ -276,6 +278,7 @@ class CollectionServerRepository {
     }
 
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun loadKHNP_Service(url:String, genNames:List<String>): List<DataFrame<*>> = coroutineScope {
         val funcName = ::loadKHNP_Service.name
         var msg = "Start"
@@ -647,7 +650,7 @@ class CollectionServerRepository {
             }
         }
         // 모든 비동기 작업이 완료될 때까지 기다려 리스트 반환
-        deferredResults.awaitAll() as List<DataFrame<*>>
+        deferredResults.awaitAll()
     }
 
 
@@ -1027,9 +1030,9 @@ class CollectionServerRepository {
             var uniqueSensingTimeCount = 0
             var receiveData: MutableList<SDoTEnvInformation> = mutableListOf()
 
-            CollectionServerRestApi.callSDoT_EnvInfo_json(url+"1/1000/").let{
-                val response = CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
-
+            CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(
+                CollectionServerRestApi.client.get(url+"1/1000/").bodyAsText(Charset.forName("EUC-KR"))
+            ).let { response ->
                 msg = "receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
@@ -1038,9 +1041,10 @@ class CollectionServerRepository {
             }
 
             if(uniqueSensingTimeCount == 1){
-                CollectionServerRestApi.callSDoT_EnvInfo_json(url+"1001/1200/").let{
-                    val response = CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(it)
 
+                CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(
+                    CollectionServerRestApi.client.get(url+"1001/1200/").bodyAsText(Charset.forName("EUC-KR"))
+                ).let { response ->
                     msg = "receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]"
                     LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
@@ -1367,13 +1371,32 @@ class CollectionServerRepository {
     }
 
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     @Suppress("DefaultLocale")
     suspend fun  getRealTimeOceanWaterQuality(){
         val funcName = ::getRealTimeOceanWaterQuality.name
-        var msg = "Start"
+        val now = kotlin.time.Clock.System.now()
+        val dateTimeFormat = LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm:ss") }
+        val timeZone = TimeZone.of("Asia/Seoul")
+        val currentTime = now.toLocalDateTime(timeZone).format(dateTimeFormat)
+        val previous2Hour = now.minus(2, DateTimeUnit.HOUR).toLocalDateTime(timeZone).format(dateTimeFormat)
+
+        var msg = "Current time : ${currentTime}, Previous time : ${previous2Hour}"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         try {
-            CollectionServerRestApi.callMofAPI_xml().let { response ->
+
+            val mofConfig = ConfigManager.currentConfig.MOF_API
+            val baseUrl = "${mofConfig?.endPoint}/${mofConfig?.subPath}?ServiceKey=${mofConfig?.apikey ?: ""}"
+
+            CollectionServerRestApi.client.get(urlString = baseUrl){
+                url {
+                    parameters.append("wtch_dt_start", previous2Hour)
+                    parameters.append("wtch_dt_end", currentTime)
+                    parameters.append("numOfRows", "1000")
+                    parameters.append("pageNo", "1")
+                }
+            }.bodyAsText(Charset.forName("EUC-KR")).let { response ->
                 XML.toJSONObject(response).let { jsonData ->
 
                     val itemNode =jsonData.query("/response/body/items/item")
@@ -1426,10 +1449,27 @@ class CollectionServerRepository {
                     }
                 }
             }
+
+
         }catch(e: Exception) {
             msg = e.localizedMessage
             LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
+
+    }
+
+
+    suspend fun callNifsAPI_json(id: String): String {
+        val nifsConfig = ConfigManager.currentConfig.NIFS_API
+        val targetId = if (id == "list") nifsConfig?.id?.list ?: "" else nifsConfig?.id?.code ?: ""
+
+        return CollectionServerRestApi.client.get(urlString = nifsConfig?.endPoint ?: "") {
+            url {
+                appendPathSegments(nifsConfig?.subPath ?: "")
+                parameters.append("id", targetId)
+                parameters.append("key", nifsConfig?.apikey ?: "")
+            }
+        }.bodyAsText(Charset.forName("EUC-KR"))
 
     }
 
@@ -1441,7 +1481,7 @@ class CollectionServerRepository {
 
         try{
 
-            CollectionServerRestApi.callNifsAPI_json("list").let {
+            callNifsAPI_json("list").let {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
                 if(recvData.header.resultCode.equals("00")){
 
@@ -1491,7 +1531,7 @@ class CollectionServerRepository {
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         try{
-            CollectionServerRestApi.callNifsAPI_json("code").let {
+            callNifsAPI_json("code").let {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
                 if(recvData.header.resultCode.equals("00")) {
 
