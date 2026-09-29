@@ -293,9 +293,6 @@ class CollectionServerRepository {
                 try{
                     val urlPath = url + "&genName=${genName}"
 
-                    msg = "Start: ${urlPath}"
-                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
                     val df_json = DataFrame.readJson(
                         XML.toJSONObject(DataFrame.read(urlPath).toCsvStr()).toString().byteInputStream()
                     )
@@ -315,7 +312,7 @@ class CollectionServerRepository {
                             }
                         }
                     }
-                    msg = "End: ${urlPath}"
+                    msg = "genName[${genName}]"
                     LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     updatedDf
 
@@ -329,8 +326,11 @@ class CollectionServerRepository {
                     }
                 }
             }
-
         }
+
+        msg = "End"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
         deferredResults
     }
 
@@ -374,14 +374,11 @@ class CollectionServerRepository {
             "time3" to "rm006_time",
         )
 
-
-        msg = "Count:[${result.count()}]"
+        msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_ThermalWasteWater)
-
 
             try {
                 // 개별 insert 대신 batchInsert 사용 (성능 핵심)
@@ -440,7 +437,7 @@ class CollectionServerRepository {
             "time1" to "tm002_time"
         )
 
-        msg = "Count:[${result.count()}]"
+        msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction(ConfigManager.conn) {
@@ -477,7 +474,7 @@ class CollectionServerRepository {
 
         val result = response.concat()
 
-        msg = "Count:[${result.size()}]"
+        msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction(ConfigManager.conn) {
@@ -516,7 +513,7 @@ class CollectionServerRepository {
 
         val result = response.concat()
 
-        msg = "Count:[${result.count()}]"
+        msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction(ConfigManager.conn) {
@@ -1139,14 +1136,12 @@ class CollectionServerRepository {
         val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
         val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
         val path = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}"
-        val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
 
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
         val windowSize = predictedTotalMinute / interval
         val startTime = Clock.System.now() // 시작 시점 고정
 
         val funcName = ::loadDataTidalCurrent.name
-        var msg = "interval[$interval], predictedTotalMinute[$predictedTotalMinute], windowSize[$windowSize], limitedDispatcher[$limit]"
+        var msg = "interval[$interval], predictedTotalMinute[$predictedTotalMinute], windowSize[$windowSize]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val deferredResults = (0 until windowSize).map{ i ->
@@ -1154,6 +1149,7 @@ class CollectionServerRepository {
             val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
 
             var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
+
             localDateTime = LocalDateTime(
                 localDateTime.year,
                 localDateTime.month,
@@ -1172,27 +1168,24 @@ class CollectionServerRepository {
 
             val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
-       //     async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
-                retryIO(times = 3) {
-                    try {
-                        val response =CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
-                            CollectionServerRestApi.client.get(url).bodyAsText(StandardCharsets.UTF_8)
-                        )
+            retryIO(times = 3) {
+                try {
+                    CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
+                        CollectionServerRestApi.client.get(url).bodyAsText(StandardCharsets.UTF_8)
+                    ).let{ response ->
                         msg = "Date[${date}],Hour[${hour}],Minute[${minute}],receive count[${response.result.data.size}]"
                         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                         Pair(response.result.meta.sch_time, response.result.data)
-
-
-                    } catch (e: Exception) {
-                        msg = "Rest Client Url Call Fail:[${e.localizedMessage}]"
-                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                        throw Exception(funcName)
                     }
+                } catch (e: Exception) {
+                    msg = "Rest Client Url Call Fail:[${e.localizedMessage}]"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    throw Exception(funcName)
                 }
-       //     }
+            }
+
         }
 
-       // deferredResults.awaitAll() as List<Pair<String, List<KhonTidalCurrentInfo>>>
         deferredResults
     }
 
@@ -1263,9 +1256,11 @@ class CollectionServerRepository {
 
 
         codeList.map { obsCode ->
-            val pageUrl = "${url}&pageNo=1&obsCode=${obsCode}"
 
             retryIO(times = 3) {
+
+                val pageUrl = "${url}&pageNo=1&obsCode=${obsCode}"
+
                 try {
                     val recvData =CollectionServerRestApi.commonJson.decodeFromString<KhoaObservationResponse>(
                         CollectionServerRestApi.client.get(pageUrl).bodyAsText(StandardCharsets.UTF_8)
@@ -1283,7 +1278,7 @@ class CollectionServerRepository {
                     msg = "필드 누락 에러 (obsCode: $obsCode): [${e.localizedMessage}]"
                     LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     // 빈 리스트를 반환하며 해당 코루틴 종료
-                    return@retryIO Pair(obsCode, emptyList<KhoaObservation>())
+                    return@retryIO Pair(obsCode, emptyList())
 
                 } catch (e: Exception) {
                     // 일반적인 네트워크 에러 등은 retryIO가 처리할 수 있도록 다시 던짐
@@ -1315,58 +1310,56 @@ class CollectionServerRepository {
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         loadKhoaObservation(codeList).let { result ->
-
             msg = "total listCount[${result.size}]"
             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                coroutineScope {
-                    val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit_DB)
+            coroutineScope {
 
-                    result.forEach { (code, dataList) ->
+                val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit_DB)
 
-                        msg = "code[${code}], count[${dataList.size}]"
-                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                result.forEach { (code, dataList) ->
 
-                        launch(limitedDispatcher) {
+                    msg = "code[${code}], count[${dataList.size}]"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                            suspendTransaction(ConfigManager.conn) {
+                    launch(limitedDispatcher) {
 
-                                SchemaUtils.create(ObservationKHOA)
-                                SchemaUtils.create(ObservatoryKHOA)
+                        suspendTransaction(ConfigManager.conn) {
 
-                                try {
-                                    ObservationKHOA.batchInsert(dataList, true, false) { row ->
+                            SchemaUtils.create(ObservationKHOA)
+                            SchemaUtils.create(ObservatoryKHOA)
 
-                                        this[ObservationKHOA.obsCode] = code
-                                        this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
-                                        this[ObservationKHOA.wndrct] = row.wndrct?.toString()
-                                        this[ObservationKHOA.wspd] = row.wspd?.toString()
-                                        this[ObservationKHOA.maxMmntWspd] =
-                                            row.maxMmntWspd?.toString()
-                                        this[ObservationKHOA.artmp] = row.artmp?.toString()
-                                        this[ObservationKHOA.atmpr] = row.atmpr?.toString()
-                                        this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
-                                        this[ObservationKHOA.wvpd] = row.wvpd?.toString()
-                                        this[ObservationKHOA.crdir] = row.crdir?.toString()
-                                        this[ObservationKHOA.crsp] = row.crsp?.toString()
-                                        this[ObservationKHOA.wtem] = row.wtem?.toString()
-                                        this[ObservationKHOA.slnty] = row.slnty?.toString()
-                                    }
+                            try {
+                                ObservationKHOA.batchInsert(dataList, true, false) { row ->
 
-                                } catch (e: Exception) {
-                                    msg = e.localizedMessage
-                                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                                    this[ObservationKHOA.obsCode] = code
+                                    this[ObservationKHOA.obsrvnDt] = row.obsrvnDt
+                                    this[ObservationKHOA.wndrct] = row.wndrct?.toString()
+                                    this[ObservationKHOA.wspd] = row.wspd?.toString()
+                                    this[ObservationKHOA.maxMmntWspd] =
+                                        row.maxMmntWspd?.toString()
+                                    this[ObservationKHOA.artmp] = row.artmp?.toString()
+                                    this[ObservationKHOA.atmpr] = row.atmpr?.toString()
+                                    this[ObservationKHOA.wvhgt] = row.wvhgt?.toString()
+                                    this[ObservationKHOA.wvpd] = row.wvpd?.toString()
+                                    this[ObservationKHOA.crdir] = row.crdir?.toString()
+                                    this[ObservationKHOA.crsp] = row.crsp?.toString()
+                                    this[ObservationKHOA.wtem] = row.wtem?.toString()
+                                    this[ObservationKHOA.slnty] = row.slnty?.toString()
                                 }
 
-                                msg = "code[${code}] ObservationKHOA 테이블 갱신 완료"
-                                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
+                            } catch (e: Exception) {
+                                msg = e.localizedMessage
+                                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                             }
+
+                            msg = "code[${code}] ObservationKHOA 테이블 갱신 완료"
+                            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
                         }
                     }
                 }
-
-
+            }
         }
     }
 
