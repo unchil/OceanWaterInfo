@@ -896,7 +896,7 @@ class CollectionServerRepository {
 
 
 
-    fun loadDataSDoT(path:String): List<DataFrame<*>> {
+    suspend fun loadDataSDoT(path:String): List<DataFrame<*>> {
 
         val funcName = ::loadDataSDoT.name
         var msg = "Start"
@@ -905,31 +905,38 @@ class CollectionServerRepository {
         val numOfRows = 100
         var url = "$path&pIndex=1"
 
-        val df_first = try {
-            DataFrame.readJson(url)
-        } catch (e: Exception) {
-            msg = "첫 페이지 로드 실패:[${e.localizedMessage}]"
-            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-            return emptyList()
+        val df_first = retryIO(times = 3) {
+            try {
+                DataFrame.readJson(url)
+            } catch (e: Exception) {
+                msg = "첫 페이지 로드 실패:[${e.localizedMessage}]"
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                throw Exception("pIndex[1]")
+            }
         }
 
         val dataFrames = mutableListOf<DataFrame<*>>()
-
         val totalCount:Int = ((df_first["Sidoatmospolutnmesure"][0] as DataFrame<*>)["head"][0] as DataFrame<*>)["list_total_count"][0] as Int
         val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
-
-
         msg = "총 데이터 개수[$totalCount], 전체 페이지 수[$totalPages]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
         val data = (df_first["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
         dataFrames.add(data)
 
         for (page in 2..totalPages) {
-            url = "$path&pIndex=$page"
-            val df_page = DataFrame.readJson(url)
-            val data = (df_page["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
-            dataFrames.add(data)
+            retryIO(times = 3) {
+                try {
+                    url = "$path&pIndex=$page"
+                    val df_page = DataFrame.readJson(url)
+                    val data =
+                        (df_page["Sidoatmospolutnmesure"][0] as DataFrame<*>)["row"][1] as DataFrame<*>
+                    dataFrames.add(data)
+                } catch (e: Exception) {
+                    msg = "$page 로드 실패:[${e.localizedMessage}]"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    throw Exception("pIndex[$page]")
+                }
+            }
         }
 
         return dataFrames
@@ -937,12 +944,11 @@ class CollectionServerRepository {
     }
 
 
-     fun getSDoTEnvInfoGyonggi(){
+     suspend fun getSDoTEnvInfoGyonggi(){
 
          val funcName = ::getSDoTEnvInfoGyonggi.name
          var msg = "Start"
          LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
 
          val now = Clock.System.now()
         var previous1Hour = now
@@ -957,10 +963,8 @@ class CollectionServerRepository {
                  "&MESURE_DAY_TM=${previous1Hour.encodeURLParameter()}"
 
 
-
          msg = "MESURE_DAY_TM:${previous1Hour}, Url:${url}"
          LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
 
          try {
 
@@ -980,27 +984,19 @@ class CollectionServerRepository {
 
             transaction(ConfigManager.conn) {
                 SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
-
-                try {
-                    // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                    SDoT_EnvInfo_Gyonggi.batchInsert(result.rows(), true, false) { row ->
-                        this[SDoT_EnvInfo_Gyonggi.obs] = row["MESURSTN_NM"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.region] = row["MESRNW_NM"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.sensing_time] = row["MESURE_DAY_TM"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.so2] = row["SO2"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.co] = row["CO"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.no2] = row["NO2"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.o3] = row["O3"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.pm10] = row["PM10"].toString()
-                        this[SDoT_EnvInfo_Gyonggi.pm25] = row["PM2.5"].toString()
-                    }
-
-                } catch (e: Exception) {
-                    msg = e.localizedMessage
-                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                SDoT_EnvInfo_Gyonggi.batchInsert(result.rows(), true, false) { row ->
+                    this[SDoT_EnvInfo_Gyonggi.obs] = row["MESURSTN_NM"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.region] = row["MESRNW_NM"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.sensing_time] = row["MESURE_DAY_TM"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.so2] = row["SO2"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.co] = row["CO"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.no2] = row["NO2"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.o3] = row["O3"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.pm10] = row["PM10"].toString()
+                    this[SDoT_EnvInfo_Gyonggi.pm25] = row["PM2.5"].toString()
                 }
             }
-
         }catch (e: Exception){
              msg = e.localizedMessage
              LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
@@ -1012,119 +1008,104 @@ class CollectionServerRepository {
         val funcName = ::getSDoTEnvInfo.name
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
-
         //http://openapi.seoul.go.kr:8088/6e4a49477579656f393876794a6a63/json/sDoTEnv/1001/1200/
         // 1. 현재 S-DoT 장비의 unique count 값이 1170.
         // 2. 최초 1000 건을 수집하되 SENSING_TIME 이 unique 하면 200 건을 더 수집.
         // 3. 수집된 데이터중 SENSING_TIME 이 MAX(SENSING_TIME) 인 값만 filtering.
-
         val url = "${ConfigManager.currentConfig.SDOT_API?.endPoint}/${ConfigManager.currentConfig.SDOT_API?.apikey}/" +
                 "${ConfigManager.currentConfig.SDOT_API?.type}/" +
                 "${ConfigManager.currentConfig.SDOT_API?.subPath}/"
         try {
-
             var uniqueSensingTimeCount = 0
             var receiveData: MutableList<SDoTEnvInformation> = mutableListOf()
 
             CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(
                 CollectionServerRestApi.client.get(url+"1/1000/").bodyAsText(Charset.forName("EUC-KR"))
             ).let { response ->
-                msg = "receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]"
-                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
                 receiveData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
                 uniqueSensingTimeCount = receiveData.map { it.SENSING_TIME }.distinct().size
+                msg = "receive count[${receiveData.count()}], uniqueSensingTimeCount[${uniqueSensingTimeCount}]"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
-
+            // uniqueSensingTimeCount == 1 이면 더 수집할 데이터가 존재할지도 모름.
             if(uniqueSensingTimeCount == 1){
-
                 CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(
                     CollectionServerRestApi.client.get(url+"1001/1200/").bodyAsText(Charset.forName("EUC-KR"))
                 ).let { response ->
-                    msg = "receive code[${response.sDoTEnv.RESULT.CODE}], receive message[${response.sDoTEnv.RESULT.MESSAGE}]"
+                    val addData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
+                    receiveData.addAll(addData)
+                    msg = "receive count[${receiveData.count()}], addData count[${addData}]"
                     LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
-                    receiveData.addAll(response.sDoTEnv.row as MutableList<SDoTEnvInformation>)
                 }
             }
-
             if(receiveData.isNotEmpty()){
                 val maxSensingTime = receiveData.maxOfOrNull { it.SENSING_TIME }
                 val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
                 transaction(ConfigManager.conn) {
                     SchemaUtils.create(SDoT_EnvInfo)
-
-                    try {
-                        SDoT_EnvInfo.batchReplace(finalData) { item ->
-                            this[SDoT_EnvInfo.modelname] = item.MODELNAME
-                            this[SDoT_EnvInfo.serial] = item.SERIAL
-                            this[SDoT_EnvInfo.sensing_time] = item.SENSING_TIME
-                            this[SDoT_EnvInfo.region] = item.REGION
-                            this[SDoT_EnvInfo.autonomous_district] = item.AUTONOMOUS_DISTRICT
-                            this[SDoT_EnvInfo.administrative_district] = item.ADMINISTRATIVE_DISTRICT
-                            this[SDoT_EnvInfo.max_temp] = item.MAX_TEMP
-                            this[SDoT_EnvInfo.avg_temp] = item.AVG_TEMP
-                            this[SDoT_EnvInfo.min_temp] = item.MIN_TEMP
-                            this[SDoT_EnvInfo.max_humi] = item.MAX_HUMI
-                            this[SDoT_EnvInfo.avg_humi] = item.AVG_HUMI
-                            this[SDoT_EnvInfo.min_humi] = item.MIN_HUMI
-                            this[SDoT_EnvInfo.max_wind_speed] = item.MAX_WIND_SPEED
-                            this[SDoT_EnvInfo.avg_wind_speed] = item.AVG_WIND_SPEED
-                            this[SDoT_EnvInfo.min_wind_speed] = item.MIN_WIND_SPEED
-                            this[SDoT_EnvInfo.max_wind_dire] = item.MAX_WIND_DIRE
-                            this[SDoT_EnvInfo.avg_wind_dire] = item.AVG_WIND_DIRE
-                            this[SDoT_EnvInfo.min_wind_dire] = item.MIN_WIND_DIRE
-                            this[SDoT_EnvInfo.max_inte_illu] = item.MAX_INTE_ILLU
-                            this[SDoT_EnvInfo.avg_inte_illu] = item.AVG_INTE_ILLU
-                            this[SDoT_EnvInfo.min_inte_illu] = item.MIN_INTE_ILLU
-                            this[SDoT_EnvInfo.max_ultra_rays] = item.MAX_ULTRA_RAYS
-                            this[SDoT_EnvInfo.avg_ultra_rays] = item.AVG_ULTRA_RAYS
-                            this[SDoT_EnvInfo.min_ultra_rays] = item.MIN_ULTRA_RAYS
-                            this[SDoT_EnvInfo.max_noise] = item.MAX_NOISE
-                            this[SDoT_EnvInfo.avg_noise] = item.AVG_NOISE
-                            this[SDoT_EnvInfo.min_noise] = item.MIN_NOISE
-                            this[SDoT_EnvInfo.max_vibr_x] = item.MAX_VIBR_X
-                            this[SDoT_EnvInfo.avg_vibr_x] = item.AVG_VIBR_X
-                            this[SDoT_EnvInfo.min_vibr_x] = item.MIN_VIBR_X
-                            this[SDoT_EnvInfo.max_vibr_y] = item.MAX_VIBR_Y
-                            this[SDoT_EnvInfo.avg_vibr_y] = item.AVG_VIBR_Y
-                            this[SDoT_EnvInfo.min_vibr_y] = item.MIN_VIBR_Y
-                            this[SDoT_EnvInfo.max_vibr_z] = item.MAX_VIBR_Z
-                            this[SDoT_EnvInfo.avg_vibr_z] = item.AVG_VIBR_Z
-                            this[SDoT_EnvInfo.min_vibr_z] = item.MIN_VIBR_Z
-                            this[SDoT_EnvInfo.max_effe_temp] = item.MAX_EFFE_TEMP
-                            this[SDoT_EnvInfo.avg_effe_temp] = item.AVG_EFFE_TEMP
-                            this[SDoT_EnvInfo.min_effe_temp] = item.MIN_EFFE_TEMP
-                            this[SDoT_EnvInfo.max_no2] = item.MAX_NO2
-                            this[SDoT_EnvInfo.avg_no2] = item.AVG_NO2
-                            this[SDoT_EnvInfo.min_no2] = item.MIN_NO2
-                            this[SDoT_EnvInfo.max_co] = item.MAX_CO
-                            this[SDoT_EnvInfo.avg_co] = item.AVG_CO
-                            this[SDoT_EnvInfo.min_co] = item.MIN_CO
-                            this[SDoT_EnvInfo.max_so2] = item.MAX_SO2
-                            this[SDoT_EnvInfo.avg_so2] = item.AVG_SO2
-                            this[SDoT_EnvInfo.min_so2] = item.MIN_SO2
-                            this[SDoT_EnvInfo.max_nh3] = item.MAX_NH3
-                            this[SDoT_EnvInfo.avg_nh3] = item.AVG_NH3
-                            this[SDoT_EnvInfo.min_nh3] = item.MIN_NH3
-                            this[SDoT_EnvInfo.max_h2s] = item.MAX_H2S
-                            this[SDoT_EnvInfo.avg_h2s] = item.AVG_H2S
-                            this[SDoT_EnvInfo.min_h2s] = item.MIN_H2S
-                            this[SDoT_EnvInfo.max_o3] = item.MAX_O3
-                            this[SDoT_EnvInfo.avg_o3] = item.AVG_O3
-                            this[SDoT_EnvInfo.min_o3] = item.MIN_O3
-                            this[SDoT_EnvInfo.date] = item.DATE
-                            this[SDoT_EnvInfo.data_no] = item.DATA_NO
-                        }
-                    } catch (e: Exception) {
-                        LOGGER.error("Batch Replace Error: ${e.localizedMessage}")
-                        msg = e.localizedMessage
-                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    SDoT_EnvInfo.batchReplace(finalData) { item ->
+                        this[SDoT_EnvInfo.modelname] = item.MODELNAME
+                        this[SDoT_EnvInfo.serial] = item.SERIAL
+                        this[SDoT_EnvInfo.sensing_time] = item.SENSING_TIME
+                        this[SDoT_EnvInfo.region] = item.REGION
+                        this[SDoT_EnvInfo.autonomous_district] = item.AUTONOMOUS_DISTRICT
+                        this[SDoT_EnvInfo.administrative_district] = item.ADMINISTRATIVE_DISTRICT
+                        this[SDoT_EnvInfo.max_temp] = item.MAX_TEMP
+                        this[SDoT_EnvInfo.avg_temp] = item.AVG_TEMP
+                        this[SDoT_EnvInfo.min_temp] = item.MIN_TEMP
+                        this[SDoT_EnvInfo.max_humi] = item.MAX_HUMI
+                        this[SDoT_EnvInfo.avg_humi] = item.AVG_HUMI
+                        this[SDoT_EnvInfo.min_humi] = item.MIN_HUMI
+                        this[SDoT_EnvInfo.max_wind_speed] = item.MAX_WIND_SPEED
+                        this[SDoT_EnvInfo.avg_wind_speed] = item.AVG_WIND_SPEED
+                        this[SDoT_EnvInfo.min_wind_speed] = item.MIN_WIND_SPEED
+                        this[SDoT_EnvInfo.max_wind_dire] = item.MAX_WIND_DIRE
+                        this[SDoT_EnvInfo.avg_wind_dire] = item.AVG_WIND_DIRE
+                        this[SDoT_EnvInfo.min_wind_dire] = item.MIN_WIND_DIRE
+                        this[SDoT_EnvInfo.max_inte_illu] = item.MAX_INTE_ILLU
+                        this[SDoT_EnvInfo.avg_inte_illu] = item.AVG_INTE_ILLU
+                        this[SDoT_EnvInfo.min_inte_illu] = item.MIN_INTE_ILLU
+                        this[SDoT_EnvInfo.max_ultra_rays] = item.MAX_ULTRA_RAYS
+                        this[SDoT_EnvInfo.avg_ultra_rays] = item.AVG_ULTRA_RAYS
+                        this[SDoT_EnvInfo.min_ultra_rays] = item.MIN_ULTRA_RAYS
+                        this[SDoT_EnvInfo.max_noise] = item.MAX_NOISE
+                        this[SDoT_EnvInfo.avg_noise] = item.AVG_NOISE
+                        this[SDoT_EnvInfo.min_noise] = item.MIN_NOISE
+                        this[SDoT_EnvInfo.max_vibr_x] = item.MAX_VIBR_X
+                        this[SDoT_EnvInfo.avg_vibr_x] = item.AVG_VIBR_X
+                        this[SDoT_EnvInfo.min_vibr_x] = item.MIN_VIBR_X
+                        this[SDoT_EnvInfo.max_vibr_y] = item.MAX_VIBR_Y
+                        this[SDoT_EnvInfo.avg_vibr_y] = item.AVG_VIBR_Y
+                        this[SDoT_EnvInfo.min_vibr_y] = item.MIN_VIBR_Y
+                        this[SDoT_EnvInfo.max_vibr_z] = item.MAX_VIBR_Z
+                        this[SDoT_EnvInfo.avg_vibr_z] = item.AVG_VIBR_Z
+                        this[SDoT_EnvInfo.min_vibr_z] = item.MIN_VIBR_Z
+                        this[SDoT_EnvInfo.max_effe_temp] = item.MAX_EFFE_TEMP
+                        this[SDoT_EnvInfo.avg_effe_temp] = item.AVG_EFFE_TEMP
+                        this[SDoT_EnvInfo.min_effe_temp] = item.MIN_EFFE_TEMP
+                        this[SDoT_EnvInfo.max_no2] = item.MAX_NO2
+                        this[SDoT_EnvInfo.avg_no2] = item.AVG_NO2
+                        this[SDoT_EnvInfo.min_no2] = item.MIN_NO2
+                        this[SDoT_EnvInfo.max_co] = item.MAX_CO
+                        this[SDoT_EnvInfo.avg_co] = item.AVG_CO
+                        this[SDoT_EnvInfo.min_co] = item.MIN_CO
+                        this[SDoT_EnvInfo.max_so2] = item.MAX_SO2
+                        this[SDoT_EnvInfo.avg_so2] = item.AVG_SO2
+                        this[SDoT_EnvInfo.min_so2] = item.MIN_SO2
+                        this[SDoT_EnvInfo.max_nh3] = item.MAX_NH3
+                        this[SDoT_EnvInfo.avg_nh3] = item.AVG_NH3
+                        this[SDoT_EnvInfo.min_nh3] = item.MIN_NH3
+                        this[SDoT_EnvInfo.max_h2s] = item.MAX_H2S
+                        this[SDoT_EnvInfo.avg_h2s] = item.AVG_H2S
+                        this[SDoT_EnvInfo.min_h2s] = item.MIN_H2S
+                        this[SDoT_EnvInfo.max_o3] = item.MAX_O3
+                        this[SDoT_EnvInfo.avg_o3] = item.AVG_O3
+                        this[SDoT_EnvInfo.min_o3] = item.MIN_O3
+                        this[SDoT_EnvInfo.date] = item.DATE
+                        this[SDoT_EnvInfo.data_no] = item.DATA_NO
                     }
                 }
             }
-
         } catch (e: Exception){
             msg = e.localizedMessage
             LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
