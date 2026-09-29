@@ -1469,39 +1469,25 @@ class CollectionServerRepository {
         val funcName = ::getRealTimeObservation.name
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
         try{
-
             callNifsAPI_json("list").let {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
                 if(recvData.header.resultCode.equals("00")){
-
-
                     msg = "datetime[${recvData.body.item[0].obs_tim}], receive count[${recvData.body.item.size}]"
                     LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-
-                    transaction (ConfigManager.conn){
-
+                    transaction (ConfigManager.conn) {
                         SchemaUtils.create( ObservationTable)
-
-                        try {
-                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                            ObservationTable.batchInsert(recvData.body.item, true, false) { row ->
-                                this[ObservationTable.sta_cde] = row.sta_cde
-                                this[ObservationTable.sta_nam_kor] = row.sta_nam_kor
-                                this[ObservationTable.obs_dat] = row.obs_dat
-                                this[ObservationTable.obs_tim] = row.obs_tim
-                                this[ObservationTable.obs_datetime] = "${row.obs_dat} ${row.obs_tim}"
-                                this[ObservationTable.repair_gbn] = row.repair_gbn
-                                this[ObservationTable.obs_lay] = row.obs_lay
-                                this[ObservationTable.wtr_tmp] = row.wtr_tmp.toString()
-                            }
-
-                        } catch (e: Exception) {
-                            msg = e.localizedMessage
-                            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
+                        // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                        ObservationTable.batchInsert(recvData.body.item, true, false) { row ->
+                            this[ObservationTable.sta_cde] = row.sta_cde
+                            this[ObservationTable.sta_nam_kor] = row.sta_nam_kor
+                            this[ObservationTable.obs_dat] = row.obs_dat
+                            this[ObservationTable.obs_tim] = row.obs_tim
+                            this[ObservationTable.obs_datetime] = "${row.obs_dat} ${row.obs_tim}"
+                            this[ObservationTable.repair_gbn] = row.repair_gbn
+                            this[ObservationTable.obs_lay] = row.obs_lay
+                            this[ObservationTable.wtr_tmp] = row.wtr_tmp.toString()
                         }
                     }
                 }else{
@@ -1520,42 +1506,32 @@ class CollectionServerRepository {
         val funcName = ::getRealTimeObservatory.name
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
         try{
             callNifsAPI_json("code").let {
                 val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
                 if(recvData.header.resultCode.equals("00")) {
-
                     msg = "receive count[${recvData.body.item.size}]"
                     LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
                     transaction (ConfigManager.conn){
                         SchemaUtils.drop( ObservatoryTable)
                         SchemaUtils.create( ObservatoryTable)
-
-
-                        try {
-                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                            ObservatoryTable.batchInsert(recvData.body.item, true, false) { row ->
-                                this[ObservatoryTable.sta_cde] = row.sta_cde
-                                this[ObservatoryTable.sta_nam_kor] = row.sta_nam_kor
-                                this[ObservatoryTable.bld_dat] = row.bld_dat
-                                this[ObservatoryTable.end_dat] = row.end_dat
-                                this[ObservatoryTable.gru_nam] = row.gru_nam
-                                this[ObservatoryTable.lon] = row.lon
-                                this[ObservatoryTable.lat] = row.lat
-                                this[ObservatoryTable.sur_tmp_yn] = row.sur_tmp_yn
-                                this[ObservatoryTable.mid_tmp_yn] = row.mid_tmp_yn
-                                this[ObservatoryTable.bot_tmp_yn] = row.bot_tmp_yn
-                                this[ObservatoryTable.sur_dep] = row.sur_dep
-                                this[ObservatoryTable.mid_dep] = row.mid_dep
-                                this[ObservatoryTable.bot_dep] = row.bot_dep
-                                this[ObservatoryTable.sta_des] = row.sta_des
-                            }
-
-                        } catch (e: Exception) {
-                            msg = e.localizedMessage
-                            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                        ObservatoryTable.batchInsert(recvData.body.item, true, false) { row ->
+                            this[ObservatoryTable.sta_cde] = row.sta_cde
+                            this[ObservatoryTable.sta_nam_kor] = row.sta_nam_kor
+                            this[ObservatoryTable.bld_dat] = row.bld_dat
+                            this[ObservatoryTable.end_dat] = row.end_dat
+                            this[ObservatoryTable.gru_nam] = row.gru_nam
+                            this[ObservatoryTable.lon] = row.lon
+                            this[ObservatoryTable.lat] = row.lat
+                            this[ObservatoryTable.sur_tmp_yn] = row.sur_tmp_yn
+                            this[ObservatoryTable.mid_tmp_yn] = row.mid_tmp_yn
+                            this[ObservatoryTable.bot_tmp_yn] = row.bot_tmp_yn
+                            this[ObservatoryTable.sur_dep] = row.sur_dep
+                            this[ObservatoryTable.mid_dep] = row.mid_dep
+                            this[ObservatoryTable.bot_dep] = row.bot_dep
+                            this[ObservatoryTable.sta_des] = row.sta_des
                         }
                     }
 
