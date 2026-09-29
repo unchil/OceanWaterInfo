@@ -243,39 +243,35 @@ class CollectionServerRepository {
             }
         }
 
-         transaction(ConfigManager.conn) {
+
+        msg = "PlantInfo Count:[${plantInfo.count()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+
+        val operationInfo = unitInfoList.flatten()
+        msg = "OperationInfo Count:[${operationInfo.count()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+
+
+        transaction(ConfigManager.conn) {
              SchemaUtils.create(KHNP_PlantInfo)
-
-             try {
-                 // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                 KHNP_PlantInfo.batchInsert(plantInfo, true, false) { row ->
-                     this[KHNP_PlantInfo.siteCd] = row.siteCd
-                     this[KHNP_PlantInfo.siteNm] = row.siteNm
-                     this[KHNP_PlantInfo.siteMm] = row.siteMm
-                 }
-
-             } catch (e: Exception) {
-                 msg = e.localizedMessage
-                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+             KHNP_PlantInfo.batchInsert(plantInfo, true, false) { row ->
+                 this[KHNP_PlantInfo.siteCd] = row.siteCd
+                 this[KHNP_PlantInfo.siteNm] = row.siteNm
+                 this[KHNP_PlantInfo.siteMm] = row.siteMm
              }
-
              SchemaUtils.create(KHNP_PlantOperationInfo)
-
-             try {
-                 // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                 KHNP_PlantOperationInfo.batchInsert(unitInfoList.flatten(), true, false) { row ->
-                     this[KHNP_PlantOperationInfo.collectionTime] = row.collectionTime
-                     this[KHNP_PlantOperationInfo.siteCd] = row.siteCd
-                     this[KHNP_PlantOperationInfo.genName] = row.genName
-                     this[KHNP_PlantOperationInfo.unitCd] = row.unitCd
-                     this[KHNP_PlantOperationInfo.unitDttm] = row.unitDttm
-                     this[KHNP_PlantOperationInfo.unitNm] = row.unitNm
-                     this[KHNP_PlantOperationInfo.unitSt] = row.unitSt
-                 }
-
-             } catch (e: Exception) {
-                 msg = e.localizedMessage
-                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+             KHNP_PlantOperationInfo.batchInsert(operationInfo, true, false) { row ->
+                 this[KHNP_PlantOperationInfo.collectionTime] = row.collectionTime
+                 this[KHNP_PlantOperationInfo.siteCd] = row.siteCd
+                 this[KHNP_PlantOperationInfo.genName] = row.genName
+                 this[KHNP_PlantOperationInfo.unitCd] = row.unitCd
+                 this[KHNP_PlantOperationInfo.unitDttm] = row.unitDttm
+                 this[KHNP_PlantOperationInfo.unitNm] = row.unitNm
+                 this[KHNP_PlantOperationInfo.unitSt] = row.unitSt
              }
          }
     }
@@ -312,7 +308,7 @@ class CollectionServerRepository {
                             }
                         }
                     }
-                    msg = "genName[${genName}]"
+                    msg = "genName[${genName}], size[${updatedDf.size()}]"
                     LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                     updatedDf
 
@@ -320,9 +316,9 @@ class CollectionServerRepository {
                     if(e.message?.contains("Can not get nested column 'item' from ValueColumn 'items'") == true) {
                         return@retryIO emptyDataFrame()
                     }else{
-                        msg = "Rest Client Url Call Fail: [${url} + &genName=${genName}][${e.localizedMessage}]"
+                        msg = "genName[${genName}][${e.localizedMessage}]"
                         LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                        throw Exception(funcName)
+                        throw Exception(genName)
                     }
                 }
             }
@@ -379,27 +375,19 @@ class CollectionServerRepository {
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_ThermalWasteWater)
-
-            try {
-                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                KHNP_ThermalWasteWater.batchInsert(result.rows(), true, false) { row ->
-                    this[KHNP_ThermalWasteWater.time] = row["collectionTime"].toString()
-                    this[KHNP_ThermalWasteWater.genName] = row["genName"].toString()
-                    this[KHNP_ThermalWasteWater.rm001] = row["rm001"].toString()
-                    this[KHNP_ThermalWasteWater.rm001_time] = row["rm001_time"].toString()
-                    this[KHNP_ThermalWasteWater.rm002] = row["rm002"].toString()
-                    this[KHNP_ThermalWasteWater.rm002_time] = row["rm002_time"].toString()
-                    this[KHNP_ThermalWasteWater.rm005] = row["rm005"].toString()
-                    this[KHNP_ThermalWasteWater.rm005_time] = row["rm005_time"].toString()
-                    this[KHNP_ThermalWasteWater.rm006] = row["rm006"].toString()
-                    this[KHNP_ThermalWasteWater.rm006_time] = row["rm006_time"].toString()
-                }
-
-            } catch (e: Exception) {
-                msg = e.localizedMessage
-                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+            KHNP_ThermalWasteWater.batchInsert(result.rows(), true, false) { row ->
+                this[KHNP_ThermalWasteWater.time] = row["collectionTime"].toString()
+                this[KHNP_ThermalWasteWater.genName] = row["genName"].toString()
+                this[KHNP_ThermalWasteWater.rm001] = row["rm001"].toString()
+                this[KHNP_ThermalWasteWater.rm001_time] = row["rm001_time"].toString()
+                this[KHNP_ThermalWasteWater.rm002] = row["rm002"].toString()
+                this[KHNP_ThermalWasteWater.rm002_time] = row["rm002_time"].toString()
+                this[KHNP_ThermalWasteWater.rm005] = row["rm005"].toString()
+                this[KHNP_ThermalWasteWater.rm005_time] = row["rm005_time"].toString()
+                this[KHNP_ThermalWasteWater.rm006] = row["rm006"].toString()
+                this[KHNP_ThermalWasteWater.rm006_time] = row["rm006_time"].toString()
             }
-
         }
 
     }
@@ -442,21 +430,14 @@ class CollectionServerRepository {
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_WasteWater)
-
-            try {
-                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                KHNP_WasteWater.batchInsert(result.rows(), true, false) { row ->
-                    this[KHNP_WasteWater.time] = row["collectionTime"].toString()
-                    this[KHNP_WasteWater.genName] = row["genName"].toString()
-                    this[KHNP_WasteWater.tm001] = row["tm001"].toString()
-                    this[KHNP_WasteWater.tm001_time] = row["tm001_time"].toString()
-                    this[KHNP_WasteWater.tm002] = row["tm002"].toString()
-                    this[KHNP_WasteWater.tm002_time] = row["tm002_time"].toString()
-                }
-
-            } catch (e: Exception) {
-                msg = e.localizedMessage
-                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+            KHNP_WasteWater.batchInsert(result.rows(), true, false) { row ->
+                this[KHNP_WasteWater.time] = row["collectionTime"].toString()
+                this[KHNP_WasteWater.genName] = row["genName"].toString()
+                this[KHNP_WasteWater.tm001] = row["tm001"].toString()
+                this[KHNP_WasteWater.tm001_time] = row["tm001_time"].toString()
+                this[KHNP_WasteWater.tm002] = row["tm002"].toString()
+                this[KHNP_WasteWater.tm002_time] = row["tm002_time"].toString()
             }
         }
 
@@ -479,22 +460,15 @@ class CollectionServerRepository {
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioRate)
-            try {
-                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                KHNP_RadioRate.batchInsert(result.rows(), true, false) { row ->
-                    this[KHNP_RadioRate.collectionTime] = row["collectionTime"].toString()
-                    this[KHNP_RadioRate.time] = row["time"].toString()
-                    this[KHNP_RadioRate.genName] = row["genName"].toString()
-                    this[KHNP_RadioRate.name] = row["name"].toString()
-                    this[KHNP_RadioRate.expl] = row["expl"].toString()
-                    this[KHNP_RadioRate.value] = row["value"].toString()
-                }
-
-            } catch (e: Exception) {
-                msg = e.localizedMessage
-                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+            KHNP_RadioRate.batchInsert(result.rows(), true, false) { row ->
+                this[KHNP_RadioRate.collectionTime] = row["collectionTime"].toString()
+                this[KHNP_RadioRate.time] = row["time"].toString()
+                this[KHNP_RadioRate.genName] = row["genName"].toString()
+                this[KHNP_RadioRate.name] = row["name"].toString()
+                this[KHNP_RadioRate.expl] = row["expl"].toString()
+                this[KHNP_RadioRate.value] = row["value"].toString()
             }
-
         }
     }
 
@@ -504,36 +478,22 @@ class CollectionServerRepository {
         val funcName = ::getKHNP_RadioActiveWaste.name
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-
         val url = "${ConfigManager.currentConfig.KHNP?.endPoint}/${ConfigManager.currentConfig.KHNP?.subPath?.RadioActiveWaste}?serviceKey=${ConfigManager.currentConfig.KHNP?.serviceKey}"
-
-
         val response = loadKHNP_Service(url,  listOf("2100", "2200", "2300", "2400", "2800") )
-
-
         val result = response.concat()
-
         msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         transaction(ConfigManager.conn) {
             SchemaUtils.create(KHNP_RadioActiveWaste)
-
-            try {
-                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                KHNP_RadioActiveWaste.batchInsert(result.rows(), true, false) { row ->
-                    this[KHNP_RadioActiveWaste.collectionTime] = row["collectionTime"].toString()
-                    this[KHNP_RadioActiveWaste.spmon] = row["spmon"].toString()
-                    this[KHNP_RadioActiveWaste.genName] = row["genName"].toString()
-                    this[KHNP_RadioActiveWaste.plant] = row["plant"].toString()
-                    this[KHNP_RadioActiveWaste.total] = row["total"].toString()
-                }
-
-            } catch (e: Exception) {
-                msg = e.localizedMessage
-                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+            KHNP_RadioActiveWaste.batchInsert(result.rows(), true, false) { row ->
+                this[KHNP_RadioActiveWaste.collectionTime] = row["collectionTime"].toString()
+                this[KHNP_RadioActiveWaste.spmon] = row["spmon"].toString()
+                this[KHNP_RadioActiveWaste.genName] = row["genName"].toString()
+                this[KHNP_RadioActiveWaste.plant] = row["plant"].toString()
+                this[KHNP_RadioActiveWaste.total] = row["total"].toString()
             }
-
         }
     }
 
@@ -950,56 +910,51 @@ class CollectionServerRepository {
          var msg = "Start"
          LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-         val now = Clock.System.now()
-        var previous1Hour = now
-            .minus(1, DateTimeUnit.HOUR)
-            .toLocalDateTime(TimeZone.of("Asia/Seoul"))
-            .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH")}) + ":00"
+        val now = Clock.System.now()
+        val previous1Hour = now
+        .minus(1, DateTimeUnit.HOUR)
+        .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+        .format(LocalDateTime.Format{byUnicodePattern("yyyy-MM-dd HH")}) + ":00"
 
-         val url = "${ConfigManager.currentConfig.SDOT_Gyonggi?.endPoint}" +
-                   "/${ConfigManager.currentConfig.SDOT_Gyonggi?.subPath}" +
-                 "?KEY=${ConfigManager.currentConfig.SDOT_Gyonggi?.apikey}" +
-                 "&Type=${ConfigManager.currentConfig.SDOT_Gyonggi?.type}" +
-                 "&MESURE_DAY_TM=${previous1Hour.encodeURLParameter()}"
+        val url = "${ConfigManager.currentConfig.SDOT_Gyonggi?.endPoint}" +
+               "/${ConfigManager.currentConfig.SDOT_Gyonggi?.subPath}" +
+             "?KEY=${ConfigManager.currentConfig.SDOT_Gyonggi?.apikey}" +
+             "&Type=${ConfigManager.currentConfig.SDOT_Gyonggi?.type}" +
+             "&MESURE_DAY_TM=${previous1Hour.encodeURLParameter()}"
 
 
-         msg = "MESURE_DAY_TM:${previous1Hour}, Url:${url}"
-         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        msg = "MESURE_DAY_TM:${previous1Hour}, Url:${url}"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-         try {
 
-            val dfResult = loadDataSDoT(url).concat()
+        val dfResult = loadDataSDoT(url).concat()
 
-            val result = dfResult.rename(
-                "SUA_GAS_DNST_VL" to "SO2",
-                "COMNXD_DNST_VL" to "CO",
-                "NO2_DNST_VL" to "NO2",
-                "OZONE_DNST_VL" to "O3",
-                "FINEDUST_PM10_DNST_VL" to "PM10",
-                "FINEDUST_PM2_5_DNST_VL" to "PM2.5"
-            )
+        val result = dfResult.rename(
+        "SUA_GAS_DNST_VL" to "SO2",
+        "COMNXD_DNST_VL" to "CO",
+        "NO2_DNST_VL" to "NO2",
+        "OZONE_DNST_VL" to "O3",
+        "FINEDUST_PM10_DNST_VL" to "PM10",
+        "FINEDUST_PM2_5_DNST_VL" to "PM2.5"
+        )
 
-             msg = "result size:[${result.size()}]"
-             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        msg = "result size:[${result.size()}]"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-            transaction(ConfigManager.conn) {
-                SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
-                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                SDoT_EnvInfo_Gyonggi.batchInsert(result.rows(), true, false) { row ->
-                    this[SDoT_EnvInfo_Gyonggi.obs] = row["MESURSTN_NM"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.region] = row["MESRNW_NM"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.sensing_time] = row["MESURE_DAY_TM"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.so2] = row["SO2"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.co] = row["CO"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.no2] = row["NO2"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.o3] = row["O3"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.pm10] = row["PM10"].toString()
-                    this[SDoT_EnvInfo_Gyonggi.pm25] = row["PM2.5"].toString()
-                }
+        transaction(ConfigManager.conn) {
+            SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
+            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+            SDoT_EnvInfo_Gyonggi.batchInsert(result.rows(), true, false) { row ->
+                this[SDoT_EnvInfo_Gyonggi.obs] = row["MESURSTN_NM"].toString()
+                this[SDoT_EnvInfo_Gyonggi.region] = row["MESRNW_NM"].toString()
+                this[SDoT_EnvInfo_Gyonggi.sensing_time] = row["MESURE_DAY_TM"].toString()
+                this[SDoT_EnvInfo_Gyonggi.so2] = row["SO2"].toString()
+                this[SDoT_EnvInfo_Gyonggi.co] = row["CO"].toString()
+                this[SDoT_EnvInfo_Gyonggi.no2] = row["NO2"].toString()
+                this[SDoT_EnvInfo_Gyonggi.o3] = row["O3"].toString()
+                this[SDoT_EnvInfo_Gyonggi.pm10] = row["PM10"].toString()
+                this[SDoT_EnvInfo_Gyonggi.pm25] = row["PM2.5"].toString()
             }
-        }catch (e: Exception){
-             msg = e.localizedMessage
-             LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
 
     }
@@ -1015,101 +970,98 @@ class CollectionServerRepository {
         val url = "${ConfigManager.currentConfig.SDOT_API?.endPoint}/${ConfigManager.currentConfig.SDOT_API?.apikey}/" +
                 "${ConfigManager.currentConfig.SDOT_API?.type}/" +
                 "${ConfigManager.currentConfig.SDOT_API?.subPath}/"
-        try {
-            var uniqueSensingTimeCount = 0
-            var receiveData: MutableList<SDoTEnvInformation> = mutableListOf()
 
+        var uniqueSensingTimeCount = 0
+        var receiveData: MutableList<SDoTEnvInformation> = mutableListOf()
+
+        CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(
+            CollectionServerRestApi.client.get(url+"1/1000/").bodyAsText(Charset.forName("EUC-KR"))
+        ).let { response ->
+            receiveData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
+            uniqueSensingTimeCount = receiveData.map { it.SENSING_TIME }.distinct().size
+            msg = "receive count[${receiveData.count()}], uniqueSensingTimeCount[${uniqueSensingTimeCount}]"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        }
+        // uniqueSensingTimeCount == 1 이면 더 수집할 데이터가 존재할지도 모름.
+        if(uniqueSensingTimeCount == 1){
             CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(
-                CollectionServerRestApi.client.get(url+"1/1000/").bodyAsText(Charset.forName("EUC-KR"))
+                CollectionServerRestApi.client.get(url+"1001/1200/").bodyAsText(Charset.forName("EUC-KR"))
             ).let { response ->
-                receiveData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
-                uniqueSensingTimeCount = receiveData.map { it.SENSING_TIME }.distinct().size
-                msg = "receive count[${receiveData.count()}], uniqueSensingTimeCount[${uniqueSensingTimeCount}]"
+                val addData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
+                receiveData.addAll(addData)
+                msg = "receive count[${receiveData.count()}], addData count[${addData}]"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
-            // uniqueSensingTimeCount == 1 이면 더 수집할 데이터가 존재할지도 모름.
-            if(uniqueSensingTimeCount == 1){
-                CollectionServerRestApi.commonJson.decodeFromString<SDoTEnvResponse>(
-                    CollectionServerRestApi.client.get(url+"1001/1200/").bodyAsText(Charset.forName("EUC-KR"))
-                ).let { response ->
-                    val addData = response.sDoTEnv.row as MutableList<SDoTEnvInformation>
-                    receiveData.addAll(addData)
-                    msg = "receive count[${receiveData.count()}], addData count[${addData}]"
-                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                }
-            }
-            if(receiveData.isNotEmpty()){
-                val maxSensingTime = receiveData.maxOfOrNull { it.SENSING_TIME }
-                val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
-                transaction(ConfigManager.conn) {
-                    SchemaUtils.create(SDoT_EnvInfo)
-                    SDoT_EnvInfo.batchReplace(finalData) { item ->
-                        this[SDoT_EnvInfo.modelname] = item.MODELNAME
-                        this[SDoT_EnvInfo.serial] = item.SERIAL
-                        this[SDoT_EnvInfo.sensing_time] = item.SENSING_TIME
-                        this[SDoT_EnvInfo.region] = item.REGION
-                        this[SDoT_EnvInfo.autonomous_district] = item.AUTONOMOUS_DISTRICT
-                        this[SDoT_EnvInfo.administrative_district] = item.ADMINISTRATIVE_DISTRICT
-                        this[SDoT_EnvInfo.max_temp] = item.MAX_TEMP
-                        this[SDoT_EnvInfo.avg_temp] = item.AVG_TEMP
-                        this[SDoT_EnvInfo.min_temp] = item.MIN_TEMP
-                        this[SDoT_EnvInfo.max_humi] = item.MAX_HUMI
-                        this[SDoT_EnvInfo.avg_humi] = item.AVG_HUMI
-                        this[SDoT_EnvInfo.min_humi] = item.MIN_HUMI
-                        this[SDoT_EnvInfo.max_wind_speed] = item.MAX_WIND_SPEED
-                        this[SDoT_EnvInfo.avg_wind_speed] = item.AVG_WIND_SPEED
-                        this[SDoT_EnvInfo.min_wind_speed] = item.MIN_WIND_SPEED
-                        this[SDoT_EnvInfo.max_wind_dire] = item.MAX_WIND_DIRE
-                        this[SDoT_EnvInfo.avg_wind_dire] = item.AVG_WIND_DIRE
-                        this[SDoT_EnvInfo.min_wind_dire] = item.MIN_WIND_DIRE
-                        this[SDoT_EnvInfo.max_inte_illu] = item.MAX_INTE_ILLU
-                        this[SDoT_EnvInfo.avg_inte_illu] = item.AVG_INTE_ILLU
-                        this[SDoT_EnvInfo.min_inte_illu] = item.MIN_INTE_ILLU
-                        this[SDoT_EnvInfo.max_ultra_rays] = item.MAX_ULTRA_RAYS
-                        this[SDoT_EnvInfo.avg_ultra_rays] = item.AVG_ULTRA_RAYS
-                        this[SDoT_EnvInfo.min_ultra_rays] = item.MIN_ULTRA_RAYS
-                        this[SDoT_EnvInfo.max_noise] = item.MAX_NOISE
-                        this[SDoT_EnvInfo.avg_noise] = item.AVG_NOISE
-                        this[SDoT_EnvInfo.min_noise] = item.MIN_NOISE
-                        this[SDoT_EnvInfo.max_vibr_x] = item.MAX_VIBR_X
-                        this[SDoT_EnvInfo.avg_vibr_x] = item.AVG_VIBR_X
-                        this[SDoT_EnvInfo.min_vibr_x] = item.MIN_VIBR_X
-                        this[SDoT_EnvInfo.max_vibr_y] = item.MAX_VIBR_Y
-                        this[SDoT_EnvInfo.avg_vibr_y] = item.AVG_VIBR_Y
-                        this[SDoT_EnvInfo.min_vibr_y] = item.MIN_VIBR_Y
-                        this[SDoT_EnvInfo.max_vibr_z] = item.MAX_VIBR_Z
-                        this[SDoT_EnvInfo.avg_vibr_z] = item.AVG_VIBR_Z
-                        this[SDoT_EnvInfo.min_vibr_z] = item.MIN_VIBR_Z
-                        this[SDoT_EnvInfo.max_effe_temp] = item.MAX_EFFE_TEMP
-                        this[SDoT_EnvInfo.avg_effe_temp] = item.AVG_EFFE_TEMP
-                        this[SDoT_EnvInfo.min_effe_temp] = item.MIN_EFFE_TEMP
-                        this[SDoT_EnvInfo.max_no2] = item.MAX_NO2
-                        this[SDoT_EnvInfo.avg_no2] = item.AVG_NO2
-                        this[SDoT_EnvInfo.min_no2] = item.MIN_NO2
-                        this[SDoT_EnvInfo.max_co] = item.MAX_CO
-                        this[SDoT_EnvInfo.avg_co] = item.AVG_CO
-                        this[SDoT_EnvInfo.min_co] = item.MIN_CO
-                        this[SDoT_EnvInfo.max_so2] = item.MAX_SO2
-                        this[SDoT_EnvInfo.avg_so2] = item.AVG_SO2
-                        this[SDoT_EnvInfo.min_so2] = item.MIN_SO2
-                        this[SDoT_EnvInfo.max_nh3] = item.MAX_NH3
-                        this[SDoT_EnvInfo.avg_nh3] = item.AVG_NH3
-                        this[SDoT_EnvInfo.min_nh3] = item.MIN_NH3
-                        this[SDoT_EnvInfo.max_h2s] = item.MAX_H2S
-                        this[SDoT_EnvInfo.avg_h2s] = item.AVG_H2S
-                        this[SDoT_EnvInfo.min_h2s] = item.MIN_H2S
-                        this[SDoT_EnvInfo.max_o3] = item.MAX_O3
-                        this[SDoT_EnvInfo.avg_o3] = item.AVG_O3
-                        this[SDoT_EnvInfo.min_o3] = item.MIN_O3
-                        this[SDoT_EnvInfo.date] = item.DATE
-                        this[SDoT_EnvInfo.data_no] = item.DATA_NO
-                    }
-                }
-            }
-        } catch (e: Exception){
-            msg = e.localizedMessage
-            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
+        if(receiveData.isNotEmpty()){
+            val maxSensingTime = receiveData.maxOfOrNull { it.SENSING_TIME }
+            val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
+            transaction(ConfigManager.conn) {
+                SchemaUtils.create(SDoT_EnvInfo)
+                SDoT_EnvInfo.batchReplace(finalData) { item ->
+                    this[SDoT_EnvInfo.modelname] = item.MODELNAME
+                    this[SDoT_EnvInfo.serial] = item.SERIAL
+                    this[SDoT_EnvInfo.sensing_time] = item.SENSING_TIME
+                    this[SDoT_EnvInfo.region] = item.REGION
+                    this[SDoT_EnvInfo.autonomous_district] = item.AUTONOMOUS_DISTRICT
+                    this[SDoT_EnvInfo.administrative_district] = item.ADMINISTRATIVE_DISTRICT
+                    this[SDoT_EnvInfo.max_temp] = item.MAX_TEMP
+                    this[SDoT_EnvInfo.avg_temp] = item.AVG_TEMP
+                    this[SDoT_EnvInfo.min_temp] = item.MIN_TEMP
+                    this[SDoT_EnvInfo.max_humi] = item.MAX_HUMI
+                    this[SDoT_EnvInfo.avg_humi] = item.AVG_HUMI
+                    this[SDoT_EnvInfo.min_humi] = item.MIN_HUMI
+                    this[SDoT_EnvInfo.max_wind_speed] = item.MAX_WIND_SPEED
+                    this[SDoT_EnvInfo.avg_wind_speed] = item.AVG_WIND_SPEED
+                    this[SDoT_EnvInfo.min_wind_speed] = item.MIN_WIND_SPEED
+                    this[SDoT_EnvInfo.max_wind_dire] = item.MAX_WIND_DIRE
+                    this[SDoT_EnvInfo.avg_wind_dire] = item.AVG_WIND_DIRE
+                    this[SDoT_EnvInfo.min_wind_dire] = item.MIN_WIND_DIRE
+                    this[SDoT_EnvInfo.max_inte_illu] = item.MAX_INTE_ILLU
+                    this[SDoT_EnvInfo.avg_inte_illu] = item.AVG_INTE_ILLU
+                    this[SDoT_EnvInfo.min_inte_illu] = item.MIN_INTE_ILLU
+                    this[SDoT_EnvInfo.max_ultra_rays] = item.MAX_ULTRA_RAYS
+                    this[SDoT_EnvInfo.avg_ultra_rays] = item.AVG_ULTRA_RAYS
+                    this[SDoT_EnvInfo.min_ultra_rays] = item.MIN_ULTRA_RAYS
+                    this[SDoT_EnvInfo.max_noise] = item.MAX_NOISE
+                    this[SDoT_EnvInfo.avg_noise] = item.AVG_NOISE
+                    this[SDoT_EnvInfo.min_noise] = item.MIN_NOISE
+                    this[SDoT_EnvInfo.max_vibr_x] = item.MAX_VIBR_X
+                    this[SDoT_EnvInfo.avg_vibr_x] = item.AVG_VIBR_X
+                    this[SDoT_EnvInfo.min_vibr_x] = item.MIN_VIBR_X
+                    this[SDoT_EnvInfo.max_vibr_y] = item.MAX_VIBR_Y
+                    this[SDoT_EnvInfo.avg_vibr_y] = item.AVG_VIBR_Y
+                    this[SDoT_EnvInfo.min_vibr_y] = item.MIN_VIBR_Y
+                    this[SDoT_EnvInfo.max_vibr_z] = item.MAX_VIBR_Z
+                    this[SDoT_EnvInfo.avg_vibr_z] = item.AVG_VIBR_Z
+                    this[SDoT_EnvInfo.min_vibr_z] = item.MIN_VIBR_Z
+                    this[SDoT_EnvInfo.max_effe_temp] = item.MAX_EFFE_TEMP
+                    this[SDoT_EnvInfo.avg_effe_temp] = item.AVG_EFFE_TEMP
+                    this[SDoT_EnvInfo.min_effe_temp] = item.MIN_EFFE_TEMP
+                    this[SDoT_EnvInfo.max_no2] = item.MAX_NO2
+                    this[SDoT_EnvInfo.avg_no2] = item.AVG_NO2
+                    this[SDoT_EnvInfo.min_no2] = item.MIN_NO2
+                    this[SDoT_EnvInfo.max_co] = item.MAX_CO
+                    this[SDoT_EnvInfo.avg_co] = item.AVG_CO
+                    this[SDoT_EnvInfo.min_co] = item.MIN_CO
+                    this[SDoT_EnvInfo.max_so2] = item.MAX_SO2
+                    this[SDoT_EnvInfo.avg_so2] = item.AVG_SO2
+                    this[SDoT_EnvInfo.min_so2] = item.MIN_SO2
+                    this[SDoT_EnvInfo.max_nh3] = item.MAX_NH3
+                    this[SDoT_EnvInfo.avg_nh3] = item.AVG_NH3
+                    this[SDoT_EnvInfo.min_nh3] = item.MIN_NH3
+                    this[SDoT_EnvInfo.max_h2s] = item.MAX_H2S
+                    this[SDoT_EnvInfo.avg_h2s] = item.AVG_H2S
+                    this[SDoT_EnvInfo.min_h2s] = item.MIN_H2S
+                    this[SDoT_EnvInfo.max_o3] = item.MAX_O3
+                    this[SDoT_EnvInfo.avg_o3] = item.AVG_O3
+                    this[SDoT_EnvInfo.min_o3] = item.MIN_O3
+                    this[SDoT_EnvInfo.date] = item.DATE
+                    this[SDoT_EnvInfo.data_no] = item.DATA_NO
+                }
+            }
+        }
+
     }
 
 
@@ -1117,56 +1069,65 @@ class CollectionServerRepository {
         val interval = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.interval ?: 5
         val predictedTotalMinute = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.predictedTotalMinute ?: 60
         val path = "${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.endPoint}/${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.subPath}?ServiceKey=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.apikey}&ResultType=${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.type}${ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.boundBox}"
+        val limit = ConfigManager.currentConfig.KHOA_TIDALCURRENT_API?.limitedParallelism ?: 1
 
+        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
         val windowSize = predictedTotalMinute / interval
         val startTime = Clock.System.now() // 시작 시점 고정
 
         val funcName = ::loadDataTidalCurrent.name
-        var msg = "interval[$interval], predictedTotalMinute[$predictedTotalMinute], windowSize[$windowSize]"
+        var msg = "interval[$interval], predictedTotalMinute[$predictedTotalMinute], windowSize[$windowSize], limitedDispatcher[$limit]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val deferredResults = (0 until windowSize).map{ i ->
 
-            val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
+        //    async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
+                val targetTime = startTime.plus(i * interval, DateTimeUnit.MINUTE)
+                var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
 
-            var localDateTime = targetTime.toLocalDateTime(TimeZone.of("Asia/Seoul"))
+                localDateTime = LocalDateTime(
+                    localDateTime.year,
+                    localDateTime.month,
+                    localDateTime.day,
+                    localDateTime.hour,
+                    (localDateTime.minute / interval) * interval
+                )
 
-            localDateTime = LocalDateTime(
-                localDateTime.year,
-                localDateTime.month,
-                localDateTime.day,
-                localDateTime.hour,
-                (localDateTime.minute / interval) * interval
-            )
+                val datetime = localDateTime.format(
+                    LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") }
+                )
 
-            val datetime = localDateTime.format(
-                LocalDateTime.Format { byUnicodePattern("yyyyMMddHHmm") }
-            )
+                val date = datetime.substring(0, 8)
+                val hour = datetime.substring(8, 10)
+                val minute = datetime.substring(10, 12)
 
-            val date = datetime.substring(0, 8)
-            val hour = datetime.substring(8, 10)
-            val minute = datetime.substring(10, 12)
+                val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
 
-            val url = "${path}&Date=${date}&Hour=${hour}&Minute=${minute}"
+                retryIO(times = 3) {
+                    try {
 
-            retryIO(times = 3) {
-                try {
-                    CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
-                        CollectionServerRestApi.client.get(url).bodyAsText(StandardCharsets.UTF_8)
-                    ).let{ response ->
-                        msg = "Date[${date}],Hour[${hour}],Minute[${minute}],receive count[${response.result.data.size}]"
-                        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                        Pair(response.result.meta.sch_time, response.result.data)
+                        CollectionServerRestApi.commonJson.decodeFromString<KhonTidalCurrentInfoResponse>(
+                            CollectionServerRestApi.client.get(url)
+                                .bodyAsText(StandardCharsets.UTF_8)
+                        ).let { response ->
+                            msg =
+                                "Date[${date}],Hour[${hour}],Minute[${minute}],receive count[${response.result.data.size}]"
+                            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                            Pair(response.result.meta.sch_time, response.result.data)
+                        }
+
+
+                    } catch (e: Exception) {
+                        msg = "Rest Client Url Call Fail:[${e.localizedMessage}]"
+                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                        throw Exception("Date[${date}], Hour[${hour}], Minute[${minute}]")
                     }
-                } catch (e: Exception) {
-                    msg = "Rest Client Url Call Fail:[${e.localizedMessage}]"
-                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                    throw Exception(funcName)
                 }
-            }
+
+    //        }
 
         }
-
+    //    deferredResults.awaitAll()
         deferredResults
     }
 
@@ -1356,78 +1317,63 @@ class CollectionServerRepository {
         var msg = "Current time : ${currentTime}, Previous time : ${previous2Hour}"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        try {
+        val mofConfig = ConfigManager.currentConfig.MOF_API
+        val baseUrl = "${mofConfig?.endPoint}/${mofConfig?.subPath}?ServiceKey=${mofConfig?.apikey ?: ""}"
 
-            val mofConfig = ConfigManager.currentConfig.MOF_API
-            val baseUrl = "${mofConfig?.endPoint}/${mofConfig?.subPath}?ServiceKey=${mofConfig?.apikey ?: ""}"
+        CollectionServerRestApi.client.get(urlString = baseUrl){
+            url {
+                parameters.append("wtch_dt_start", previous2Hour)
+                parameters.append("wtch_dt_end", currentTime)
+                parameters.append("numOfRows", "1000")
+                parameters.append("pageNo", "1")
+            }
+        }.bodyAsText(Charset.forName("EUC-KR")).let { response ->
+            XML.toJSONObject(response).let { jsonData ->
 
-            CollectionServerRestApi.client.get(urlString = baseUrl){
-                url {
-                    parameters.append("wtch_dt_start", previous2Hour)
-                    parameters.append("wtch_dt_end", currentTime)
-                    parameters.append("numOfRows", "1000")
-                    parameters.append("pageNo", "1")
+                val itemNode =jsonData.query("/response/body/items/item")
+
+                val items: List<org.json.JSONObject> = when (itemNode) {
+                    is org.json.JSONArray -> { // 배열인 경우 리스트로 변환
+                        (0 until itemNode.length()).map { itemNode.getJSONObject(it) }
+                    }
+                    is org.json.JSONObject -> { // 단일 객체인 경우 리스트로 감쌈
+                        listOf(itemNode)
+                    }
+                    else -> { // 데이터가 없는 경우 (null 등)
+                        emptyList()
+                    }
                 }
-            }.bodyAsText(Charset.forName("EUC-KR")).let { response ->
-                XML.toJSONObject(response).let { jsonData ->
 
-                    val itemNode =jsonData.query("/response/body/items/item")
+                msg = "receive count[${items.size}]"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                    val items: List<org.json.JSONObject> = when (itemNode) {
-                        is org.json.JSONArray -> { // 배열인 경우 리스트로 변환
-                            (0 until itemNode.length()).map { itemNode.getJSONObject(it) }
-                        }
-                        is org.json.JSONObject -> { // 단일 객체인 경우 리스트로 감쌈
-                            listOf(itemNode)
-                        }
-                        else -> { // 데이터가 없는 경우 (null 등)
-                            emptyList()
-                        }
-                    }
+                transaction (ConfigManager.conn){
+                    SchemaUtils.create( OWQInformationTable)
 
-                    msg = "receive count[${items.size}]"
-                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                    OWQInformationTable.batchInsert(items, true, false) { item ->
 
-                    transaction (ConfigManager.conn){
-                        SchemaUtils.create( OWQInformationTable)
+                        // optString, optDouble을 사용하면 데이터가 없거나 형식이 틀려도 안전합니다.
+                        this[OWQInformationTable.rtmWqWtchDtlDt] = item.optString("rtmWqWtchDtlDt", "").substringBefore('.')
+                        this[OWQInformationTable.rtmWqWtchStaCd] = item.optString("rtmWqWtchStaCd", "")
 
-                        try {
-                            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                            OWQInformationTable.batchInsert(items, true, false) { item ->
+                        // 수치 데이터 안전 변환 (String.format 에러 방지)
+                        this[OWQInformationTable.rtmWtchWtem] = String.format("%.3f", item.optDouble("rtmWtchWtem", 0.0))
+                        this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", item.optDouble("rtmWqCndctv", 0.0))
+                        this[OWQInformationTable.ph] = String.format("%.2f", item.optDouble("ph", 0.0))
+                        this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", item.optDouble("rtmWqDoxn", 0.0))
 
-                                // optString, optDouble을 사용하면 데이터가 없거나 형식이 틀려도 안전합니다.
-                                this[OWQInformationTable.rtmWqWtchDtlDt] = item.optString("rtmWqWtchDtlDt", "").substringBefore('.')
-                                this[OWQInformationTable.rtmWqWtchStaCd] = item.optString("rtmWqWtchStaCd", "")
+                        this[OWQInformationTable.rtmWqTu] = item.optString("rtmWqTu", "")
+                        this[OWQInformationTable.rtmWqBgalgsQy] = item.optString("rtmWqBgalgsQy", "")
 
-                                // 수치 데이터 안전 변환 (String.format 에러 방지)
-                                this[OWQInformationTable.rtmWtchWtem] = String.format("%.3f", item.optDouble("rtmWtchWtem", 0.0))
-                                this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", item.optDouble("rtmWqCndctv", 0.0))
-                                this[OWQInformationTable.ph] = String.format("%.2f", item.optDouble("ph", 0.0))
-                                this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", item.optDouble("rtmWqDoxn", 0.0))
-
-                                this[OWQInformationTable.rtmWqTu] = item.optString("rtmWqTu", "")
-                                this[OWQInformationTable.rtmWqBgalgsQy] = item.optString("rtmWqBgalgsQy", "")
-
-                                this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", item.optDouble("rtmWqChpla", 0.0))
-                                this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", item.optDouble("rtmWqSlnty", 0.0))
-
-                            }
-
-                        } catch (e: Exception) {
-                            msg = e.localizedMessage
-                            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                        }
+                        this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", item.optDouble("rtmWqChpla", 0.0))
+                        this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", item.optDouble("rtmWqSlnty", 0.0))
 
                     }
+
                 }
             }
-
-
-        }catch(e: Exception) {
-            msg = e.localizedMessage
-            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
-
     }
 
 
@@ -1450,35 +1396,30 @@ class CollectionServerRepository {
         val funcName = ::getRealTimeObservation.name
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-        try{
-            callNifsAPI_json("list").let {
-                val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
-                if(recvData.header.resultCode.equals("00")){
-                    msg = "datetime[${recvData.body.item[0].obs_tim}], receive count[${recvData.body.item.size}]"
-                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        callNifsAPI_json("list").let {
+            val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservationResponse>(it)
+            if(recvData.header.resultCode.equals("00")){
+                msg = "datetime[${recvData.body.item[0].obs_tim}], receive count[${recvData.body.item.size}]"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                    transaction (ConfigManager.conn) {
-                        SchemaUtils.create( ObservationTable)
-                        // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                        ObservationTable.batchInsert(recvData.body.item, true, false) { row ->
-                            this[ObservationTable.sta_cde] = row.sta_cde
-                            this[ObservationTable.sta_nam_kor] = row.sta_nam_kor
-                            this[ObservationTable.obs_dat] = row.obs_dat
-                            this[ObservationTable.obs_tim] = row.obs_tim
-                            this[ObservationTable.obs_datetime] = "${row.obs_dat} ${row.obs_tim}"
-                            this[ObservationTable.repair_gbn] = row.repair_gbn
-                            this[ObservationTable.obs_lay] = row.obs_lay
-                            this[ObservationTable.wtr_tmp] = row.wtr_tmp.toString()
-                        }
+                transaction (ConfigManager.conn) {
+                    SchemaUtils.create( ObservationTable)
+                    // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                    ObservationTable.batchInsert(recvData.body.item, true, false) { row ->
+                        this[ObservationTable.sta_cde] = row.sta_cde
+                        this[ObservationTable.sta_nam_kor] = row.sta_nam_kor
+                        this[ObservationTable.obs_dat] = row.obs_dat
+                        this[ObservationTable.obs_tim] = row.obs_tim
+                        this[ObservationTable.obs_datetime] = "${row.obs_dat} ${row.obs_tim}"
+                        this[ObservationTable.repair_gbn] = row.repair_gbn
+                        this[ObservationTable.obs_lay] = row.obs_lay
+                        this[ObservationTable.wtr_tmp] = row.wtr_tmp.toString()
                     }
-                }else{
-                    msg = "receive message[${recvData.header.resultMsg}]"
-                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                 }
+            }else{
+                msg = "receive message[${recvData.header.resultMsg}]"
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
-        } catch(e: Exception) {
-            msg = e.localizedMessage
-            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
     }
 
@@ -1487,43 +1428,38 @@ class CollectionServerRepository {
         val funcName = ::getRealTimeObservatory.name
         var msg = "Start"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-        try{
-            callNifsAPI_json("code").let {
-                val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
-                if(recvData.header.resultCode.equals("00")) {
-                    msg = "receive count[${recvData.body.item.size}]"
-                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        callNifsAPI_json("code").let {
+            val recvData = CollectionServerRestApi.commonJson.decodeFromString<ObservatoryResponse>(it)
+            if(recvData.header.resultCode.equals("00")) {
+                msg = "receive count[${recvData.body.item.size}]"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                    transaction (ConfigManager.conn){
-                        SchemaUtils.drop( ObservatoryTable)
-                        SchemaUtils.create( ObservatoryTable)
-                        // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                        ObservatoryTable.batchInsert(recvData.body.item, true, false) { row ->
-                            this[ObservatoryTable.sta_cde] = row.sta_cde
-                            this[ObservatoryTable.sta_nam_kor] = row.sta_nam_kor
-                            this[ObservatoryTable.bld_dat] = row.bld_dat
-                            this[ObservatoryTable.end_dat] = row.end_dat
-                            this[ObservatoryTable.gru_nam] = row.gru_nam
-                            this[ObservatoryTable.lon] = row.lon
-                            this[ObservatoryTable.lat] = row.lat
-                            this[ObservatoryTable.sur_tmp_yn] = row.sur_tmp_yn
-                            this[ObservatoryTable.mid_tmp_yn] = row.mid_tmp_yn
-                            this[ObservatoryTable.bot_tmp_yn] = row.bot_tmp_yn
-                            this[ObservatoryTable.sur_dep] = row.sur_dep
-                            this[ObservatoryTable.mid_dep] = row.mid_dep
-                            this[ObservatoryTable.bot_dep] = row.bot_dep
-                            this[ObservatoryTable.sta_des] = row.sta_des
-                        }
+                transaction (ConfigManager.conn){
+                    SchemaUtils.drop( ObservatoryTable)
+                    SchemaUtils.create( ObservatoryTable)
+                    // 개별 insert 대신 batchInsert 사용 (성능 핵심)
+                    ObservatoryTable.batchInsert(recvData.body.item, true, false) { row ->
+                        this[ObservatoryTable.sta_cde] = row.sta_cde
+                        this[ObservatoryTable.sta_nam_kor] = row.sta_nam_kor
+                        this[ObservatoryTable.bld_dat] = row.bld_dat
+                        this[ObservatoryTable.end_dat] = row.end_dat
+                        this[ObservatoryTable.gru_nam] = row.gru_nam
+                        this[ObservatoryTable.lon] = row.lon
+                        this[ObservatoryTable.lat] = row.lat
+                        this[ObservatoryTable.sur_tmp_yn] = row.sur_tmp_yn
+                        this[ObservatoryTable.mid_tmp_yn] = row.mid_tmp_yn
+                        this[ObservatoryTable.bot_tmp_yn] = row.bot_tmp_yn
+                        this[ObservatoryTable.sur_dep] = row.sur_dep
+                        this[ObservatoryTable.mid_dep] = row.mid_dep
+                        this[ObservatoryTable.bot_dep] = row.bot_dep
+                        this[ObservatoryTable.sta_des] = row.sta_des
                     }
-
-                }else{
-                    msg = "receive message[${recvData.header.resultMsg}]"
-                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                 }
+
+            }else{
+                msg = "receive message[${recvData.header.resultMsg}]"
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
             }
-        } catch (e: Exception){
-            msg = e.localizedMessage
-            LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
         }
     }
 
