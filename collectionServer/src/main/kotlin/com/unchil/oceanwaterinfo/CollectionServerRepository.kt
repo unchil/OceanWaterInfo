@@ -50,6 +50,7 @@ import org.jetbrains.kotlinx.dataframe.api.values
 import org.jetbrains.kotlinx.dataframe.api.with
 import org.jetbrains.kotlinx.dataframe.io.read
 import org.jetbrains.kotlinx.dataframe.io.readJson
+import org.jetbrains.kotlinx.dataframe.io.readJsonStr
 import org.jetbrains.kotlinx.dataframe.io.toCsvStr
 import org.jetbrains.kotlinx.dataframe.size
 import org.json.XML
@@ -80,90 +81,115 @@ class CollectionServerRepository {
         var msg = "wtch_dt_start : ${wtch_dt_start}, wtch_dt_end : ${wtch_dt_end}"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        val url = "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
-                "?wtch_dt_start=${URLEncoder.encode(wtch_dt_start, StandardCharsets.UTF_8.toString())}" +
-                "&wtch_dt_end=${URLEncoder.encode(wtch_dt_end, StandardCharsets.UTF_8.toString())}" +
-                "&ServiceKey=${ConfigManager.currentConfig.MOF_API?.apikey}"
-
-        val limitedParallelism = ConfigManager.currentConfig.MOF_API?.limitedParallelism ?: 1
-        val dataList = loadDataOceanWemo(url, limitedParallelism)
+        val dataList = loadDataOceanWemo(wtch_dt_start, wtch_dt_end)
         val result = dataList.concat()
 
         msg = "receive count[${result.count()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
+        // 안전한 수치 변환 헬퍼 함수
+        fun Any?.safeFormatDouble(format: String, defaultValue: Double = 0.0): String {
+            val num = this?.toString()?.trim()?.toDoubleOrNull() ?: defaultValue
+            return String.format(format, num)
+        }
+
         transaction (ConfigManager.conn){
             SchemaUtils.create( OWQInformationTable)
+            // 개별 insert 대신 batchInsert 사용 (성능 핵심)
 
-            try {
-                // 개별 insert 대신 batchInsert 사용 (성능 핵심)
-                OWQInformationTable.batchInsert(result.rows(), true, false) { row ->
-                    this[OWQInformationTable.rtmWqWtchDtlDt] = row["rtmWqWtchDtlDt"].toString().substringBefore('.')
-                    this[OWQInformationTable.rtmWqWtchStaCd] = row["rtmWqWtchStaCd"].toString()
-                    this[OWQInformationTable.rtmWtchWtem] =  String.format("%.3f", row["rtmWtchWtem"].toString().toDouble())
-                    this[OWQInformationTable.rtmWqCndctv] = String.format("%.3f", row["rtmWqCndctv"].toString().toFloat())
-                    this[OWQInformationTable.ph] = String.format("%.2f", row["ph"].toString().toFloat())
-                    this[OWQInformationTable.rtmWqDoxn] = String.format("%.3f", row["rtmWqDoxn"].toString().toDouble())
-                    this[OWQInformationTable.rtmWqTu] = row["rtmWqTu"].toString()
-                    this[OWQInformationTable.rtmWqBgalgsQy] = row["rtmWqBgalgsQy"].toString()
-                    this[OWQInformationTable.rtmWqChpla] = String.format("%.3f", row["rtmWqChpla"].toString().toDouble())
-                    this[OWQInformationTable.rtmWqSlnty] = String.format("%.3f", row["rtmWqSlnty"].toString().toFloat())
-                }
+            OWQInformationTable.batchInsert(result.rows(), true, false) { row ->
+                this[OWQInformationTable.rtmWqWtchDtlDt] = row["rtmWqWtchDtlDt"]?.toString()?.substringBefore('.') ?: ""
+                this[OWQInformationTable.rtmWqWtchStaCd] = row["rtmWqWtchStaCd"]?.toString() ?: ""
 
-            } catch (e: Exception) {
-                msg = e.localizedMessage
-                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                // toDoubleOrNull()을 통해 empty String 및 null 에러 방지
+                this[OWQInformationTable.rtmWtchWtem] = row["rtmWtchWtem"].safeFormatDouble("%.3f")
+                this[OWQInformationTable.rtmWqCndctv] = row["rtmWqCndctv"].safeFormatDouble("%.3f")
+                this[OWQInformationTable.ph] = row["ph"].safeFormatDouble("%.2f")
+                this[OWQInformationTable.rtmWqDoxn] = row["rtmWqDoxn"].safeFormatDouble("%.3f")
+
+                this[OWQInformationTable.rtmWqTu] = row["rtmWqTu"]?.toString() ?: ""
+                this[OWQInformationTable.rtmWqBgalgsQy] = row["rtmWqBgalgsQy"]?.toString() ?: ""
+
+                this[OWQInformationTable.rtmWqChpla] = row["rtmWqChpla"].safeFormatDouble("%.3f")
+                this[OWQInformationTable.rtmWqSlnty] = row["rtmWqSlnty"].safeFormatDouble("%.3f")
+
             }
-
         }
     }
 
 
-    suspend fun loadDataOceanWemo(path:String, limit:Int): List<DataFrame<*>> = coroutineScope {
+    suspend fun loadDataOceanWemo(wtch_dt_start:String, wtch_dt_end:String): List<DataFrame<*>> = coroutineScope {
+
         val funcName = ::loadDataOceanWemo.name
-        var msg = "limitedDispatcher: ${limit}"
+        val numOfRows = ConfigManager.currentConfig.MOF_API?.numOfRows ?: 100
+
+        var msg =
+            "wtch_dt_start :[${wtch_dt_start}], wtch_dt_end :[${wtch_dt_end}], numOfRows: [$numOfRows]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        val numOfRows = 100
-        val limitedDispatcher = Dispatchers.IO.limitedParallelism(limit)
+        val baseUrl =
+            "${ConfigManager.currentConfig.MOF_API?.endPoint}/${ConfigManager.currentConfig.MOF_API?.subPath}" +
+                    "?wtch_dt_start=${
+                        URLEncoder.encode(
+                            wtch_dt_start,
+                            StandardCharsets.UTF_8.toString()
+                        )
+                    }" +
+                    "&wtch_dt_end=${
+                        URLEncoder.encode(
+                            wtch_dt_end,
+                            StandardCharsets.UTF_8.toString()
+                        )
+                    }" +
+                    "&ServiceKey=${ConfigManager.currentConfig.MOF_API?.apikey}"
 
-        val baseUrl = "${path}&numOfRows=${numOfRows}"
         val url = "${baseUrl}&pageNo=1"
 
         val df_first = retryIO(times = 3) {
             try {
-                DataFrame.readJson(url)
+                val result = CollectionServerRestApi.client.get(urlString = url)
+                    .bodyAsText(Charset.forName("EUC-KR")).let { response ->
+                        XML.toJSONObject(response).toString()
+                    }
+                DataFrame.readJsonStr(result)
             } catch (e: Exception) {
-                msg = "Rest Client Url Call Fail: [$url][${e.localizedMessage}]"
+                msg = "pageNo[1],[${e.localizedMessage}]"
                 LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                throw Exception(funcName)
+                throw Exception("pageNo[1]")
             }
         }
 
-        val first_data = df_first["body"]["items"]["item"][0] as DataFrame<*>
-        val totalCount = (df_first["body"]["totalCount"][0] as Number).toInt()
+        val first_data = df_first["response"]["body"]["items"]["item"][0] as DataFrame<*>
+        val totalCount = (df_first["response"]["body"]["totalCount"][0] as Number).toInt()
         val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
 
         msg = "총 데이터 개수: $totalCount, 전체 페이지 수: $totalPages"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         val deferredResults = (2..totalPages).map { pageNo ->
-            delay(100)
-            async(limitedDispatcher) { // 네트워크 IO를 위한 IO 디스패처 사용
-                retryIO(times = 3) {
-                    try {
-                        val pageUrl = "$baseUrl&pageNo=${pageNo}"
-                        val df_page = DataFrame.readJson(pageUrl)
-                        df_page["body"]["items"]["item"][0] as DataFrame<*>
-                    } catch (e: Exception) {
-                        msg = "Rest Client Url Call Fail: [$baseUrl&pageNo=${pageNo}][${e.localizedMessage}]"
-                        LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
-                        throw Exception(funcName)
-                    }
+            retryIO(times = 3) {
+                try {
+                    val pageUrl = "$baseUrl&pageNo=${pageNo}"
+                    val result = CollectionServerRestApi.client.get(urlString = pageUrl)
+                        .bodyAsText(Charset.forName("EUC-KR")).let { response ->
+                            XML.toJSONObject(response).toString()
+                        }
+
+                    msg = "data receive: pageNo[$pageNo]"
+                    LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+                    val df_page = DataFrame.readJsonStr(result)
+                    df_page["response"]["body"]["items"]["item"][0] as DataFrame<*>
+
+                } catch (e: Exception) {
+                    msg = "pageNo[$pageNo],[${e.localizedMessage}]"
+                    LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                    throw Exception("pageNo[$pageNo]")
                 }
             }
         }
-        listOf(first_data) +  deferredResults.awaitAll()
+        listOf(first_data) + deferredResults
+
     }
 
 

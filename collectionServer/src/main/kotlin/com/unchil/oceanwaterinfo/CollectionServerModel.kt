@@ -425,8 +425,8 @@ data class  MofApiConfig(
     val endPoint: String,
     val apikey: String,
     val subPath: String,
-
-    val limitedParallelism: Int
+    val limitedParallelism: Int,
+    val numOfRows: Int
 
 )
 
