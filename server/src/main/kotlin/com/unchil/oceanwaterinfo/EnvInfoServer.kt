@@ -14,11 +14,18 @@ fun main(args: Array<String>){
 
         io.ktor.server.netty.EngineMain.main(args)
     } else {
-        LOGGER.info("[Server] 기본 [server/src/main/resources/application.yaml] 설정을 사용합니다."  )
+        val userHome = System.getProperty("user.home")
+        val externalConfigFile = File("$userHome/.EnvInfoServer/application.yaml")
+        LOGGER.info("[Server] 기본 [${externalConfigFile.absolutePath}] 설정을 사용합니다."  )
         // "-config="로 시작하는 모든 요소를 제거한 새로운 Array<String> 생성
         val cleanedArgs: Array<String> = args.filterNot { it.startsWith("-config=") }.toTypedArray()
+        val finalArgs = if(cleanedArgs.size == 0){
+             arrayOf("-config=${externalConfigFile.absolutePath}")
+        }else {
+            cleanedArgs + arrayOf("-config=${externalConfigFile.absolutePath}")
+        }
 
-        io.ktor.server.netty.EngineMain.main(cleanedArgs)
+        io.ktor.server.netty.EngineMain.main(finalArgs)
     }
 
 }
