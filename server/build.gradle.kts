@@ -17,7 +17,6 @@ application {
 
     applicationDefaultJvmArgs = listOf(
         "-Dio.ktor.development=$isDevelopment" ,
-        "-Dio.ktor.config.file=$externalConfigPath",
         "-Dlogback.configurationFile=$externalLogFilePath",
     )
 }
