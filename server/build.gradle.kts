@@ -45,6 +45,7 @@ dependencies {
 
 
 tasks.named<JavaExec>("run") {
+    val userHome = System.getProperty("user.home")
     // 외부 application.yaml 파일 경로 지정
-    args("-config=/Users/unchil/.EnvInfoServer/application.yaml")
+    args("-config=$userHome/.EnvInfoServer/application.yaml")
 }
