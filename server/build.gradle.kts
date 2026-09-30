@@ -10,8 +10,16 @@ version = "1.0.0"
 application {
     mainClass.set("com.unchil.oceanwaterinfo.EnvInfoServerKt")
 
+    val userHome = System.getProperty("user.home")
     val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    val externalConfigPath = "$userHome/.EnvInfoServer/application.yaml"
+    val externalLogFilePath = "$userHome/.EnvInfoServer/logback.xml"
+
+    applicationDefaultJvmArgs = listOf(
+        "-Dio.ktor.development=$isDevelopment" ,
+        "-Dio.ktor.config.file=$externalConfigPath",
+        "-Dlogback.configurationFile=$externalLogFilePath",
+    )
 }
 
 dependencies {
@@ -35,4 +43,10 @@ dependencies {
     implementation(libs.exposed.jdbc)
 
     implementation(libs.hikaricp)
+}
+
+
+tasks.named<JavaExec>("run") {
+    // 외부 application.yaml 파일 경로 지정
+    args("-config=/Users/unchil/.EnvInfoServer/application.yaml")
 }
