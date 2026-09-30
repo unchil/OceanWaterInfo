@@ -12,7 +12,6 @@ application {
 
     val userHome = System.getProperty("user.home")
     val isDevelopment: Boolean = project.ext.has("development")
-    val externalConfigPath = "$userHome/.EnvInfoServer/application.yaml"
     val externalLogFilePath = "$userHome/.EnvInfoServer/logback.xml"
 
     applicationDefaultJvmArgs = listOf(
