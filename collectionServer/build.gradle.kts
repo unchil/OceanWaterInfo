@@ -34,6 +34,8 @@ dependencies {
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
 
+    implementation(libs.hikaricp)
+
     implementation(libs.kotlinx.dataframe)
 
     implementation("org.json:json:20250517")

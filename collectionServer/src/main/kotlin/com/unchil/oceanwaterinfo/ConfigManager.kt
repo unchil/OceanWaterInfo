@@ -36,12 +36,6 @@ object ConfigManager {
     private var watchJob: Job? = null
     private var watchService: java.nio.file.WatchService? = null
 
-
-    val conn = Database.connect(
-        url = currentConfig.SQLITE_DB?.jdbcURL ?: "",
-        driver = currentConfig.SQLITE_DB?.driverClassName ?: "",
-    )
-
     // 최초 로드 함수
     private fun loadConfig(): ConfigData {
         val funcName = ::loadConfig.name

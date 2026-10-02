@@ -403,6 +403,7 @@ data class KhoaTidalCurrentApiConfig(
     val interval: Int,
     val predictedTotalMinute: Int,
     val limitedParallelism: Int,
+    val loopdelay: Int
 
 )
 
@@ -438,6 +439,7 @@ data class  KhoaApiConfig(
     val type: String,
     val min: String,
     val numOfRows: String,
+    val limitedParallelismREST: Int,
     val limitedParallelismDB: Int,
 
 )
@@ -455,7 +457,8 @@ data class KHNP_SUBURL(
 data class KHNP(
     val endPoint: String,
     val subPath: KHNP_SUBURL,
-    val serviceKey: String
+    val serviceKey: String,
+    val limitedParallelism: Int
 )
 
 @Serializable
@@ -463,6 +466,7 @@ data class Water_LoggedConfig(
     val endPoint: String,
     val subPath: String,
     val apikey: String,
+    val type: String,
     val node: String,
     val nodeOption: String,
     val mapshaper: String,
@@ -489,12 +493,24 @@ data class  SDoTApiConfig(
 )
 
 
-
+@Serializable
+data class DBCP(
+    val maxPoolSize: Int,
+    val maxLifetime: Long,
+    val connectionTimeout: Long,
+    val validationTimeout: Long,
+    val idleTimeout: Long,
+    val initializationFailTimeout: Long,
+    val isAutoCommit: Boolean,
+    val keepaliveTime: Long
+)
 
 @Serializable
 data class DatabaseConfig(
     val jdbcURL: String,
-    val driverClassName: String
+    val driverClassName: String,
+    val dbcp:DBCP
+
 )
 
 @Serializable

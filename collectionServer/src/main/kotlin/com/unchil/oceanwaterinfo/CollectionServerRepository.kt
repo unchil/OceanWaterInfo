@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import com.unchil.oceanwaterinfo.CollectionServerDataBase.dataSource
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.appendPathSegments
@@ -26,6 +27,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.statements.api.ExposedBlob
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.batchReplace
@@ -70,7 +72,7 @@ import kotlin.time.Clock
 class CollectionServerRepository {
 
     init {
-        transaction(ConfigManager.conn) {
+        transaction( Database.connect(dataSource) ) {
             addLogger(StdOutSqlLogger)
         }
     }
@@ -93,7 +95,7 @@ class CollectionServerRepository {
             return String.format(format, num)
         }
 
-        transaction (ConfigManager.conn){
+        transaction (Database.connect(dataSource)){
             SchemaUtils.create( OWQInformationTable)
             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
 
@@ -280,7 +282,7 @@ class CollectionServerRepository {
 
 
 
-        transaction(ConfigManager.conn) {
+        transaction(Database.connect(dataSource)) {
              SchemaUtils.create(KHNP_PlantInfo)
              // 개별 insert 대신 batchInsert 사용 (성능 핵심)
              KHNP_PlantInfo.batchInsert(plantInfo, true, false) { row ->
@@ -399,7 +401,7 @@ class CollectionServerRepository {
         msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        transaction(ConfigManager.conn) {
+        transaction(Database.connect(dataSource)) {
             SchemaUtils.create(KHNP_ThermalWasteWater)
             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
             KHNP_ThermalWasteWater.batchInsert(result.rows(), true, false) { row ->
@@ -454,7 +456,7 @@ class CollectionServerRepository {
         msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        transaction(ConfigManager.conn) {
+        transaction(Database.connect(dataSource)) {
             SchemaUtils.create(KHNP_WasteWater)
             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
             KHNP_WasteWater.batchInsert(result.rows(), true, false) { row ->
@@ -484,7 +486,7 @@ class CollectionServerRepository {
         msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        transaction(ConfigManager.conn) {
+        transaction(Database.connect(dataSource)) {
             SchemaUtils.create(KHNP_RadioRate)
             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
             KHNP_RadioRate.batchInsert(result.rows(), true, false) { row ->
@@ -510,7 +512,7 @@ class CollectionServerRepository {
         msg = "Size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        transaction(ConfigManager.conn) {
+        transaction(Database.connect(dataSource)) {
             SchemaUtils.create(KHNP_RadioActiveWaste)
             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
             KHNP_RadioActiveWaste.batchInsert(result.rows(), true, false) { row ->
@@ -700,7 +702,7 @@ class CollectionServerRepository {
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
         // 1. 시군구 코드 목록 추출 (짧은 트랜잭션)
-        val codeList = transaction(ConfigManager.conn) {
+        val codeList = transaction(Database.connect(dataSource)) {
             SggCode.select(SggCode.sgg_code).map { it ->
                 it[SggCode.sgg_code].trim()
             }
@@ -715,7 +717,7 @@ class CollectionServerRepository {
             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
             result.rows().chunked(1000).forEach{ chunk ->
-                suspendTransaction( ConfigManager.conn) {
+                suspendTransaction( Database.connect(dataSource)) {
                     try {
                         // 개별 insert 대신 batchInsert 사용 (성능 핵심)
                         CoastalFloodingGeoInfo.batchInsert(chunk, true, false) { row ->
@@ -732,7 +734,7 @@ class CollectionServerRepository {
                 }
             }
             // 1. 데이터 수집 및 초기화 단계
-            val updateTargets = suspendTransaction( ConfigManager.conn) {
+            val updateTargets = suspendTransaction( Database.connect(dataSource)) {
 
                 msg = "CoastalFloodingGeoInfo 테이블 갱신 완료"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
@@ -804,7 +806,7 @@ class CollectionServerRepository {
 
                         launch(mapShaperLimitedDispatcher ) { // 네트워크 IO를 위한 IO 디스패처 사용
 
-                                val geoJsonObject = suspendTransaction( ConfigManager.conn) {
+                                val geoJsonObject = suspendTransaction( Database.connect(dataSource)) {
                                     CoastalFloodingGeoTbl
                                         .select(
                                             CoastalFloodingGeoTbl.grade,
@@ -839,7 +841,7 @@ class CollectionServerRepository {
 
                                 if (simplifyGeoJsonObject.isEmpty()) return@launch
 
-                                suspendTransaction( ConfigManager.conn) {
+                                suspendTransaction( Database.connect(dataSource)) {
 
                                     val originalBlob = ExposedBlob(geoJsonObject.toByteArray(Charsets.UTF_8))
 
@@ -872,7 +874,7 @@ class CollectionServerRepository {
             }// coroutineScope
         }
 
-        suspendTransaction( ConfigManager.conn) {
+        suspendTransaction( Database.connect(dataSource)) {
             CoastalFloodingGeoInfo.deleteAll()
             msg = "CoastalFloodingGeoInfo  테이블 삭제 완료"
             LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
@@ -967,7 +969,7 @@ class CollectionServerRepository {
         msg = "result size:[${result.size()}]"
         LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-        transaction(ConfigManager.conn) {
+        transaction(Database.connect(dataSource)) {
             SchemaUtils.create(SDoT_EnvInfo_Gyonggi)
             // 개별 insert 대신 batchInsert 사용 (성능 핵심)
             SDoT_EnvInfo_Gyonggi.batchInsert(result.rows(), true, false) { row ->
@@ -1022,7 +1024,7 @@ class CollectionServerRepository {
         if(receiveData.isNotEmpty()){
             val maxSensingTime = receiveData.maxOfOrNull { it.SENSING_TIME }
             val finalData = receiveData.filter { it.SENSING_TIME == maxSensingTime}
-            transaction(ConfigManager.conn) {
+            transaction(Database.connect(dataSource)) {
                 SchemaUtils.create(SDoT_EnvInfo)
                 SDoT_EnvInfo.batchReplace(finalData) { item ->
                     this[SDoT_EnvInfo.modelname] = item.MODELNAME
@@ -1179,7 +1181,7 @@ class CollectionServerRepository {
 
                     launch(limitedParallelism) {
 
-                        suspendTransaction(ConfigManager.conn) {
+                        suspendTransaction(Database.connect(dataSource)) {
                             SchemaUtils.create(TidalCurrentInfoKHOA)
                             try {
                                 TidalCurrentInfoKHOA.batchReplace(result) { item ->
@@ -1262,7 +1264,7 @@ class CollectionServerRepository {
 
     suspend fun getKhoaObservation()  {
 
-        val codeList = transaction(ConfigManager.conn) {
+        val codeList = transaction(Database.connect(dataSource)) {
             ObservatoryKHOA.select(ObservatoryKHOA.obsCode)
                 .withDistinct()
                 .where { ObservatoryKHOA.obsCode like "HB%"  }
@@ -1292,7 +1294,7 @@ class CollectionServerRepository {
 
                     launch(limitedDispatcher) {
 
-                        suspendTransaction(ConfigManager.conn) {
+                        suspendTransaction(Database.connect(dataSource)) {
 
                             SchemaUtils.create(ObservationKHOA)
                             SchemaUtils.create(ObservatoryKHOA)
@@ -1373,7 +1375,7 @@ class CollectionServerRepository {
                 msg = "receive count[${items.size}]"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                transaction (ConfigManager.conn){
+                transaction (Database.connect(dataSource)){
                     SchemaUtils.create( OWQInformationTable)
 
                     // 개별 insert 대신 batchInsert 사용 (성능 핵심)
@@ -1428,7 +1430,7 @@ class CollectionServerRepository {
                 msg = "datetime[${recvData.body.item[0].obs_tim}], receive count[${recvData.body.item.size}]"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                transaction (ConfigManager.conn) {
+                transaction (Database.connect(dataSource)) {
                     SchemaUtils.create( ObservationTable)
                     // 개별 insert 대신 batchInsert 사용 (성능 핵심)
                     ObservationTable.batchInsert(recvData.body.item, true, false) { row ->
@@ -1460,7 +1462,7 @@ class CollectionServerRepository {
                 msg = "receive count[${recvData.body.item.size}]"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
 
-                transaction (ConfigManager.conn){
+                transaction (Database.connect(dataSource)){
                     SchemaUtils.drop( ObservatoryTable)
                     SchemaUtils.create( ObservatoryTable)
                     // 개별 insert 대신 batchInsert 사용 (성능 핵심)
