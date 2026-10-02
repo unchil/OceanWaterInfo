@@ -1,6 +1,6 @@
 package com.unchil.oceanwaterinfo
 
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
 import java.io.File
 
 
@@ -33,6 +33,7 @@ fun main(args: Array<String>){
 
 fun Application.module_Serialization(){
     LOGGER.info("Start Ktor EnvInfo Server")
+    EnvInfoServerDatabase.init(environment.config)
     configureDatabase()
     configureSerialization()
 }

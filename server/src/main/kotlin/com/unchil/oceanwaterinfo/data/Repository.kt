@@ -1,6 +1,7 @@
 package com.unchil.oceanwaterinfo
 
 
+import com.unchil.oceanwaterinfo.EnvInfoServerDatabase.dataSource
 import com.unchil.oceanwaterinfo.data.RepositoryLogHeader
 import io.ktor.server.config.ApplicationConfig
 import kotlinx.datetime.DateTimeUnit
@@ -26,6 +27,7 @@ import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.substring
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
@@ -462,7 +464,8 @@ object Repository{
 
 
 
-    suspend fun fetchCoastalFloodingGeoJsonObjectFromDb(grade:String, ctpvNm:String, type:String): List<CoastalFloodingGeoJsonObject> = suspendTransaction {
+    suspend fun fetchCoastalFloodingGeoJsonObjectFromDb(grade:String, ctpvNm:String, type:String): List<CoastalFloodingGeoJsonObject>
+    = suspendTransaction(Database.connect(dataSource)) {
 
         val result = when(type){
             "all" -> {
@@ -511,7 +514,8 @@ object Repository{
         return@suspendTransaction result
     }
 
-    suspend fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String, ctpvNm:String): List<CoastalFloodingGeo> = suspendTransaction {
+    suspend fun fetchCoastalFloodingGeoFromDb(page: Int, size: Int, grade:String, ctpvNm:String): List<CoastalFloodingGeo>
+    = suspendTransaction(Database.connect(dataSource)) {
 
         val offset = ((page - 1) * size).toLong()
 
@@ -545,8 +549,8 @@ object Repository{
         return@suspendTransaction result
     }
 
-    suspend fun fetchKHNPPlantStateFromDb(): List<KHNPPlantOperationInfo> = suspendTransaction {
-
+    suspend fun fetchKHNPPlantStateFromDb(): List<KHNPPlantOperationInfo>
+       = suspendTransaction(Database.connect(dataSource)) {
         val result = KHNP_PlantOperationInfo.selectAll()
             .map { it ->
                 KHNPPlantOperationInfo(
@@ -564,7 +568,8 @@ object Repository{
     }
 
 
-    suspend fun fetchKHNPRadioActiveWasteFromDb(): List<KHNPRadioActiveWaste> = suspendTransaction {
+    suspend fun fetchKHNPRadioActiveWasteFromDb(): List<KHNPRadioActiveWaste>
+    = suspendTransaction(Database.connect(dataSource)) {
 
         val result = KHNP_RadioActiveWaste.selectAll()
             .map { it ->
@@ -583,7 +588,8 @@ object Repository{
         return@suspendTransaction result
     }
 
-    suspend fun fetchKHNPRadioRateFromDb(): List<KHNPRadioRate> = suspendTransaction {
+    suspend fun fetchKHNPRadioRateFromDb(): List<KHNPRadioRate>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val maxCollectionTime = KHNP_RadioRate.collectionTime.max()
         val lastTime = KHNP_RadioRate.select(maxCollectionTime).limit(1).map {
@@ -607,7 +613,8 @@ object Repository{
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater> = suspendTransaction {
+    suspend fun fetchKHNPThermalWasteWaterFromDb():  List<KHNPThermalWasteWater>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val previous24Hour =
             kotlin.time.Clock.System.now()
@@ -646,7 +653,8 @@ object Repository{
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater> = suspendTransaction {
+    suspend fun fetchKHNPWasteWaterFromDb(): List<KHNPWasteWater>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val previous24Hour =
             kotlin.time.Clock.System.now()
@@ -675,7 +683,8 @@ object Repository{
         return@suspendTransaction result
 
     }
-    suspend fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion> = suspendTransaction {
+    suspend fun fetchSDoTEnvInfoUnionFromDb(): List<SDoTEnvInfoUnion>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         // 패딩용 빈 문자열 리터럴 (pm10, pm25, nh3, h2s 자리에 사용)
         val empty = org.jetbrains.exposed.v1.core.stringLiteral("")
@@ -760,7 +769,8 @@ object Repository{
     }
 
 
-    suspend fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi> = suspendTransaction {
+    suspend fun fetchSDoTEnvInfoGyonggiFromDb():List<SDoTEnvInformationGyonggi>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val lastTimeExpression = SDoT_EnvInfo_Gyonggi.sensing_time.max()
 
@@ -792,7 +802,8 @@ object Repository{
     }
 
 
-    suspend fun fetchSDoTEnvInfoFromDb():List<SDoTEnvInformation> = suspendTransaction {
+    suspend fun fetchSDoTEnvInfoFromDb():List<SDoTEnvInformation>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val lastTimeExpression = SDoT_EnvInfo.sensing_time.max()
 
@@ -837,7 +848,8 @@ object Repository{
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchSeaWaterInfoFromDb_Mof(division: String): List<SeaWaterInformation>  = suspendTransaction {
+    suspend fun fetchSeaWaterInfoFromDb_Mof(division: String): List<SeaWaterInformation>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val result = when(division) {
             "mof_oneday" -> {
@@ -884,7 +896,8 @@ object Repository{
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchSeaWaterInfoFromDb(division: String): List<SeawaterInformationByObservationPoint>  = suspendTransaction {
+    suspend fun fetchSeaWaterInfoFromDb(division: String): List<SeawaterInformationByObservationPoint>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val result = when(division) {
             "oneday" -> {
@@ -996,7 +1009,8 @@ object Repository{
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchSeaWaterInfoOneDayBoxPlotFromDb(): List<SeaWaterBoxPlotStat>  = suspendTransaction {
+    suspend fun fetchSeaWaterInfoOneDayBoxPlotFromDb(): List<SeaWaterBoxPlotStat>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val previous24Hour =
             kotlin.time.Clock.System.now()
@@ -1077,7 +1091,8 @@ object Repository{
     }
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchSeaWaterInfoStatisticsFromDb(): List<SeaWaterInfoByOneHourStat>  = suspendTransaction {
+    suspend fun fetchSeaWaterInfoStatisticsFromDb(): List<SeaWaterInfoByOneHourStat>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val previous24Hour = kotlin.time.Clock.System.now()
             .minus(24, DateTimeUnit.HOUR)
@@ -1123,8 +1138,8 @@ object Repository{
         return@suspendTransaction result
     }
 
-    suspend fun fetchKhoaObservatoryFromDb():List<KhonObservatory> = suspendTransaction {
-
+    suspend fun fetchKhoaObservatoryFromDb():List<KhonObservatory>
+            = suspendTransaction(Database.connect(dataSource)) {
         val result = ObservatoryKHOA.select(
                 ObservatoryKHOA.obsCode,
                 ObservatoryKHOA.obsvtrNm,
@@ -1143,7 +1158,8 @@ object Repository{
     }
 
     @OptIn(ExperimentalTime::class, FormatStringsInDatetimeFormats::class)
-    suspend fun fetchKhoaTidalCurrentInfoFromDb():List<TidalCurrentInfo> = suspendTransaction  {
+    suspend fun fetchKhoaTidalCurrentInfoFromDb():List<TidalCurrentInfo>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val now = kotlin.time.Clock.System.now()
 
@@ -1162,7 +1178,8 @@ object Repository{
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation> = suspendTransaction {
+    suspend fun fetchKhoaObservationCurrentFromDb():List<KhoaObservation>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val maxDt = ObservationKHOA
             .selectAll()
@@ -1223,7 +1240,8 @@ object Repository{
 
 
     @OptIn(FormatStringsInDatetimeFormats::class)
-    suspend fun fetchKhoaObservationFromDb():List<KhoaObservation> = suspendTransaction {
+    suspend fun fetchKhoaObservationFromDb():List<KhoaObservation>
+            = suspendTransaction(Database.connect(dataSource)) {
 
         val previous24Hour = kotlin.time.Clock.System.now()
             .minus(24, DateTimeUnit.HOUR)
@@ -1284,7 +1302,8 @@ object Repository{
 
 
 
-    suspend fun observatoryInfo(): List<Observatory> = suspendTransaction {
+    suspend fun observatoryInfo(): List<Observatory>
+            = suspendTransaction(Database.connect(dataSource)) {
         ObservatoryTable.selectAll()
             .map {
                 toObservatory(it)
