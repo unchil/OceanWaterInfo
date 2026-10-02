@@ -57,6 +57,8 @@ fun main(args: Array<String>) = runBlocking {
     }
     // 종료 시 (선택 사항)
 //    ConfigManager.stopWatching()
+
+    CollectionServerDataBase.dataSource.close()
     LOGGER.info(LoggerHeader.Main_End.name)
 }
 
