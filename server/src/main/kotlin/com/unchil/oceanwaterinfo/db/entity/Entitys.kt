@@ -1,7 +1,6 @@
 package com.unchil.oceanwaterinfo
 
 
-import com.unchil.oceanwaterinfo.QWQObservatoryTable.sta_code
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 

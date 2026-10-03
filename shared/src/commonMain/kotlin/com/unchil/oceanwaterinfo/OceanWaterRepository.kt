@@ -201,7 +201,7 @@ class OceanWaterRepository {
     suspend fun getSDoTEnvInfoUnion(){
         try {
             runCatching {
-                val url = "${endPoint}/sdot_env_info"
+                val url = "${endPoint}/airQuality"
                 httpClient.get(url).body<List<SDoTEnvInfoUnion>>()
             }.getOrElse { ex ->
                 println("네트워크 에러 발생: ${ex.message}")
