@@ -20,14 +20,39 @@ object EnvInfoServerDatabase {
     }
 
     private fun getDBConfig(): HikariConfig {
-        val config = HikariConfig().apply {
-            jdbcUrl = config.property("storage.database.sqlite.jdbcURL").getString()
-            driverClassName = config.property("storage.database.sqlite.driverClassName").getString()
-            maximumPoolSize = config.property("storage.dbcp.maxPoolSize").getString().toInt()
-            isAutoCommit = config.property("storage.dbcp.isAutoCommit").getString().toBoolean()
-            validate()
+
+        val databaseName = config.property("storage.dbName").getString()
+
+        val dbConfig = with(databaseName) {
+            when {
+                startsWith("sqlite") -> {
+                    HikariConfig().apply {
+                        driverClassName = config.property("storage.database.sqlite.driverClassName").getString()
+                        jdbcUrl = config.property("storage.database.sqlite.jdbcURL").getString()
+
+                        maximumPoolSize = config.property("storage.dbcp.maxPoolSize").getString().toInt()
+                        isAutoCommit = config.property("storage.dbcp.isAutoCommit").getString().toBoolean()
+                        validate()
+                    }
+                }
+                else -> {
+                    HikariConfig().apply {
+                        driverClassName = config.property("storage.database.h2.driverClassName").getString()
+                        jdbcUrl = config.property("storage.database.h2.jdbcURL").getString()
+                        username = config.property("storage.database.h2.user").getString()
+                        password = config.property("storage.database.h2.password").getString()
+
+                        maximumPoolSize = config.property("storage.dbcp.maxPoolSize").getString().toInt()
+                        isAutoCommit = config.property("storage.dbcp.isAutoCommit").getString().toBoolean()
+                        validate()
+                    }
+
+                }
+
+            }
         }
-        return config
+
+        return dbConfig
     }
 
     // by lazy를 사용하여 최초 접근 시점에 초기화되도록 수정
@@ -37,31 +62,11 @@ object EnvInfoServerDatabase {
 
 fun Application.configureDatabase() {
 
-
-    val databaseName = environment.config.property("storage.dbName").getString()
-
-    val database = with(databaseName) {
-        when{
-            startsWith("sqlite") -> {
-                Database.connect(dataSource)
-            }
-            else -> {
-                val driver = environment.config.property("storage.database.h2.driverClassName").getString()
-                val url = environment.config.property("storage.database.h2.jdbcURL").getString()
-                val user = environment.config.property("storage.database.h2.user").getString()
-                val password = environment.config.property("storage.database.h2.password").getString()
-                Database.connect(
-                    url = url,
-                    driver = driver,
-                    user = user,
-                    password = password
-                )
-            }
+    fun initMemoryDb(){
+        monitor.subscribe (ApplicationStopping) {
+            dataSource.close()
         }
-    }
-
-    fun initMemoryDb(db: Database){
-        transaction(db) {
+        transaction(Database.connect(dataSource)) {
             addLogger(DBSqlLogger)
         }
     }
@@ -77,19 +82,23 @@ fun Application.configureDatabase() {
         }
     }
 
+    val databaseName = environment.config.property("storage.dbName").getString()
+
     with(databaseName) {
         when {
-            startsWith("h2") -> {
-                initMemoryDb(database)
-            }
             startsWith("sqlite") -> {
                 initSqliteDbTable()
             }
+            startsWith("h2") -> {
+                initMemoryDb()
+            }
             else -> {
-                initMemoryDb(database)
+                initMemoryDb()
             }
         }
 
     }
+
+
 }
 
