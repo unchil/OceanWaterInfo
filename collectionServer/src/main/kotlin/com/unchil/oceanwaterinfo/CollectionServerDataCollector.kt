@@ -19,6 +19,7 @@ class CollectionServerDataCollector {
         val funcName = ::scheduleJob5Minutes.name
         LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
         try {
+            collectionServerRepository.getOceanWaveInfo()
             collectionServerRepository.getKhoaTidalCurrent()
             collectionServerRepository.getKhoaObservation()
             collectionServerRepository.getKHNP_RadioRate()

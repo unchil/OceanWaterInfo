@@ -15,9 +15,18 @@ data class ConfigData(
     val WATER_LOGGED: Water_LoggedConfig? = null,
     val SDOT_Gyonggi: SDoTGyonggiConfig? = null,
     val SQLITE_DB: DatabaseConfig? = null,
-    val COLLECTION_TYPE: CollectionConfig? = null
+    val COLLECTION_TYPE: CollectionConfig? = null,
+    val WAVE_INFO_API: WaveInfoApiConfig? = null
 )
 
+@Serializable
+data class WaveInfoApiConfig(
+    val endPoint: String,
+    val apikey: String,
+    val subPath: String,
+    val type: String,
+    val min: Int,
+)
 @Serializable
 data class KhoaTidalCurrentApiConfig(
     val endPoint: String,

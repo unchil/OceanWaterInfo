@@ -41,10 +41,13 @@ import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.concat
 import org.jetbrains.kotlinx.dataframe.api.count
+import org.jetbrains.kotlinx.dataframe.api.dropNulls
 import org.jetbrains.kotlinx.dataframe.api.emptyDataFrame
+import org.jetbrains.kotlinx.dataframe.api.first
 import org.jetbrains.kotlinx.dataframe.api.flatten
 import org.jetbrains.kotlinx.dataframe.api.groupBy
 import org.jetbrains.kotlinx.dataframe.api.pivot
+import org.jetbrains.kotlinx.dataframe.api.remove
 import org.jetbrains.kotlinx.dataframe.api.rename
 import org.jetbrains.kotlinx.dataframe.api.rows
 import org.jetbrains.kotlinx.dataframe.api.update
@@ -560,6 +563,59 @@ class CollectionServerRepository {
         return block() // 마지막 시도
     }
 
+    suspend fun loadDataWaveInfo(codeList:List<Pair<String,String>>): List<DataFrame<*>> = coroutineScope {
+        val funcName = ::loadDataWaveInfo.name
+        var msg = ""
+        val numOfRows = 10
+        val firstOpt = "&pageNo=1&numOfRows=1"
+        val now = Clock.System.now()
+        val regDate = now
+            .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .format(LocalDateTime.Format{byUnicodePattern("yyyyMMdd")})
+
+        val path = "${ConfigManager.currentConfig.WAVE_INFO_API?.endPoint}/${ConfigManager.currentConfig.WAVE_INFO_API?.subPath}" +
+            "?serviceKey=${ConfigManager.currentConfig.WAVE_INFO_API?.apikey}" +
+            "&type=${ConfigManager.currentConfig.WAVE_INFO_API?.type}" +
+            "&regDate=${regDate}&min=${ConfigManager.currentConfig.WAVE_INFO_API?.min}"
+
+        val deferredResults = codeList.map { it ->
+            val obsCode = it.first
+            val baseUrl = "${path}&obsCode=${obsCode}"
+            val firstUrl = "${baseUrl}${firstOpt}"
+
+            try{
+                val df_first = DataFrame.readJson(firstUrl)
+                val totalCnt = df_first["body"]["totalCount"][0].toString().toInt()
+                val lastPage = if ((totalCnt % numOfRows) == 0) totalCnt / numOfRows else (totalCnt / numOfRows) + 1
+                msg = "obsCode:$obsCode, resultCode:${df_first["header"]["resultCode"][0]}, totalCount:${df_first["body"]["totalCount"][0]}, lastPage:${lastPage}"
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                val lastUrl = "${baseUrl}&pageNo=${lastPage}&numOfRows=${numOfRows}"
+                val df_last = DataFrame.readJson(lastUrl)
+                val data = df_last["body"]["items"]["item"].first() as DataFrame<*>
+                val concatDf = data.concat()
+                val renamedDf = if (!concatDf.columnNames().contains("wvhgt")) {
+                    concatDf.rename(
+                        "ctnWvhgt" to "wvhgt",
+                        "ctnWvpd" to "wvpd"
+                    )
+                } else {
+                    concatDf
+                }
+
+                renamedDf.remove("ctnWvhgt", "ctnWvpd").dropNulls( "wvhgt" )
+
+            }catch(e:Exception){
+                msg ="errMsg:[${e.localizedMessage}],obsCode:[$obsCode], [${firstUrl}]"
+                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                emptyDataFrame()
+            }
+
+        }
+        deferredResults
+    }
+
+
+
     suspend fun loadDataCoastalFlooding(codeList:List<String>): List<DataFrame<*>> = coroutineScope {
         val path = "${ConfigManager.currentConfig.WATER_LOGGED?.endPoint}/${ConfigManager.currentConfig.WATER_LOGGED?.subPath}" +
                 "?serviceKey=${ConfigManager.currentConfig.WATER_LOGGED?.apikey}&type=json"
@@ -694,6 +750,45 @@ class CollectionServerRepository {
             outputPath.deleteIfExists()
         }.getOrDefault("")
     }
+
+    suspend fun getOceanWaveInfo(){
+        val funcName = ::getOceanWaveInfo.name
+        var msg = "Start"
+        LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+        val codeList = transaction(Database.connect(dataSource)) {
+            WaveInfoObservatory.select(WaveInfoObservatory.code, WaveInfoObservatory.name).map { it ->
+                Pair( it[WaveInfoObservatory.code].trim(), it[WaveInfoObservatory.name].trim() )
+            }
+        }
+
+        loadDataWaveInfo(codeList).let{ rawDataFrames ->
+            val result = rawDataFrames.concat()
+            msg = "Count:[${result.count()}]"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+
+            if(result.count() > 0) {
+                transaction(Database.connect(dataSource)) {
+                    SchemaUtils.create(WaveInfo)
+                    WaveInfo.batchReplace(result.rows()) { row ->
+                        this[WaveInfo.obsvtrNm] = row["obsvtrNm"].toString()
+                        this[WaveInfo.lot] = row["lot"].toString()
+                        this[WaveInfo.lat] = row["lat"].toString()
+                        this[WaveInfo.obsrvnDt] = row["obsrvnDt"].toString()
+                        this[WaveInfo.wvhgt] = row["wvhgt"].toString()
+                        this[WaveInfo.wvpd] = row["wvpd"].toString()
+                        this[WaveInfo.wvdrct] = row["wvdrct"].toString()
+                        this[WaveInfo.maxWvhgt] = row["maxWvhgt"].toString()
+                        this[WaveInfo.maxWvpd] = row["maxWvpd"].toString()
+                    }
+                }
+
+            }
+            msg = "WaveInfo 테이블 갱신 완료"
+            LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+        }
+    }
+
 
 
     suspend fun getCoastalFloodingInfo() {
