@@ -15,11 +15,21 @@ class CollectionServerDataCollector {
         }
     }
 
+    suspend fun scheduleJob1Minutes(){
+        val funcName = ::scheduleJob1Minutes.name
+        LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
+        try {
+            collectionServerRepository.getOceanWaveInfo()
+            LOGGER.info("${LoggerHeader.Collector_End.name}: ${funcName}")
+        } catch (e: Exception) {
+            LOGGER.error("${LoggerHeader.Collector_Error.name}: ${funcName}:[${e.localizedMessage}]")
+        }
+    }
+
     suspend fun scheduleJob5Minutes(){
         val funcName = ::scheduleJob5Minutes.name
         LOGGER.info("${LoggerHeader.Collector_Start.name}: ${funcName}")
         try {
-            collectionServerRepository.getOceanWaveInfo()
             collectionServerRepository.getKhoaTidalCurrent()
             collectionServerRepository.getKhoaObservation()
             collectionServerRepository.getKHNP_RadioRate()

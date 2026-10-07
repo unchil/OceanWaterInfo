@@ -4,6 +4,30 @@ package com.unchil.oceanwaterinfo
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 
+
+object WaveInfoObservatory: Table("WaveInfoObservatory"){
+    val code = varchar("code", 30)
+    val name = varchar("name", 30)
+
+    override val primaryKey = PrimaryKey(code, name = "primaryKey")
+}
+
+
+object WaveInfoTbl: Table("WaveInfo"){
+    val obsvtrNm = varchar("obsvtrNm", 30)
+    val lot = varchar("lot", 30)
+    val lat = varchar("lat", 30)
+    val obsrvnDt = varchar("obsrvnDt", 30)
+    val wvhgt = varchar("wvhgt", 30)
+    val wvpd = varchar("wvpd", 30)
+    val wvdrct = varchar("wvdrct", 30)
+    val maxWvhgt = varchar("maxWvhgt", 30)
+    val maxWvpd = varchar("maxWvpd", 30)
+
+    override val primaryKey = PrimaryKey(lot, lat, obsrvnDt , name = "primaryKey")
+}
+
+
 object CoastalFloodingGeoJsonObjectTbl: Table("CoastalFloodingGeoJsonObjectTbl"){
     val grade = varchar("grade", 2)
     val ctpvNm = varchar("ctpvNm", 20)

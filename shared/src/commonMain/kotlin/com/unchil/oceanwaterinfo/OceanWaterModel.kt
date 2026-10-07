@@ -34,7 +34,19 @@ enum class SiDo {
     충청남도
 }
 
+@Serializable
+data class WaveInfo(
+    val obsvtrNm: String,
+    val lot: Double,
+    val lat: Double,
+    val obsrvnDt: String,
+    val wvhgt: Float,
+    val wvpd: Float,
+    val wvdrct: Float,
+    val maxWvhgt: Float,
+    val maxWvpd: Float
 
+)
 
 @Serializable
 data class SeaWaterBoxPlotStat(

@@ -291,6 +291,24 @@ fun Route.RouteKHOAStatusBoard(){
                 call.respond(HttpStatusCode.BadRequest)
             }
         }
+
+        get("/waveinfo"){
+            val callUrl = "/khoa/waveinfo"
+            try {
+                LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
+                val result = Repository.khoaWaveInfo()
+                if (result.isEmpty()) {
+                    LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
+                    call.respond(HttpStatusCode.NotFound)
+                    return@get
+                }
+                LOGGER.debug("${ApplicationLogHeader.Respond_Data.name}: ${callUrl}")
+                call.respond(result)
+            } catch (ex: IllegalArgumentException) {
+                LOGGER.error("${ApplicationLogHeader.Respond_Error.name}: ${callUrl}[${ex.localizedMessage}]")
+                call.respond(HttpStatusCode.BadRequest)
+            }
+        }
     }
 }
 

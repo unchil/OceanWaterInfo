@@ -45,6 +45,7 @@ private val cacheStorage_SeaWaterInfoBoxPlot = ConcurrentHashMap<String, Pair<Li
 private val cacheStorage_KhoaObservationInfo = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
 private val cacheStorage_KhoaObservationInfoCurrent = ConcurrentHashMap<String, Pair<List<KhoaObservation>, Long>>()
 private val cacheStorage_KhoaObservatoryInfo = ConcurrentHashMap<String, Pair<List<KhonObservatory>, Long>>()
+private val cacheStorage_KhoaWaveInfo = ConcurrentHashMap<String, Pair<List<WaveInfo>, Long>>()
 private val cacheStorage_KhoaTidalCurrentInfo = ConcurrentHashMap<String, Pair<List<TidalCurrentInfo>, Long>>()
 private val cacheStorage_SDoTEnvInfo = ConcurrentHashMap<String, Pair<List<SDoTEnvInformation>, Long>>()
 private val cacheStorage_SDoTEnvInfoGyonggi = ConcurrentHashMap<String, Pair<List<SDoTEnvInformationGyonggi>, Long>>()
@@ -368,6 +369,26 @@ object Repository{
         val resultFromDb = fetchKhoaObservatoryFromDb()
         if (resultFromDb.isNotEmpty() ) {
             cacheStorage_KhoaObservatoryInfo[key] = Pair(resultFromDb, now)
+        }
+        return resultFromDb
+    }
+
+    suspend fun khoaWaveInfo(): List<WaveInfo>{
+        val funcName = ::khoaWaveInfo.name
+        val key = "${KEYHEADER}_${funcName}"
+        val now = System.currentTimeMillis()
+
+        // 캐시에서 데이터 조회 (suspendTransaction 외부)
+        cacheStorage_KhoaWaveInfo[key]?.let { cachedData ->
+            if ((now - cachedData.second) < TimeUnit.SECONDS.toMillis(cacheExpiryMinute)) {
+                LOGGER.debug("${RepositoryLogHeader.ServingFromCache.name}:${funcName}")
+                return cachedData.first
+            }
+        }
+        LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
+        val resultFromDb = fetchKhoaWaveFromDb()
+        if (resultFromDb.isNotEmpty() ) {
+            cacheStorage_KhoaWaveInfo[key] = Pair(resultFromDb, now)
         }
         return resultFromDb
     }
@@ -1133,6 +1154,32 @@ object Repository{
                     it[tmp_min].toString(),
                     it[tmp_max].toString(),
                     it[tmp_avg].toString()
+                )
+            }
+        return@suspendTransaction result
+    }
+
+    suspend fun fetchKhoaWaveFromDb():List<WaveInfo>
+            = suspendTransaction(Database.connect(dataSource)) {
+
+        val lastTimeExpression = WaveInfoTbl.obsrvnDt.max()
+
+        val maxObsrvnDt = WaveInfoTbl.select(lastTimeExpression).limit(1).map {
+            it[lastTimeExpression]
+        }.firstOrNull()
+
+        val result = WaveInfoTbl.selectAll().where { WaveInfoTbl.obsrvnDt eq ( maxObsrvnDt ?: "")}
+            .map {
+                WaveInfo(
+                    it[WaveInfoTbl.obsvtrNm],
+                    it[WaveInfoTbl.lot].toDouble(),
+                    it[WaveInfoTbl.lat].toDouble(),
+                    it[WaveInfoTbl.obsrvnDt],
+                    it[WaveInfoTbl.wvhgt].toFloat(),
+                    it[WaveInfoTbl.wvpd].toFloat(),
+                    it[WaveInfoTbl.wvdrct].toFloat(),
+                    it[WaveInfoTbl.maxWvhgt].toFloat(),
+                    it[WaveInfoTbl.maxWvpd].toFloat()
                 )
             }
         return@suspendTransaction result

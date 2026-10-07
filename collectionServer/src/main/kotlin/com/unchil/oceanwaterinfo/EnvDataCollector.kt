@@ -37,6 +37,9 @@ fun main(args: Array<String>) = runBlocking {
                 val endDate = args[2]
                 collector.batchJob(startDate, endDate)
             }
+            1 -> {
+                collector.scheduleJob1Minutes()
+            }
             5 -> {
                 collector.scheduleJob5Minutes()
             }
