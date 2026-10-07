@@ -40,11 +40,11 @@ data class WaveInfo(
     val lot: Double,
     val lat: Double,
     val obsrvnDt: String,
-    val wvhgt: Float,
-    val wvpd: Float,
-    val wvdrct: Float,
-    val maxWvhgt: Float,
-    val maxWvpd: Float
+    val wvhgt: Float?,
+    val wvpd: Float?,
+    val wvdrct: Float?,
+    val maxWvhgt: Float?,
+    val maxWvpd: Float?
 
 )
 

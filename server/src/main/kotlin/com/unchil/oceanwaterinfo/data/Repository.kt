@@ -1175,13 +1175,14 @@ object Repository{
                     it[WaveInfoTbl.lot].toDouble(),
                     it[WaveInfoTbl.lat].toDouble(),
                     it[WaveInfoTbl.obsrvnDt],
-                    it[WaveInfoTbl.wvhgt].toFloat(),
-                    it[WaveInfoTbl.wvpd].toFloat(),
-                    it[WaveInfoTbl.wvdrct].toFloat(),
-                    it[WaveInfoTbl.maxWvhgt].toFloat(),
-                    it[WaveInfoTbl.maxWvpd].toFloat()
+                    it[WaveInfoTbl.wvhgt].toFloatOrNull(),
+                    it[WaveInfoTbl.wvpd].toFloatOrNull(),
+                    it[WaveInfoTbl.wvdrct].toFloatOrNull(),
+                    it[WaveInfoTbl.maxWvhgt].toFloatOrNull(),
+                    it[WaveInfoTbl.maxWvpd].toFloatOrNull()
                 )
             }
+
         return@suspendTransaction result
     }
 
