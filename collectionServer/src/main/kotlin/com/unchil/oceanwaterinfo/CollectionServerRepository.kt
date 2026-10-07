@@ -606,7 +606,7 @@ class CollectionServerRepository {
 
             }catch(e:Exception){
                 msg ="errMsg:[${e.localizedMessage}],obsCode:[$obsCode], [${firstUrl}]"
-                LOGGER.error("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
                 emptyDataFrame()
             }
 
