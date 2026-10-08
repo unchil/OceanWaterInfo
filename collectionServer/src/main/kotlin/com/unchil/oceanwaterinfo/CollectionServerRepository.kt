@@ -566,8 +566,9 @@ class CollectionServerRepository {
     suspend fun loadDataWaveInfo(codeList:List<Pair<String,String>>): List<DataFrame<*>> = coroutineScope {
         val funcName = ::loadDataWaveInfo.name
         var msg = ""
-        val numOfRows = 10
-        val firstOpt = "&pageNo=1&numOfRows=1"
+        val numOfRows = 300
+        val min = 5
+        val firstOpt = "&pageNo=1&numOfRows=300"
         val now = Clock.System.now()
         val regDate = now
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
@@ -576,22 +577,25 @@ class CollectionServerRepository {
         val path = "${ConfigManager.currentConfig.WAVE_INFO_API?.endPoint}/${ConfigManager.currentConfig.WAVE_INFO_API?.subPath}" +
             "?serviceKey=${ConfigManager.currentConfig.WAVE_INFO_API?.apikey}" +
             "&type=${ConfigManager.currentConfig.WAVE_INFO_API?.type}" +
-            "&regDate=${regDate}&min=${ConfigManager.currentConfig.WAVE_INFO_API?.min}"
+            "&regDate=${regDate}&min=${min}"
 
         val deferredResults = codeList.map { it ->
             val obsCode = it.first
             val baseUrl = "${path}&obsCode=${obsCode}"
             val firstUrl = "${baseUrl}${firstOpt}"
-
             try{
                 val df_first = DataFrame.readJson(firstUrl)
                 val totalCnt = df_first["body"]["totalCount"][0].toString().toInt()
                 val lastPage = if ((totalCnt % numOfRows) == 0) totalCnt / numOfRows else (totalCnt / numOfRows) + 1
                 msg = "obsCode:$obsCode, resultCode:${df_first["header"]["resultCode"][0]}, totalCount:${df_first["body"]["totalCount"][0]}, lastPage:${lastPage}"
                 LOGGER.debug("${LoggerHeader.CollectionServerRepository.name} : ${funcName}: ${msg}")
+                // 1일 허용 트래픽이 10000건 이라서 25곳 관측소의 5분간격 데이터를 최대 300건으로 설정한후 5분간격 호출로 변경
+                /*
                 val lastUrl = "${baseUrl}&pageNo=${lastPage}&numOfRows=${numOfRows}"
                 val df_last = DataFrame.readJson(lastUrl)
                 val data = df_last["body"]["items"]["item"].first() as DataFrame<*>
+                 */
+                val data = df_first["body"]["items"]["item"].first() as DataFrame<*>
                 val concatDf = data.concat()
                 val renamedDf = if (!concatDf.columnNames().contains("wvhgt")) {
                     concatDf.rename(
