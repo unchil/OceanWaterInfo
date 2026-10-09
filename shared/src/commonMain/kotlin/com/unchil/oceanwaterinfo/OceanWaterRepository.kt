@@ -8,7 +8,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 
 
-class OceanWaterRepository {
+object OceanWaterRepository {
 
     internal val LOGGER = KtorSimpleLogger( "OceanWaterRepository" )
 
@@ -66,6 +66,28 @@ class OceanWaterRepository {
 
     val _coastalFloodingGeoJsonObject: MutableStateFlow<List<CoastalFloodingGeoJsonObject>>
             = MutableStateFlow(emptyList())
+
+    val _khoaWaveInfo: MutableStateFlow<List<WaveInfo>>
+            = MutableStateFlow(emptyList())
+
+    suspend fun getKhoaWaveInfo(){
+        try {
+            runCatching {
+                val url = "${endPoint}/khoa/waveinfo"
+                OceanWaterApi.httpClient.get(url).body<List<WaveInfo>>()
+            }.getOrElse { ex ->
+                println("네트워크 에러 발생: ${ex.message}")
+                emptyList()
+            }.let {
+                _khoaWaveInfo.value = it
+                LOGGER.debug("getKhoaWaveInfo() called[${it.count()}]")
+            }
+        }catch (e:Exception){
+            _khoaWaveInfo.value = emptyList()
+            LOGGER.error(e.message ?: "Error ")
+        }
+    }
+
 
 
     suspend fun getCoastalFloodingGeojson_Object(grade:String, sido:String, type:String){

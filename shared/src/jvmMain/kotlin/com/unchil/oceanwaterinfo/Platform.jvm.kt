@@ -6,9 +6,6 @@ class JVMPlatform: Platform {
     override val alias: PlatformAlias
         get() = PlatformAlias.JVM
 
-    override val repository: OceanWaterRepository
-        get() = OceanWaterRepository()
-
 
     override val envInfoServerEndPoint: String
         get() = "http://un7.org:7788"

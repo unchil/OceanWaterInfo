@@ -329,7 +329,7 @@ fun main() = application {
                                              TidalForecastMap( )
                                          }
                                          3 -> {
-                                             OceanCurrentSpeedMap( )
+                                             OceanCurrentWaveMap()
                                          }
 
                                          4 -> {

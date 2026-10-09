@@ -4,13 +4,12 @@ package com.unchil.oceanwaterinfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.time.Duration.Companion.milliseconds
 
 class MofSeaWaterInfoViewModel( ){
 
-    private val repository = getPlatform().repository
-
     val _seaWaterInfo: MutableStateFlow<List<SeaWaterInformation>>
-            = repository._seaWaterInfoOneDayMofStateFlow
+            = OceanWaterRepository._seaWaterInfoOneDayMofStateFlow
 
 
 
@@ -24,9 +23,9 @@ class MofSeaWaterInfoViewModel( ){
             is Event.Refresh -> {
                 _isLoading.value = true // 로딩 시작
                 try {
-                    repository.getSeaWaterInfo(DATA_DIVISION.mof_oneday)
+                    OceanWaterRepository.getSeaWaterInfo(DATA_DIVISION.mof_oneday)
                 } finally {
-                    delay(500)
+                    delay(500.milliseconds)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
 

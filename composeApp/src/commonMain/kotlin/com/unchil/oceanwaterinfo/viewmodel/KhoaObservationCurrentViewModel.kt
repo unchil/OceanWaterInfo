@@ -1,16 +1,16 @@
 package com.unchil.oceanwaterinfo.viewmodel
 
 import com.unchil.oceanwaterinfo.KhoaObservation
-import com.unchil.oceanwaterinfo.getPlatform
+import com.unchil.oceanwaterinfo.OceanWaterRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.time.Duration.Companion.milliseconds
 
 class KhoaObservationCurrentViewModel(){
-    private val repository = getPlatform().repository
 
     val _observationStateFlow: MutableStateFlow<List<KhoaObservation>>
-            = repository._khoaObservationInfoCurrent
+            = OceanWaterRepository._khoaObservationInfoCurrent
 
 
     // 업데이트 완료를 알리는 이벤트 스트림
@@ -24,9 +24,9 @@ class KhoaObservationCurrentViewModel(){
             is Event.Refresh -> {
                 _isLoading.value = true // 로딩 시작
                 try {
-                    repository.getKhoaObservationInfoCurrent()
+                    OceanWaterRepository.getKhoaObservationInfoCurrent()
                 } finally {
-                    delay(500)
+                    delay(500.milliseconds)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
             }

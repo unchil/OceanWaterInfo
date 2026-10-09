@@ -9,13 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.text.trim
+import kotlin.time.Duration.Companion.milliseconds
 
 class NifsSeaWaterInfoViewModel (){
 
-    private val repository = getPlatform().repository
-
     val _seaWaterInfo: MutableStateFlow<List<SeawaterInformationByObservationPoint>>
-            = repository._seaWaterInfoOneDayStateFlow
+            = OceanWaterRepository._seaWaterInfoOneDayStateFlow
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -26,9 +25,9 @@ class NifsSeaWaterInfoViewModel (){
 
                 _isLoading.value = true // 로딩 시작
                 try {
-                    repository.getSeaWaterInfo(DATA_DIVISION.oneday)
+                    OceanWaterRepository.getSeaWaterInfo(DATA_DIVISION.oneday)
                 } finally {
-                    delay(500)
+                    delay(500.milliseconds)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
             }

@@ -6,9 +6,6 @@ class WasmPlatform: Platform {
     override val alias: PlatformAlias
         get() = PlatformAlias.WASM
 
-    override val repository: OceanWaterRepository
-        get() = OceanWaterRepository()
-
 
     override val envInfoServerEndPoint: String
         get() = "http://un7.local:7788"

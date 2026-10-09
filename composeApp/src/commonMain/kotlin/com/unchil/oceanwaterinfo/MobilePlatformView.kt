@@ -307,8 +307,8 @@ val TidalForecastMap= object : SimpleChartView {
     }
 }
 
-val OceanCurrentSpeedMap = object : SimpleChartView {
-    override val name: String = "OceanCurrentSpeedMap"
+val OceanCurrentWaveMap = object : SimpleChartView {
+    override val name: String = "OceanCurrentWaveMap"
     override fun toString(): String = name
     @Composable
     override fun Content() {
@@ -316,7 +316,7 @@ val OceanCurrentSpeedMap = object : SimpleChartView {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            OceanCurrentSpeedMap()
+            OceanCurrentWaveMap()
         }
     }
 }

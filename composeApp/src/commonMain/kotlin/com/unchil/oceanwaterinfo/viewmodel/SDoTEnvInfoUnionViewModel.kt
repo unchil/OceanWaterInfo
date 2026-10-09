@@ -1,15 +1,15 @@
 package com.unchil.oceanwaterinfo.viewmodel
 
+import com.unchil.oceanwaterinfo.OceanWaterRepository
 import com.unchil.oceanwaterinfo.getPlatform
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.time.Duration.Companion.milliseconds
 
 class SDoTEnvInfoUnionViewModel (){
 
-    private val repository = getPlatform().repository
-
-    val _sDoTEnvInfoUnionFlow = repository._sDoTEnvInfoUnion
+    val _sDoTEnvInfoUnionFlow = OceanWaterRepository._sDoTEnvInfoUnion
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -21,9 +21,9 @@ class SDoTEnvInfoUnionViewModel (){
 
                 _isLoading.value = true // 로딩 시작
                 try {
-                    repository.getSDoTEnvInfoUnion()
+                    OceanWaterRepository.getSDoTEnvInfoUnion()
                 } finally {
-                    delay(500)
+                    delay(500.milliseconds)
                     _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
                 }
 

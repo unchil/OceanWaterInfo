@@ -1,38 +1,35 @@
 package com.unchil.oceanwaterinfo.viewmodel
 
-import com.unchil.oceanwaterinfo.KHNPPlantOperationInfo
 import com.unchil.oceanwaterinfo.OceanWaterRepository
+import com.unchil.oceanwaterinfo.WaveInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.time.Duration.Companion.milliseconds
 
-class KhnpPlantStateViewModel (){
-
-    val _khnpPlantState: MutableStateFlow<List<KHNPPlantOperationInfo>>
-            = OceanWaterRepository._khnpPlantState
+class KhoaWaveInfoViewModel {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    val _khoaWaveInfoStateFlow : MutableStateFlow<List<WaveInfo>>
+        = OceanWaterRepository._khoaWaveInfo
 
     suspend fun onEvent(event: Event) {
         when (event) {
             is Event.Refresh -> {
                 _isLoading.value = true // 로딩 시작
                 try {
-                    OceanWaterRepository.getKhnpPlantState()
-                } finally {
+                    OceanWaterRepository.getKhoaWaveInfo()
+                }finally {
                     delay(500.milliseconds)
-                    _isLoading.value = false // 성공/실패 여부와 상관없이 로딩 종료
+                    _isLoading.value = false
                 }
             }
         }
     }
 
     sealed class Event {
-        object Refresh : Event()
+        data object Refresh : Event()
     }
-
-
 }

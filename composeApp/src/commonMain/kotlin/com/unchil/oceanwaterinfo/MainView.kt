@@ -77,7 +77,7 @@ private fun envObservationTree(): Tree<ChartViewContent> = Tree {
             Leaf<ChartViewContent>(AirQuality)
             Leaf<ChartViewContent>(CoastalFloodingMap)
             Leaf<ChartViewContent>(TidalForecastMap)
-            Leaf<ChartViewContent>(OceanCurrentSpeedMap)
+            Leaf<ChartViewContent>(OceanCurrentWaveMap)
         }
 
         Leaf<ChartViewContent>(OceanWaterInfoDataGrid)

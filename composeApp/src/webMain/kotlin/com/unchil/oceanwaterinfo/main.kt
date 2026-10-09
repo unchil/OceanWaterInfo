@@ -124,7 +124,7 @@ fun main(){
                         }
 
                         3 -> {
-                            webMainOceanCurrentSpeedMap()
+                            webMainOceanCurrentWaveMap()
                         }
 
                         4 -> {
