@@ -23,6 +23,7 @@ core = "1.7.0"
 material = "1.14.0"
 
 hikaricp = "7.1.0"
+serializationVersion = "0.90.2"
 sqlite-version = "3.53.2.1"
 h2-version = "2.4.240"
 exposed-version = "1.4.0"
@@ -38,6 +39,7 @@ koalaplotCore = "0.11.0"
 geojson = "0.7.0"
 
 composeWebviewMultiplatform = "2.0.3"
+kcef = "2025.03.23"
 
 compose-treeview = "0.6.2"
 compose-adaptive = "1.2.0"
@@ -65,17 +67,20 @@ compose-components-resources = { module = "org.jetbrains.compose.components:comp
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
+
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 
+
 ktor-serverHeaders = { group = "io.ktor", name = "ktor-server-default-headers", version.ref = "ktor" }
 ktor-serverConfigYaml = { group = "io.ktor", name = "ktor-server-config-yaml-jvm", version.ref = "ktor" }
 ktor-serverNegotiation = { group = "io.ktor", name = "ktor-server-content-negotiation-jvm", version.ref = "ktor" }
 ktor-serializationJsonJvm = { group = "io.ktor", name = "ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktor-serializationJson = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-serializationXml = { group = "io.ktor", name = "ktor-serialization-kotlinx-xml", version.ref = "ktor" }
 
 ktor-clientCore = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-clientCio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
@@ -84,7 +89,6 @@ ktor-clientAndroid = { group = "io.ktor", name = "ktor-client-android", version.
 ktor-clientDarwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
 ktor-clientNegotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-clientLogging = { group = "io.ktor", name ="ktor-client-logging", version.ref = "ktor" }
-ktor-serializationXml = {group = "io.ktor", name ="ktor-serialization-kotlinx-xml", version.ref = "ktor" }
 
 kotlinx-serialization = {group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization"}
 kotlinx-dataframe = {group = "org.jetbrains.kotlinx", name = "dataframe", version.ref = "dataframe"}
@@ -93,6 +97,7 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", versio
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
 
 sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-version" }
 h2 = { module = "com.h2database:h2", version.ref = "h2-version" }
@@ -107,8 +112,9 @@ un7datagrid = { module = "com.github.unchil:un7datagrid", version.ref = "un7data
 koalaplot-core = { module = "io.github.koalaplot:koalaplot-core", version.ref = "koalaplotCore" }
 geojson = { module = "org.maplibre.spatialk:geojson", version.ref = "geojson" }
 
-#kcef = { group = "dev.datlag", name = "kcef", version.ref = "kcef" }
+kcef = { group = "dev.datlag", name = "kcef", version.ref = "kcef" }
 compose-webview-multiplatform = { module = "io.github.kevinnzou:compose-webview-multiplatform", version.ref = "composeWebviewMultiplatform" }
+
 
 compose-treeview = { module = "io.github.vooft:compose-treeview-core", version.ref = "compose-treeview"}
 compose-adaptive = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive", version.ref = "compose-adaptive" }

@@ -51,7 +51,7 @@ fun OceanCurrentWaveMap(){
     val waveCurrentInfo = viewModel._khoaWaveInfoStateFlow.collectAsState()
     val isLoading = viewModel.isLoading.collectAsState()
 
-    val keys = remember{ mutableStateOf("" )}
+
     val values = remember{ mutableStateOf("" )}
 
 
