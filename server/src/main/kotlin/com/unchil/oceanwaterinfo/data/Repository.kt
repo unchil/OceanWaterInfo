@@ -1159,16 +1159,34 @@ object Repository{
         return@suspendTransaction result
     }
 
+    @OptIn(FormatStringsInDatetimeFormats::class)
     suspend fun fetchKhoaWaveFromDb():List<WaveInfo>
             = suspendTransaction(Database.connect(dataSource)) {
 
-        val lastTimeExpression = WaveInfoTbl.obsrvnDt.max()
+        val now = kotlin.time.Clock.System.now()
 
-        val maxObsrvnDt = WaveInfoTbl.select(lastTimeExpression).limit(1).map {
-            it[lastTimeExpression]
-        }.firstOrNull()
+        val preTime = now.minus(1, DateTimeUnit.HOUR)
+            .toLocalDateTime(TimeZone.of("Asia/Seoul"))
+            .format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
 
-        val result = WaveInfoTbl.selectAll().where { WaveInfoTbl.obsrvnDt eq ( maxObsrvnDt ?: "")}
+        val nameAlias = WaveInfoTbl.obsvtrNm.alias("name")
+        val timeAlias = WaveInfoTbl.obsrvnDt.max().alias("time")
+
+        val subQuery = WaveInfoTbl
+            .select(nameAlias, timeAlias)
+            .where { WaveInfoTbl.obsrvnDt greaterEq preTime }
+            .groupBy(WaveInfoTbl.obsvtrNm)
+            .alias("B")
+
+        val result = WaveInfoTbl
+            .join(
+                subQuery,
+                JoinType.INNER,
+                onColumn = WaveInfoTbl.obsrvnDt,
+                otherColumn = subQuery[timeAlias]
+            )
+            .select(WaveInfoTbl.columns)
+            .where { WaveInfoTbl.obsvtrNm eq subQuery[nameAlias] }
             .map {
                 WaveInfo(
                     it[WaveInfoTbl.obsvtrNm],
@@ -1182,6 +1200,7 @@ object Repository{
                     it[WaveInfoTbl.maxWvpd].toFloatOrNull()
                 )
             }
+
 
         return@suspendTransaction result
     }
