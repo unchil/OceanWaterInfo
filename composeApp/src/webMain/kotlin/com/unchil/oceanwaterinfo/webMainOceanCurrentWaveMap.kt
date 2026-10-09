@@ -57,7 +57,7 @@ fun webMainOceanCurrentWaveMap(){
                 postfix = "]"
             ){ it ->
                 //Triple(lat,lng,speed)
-                "{\"lat\":${it.lat}, \"lng\":${it.lot},  \"speed\":${it.wvhgt}}"
+                "{\"lat\":${it.lat}, \"lng\":${it.lot}, \"height\":${it.wvhgt}, \"period\":${it.wvpd}, \"direction\":${it.wvdrct}, \"name\":\"${it.obsvtrNm}\", \"time\":\"${it.obsrvnDt}\"}"
             }
             sendMsgInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
         }

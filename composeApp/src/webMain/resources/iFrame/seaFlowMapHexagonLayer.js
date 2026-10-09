@@ -79,11 +79,35 @@ window.initMapWithData = async function( values) {
           colorRange,
           extruded: true,
           getPosition: d => [d.lng, d.lat],
-          getColorWeight: d => d.speed,
-          getElevationWeight: d => d.speed,
+          getColorWeight: d => d.height,
+          getElevationWeight: d => d.height,
           elevationScale: elevationBase,
           radius: 4500,
-          pickable: true
+          pickable: true,
+          onHover: info => {
+            const tooltip = document.getElementById('tooltip');
+                if (!tooltip) return; // 툴팁 엘리먼트 확인
+
+                if (info.object) {
+                    // HexagonLayer의 points 배열에서 첫 번째 데이터 추출
+                    const point = info.object.points[0];
+                    // 데이터 구조에 따라 point.source 또는 point 직접 접근
+                    const data = point.source || point;
+
+                    tooltip.innerHTML = `
+                        <div style="font-weight:bold; margin-bottom:5px;">${data.name || 'N/A'}</div>
+                        <div>${data.time || '-'}</div>
+                        <div>Height: ${data.height}</div>
+                        <div>Period: ${data.period}</div>
+                        <div>Direction: ${data.direction}</div>
+                    `;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = `${info.x + 15}px`;
+                    tooltip.style.top = `${info.y + 15}px`;
+                } else {
+                    tooltip.style.display = 'none';
+                }
+          }
 
       }
 
