@@ -5,6 +5,3 @@
 
 GET {{host}}/{{key}}/{{type}}/{{suburl}}/{{subPath}}
 
-<> 2026-06-14T124311.200.json
-
-
