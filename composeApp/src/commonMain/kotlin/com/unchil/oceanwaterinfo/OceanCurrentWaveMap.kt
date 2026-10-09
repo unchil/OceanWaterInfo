@@ -62,8 +62,8 @@ fun OceanCurrentWaveMap(){
                 prefix = "[",
                 postfix = "]"
             ){ it ->
-                //Triple(lat,lng,speed)
-                "{\"lat\":${it.lat}, \"lng\":${it.lot},  \"speed\":${it.wvhgt}}"
+
+                "{\"lat\":${it.lat}, \"lng\":${it.lot}, \"height\":${it.wvhgt}, \"period\":${it.wvpd}, \"direction\":${it.wvdrct}, \"name\":\"${it.obsvtrNm}\", \"time\":\"${it.obsrvnDt}\"}"
             }
         }
     }
