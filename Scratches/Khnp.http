@@ -1,8 +1,11 @@
-
+// listOf("WS", "KR", "YK", "SU", "UJ")
 @genName = WS
 
+// inoutwater/getinoutwater
+// YK UJ
 ###
 GET {{host}}/{{ThermalWasteWater}}?serviceKey={{key}}&genName={{genName}}
 
-<> 2026-06-14T110904.200.xml
+###
+GET {{host}}/{{WasteWater}}?serviceKey={{key}}&genName={{genName}}
 

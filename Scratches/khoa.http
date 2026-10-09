@@ -1,7 +1,7 @@
-@reqDate = 20260309
+@reqDate = 20260804
 @min = 5
 @pageNo = 1
-@numOfRows = 300
+@numOfRows = 20
 @obsCode = HB_0001
 
 ###

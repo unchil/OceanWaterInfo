@@ -1,7 +1,7 @@
 //2026-04-13 19:00
 // space = %20
 // : = %3A
-@MESURE_DAY_TM=2026-06-14%2009%3A00
+@MESURE_DAY_TM=2026-08-21%2009%3A00
 
 
 ### 경기도 대기오염 정보 조회
@@ -9,13 +9,4 @@ GET {{host}}/{{suburl}}
     ?KEY={{key}}
     &Type=json
     &MESURE_DAY_TM={{MESURE_DAY_TM}}
-
-
-
-
-
-
-
-
-
 

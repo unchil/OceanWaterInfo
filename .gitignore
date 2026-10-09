@@ -23,3 +23,5 @@ node_modules/
 /composeApp/src/jvmMain/resources/googleMapView.html
 
 /Scratches/http-client.private.env.json
+/composeApp/src/webMain/resources/iFrame/
+/Scratches/

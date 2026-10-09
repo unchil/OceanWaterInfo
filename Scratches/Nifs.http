@@ -2,11 +2,6 @@ GET {{host}}/OpenAPI_json
     ?key={{key}}&id=risaList
 Accept: application/json
 
-<> 2026-06-12T095341.200.json
-
-
-
-
 
 
 
