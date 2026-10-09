@@ -29,6 +29,20 @@
 
 <div id="un7map" ></div>
 
-
+<script>
+    // 자바스크립트 상단에 추가하여 툴팁 엘리먼트 생성
+    const tooltip = document.createElement('div');
+    tooltip.id = 'tooltip';
+    tooltip.style.position = 'absolute';
+    tooltip.style.zIndex = '1000';
+    tooltip.style.pointerEvents = 'none';
+    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    tooltip.style.color = '#fff';
+    tooltip.style.padding = '8px';
+    tooltip.style.borderRadius = '4px';
+    tooltip.style.display = 'none';
+    tooltip.style.fontSize = '12px';
+    document.body.appendChild(tooltip);
+</script>
 </body>
 </html>

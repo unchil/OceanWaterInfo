@@ -9,7 +9,7 @@ interface Platform {
     val envInfoServerEndPoint : String
 
     val localServerEndPoint : String
-    val repository: OceanWaterRepository
+
 }
 
 expect fun getPlatform(): Platform
