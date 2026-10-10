@@ -1165,7 +1165,7 @@ object Repository{
 
         val now = kotlin.time.Clock.System.now()
 
-        val preTime = now.minus(1, DateTimeUnit.HOUR)
+        val preTime = now.minus(90, DateTimeUnit.MINUTE)
             .toLocalDateTime(TimeZone.of("Asia/Seoul"))
             .format(LocalDateTime.Format { byUnicodePattern("yyyy-MM-dd HH:mm") })
 
