@@ -23,6 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.title
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -54,13 +57,10 @@ fun main(){
             typography = getTypography(),
             colorScheme = getColorScheme(false))
         {
-
             Column(
                 modifier = Modifier.fillMaxSize()
                     .background(color = MaterialTheme.colorScheme.surface)
             ) {
-
-
                 SecondaryTabRow(
                     selectedTabIndex,
                     Modifier.fillMaxWidth(),
@@ -68,8 +68,7 @@ fun main(){
                     MaterialTheme.colorScheme.primary,
                     { HorizontalDivider() }
                 ) {
-                    MAIN_TAB_ITEMS.forEachIndexed { index, title ->
-
+                    MainTab.TabItem.entries.forEachIndexed { index, item ->
                         val interactionSource = remember { MutableInteractionSource() }
                         // InteractionSource의 상태 변화를 직접 감지하는 로직
                         LaunchedEffect(interactionSource) {
@@ -94,7 +93,7 @@ fun main(){
                             },
                             text = {
                                 Text(
-                                    text = title,
+                                    text = item.title(),
                                     fontSize = 16.sp,
                                     fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
                                     // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
@@ -144,7 +143,9 @@ fun main(){
 
         DisposableEffect(Unit) {
             onDispose {
-                disposeHtmlElements(listOf(DIV_AIR_INFO, DIV_OCEAN_WATER_INFO, DIV_SEA_FLOW_TRIPS, DIV_SEA_FLOW_HEXAGON, DIV_WATER_INFO, DIV_COASTAL_FLOODING))
+                disposeHtmlElements(
+                  MainTab.getElementIDs()
+                )
             }
         }
 

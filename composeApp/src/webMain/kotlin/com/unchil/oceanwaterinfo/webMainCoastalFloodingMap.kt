@@ -26,6 +26,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import kotlinx.coroutines.launch
 
@@ -56,12 +60,12 @@ fun webMainCoastalFloodingMap(){
     LaunchedEffect( coastalFloodingInfo.value){
 
         if(coastalFloodingInfo.value.isNotEmpty()) {
-            sendPostMsg(IFRAME_COASTAL_FLOODING, "REMOVE_FEATHER" )
+            sendPostMsg(MainTab.TabItem.COASTAL_FLOODING.iframeID(), "REMOVE_FEATHER" )
 
             coastalFloodingInfo.value.forEach { it ->
                 println( "[Kotlin] Data Receive (Size: ${it.geojson.length})")
                 val values = "{ \"grade\": \"${gradeOption.name}\", \"geoJsonData\":${it.geojson}}"
-                sendPostMsg(IFRAME_COASTAL_FLOODING, "COASTAL_FLOODING", values )
+                sendPostMsg(MainTab.TabItem.COASTAL_FLOODING.iframeID(), "COASTAL_FLOODING", values )
 
             }
         }
@@ -70,7 +74,7 @@ fun webMainCoastalFloodingMap(){
     LaunchedEffect(isLoading) {
         if(!isLoading && coastalFloodingInfo.value.isEmpty()){
             isVisibleAlert.value = true
-            sendPostMsg(IFRAME_COASTAL_FLOODING, "EMPTY_DATA" )
+            sendPostMsg(MainTab.TabItem.COASTAL_FLOODING.iframeID(), "EMPTY_DATA" )
         }
     }
 
@@ -111,7 +115,7 @@ fun webMainCoastalFloodingMap(){
                             coordinates,
                             density,
                             DIV_WEB_MAIN,
-                            DIV_COASTAL_FLOODING
+                            MainTab.TabItem.COASTAL_FLOODING.elementID()
                         )
                     },
                 contentAlignment = Alignment.Center

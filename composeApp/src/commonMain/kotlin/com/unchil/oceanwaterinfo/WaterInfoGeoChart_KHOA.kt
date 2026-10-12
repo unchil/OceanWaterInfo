@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationViewModel
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
@@ -131,7 +133,7 @@ fun WaterInfoGeoChart_KHOA(
 
         if (seaWaterInfo.value.isNotEmpty()) {
             val transData = transformToMarkerDataFromKhoaObservation(seaWaterInfo.value)
-            sendAddMarkerClusterer?.invoke(IFRAME_WATER_INFO, transData)
+            sendAddMarkerClusterer?.invoke(MainTab.TabItem.HYDRO_NUCLEAR.iframeID(), transData)
 
             data.value = seaWaterInfo.value.map {
                 Triple(

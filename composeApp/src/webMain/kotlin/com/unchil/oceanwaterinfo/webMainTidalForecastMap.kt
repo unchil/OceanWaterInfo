@@ -22,6 +22,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.TabItem
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -72,7 +78,7 @@ fun webMainTidalForecastMap(){
                 data
             }
 
-            sendMsgInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
+            sendMsgInitData( TabItem.OCEAN_TIDAL_SPEED.iframeID(), initData.value)
         }
     }
 
@@ -89,7 +95,7 @@ fun webMainTidalForecastMap(){
         ) {
 
             ChartTitle(
-                "Prediction 3 hour The Tidal Current Map",
+                MainTab.TabItem.OCEAN_TIDAL_SPEED.subTitle(),
                 modifier = Modifier,
             )
 
@@ -106,7 +112,7 @@ fun webMainTidalForecastMap(){
                             coordinates,
                             density,
                             DIV_WEB_MAIN,
-                            DIV_SEA_FLOW_TRIPS
+                            TabItem.OCEAN_TIDAL_SPEED.elementID()
                         )
                     },
                 contentAlignment = Alignment.Center
@@ -127,7 +133,7 @@ fun webMainTidalForecastMap(){
                         when (label) {
                             "Reload" ->{
                                 visibleProgressIndicator.value = true
-                                sendMsgInitData( IFRAME_SEA_FLOW_TRIPS, initData.value)
+                                sendMsgInitData( TabItem.OCEAN_TIDAL_SPEED.iframeID(), initData.value)
                                 coroutineScope.launch {
                                     delay(1000)
                                     visibleProgressIndicator.value = false

@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
@@ -157,7 +159,7 @@ fun OceanWaterInfoGeoChart(
                 }
 
                 val transData = transformToMarkerDataFromOceanWater( data.value, filteredObservatories)
-                sendAddMarkerClusterer?.invoke(IFRAME_OCEAN_WATER_INFO, transData)
+                sendAddMarkerClusterer?.invoke(MainTab.TabItem.OCEAN_WATER_QUALITY.iframeID(), transData)
 
             }
 

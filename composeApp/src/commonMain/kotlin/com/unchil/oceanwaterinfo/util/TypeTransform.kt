@@ -10,7 +10,6 @@ import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import kotlin.collections.mapIndexed
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
@@ -18,26 +17,6 @@ import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.round
 
-const val DIV_WEB_MAIN = "webmain"
-
-const val DIV_OCEAN_WATER_INFO = "oceanWaterInfoMap"
-const val DIV_AIR_INFO = "airInfoMap"
-
-const val DIV_COASTAL_FLOODING = "coastalFloodingMap"
-const val DIV_SEA_FLOW_TRIPS = "seaFlowTripsMap"
-const val DIV_SEA_FLOW_HEXAGON = "seaFlowHexagonMap"
-const val DIV_WATER_INFO = "waterInfoMap"
-
-const val IFRAME_AIR_INFO = "iframe_airInfoMap"
-const val IFRAME_WATER_INFO = "iframe_waterInfo"
-const val IFRAME_OCEAN_WATER_INFO = "iframe_oceanWaterInfo"
-
-const val IFRAME_COASTAL_FLOODING  = "iframe_coastalFlooding"
-const val IFRAME_SEA_FLOW_TRIPS = "iframe_seaFlowTrips"
-const val IFRAME_SEA_FLOW_HEXAGON = "iframe_seaFlowHexagon"
-
-
-val MAIN_TAB_ITEMS = listOf("Air Quality", "Ocean Water Quality", "Ocean Tidal Speed Map", "Ocean Wave Height Map", "Hydro & Nuclear Power", "Coastal Flooding Information")
 
 // 1. 관측 데이터를 마커 클러스터용 문자열 데이터(Triple)로 변환하는 함수
 fun transformToMarkerDataFromKhoaObservation(observations: List<KhoaObservation>): Triple<String, String, String> {

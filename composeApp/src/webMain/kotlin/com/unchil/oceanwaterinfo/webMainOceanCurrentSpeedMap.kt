@@ -22,6 +22,11 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.TabItem
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -64,7 +69,7 @@ fun webMainOceanCurrentSpeedMap(){
                 //Triple(lat,lng,speed)
                 "{\"lat\":${it.first}, \"lng\":${it.second},  \"speed\":${it.third}}"
             }
-            sendMsgInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
+            sendMsgInitData(MainTab.TabItem.OCEAN_WAVE_HEIGHT.iframeID(), initData.value)
         }
     }
 
@@ -97,7 +102,7 @@ fun webMainOceanCurrentSpeedMap(){
                             coordinates,
                             density,
                             DIV_WEB_MAIN,
-                            DIV_SEA_FLOW_HEXAGON
+                            TabItem.OCEAN_WAVE_HEIGHT.elementID()
                         )
                     },
                 contentAlignment = Alignment.Center
@@ -118,7 +123,7 @@ fun webMainOceanCurrentSpeedMap(){
                         when (label) {
                             "Reload" ->{
                                 visibleProgressIndicator.value = true
-                                sendMsgInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
+                                sendMsgInitData( TabItem.OCEAN_WAVE_HEIGHT.iframeID(), initData.value)
                                 coroutineScope.launch {
                                     delay(1000)
                                     visibleProgressIndicator.value = false

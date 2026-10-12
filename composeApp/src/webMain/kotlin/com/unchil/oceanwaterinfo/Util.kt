@@ -2,6 +2,9 @@ package com.unchil.oceanwaterinfo
 
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.browser.document
 import org.khronos.webgl.toInt8Array
@@ -69,7 +72,8 @@ val sendMsgFlyToWaterInfo = { point:Point<Double, Double> ->
     "action": "FLY_TO",
     "target": { "lat": ${point.y}, "lng": ${point.x} }
 }""".trimIndent()
-    postIframeMessage(IFRAME_WATER_INFO, message)
+
+    postIframeMessage( MainTab.TabItem.HYDRO_NUCLEAR.iframeID(), message)
 }
 
 val sendMsgFlyToOceanWaterInfo = { point:Point<Double, Double> ->
@@ -77,7 +81,8 @@ val sendMsgFlyToOceanWaterInfo = { point:Point<Double, Double> ->
     "action": "FLY_TO",
     "target": { "lat": ${point.y}, "lng": ${point.x} }
 }""".trimIndent()
-    postIframeMessage(IFRAME_OCEAN_WATER_INFO, message)
+
+    postIframeMessage(MainTab.TabItem.OCEAN_WATER_QUALITY.iframeID(), message)
 }
 
 val sendMsgAddMarkerClusterer = { iframeId:String, (locs, lbs, cnts) :Triple<String, String, String> ->
@@ -97,19 +102,13 @@ val disposeHtmlElements = { htmlElements : List<String> ->
     }
 }
 
-val tabElementIds = listOf( DIV_AIR_INFO,  // Index 0
-    DIV_OCEAN_WATER_INFO,     // Index 1
-    DIV_SEA_FLOW_TRIPS,       // Index 2
-    DIV_SEA_FLOW_HEXAGON,     // Index 3
-    DIV_WATER_INFO,           // Index 4
-    DIV_COASTAL_FLOODING      // Index 5
-)
+
 
 
 val changeSelectedTab = { selectedTabIndex: Int ->
-    tabElementIds.forEachIndexed { index, elementId ->
+    MainTab.getElementIDs().forEachIndexed { index, elementId ->
         ( document.getElementById(elementId) as? HTMLElement )?.style?.visibility =
-             if (index == selectedTabIndex) "visible" else "hidden"
+            if (index == selectedTabIndex) "visible" else "hidden"
     }
 }
 

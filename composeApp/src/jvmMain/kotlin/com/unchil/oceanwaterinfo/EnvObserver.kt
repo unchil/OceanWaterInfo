@@ -40,6 +40,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.title
 import dev.datlag.kcef.KCEF
 import dev.datlag.kcef.KCEFAcknowledge
 import io.github.koalaplot.core.xygraph.Point
@@ -279,7 +281,7 @@ fun main() = application {
                                      MaterialTheme.colorScheme.primary,
                                      { HorizontalDivider() }
                                  ) {
-                                     MAIN_TAB_ITEMS.forEachIndexed { index, title ->
+                                     MainTab.TabItem.entries.forEachIndexed { index, item ->
                                          val interactionSource = remember { MutableInteractionSource() }
                                          // InteractionSource의 상태 변화를 직접 감지하는 로직
                                          LaunchedEffect(interactionSource) {
@@ -304,7 +306,7 @@ fun main() = application {
                                              },
                                              text = {
                                                  Text(
-                                                     text = title,
+                                                     text = item.title(),
                                                      fontSize = 16.sp,
                                                      fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
                                                      // 리사이즈 도중 텍스트가 잘려나가는 것을 방지

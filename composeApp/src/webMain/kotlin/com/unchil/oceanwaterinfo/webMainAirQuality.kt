@@ -33,6 +33,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -82,7 +86,7 @@ fun webMainAirQuality(){
                 "{ \"sensing_time\":\"${it.sensing_time}\", \"obs\":\"${it.obs}\", \"lat\":${it.lat}, \"lng\":${it.lng},  \"addr\":\"${it.addr}\", \"value\":${value} }"
             }
 
-            sendMsgChangeData.invoke(IFRAME_AIR_INFO, initData.value, selectedOption.name)
+            sendMsgChangeData.invoke(MainTab.TabItem.AIR_QUALITY.iframeID(), initData.value, selectedOption.name)
 
         }
 
@@ -147,7 +151,7 @@ fun webMainAirQuality(){
                                 coordinates,
                                 density,
                                 DIV_WEB_MAIN,
-                                DIV_AIR_INFO
+                                MainTab.TabItem.AIR_QUALITY.elementID()
                             )
                         },
                     contentAlignment = Alignment.Center

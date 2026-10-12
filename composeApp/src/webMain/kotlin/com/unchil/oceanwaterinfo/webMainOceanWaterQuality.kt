@@ -31,6 +31,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 
 @Composable
 fun webMainOceanWaterQuality(){
@@ -45,7 +49,7 @@ fun webMainOceanWaterQuality(){
         val isReloadOceanWaterInfoMap = remember { mutableStateOf(0) }
 
         Text(
-            "Korea Ocean Water Information",
+            MainTab.TabItem.OCEAN_WATER_QUALITY.subTitle(),
             modifier = Modifier.fillMaxWidth()
                 .padding(vertical = 15.dp),
             color = MaterialTheme.colorScheme.onBackground,
@@ -118,7 +122,7 @@ fun webMainOceanWaterQuality(){
                                         coordinates,
                                         density,
                                         DIV_WEB_MAIN,
-                                        DIV_OCEAN_WATER_INFO
+                                        MainTab.TabItem.OCEAN_WATER_QUALITY.elementID()
                                     )
                                 },
                             contentAlignment = Alignment.Center

@@ -30,6 +30,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 
 @Composable
 fun webMainHydroNuclearPower(){
@@ -44,7 +48,7 @@ fun webMainHydroNuclearPower(){
     ) {
 
         Text(
-            "Information regarding Korea Hydro & Nuclear Power",
+            MainTab.TabItem.HYDRO_NUCLEAR.subTitle(),
             modifier = Modifier.fillMaxWidth()
                 .padding(vertical = 20.dp),
             color = MaterialTheme.colorScheme.onBackground,
@@ -136,7 +140,7 @@ fun webMainHydroNuclearPower(){
                                             coordinates,
                                             density,
                                             DIV_WEB_MAIN,
-                                            DIV_WATER_INFO
+                                            MainTab.TabItem.HYDRO_NUCLEAR.elementID()
                                         )
                                     },
                                 contentAlignment = Alignment.Center

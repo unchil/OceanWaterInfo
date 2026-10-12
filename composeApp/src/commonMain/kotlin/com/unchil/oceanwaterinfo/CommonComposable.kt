@@ -43,6 +43,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unchil.oceanwaterinfo.AirQualityManager.nameEn
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
+import com.unchil.oceanwaterinfo.util.MainTab.title
 
 @Composable
 fun AirQualityMap(
@@ -58,7 +61,7 @@ fun AirQualityMap(
     ) {
 
         Text(
-            "Seoul/Gyonggi SDoT Air Environmental Observation Information",
+            MainTab.TabItem.AIR_QUALITY.subTitle(),
             modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 20.sp,
@@ -113,7 +116,7 @@ fun CoastalFloodingMap(
     ) {
 
         Text(
-            "Korea Coastal Flooding Prediction Information",
+            MainTab.TabItem.COASTAL_FLOODING.subTitle(),
             modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 20.sp,

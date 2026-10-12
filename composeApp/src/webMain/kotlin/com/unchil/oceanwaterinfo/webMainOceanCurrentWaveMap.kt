@@ -22,6 +22,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.DIV_WEB_MAIN
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.TabItem
+import com.unchil.oceanwaterinfo.util.MainTab.elementID
+import com.unchil.oceanwaterinfo.util.MainTab.iframeID
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 import com.unchil.oceanwaterinfo.viewmodel.KhoaWaveInfoViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -59,7 +65,7 @@ fun webMainOceanCurrentWaveMap(){
                 //Triple(lat,lng,speed)
                 "{\"lat\":${it.lat}, \"lng\":${it.lot}, \"height\":${it.wvhgt}, \"period\":${it.wvpd}, \"direction\":${it.wvdrct}, \"name\":\"${it.obsvtrNm}\", \"time\":\"${it.obsrvnDt}\"}"
             }
-            sendMsgInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
+            sendMsgInitData( TabItem.OCEAN_WAVE_HEIGHT.iframeID(), initData.value)
         }
     }
 
@@ -74,7 +80,7 @@ fun webMainOceanCurrentWaveMap(){
         ) {
 
             ChartTitle(
-                "Ocean Water WaveHeight",
+                MainTab.TabItem.OCEAN_WAVE_HEIGHT.subTitle(),
                 modifier = Modifier,
             )
 
@@ -91,7 +97,7 @@ fun webMainOceanCurrentWaveMap(){
                             coordinates,
                             density,
                             DIV_WEB_MAIN,
-                            DIV_SEA_FLOW_HEXAGON
+                            TabItem.OCEAN_WAVE_HEIGHT.elementID()
                         )
                     },
                 contentAlignment = Alignment.Center
@@ -111,7 +117,7 @@ fun webMainOceanCurrentWaveMap(){
                         when (label) {
                             "Reload" ->{
                                 visibleProgressIndicator.value = true
-                                sendMsgInitData( IFRAME_SEA_FLOW_HEXAGON, initData.value)
+                                sendMsgInitData( TabItem.OCEAN_WAVE_HEIGHT.iframeID(), initData.value)
                                 coroutineScope.launch {
                                     delay(1000)
                                     visibleProgressIndicator.value = false
