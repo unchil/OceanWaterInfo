@@ -18,31 +18,12 @@ fun sendPostMsg (iframeId:String, msgKey:String, values:String? = null ){
     postIframeMessage(iframeId, message)
 }
 
-@OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, msgKey, grade,  wasmArray, origin) => { " +
-        "const uint8Array = new Uint8Array(wasmArray.buffer, wasmArray.byteOffset, wasmArray.byteLength);" +
-        "const buffer = uint8Array.buffer;" +
-        "window.postMessage({ msgKey: msgKey, grade: grade, buffer: buffer }, origin, [buffer]);" +
-        "}")
-private external fun jsPostMessage(window: org.w3c.dom.Window, msgKey:String, grade:String, wasmArray: JsAny, origin: String)
-
-@OptIn(ExperimentalWasmJsInterop::class)
-fun sendPostMsgRaw(iframeId: String, msgKey:String,  grade: String, geojsonBytes: ByteArray,){
-    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
-    val contentWindow = iframe.contentWindow ?: return
-    jsPostMessage(contentWindow, msgKey, grade, geojsonBytes.toInt8Array(),  "*")
-}
-
-
-
-
 @OptIn(ExperimentalWasmJsInterop::class)
 fun postIframeMessage(iframeId: String, messageJson: String) {
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement
     val jsString = messageJson.toJsString()
-  //  println("Sent to ${iframeId}, jsString:[$jsString]")
     iframe?.contentWindow?.postMessage(jsString, "*")
 }
-
 
 /** Compose Box의 위치 정보를 실제 브라우저 HTML 요소의 스타일에 동기화하는 함수 */
 fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, mainHtmlElementId: String, htmlElementId: String ) {
@@ -72,12 +53,6 @@ fun syncHtmlElementPosition(coordinates: LayoutCoordinates, density: Density, ma
     }
 }
 
-
-
-
-
-
-
 val sendMsgChangeData = { iframeId:String, values:String, element:String->
     val message = "{ \"action\": \"CHANGE_DATA\", \"type\": \"${element}\", \"values\":${values}}"
     postIframeMessage(iframeId, message)
@@ -89,40 +64,29 @@ val sendMsgInitData = { iframeId:String, values:String->
     postIframeMessage(iframeId, message)
 }
 
-
-
 val sendMsgFlyToWaterInfo = { point:Point<Double, Double> ->
-    val message = """
-                {
-                    "action": "FLY_TO",
-                    "target": { "lat": ${point.y}, "lng": ${point.x} }
-                }
-                """.trimIndent()
+    val message = """{
+    "action": "FLY_TO",
+    "target": { "lat": ${point.y}, "lng": ${point.x} }
+}""".trimIndent()
     postIframeMessage(IFRAME_WATER_INFO, message)
 }
 
-
 val sendMsgFlyToOceanWaterInfo = { point:Point<Double, Double> ->
-    val message = """
-                {
-                    "action": "FLY_TO",
-                    "target": { "lat": ${point.y}, "lng": ${point.x} }
-                }
-                """.trimIndent()
+    val message = """{
+    "action": "FLY_TO",
+    "target": { "lat": ${point.y}, "lng": ${point.x} }
+}""".trimIndent()
     postIframeMessage(IFRAME_OCEAN_WATER_INFO, message)
 }
 
 val sendMsgAddMarkerClusterer = { iframeId:String, (locs, lbs, cnts) :Triple<String, String, String> ->
-    val message = """
-                {
-                    "action": "ADD_Marker_Clusterer",
-                    "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
-                }
-                """.trimIndent()
+    val message = """{
+    "action": "ADD_Marker_Clusterer",
+    "target": { "locations": $locs, "labels": $lbs, "content": $cnts }
+}""".trimIndent()
     postIframeMessage(iframeId, message)
 }
-
-
 
 val disposeHtmlElements = { htmlElements : List<String> ->
     htmlElements.forEach {
@@ -133,58 +97,33 @@ val disposeHtmlElements = { htmlElements : List<String> ->
     }
 }
 
-val changeSelectedTab = { selectedTabIndex :Int ->
+val tabElementIds = listOf( DIV_AIR_INFO,  // Index 0
+    DIV_OCEAN_WATER_INFO,     // Index 1
+    DIV_SEA_FLOW_TRIPS,       // Index 2
+    DIV_SEA_FLOW_HEXAGON,     // Index 3
+    DIV_WATER_INFO,           // Index 4
+    DIV_COASTAL_FLOODING      // Index 5
+)
 
-    val airHtmlElement = document.getElementById(DIV_AIR_INFO) as? HTMLElement
-    val waterHtmlElement = document.getElementById(DIV_WATER_INFO) as? HTMLElement
-    val oceanWaterHtmlElement = document.getElementById(DIV_OCEAN_WATER_INFO) as? HTMLElement
-    val seaFlowTripsMapMapHtmlElementId = document.getElementById(DIV_SEA_FLOW_TRIPS) as? HTMLElement
-    val seaFlowHexagonMapHtmlElementId = document.getElementById(DIV_SEA_FLOW_HEXAGON) as? HTMLElement
-    val coastalFloodingMapHtmlElementId = document.getElementById(DIV_COASTAL_FLOODING) as? HTMLElement
 
-
-    airHtmlElement?.let {
-        when(selectedTabIndex){
-            0 -> it.style.visibility = "visible"
-            else -> it.style.visibility = "hidden"
-        }
+val changeSelectedTab = { selectedTabIndex: Int ->
+    tabElementIds.forEachIndexed { index, elementId ->
+        ( document.getElementById(elementId) as? HTMLElement )?.style?.visibility =
+             if (index == selectedTabIndex) "visible" else "hidden"
     }
-
-    oceanWaterHtmlElement?.let{
-        when(selectedTabIndex){
-            1 -> it.style.visibility = "visible"
-            else -> it.style.visibility = "hidden"
-        }
-    }
+}
 
 
-    seaFlowTripsMapMapHtmlElementId?.let{
-        when(selectedTabIndex){
-            2 -> it.style.visibility = "visible"
-            else -> it.style.visibility = "hidden"
-        }
-    }
+@OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, msgKey, grade,  wasmArray, origin) => { " +
+        "const uint8Array = new Uint8Array(wasmArray.buffer, wasmArray.byteOffset, wasmArray.byteLength);" +
+        "const buffer = uint8Array.buffer;" +
+        "window.postMessage({ msgKey: msgKey, grade: grade, buffer: buffer }, origin, [buffer]);" +
+        "}")
+private external fun jsPostMessage(window: org.w3c.dom.Window, msgKey:String, grade:String, wasmArray: JsAny, origin: String)
 
-
-    seaFlowHexagonMapHtmlElementId?.let{
-        when(selectedTabIndex){
-            3 -> it.style.visibility = "visible"
-            else -> it.style.visibility = "hidden"
-        }
-    }
-
-    waterHtmlElement?.let {
-        when(selectedTabIndex){
-            4 -> it.style.visibility = "visible"
-            else -> it.style.visibility = "hidden"
-        }
-    }
-
-    coastalFloodingMapHtmlElementId?.let {
-        when(selectedTabIndex){
-            5 -> it.style.visibility = "visible"
-            else -> it.style.visibility = "hidden"
-        }
-    }
-
+@OptIn(ExperimentalWasmJsInterop::class)
+fun sendPostMsgRaw(iframeId: String, msgKey:String,  grade: String, geojsonBytes: ByteArray,){
+    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
+    val contentWindow = iframe.contentWindow ?: return
+    jsPostMessage(contentWindow, msgKey, grade, geojsonBytes.toInt8Array(),  "*")
 }
