@@ -26,6 +26,8 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeUrl
 import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
@@ -156,12 +158,8 @@ fun OceanWaterInfoGeoChart_MapScreen(
 
 
     val center = OceanWaterInfoGeoChartPoint.current
-    val host = getPlatform().localServerEndPoint
 
-    val servicePage = "oceanWaterInfoGoogleMap.html"
-
-
-    val localUrl = "${host}/${servicePage}"
+    val localUrl = "${getPlatform().localServerEndPoint}/${ MainTab.TabItem.OCEAN_WATER_QUALITY.iframeUrl()}"
     val remoteUrl = "https://www.google.com/maps/"
 
     val webViewState = rememberWebViewState(localUrl)

@@ -28,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 import io.github.koalaplot.core.xygraph.Point
 import kotlin.Double
 
@@ -47,7 +49,7 @@ fun jvmMainHydroNuclearPower(){
     ) {
 
         Text(
-            "Information regarding Korea Hydro & Nuclear Power",
+            MainTab.TabItem.HYDRO_NUCLEAR.subTitle(),
             modifier = Modifier.fillMaxWidth()
                 .padding(vertical = 20.dp),
             color = MaterialTheme.colorScheme.onBackground,

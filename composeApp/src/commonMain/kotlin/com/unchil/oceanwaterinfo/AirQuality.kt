@@ -33,6 +33,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeUrl
 import com.unchil.oceanwaterinfo.viewmodel.SDoTEnvInfoUnionViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,10 +56,8 @@ fun AirQuality(){
         }
     }
 
-    val host = getPlatform().localServerEndPoint
-    val servicePage = "sDoTHexagonLayer.html"
     var descriptionBox by remember { mutableStateOf(false) }
-    val localUrl = "${host}/${servicePage}"
+    val localUrl = "${getPlatform().localServerEndPoint}/${MainTab.TabItem.AIR_QUALITY.iframeUrl()}"
     val webController = remember { PlatformWebViewController() }
     val values = remember{ mutableStateOf("" )}
     var selectedOption by remember { mutableStateOf(AirQualityManager.ChemicalElement.entries[0]) }

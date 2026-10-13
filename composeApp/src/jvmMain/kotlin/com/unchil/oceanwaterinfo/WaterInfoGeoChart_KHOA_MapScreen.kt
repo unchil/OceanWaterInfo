@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +23,8 @@ import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeUrl
 import com.unchil.oceanwaterinfo.viewmodel.KhoaObservationCurrentViewModel
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.coroutines.delay
@@ -34,7 +34,6 @@ import kotlinx.coroutines.delay
 fun WaterInfoGeoChart_KHOA_MapScreen(
     height: Dp = ChartSize.large.height()
 ){
-    val coroutineScope = rememberCoroutineScope()
 
     val viewModel: KhoaObservationCurrentViewModel = remember {
         KhoaObservationCurrentViewModel()
@@ -123,9 +122,7 @@ fun WaterInfoGeoChart_KHOA_MapScreen(
 
     val center = WaterInfoGeoChartPoint.current
 
-    val host = getPlatform().localServerEndPoint
-    val servicePage = "waterInfoGoogleMap.html"
-    val localUrl = "${host}/${servicePage}"
+    val localUrl = "${getPlatform().localServerEndPoint}/${MainTab.TabItem.HYDRO_NUCLEAR.iframeUrl()}"
 
     val webViewState = rememberWebViewState(localUrl)
     val navigator = rememberWebViewNavigator()

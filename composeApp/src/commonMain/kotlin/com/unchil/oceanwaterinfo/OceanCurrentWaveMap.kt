@@ -20,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeUrl
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 import com.unchil.oceanwaterinfo.viewmodel.KhoaWaveInfoViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,12 +34,8 @@ fun OceanCurrentWaveMap(){
         KhoaWaveInfoViewModel()
     }
 
-    val host = getPlatform().localServerEndPoint
 
-    val servicePage = "seaFlowMapHexagonLayer.html"
-
-    val localUrl = "${host}/${servicePage}"
-
+    val localUrl = "${getPlatform().localServerEndPoint}/${ MainTab.TabItem.OCEAN_WAVE_HEIGHT.iframeUrl()}"
     val webController = remember { PlatformWebViewController() }
 
     LaunchedEffect(key1 = viewModel){
@@ -125,7 +124,7 @@ fun OceanCurrentWaveMap(){
             ) {
 
                 ChartTitle(
-                    "Ocean Water WaveHeight",
+                    MainTab.TabItem.OCEAN_WAVE_HEIGHT.subTitle(),
                     modifier = Modifier,
                 )
 

@@ -13,7 +13,7 @@ class JVMPlatform: Platform {
 
 
     override val localServerEndPoint: String
-        get() =  "http://un7.org:7272/iFrame"
+        get() =  "http://un7.org:7272"
 
 }
 

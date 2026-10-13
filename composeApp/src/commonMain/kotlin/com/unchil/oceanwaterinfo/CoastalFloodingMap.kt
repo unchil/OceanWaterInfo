@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeUrl
 import com.unchil.oceanwaterinfo.viewmodel.CoastalFloodingInfoViewModel
 import kotlinx.coroutines.launch
 
@@ -34,10 +36,7 @@ fun CoastalFloodingMap(){
     val coroutineScope = rememberCoroutineScope()
     val bottomBarHeight = remember{60.dp}
 
-    val host = getPlatform().localServerEndPoint
-
-    val servicePage = "coastalFloodingMap.html"
-    val localUrl = "${host}/${servicePage}"
+    val localUrl = "${getPlatform().localServerEndPoint}/${MainTab.TabItem.COASTAL_FLOODING.iframeUrl()}"
 
     val webController = remember { PlatformWebViewController() }
 
@@ -109,10 +108,6 @@ fun CoastalFloodingMap(){
         }
 
     }
-
-
-
-
 
 
     LaunchedEffect(isLoading) {

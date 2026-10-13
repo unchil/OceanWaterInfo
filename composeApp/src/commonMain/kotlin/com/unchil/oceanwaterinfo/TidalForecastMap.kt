@@ -20,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.MainTab
+import com.unchil.oceanwaterinfo.util.MainTab.iframeUrl
+import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 import com.unchil.oceanwaterinfo.viewmodel.KhoaTidalCurrentViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -32,12 +35,7 @@ fun TidalForecastMap(){
         KhoaTidalCurrentViewModel()
     }
 
-    val host = getPlatform().localServerEndPoint
-
-    val servicePage = "seaFlowMapTripsLayer.html"
-
-
-    val localUrl = "${host}/${servicePage}"
+    val localUrl = "${getPlatform().localServerEndPoint}/${ MainTab.TabItem.OCEAN_TIDAL_SPEED.iframeUrl()}"
 
     val webController = remember { PlatformWebViewController() }
 
@@ -48,15 +46,9 @@ fun TidalForecastMap(){
         }
     }
 
-
-
     val tidalCurrentInfo = viewModel._tidalCurrentStateFlow.collectAsState()
-
     val isLoading = viewModel.isLoading.collectAsState()
-
-    val keys = remember{ mutableStateOf("" )}
     val values = remember{ mutableStateOf("" )}
-
 
     LaunchedEffect( tidalCurrentInfo.value){
         if(tidalCurrentInfo.value.isNotEmpty()) {
@@ -77,11 +69,8 @@ fun TidalForecastMap(){
                 }
                 data
             }
-
-
         }
     }
-
 
 
     LaunchedEffect(values.value, webController.loadingState){
@@ -117,8 +106,6 @@ fun TidalForecastMap(){
     }
 
 
-
-
     val bottomBarHeight = remember{80.dp}
 
     BoxWithConstraints(
@@ -139,7 +126,7 @@ fun TidalForecastMap(){
             ) {
 
                 ChartTitle(
-                    "Prediction 3 hour from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }} Tidal Current Map",
+                    "${MainTab.TabItem.OCEAN_TIDAL_SPEED.subTitle()} from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }}",
                     modifier = Modifier,
                 )
 
