@@ -47,14 +47,10 @@ fun webMainHydroNuclearPower(){
         modifier = Modifier.fillMaxSize()
     ) {
 
-        Text(
+        PageTitle(
             MainTab.TabItem.HYDRO_NUCLEAR.subTitle(),
             modifier = Modifier.fillMaxWidth()
-                .padding(vertical = 20.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+                .padding(vertical = 15.dp)
         )
 
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {

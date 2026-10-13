@@ -67,6 +67,23 @@ fun DataLoading(){
     Text( "서버로부터 데이터를 로드하고 있습니다.", color = Color.Blue, )
 }
 
+
+@Composable
+fun PageTitle(
+    title: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Text(
+            title,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        )
+    }
+}
+
+
 @Composable
 fun ChartTitle(
     title: String,

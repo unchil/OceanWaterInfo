@@ -60,14 +60,12 @@ fun AirQualityMap(
         modifier = Modifier.fillMaxSize(),
     ) {
 
-        Text(
+        PageTitle(
             MainTab.TabItem.AIR_QUALITY.subTitle(),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            modifier = Modifier.fillMaxWidth()
+                .padding(vertical = 15.dp)
         )
+
 
         SecondaryTabRow(
             selectedTabIndex = selectedChemicalElementIndex,
@@ -115,16 +113,11 @@ fun CoastalFloodingMap(
         verticalArrangement =   Arrangement.Top
     ) {
 
-        Text(
+        PageTitle(
             MainTab.TabItem.COASTAL_FLOODING.subTitle(),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            modifier = Modifier.fillMaxWidth()
+                .padding(vertical = 15.dp)
         )
-
-
         SecondaryTabRow(
             selectedTabIndex = selectedGradeIndex,
             containerColor = MaterialTheme.colorScheme.surface, // 배경색 설정

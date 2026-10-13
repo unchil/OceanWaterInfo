@@ -125,9 +125,10 @@ fun TidalForecastMap(){
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
 
-                ChartTitle(
+                PageTitle(
                     "${MainTab.TabItem.OCEAN_TIDAL_SPEED.subTitle()} from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }}",
-                    modifier = Modifier,
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(vertical = 15.dp)
                 )
 
                 PlatformWebView(

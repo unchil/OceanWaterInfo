@@ -122,13 +122,11 @@ fun OceanCurrentWaveMap(){
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-
-                ChartTitle(
+                PageTitle(
                     MainTab.TabItem.OCEAN_WAVE_HEIGHT.subTitle(),
-                    modifier = Modifier,
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(vertical = 15.dp)
                 )
-
-
                 PlatformWebView(
                     url = localUrl,
                     controller = webController,

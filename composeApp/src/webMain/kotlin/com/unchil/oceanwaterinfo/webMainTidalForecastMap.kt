@@ -94,9 +94,10 @@ fun webMainTidalForecastMap(){
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            ChartTitle(
-                "${MainTab.TabItem.OCEAN_TIDAL_SPEED.subTitle()} from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }}",
-                modifier = Modifier,
+            PageTitle(
+                "${TabItem.OCEAN_TIDAL_SPEED.subTitle()} from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }}",
+                modifier = Modifier.fillMaxWidth()
+                    .padding(vertical = 15.dp)
             )
 
             CaptionText(

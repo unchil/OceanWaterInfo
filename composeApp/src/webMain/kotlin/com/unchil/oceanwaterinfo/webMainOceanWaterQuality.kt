@@ -48,16 +48,11 @@ fun webMainOceanWaterQuality(){
 
         val isReloadOceanWaterInfoMap = remember { mutableStateOf(0) }
 
-        Text(
+        PageTitle(
             MainTab.TabItem.OCEAN_WATER_QUALITY.subTitle(),
             modifier = Modifier.fillMaxWidth()
-                .padding(vertical = 15.dp),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+                .padding(vertical = 15.dp)
         )
-
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val totalWidth = this.maxWidth.value
 

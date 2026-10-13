@@ -79,9 +79,10 @@ fun webMainOceanCurrentWaveMap(){
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            ChartTitle(
-                MainTab.TabItem.OCEAN_WAVE_HEIGHT.subTitle(),
-                modifier = Modifier,
+            PageTitle(
+                TabItem.OCEAN_WAVE_HEIGHT.subTitle(),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(vertical = 15.dp)
             )
 
             CaptionText(
