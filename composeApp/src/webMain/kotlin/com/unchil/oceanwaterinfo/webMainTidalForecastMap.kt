@@ -95,7 +95,7 @@ fun webMainTidalForecastMap(){
         ) {
 
             ChartTitle(
-                MainTab.TabItem.OCEAN_TIDAL_SPEED.subTitle(),
+                "${MainTab.TabItem.OCEAN_TIDAL_SPEED.subTitle()} from the ${tidalCurrentInfo.value.minOfOrNull { it.sch_time }}",
                 modifier = Modifier,
             )
 
