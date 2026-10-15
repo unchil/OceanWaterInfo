@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -35,8 +36,6 @@ fun main(){
 
     ComposeViewport(viewportContainerId = DIV_WEB_MAIN) {
 
-    //    MainView( modifier = Modifier.fillMaxSize() )
-
         // 1. 초기 로딩 상태 관리
         var isPageReady by remember { mutableStateOf(false) }
 
@@ -46,11 +45,17 @@ fun main(){
             isPageReady = true
         }
 
-
+        var primaryTabIndex by remember { mutableStateOf(0) }
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
 
-        LaunchedEffect(selectedTabIndex) {
+        LaunchedEffect(selectedTabIndex,) {
             changeSelectedTab(selectedTabIndex)
+        }
+
+        LaunchedEffect( primaryTabIndex) {
+            if(primaryTabIndex == 1) {
+                clearSelectedTab()
+            }
         }
 
         MaterialTheme(
@@ -61,22 +66,21 @@ fun main(){
                 modifier = Modifier.fillMaxSize()
                     .background(color = MaterialTheme.colorScheme.surface)
             ) {
-                SecondaryTabRow(
-                    selectedTabIndex,
+                PrimaryTabRow(
+                    primaryTabIndex,
                     Modifier.fillMaxWidth(),
                     MaterialTheme.colorScheme.surface,
                     MaterialTheme.colorScheme.primary,
                     { HorizontalDivider() }
                 ) {
-                    MainTab.TabItem.entries.forEachIndexed { index, item ->
+                    listOf("Desktop Layout", "Mobile Layout").forEachIndexed { index, viewTitle ->
                         val interactionSource = remember { MutableInteractionSource() }
-                        // InteractionSource의 상태 변화를 직접 감지하는 로직
                         LaunchedEffect(interactionSource) {
                             interactionSource.interactions.collectLatest { interaction ->
                                 when (interaction) {
                                     is PressInteraction.Press -> {
-                                        if (selectedTabIndex != index) {
-                                            selectedTabIndex = index
+                                        if (primaryTabIndex != index) {
+                                            primaryTabIndex =  index
                                         }
                                     }
                                 }
@@ -84,18 +88,18 @@ fun main(){
                         }
 
                         Tab(
-                            selected = selectedTabIndex == index,
+                            selected = primaryTabIndex == index,
                             onClick = {
                                 // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
-                                if (selectedTabIndex != index) {
-                                    selectedTabIndex = index
+                                if (primaryTabIndex != index) {
+                                    primaryTabIndex = index
                                 }
                             },
                             text = {
                                 Text(
-                                    text = item.title(),
-                                    fontSize = 16.sp,
-                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                    text = viewTitle,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (primaryTabIndex == index) FontWeight.Bold else FontWeight.Light,
                                     // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
                                     softWrap = false,
                                     maxLines = 1
@@ -104,35 +108,99 @@ fun main(){
                             // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
                             interactionSource = interactionSource
                         )
+
                     }
+
                 }
 
                 Box(modifier = Modifier.fillMaxSize()) {
-                    when (selectedTabIndex) {
+                    when (primaryTabIndex) {
                         0 -> {
-                            // 첫 iframe의 완전한 로드를 기다리는 인위적 지연
-                            if(isPageReady){
-                                webMainAirQuality()
+                            Column(
+                                modifier = Modifier.fillMaxSize()
+                                    .background(color = MaterialTheme.colorScheme.surface)
+                            ) {
+                                SecondaryTabRow(
+                                    selectedTabIndex,
+                                    Modifier.fillMaxWidth(),
+                                    MaterialTheme.colorScheme.surface,
+                                    MaterialTheme.colorScheme.primary,
+                                    { HorizontalDivider() }
+                                ) {
+                                    MainTab.TabItem.entries.forEachIndexed { index, item ->
+                                        val interactionSource = remember { MutableInteractionSource() }
+                                        // InteractionSource의 상태 변화를 직접 감지하는 로직
+                                        LaunchedEffect(interactionSource) {
+                                            interactionSource.interactions.collectLatest { interaction ->
+                                                when (interaction) {
+                                                    is PressInteraction.Press -> {
+                                                        if (selectedTabIndex != index) {
+                                                            selectedTabIndex = index
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Tab(
+                                            selected = selectedTabIndex == index,
+                                            onClick = {
+                                                // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                                if (selectedTabIndex != index) {
+                                                    selectedTabIndex = index
+                                                }
+                                            },
+                                            text = {
+                                                Text(
+                                                    text = item.title(),
+                                                    fontSize = 16.sp,
+                                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                                    // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                                    softWrap = false,
+                                                    maxLines = 1
+                                                )
+                                            },
+                                            // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                            interactionSource = interactionSource
+                                        )
+                                    }
+                                }
+
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    when (selectedTabIndex) {
+                                        0 -> {
+                                            // 첫 iframe의 완전한 로드를 기다리는 인위적 지연
+                                            if(isPageReady){
+                                                webMainAirQuality()
+                                            }
+                                        }
+                                        1 -> {
+                                            webMainOceanWaterQuality()
+                                        }
+                                        2-> {
+                                            webMainTidalForecastMap()
+                                        }
+
+                                        3 -> {
+                                            webMainOceanCurrentWaveMap()
+                                        }
+
+                                        4 -> {
+                                            webMainHydroNuclearPower()
+                                        }
+                                        5 -> {
+                                            webMainCoastalFloodingMap()
+                                        }
+                                    }
+                                }
+
                             }
                         }
                         1 -> {
-                            webMainOceanWaterQuality()
-                        }
-                        2-> {
-                            webMainTidalForecastMap()
-                        }
-
-                        3 -> {
-                            webMainOceanCurrentWaveMap()
-                        }
-
-                        4 -> {
-                            webMainHydroNuclearPower()
-                        }
-                        5 -> {
-                            webMainCoastalFloodingMap()
+                            MainView(modifier = Modifier.fillMaxSize(), envObservationTreeWeb())
                         }
                     }
+
                 }
 
             }

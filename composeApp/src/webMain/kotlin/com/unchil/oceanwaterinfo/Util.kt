@@ -103,7 +103,11 @@ val disposeHtmlElements = { htmlElements : List<String> ->
 }
 
 
-
+val clearSelectedTab = {
+    MainTab.getElementIDs().forEach {  elementId ->
+        ( document.getElementById(elementId) as? HTMLElement )?.style?.visibility = "hidden"
+    }
+}
 
 val changeSelectedTab = { selectedTabIndex: Int ->
     MainTab.getElementIDs().forEachIndexed { index, elementId ->
