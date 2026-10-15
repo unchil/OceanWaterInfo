@@ -197,7 +197,7 @@ fun main(){
                             }
                         }
                         1 -> {
-                            MainView(modifier = Modifier.fillMaxSize(), envObservationTreeWeb())
+                            MainView(modifier = Modifier.fillMaxSize(), envObservationTreeForWeb())
                         }
                     }
 

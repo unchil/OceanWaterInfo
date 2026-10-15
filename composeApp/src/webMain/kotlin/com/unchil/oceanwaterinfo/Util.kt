@@ -3,13 +3,14 @@ package com.unchil.oceanwaterinfo
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
 import com.unchil.oceanwaterinfo.util.MainTab
-import com.unchil.oceanwaterinfo.util.MainTab.elementID
 import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import io.github.koalaplot.core.xygraph.Point
 import kotlinx.browser.document
 import org.khronos.webgl.toInt8Array
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
+
+
 
 
 fun sendPostMsg (iframeId:String, msgKey:String, values:String? = null ){
@@ -115,6 +116,18 @@ val changeSelectedTab = { selectedTabIndex: Int ->
             if (index == selectedTabIndex) "visible" else "hidden"
     }
 }
+
+/** 특정 탭의 HTML 요소 가시성을 복구하고 iframe을 새로고침(reload)하는 함수 */
+fun showAndReloadIframe(elementId: String, iframeId: String) {
+    // 1. 부모 div 요소를 가시화
+    val element = document.getElementById(elementId) as? HTMLElement
+    element?.style?.visibility = "visible"
+
+    // 2. iframe 새로고침 실행
+    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement
+    iframe?.contentWindow?.location?.reload()
+}
+
 
 
 @OptIn(ExperimentalWasmJsInterop::class)@JsFun("(window, msgKey, grade,  wasmArray, origin) => { " +

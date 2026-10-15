@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.unchil.oceanwaterinfo.util.MainTab
 import io.github.koalaplot.core.style.KoalaPlotTheme
 import io.github.vooft.compose.treeview.core.TreeView
 import io.github.vooft.compose.treeview.core.node.Branch
@@ -84,38 +85,6 @@ fun envObservationTree(): Tree<ChartViewContent> = Tree {
 
 }
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-@Composable
-fun envObservationTreeWeb(): Tree<ChartViewContent> = Tree {
-
-
-    Branch(ChartViewCategory("Ocean Water Quality")) {
-        Leaf<ChartViewContent>(WaterDegTimeSeries_KHOA)
-        Leaf<ChartViewContent>(OceanWaterInfoTimeSeries)
-        Leaf<ChartViewContent>(OceanWaterInfoBoxPlotChart)
-        Leaf<ChartViewContent>(OceanWaterInfoBarChart)
-        Leaf<ChartViewContent>(OceanWaterInfoGeoChart)
-        Leaf<ChartViewContent>(OceanWaterInfo_MOF)
-
-    }
-
-    Branch(ChartViewCategory("Hydro Nuclear Power")) {
-        Leaf<ChartViewContent>(WindPolarChart_KHNP)
-        Leaf<ChartViewContent>(NuclearPlantStatePieChart_KHNP)
-        Leaf<ChartViewContent>(RadioActiveWastePlantStatStackedBarChart_KHNP)
-        Leaf<ChartViewContent>(KHNPRadioActiveWasteStackBarChart)
-        Leaf<ChartViewContent>(WaterTempTimeSeries_KHOA)
-        Leaf<ChartViewContent>(RadioRateBarChart)
-        Leaf<ChartViewContent>(WasteWaterTimeSeries_KHNP)
-        Leaf<ChartViewContent>(ThermalWasteWaterTimeSeries_KHNP)
-    }
-
-
-    Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
-
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainView(modifier: Modifier = Modifier, tree: Tree<ChartViewContent> = envObservationTree()) {
@@ -151,7 +120,9 @@ fun MainView(modifier: Modifier = Modifier, tree: Tree<ChartViewContent> = envOb
                     showOptions
                 ),
                 directive = directive,
-                onSelect = { selectedItem = it },
+                onSelect = {
+                    selectedItem = it
+                },
                 onShowOptions = { showOptions = it },
             )
 
