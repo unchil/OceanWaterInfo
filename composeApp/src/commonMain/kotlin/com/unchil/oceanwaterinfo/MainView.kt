@@ -233,7 +233,7 @@ private fun <S> EnvObservationScaffold(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun <S> ChartPaneView(
+private fun <S> ChartPaneView(
     item: ChartView<S>?,
     state: S?,
     isOptions: Boolean,

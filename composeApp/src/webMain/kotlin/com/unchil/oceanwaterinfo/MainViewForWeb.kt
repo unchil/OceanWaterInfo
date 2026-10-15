@@ -1,14 +1,23 @@
 package com.unchil.oceanwaterinfo
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -80,6 +89,42 @@ fun MainViewForWeb(modifier: Modifier = Modifier) {
                 modifier
             )
 
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+private fun <S> ChartPaneView(
+    item: ChartView<S>?,
+    state: S?,
+    isOptions: Boolean,
+    scaffoldState: ChartScaffoldState,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text(item?.name ?: "") },
+            navigationIcon = {
+                IconButton(onClick = {
+                    setAllElementVisibilityByHidden()
+                    if (isOptions) scaffoldState.onShowOptions(false) else scaffoldState.onSelect(null)
+                }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                }
+            },
+            actions = {
+                if (!isOptions && item?.hasOptions == true) {
+                    IconButton(onClick = { scaffoldState.onShowOptions(true) }) {
+                        Icon(Icons.Default.Settings, "Settings")
+                    }
+                }
+            },
+        )
+        HorizontalDivider()
+        if (item != null && state != null) {
+            if (isOptions) item.Options(state) else item.Content(state)
         }
     }
 }
