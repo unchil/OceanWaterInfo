@@ -168,15 +168,16 @@ private fun <S> EnvObservationScaffold(
                         samplesTree,
                         modifier = Modifier.weight(1f),
                         onClick = { node ->
-                            // 3. 클릭한 노드가 이전 노드와 동일하면 실행하지 않고 조기 리턴
-                            if (previousNode == node) return@TreeView
+                            if (previousNode != node) {
+                                previousNode = node
+                                val content = node.content
+                                if (content is ChartView<*>) {
+                                    scaffoldState.onSelect(content)
+                                    scaffoldState.onShowOptions(false)
 
-                            val content = node.content
-                            if (content is ChartView<*>) {
-                                scaffoldState.onSelect(content)
-                                scaffoldState.onShowOptions(false)
-                            } else {
-                                samplesTree.toggleExpansion(node)
+                                } else {
+                                    samplesTree.toggleExpansion(node)
+                                }
                             }
                         },
                         listState = listState,
