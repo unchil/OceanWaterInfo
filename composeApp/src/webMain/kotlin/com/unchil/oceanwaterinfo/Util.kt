@@ -104,13 +104,13 @@ val disposeHtmlElements = { htmlElements : List<String> ->
 }
 
 
-val clearSelectedTab = {
+val setAllElementVisibilityByHidden = {
     MainTab.getElementIDs().forEach {  elementId ->
         ( document.getElementById(elementId) as? HTMLElement )?.style?.visibility = "hidden"
     }
 }
 
-val changeSelectedTab = { selectedTabIndex: Int ->
+val changeElementVisibility = { selectedTabIndex: Int ->
     MainTab.getElementIDs().forEachIndexed { index, elementId ->
         ( document.getElementById(elementId) as? HTMLElement )?.style?.visibility =
             if (index == selectedTabIndex) "visible" else "hidden"
@@ -118,14 +118,9 @@ val changeSelectedTab = { selectedTabIndex: Int ->
 }
 
 /** 특정 탭의 HTML 요소 가시성을 복구하고 iframe을 새로고침(reload)하는 함수 */
-fun showAndReloadIframe(elementId: String, iframeId: String) {
-    // 1. 부모 div 요소를 가시화
+val setElementVisibilityByVisible = { elementId: String ->
     val element = document.getElementById(elementId) as? HTMLElement
     element?.style?.visibility = "visible"
-
-    // 2. iframe 새로고침 실행
-    val iframe = document.getElementById(iframeId) as? HTMLIFrameElement
-    iframe?.contentWindow?.location?.reload()
 }
 
 

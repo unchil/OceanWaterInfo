@@ -49,14 +49,14 @@ fun main(){
         var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
 
         LaunchedEffect(selectedTabIndex,) {
-            changeSelectedTab(selectedTabIndex)
+            changeElementVisibility(selectedTabIndex)
         }
 
         LaunchedEffect( primaryTabIndex) {
             if(primaryTabIndex == 1) {
-                clearSelectedTab()
+                setAllElementVisibilityByHidden()
             }else{
-                changeSelectedTab(selectedTabIndex)
+                changeElementVisibility(selectedTabIndex)
             }
         }
 

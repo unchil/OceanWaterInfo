@@ -100,6 +100,8 @@ private fun <S> EnvObservationScaffold(
 
     // 1. 드래그 상태 기억
     val expansionState = rememberPaneExpansionState(scaffoldState.scaffoldValue)
+// 2. 이전에 클릭한 노드를 기억하는 상태 추가
+    var previousNode by remember { mutableStateOf<Any?>(null) }
 
 
     ListDetailPaneScaffold(
@@ -114,6 +116,11 @@ private fun <S> EnvObservationScaffold(
                         samplesTree,
                         modifier = Modifier.weight(1f),
                         onClick = { node ->
+                            // 3. 클릭한 노드가 이전 노드와 동일하면 실행하지 않고 조기 리턴
+                            if (previousNode == node) return@TreeView
+
+                            previousNode = node // 현재 노드를 이전 노드로 업데이트
+                            setAllElementVisibilityByHidden()
                             val content = node.content
                             if (content is ChartView<*>) {
                                 scaffoldState.onSelect(content)

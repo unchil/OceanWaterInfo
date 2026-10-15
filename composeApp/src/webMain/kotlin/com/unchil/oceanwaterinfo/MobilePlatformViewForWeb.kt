@@ -9,7 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.unchil.oceanwaterinfo.util.MainTab
 import com.unchil.oceanwaterinfo.util.MainTab.elementID
-import com.unchil.oceanwaterinfo.util.MainTab.iframeID
 import io.github.vooft.compose.treeview.core.node.Branch
 import io.github.vooft.compose.treeview.core.node.Leaf
 import io.github.vooft.compose.treeview.core.tree.Tree
@@ -40,16 +39,12 @@ fun envObservationTreeForWeb(): Tree<ChartViewContent> = Tree {
         Leaf<ChartViewContent>(ThermalWasteWaterTimeSeries_KHNP)
     }
 
-    /*
     Branch(ChartViewCategory("Prediction Information Map")){
         Leaf<ChartViewContent>(AirQualityForWeb)
         Leaf<ChartViewContent>(CoastalFloodingMapForWeb)
         Leaf<ChartViewContent>(TidalForecastMapForWeb)
         Leaf<ChartViewContent>(OceanCurrentWaveMapForWeb)
     }
-
-     */
-
 
     Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
 
@@ -61,12 +56,9 @@ val AirQualityForWeb= object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        // 컴포넌트가 화면에 그려질 때 가시성 표시 및 iframe 새로고침 실행
+        // 컴포넌트가 화면에 그려질 때 가시성 표시
         LaunchedEffect(Unit) {
-            showAndReloadIframe(
-                elementId = MainTab.TabItem.AIR_QUALITY.elementID(),
-                iframeId = MainTab.TabItem.AIR_QUALITY.iframeID()
-            )
+            setElementVisibilityByVisible(MainTab.TabItem.AIR_QUALITY.elementID())
         }
 
 
@@ -86,10 +78,7 @@ val TidalForecastMapForWeb= object : SimpleChartView {
     override fun Content() {
 
         LaunchedEffect(Unit) {
-            showAndReloadIframe(
-                elementId = MainTab.TabItem.OCEAN_TIDAL_SPEED.elementID(),
-                iframeId = MainTab.TabItem.OCEAN_TIDAL_SPEED.iframeID()
-            )
+            setElementVisibilityByVisible( MainTab.TabItem.OCEAN_TIDAL_SPEED.elementID() )
         }
 
         Column(
@@ -107,10 +96,7 @@ val OceanCurrentWaveMapForWeb = object : SimpleChartView {
     @Composable
     override fun Content() {
         LaunchedEffect(Unit) {
-            showAndReloadIframe(
-                elementId = MainTab.TabItem.OCEAN_WAVE_HEIGHT.elementID(),
-                iframeId = MainTab.TabItem.OCEAN_WAVE_HEIGHT.iframeID()
-            )
+            setElementVisibilityByVisible(MainTab.TabItem.OCEAN_WAVE_HEIGHT.elementID()  )
         }
 
         Column(
@@ -129,10 +115,7 @@ val CoastalFloodingMapForWeb = object : SimpleChartView {
     override fun Content() {
 
         LaunchedEffect(Unit) {
-            showAndReloadIframe(
-                elementId = MainTab.TabItem.COASTAL_FLOODING.elementID(),
-                iframeId = MainTab.TabItem.COASTAL_FLOODING.iframeID()
-            )
+            setElementVisibilityByVisible( MainTab.TabItem.COASTAL_FLOODING.elementID()  )
         }
 
         Column(
