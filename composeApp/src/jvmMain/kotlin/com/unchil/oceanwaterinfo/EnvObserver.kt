@@ -17,6 +17,7 @@ import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.TextButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -202,183 +203,231 @@ fun main() = application {
         }
     }
 
+    var primaryTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
+
     var selectedTabIndex by remember { mutableStateOf(0) } // 탭 인덱스 상태
 
+        val state = WindowState(
+            size = DpSize(1400.dp, 1000.dp),
+            position = WindowPosition(Alignment.Center)
+        )
 
-    /*
-    val state = WindowState(
-        size = DpSize(1600.dp, 800.dp),
-        position = WindowPosition(Alignment.Center)
-    )
+        Window(
+            onCloseRequest = {
+                KCEF.disposeBlocking()
+                exitApplication()
+            },
+            title = "Environmental Observation Information",
+            state = state,
+            icon = painterResource(Res.drawable.app_icon_1024)
+        ) {
 
-    Window(
-        onCloseRequest = {
-            KCEF.disposeBlocking()
-            exitApplication()
-        },
-        title = "Environmental Observation Information",
-        state = state,
-        icon = painterResource(Res.drawable.app_icon_1024)
-    ) {
-        MaterialTheme(colorScheme = getColorScheme(false)) {
-            MainView(modifier = Modifier.fillMaxSize() )
-        }
-    }
-     */
-
-
-    val state = WindowState(
-        size = DpSize(1400.dp, 1000.dp),
-        position = WindowPosition(Alignment.Center)
-    )
-
-    Window(
-        onCloseRequest = {
-            KCEF.disposeBlocking()
-            exitApplication()
-        },
-        title = "Environmental Observation Information",
-        state = state,
-        icon = painterResource(Res.drawable.app_icon_1024)
-    ) {
-
-        MaterialTheme(colorScheme = getColorScheme(false)) {
-
-            CompositionLocalProvider(LocalPlatform provides getPlatform()) {
-
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ){
-                     if (initialized) {
-
-                         if(progressMsg.contains("install.lock") || downloadProgress.equals(100.0f) ){
-
-                             TextButton(
-                                 onClick = {
-                                     // 1. 코루틴 스코프 내에서 실행 (필요한 경우)
-                                     coroutineScope.launch(Dispatchers.IO) {
-                                         restartHandler.invoke()
-                                     }
-                                 } ,
-                                 shape = MaterialTheme.shapes.medium,
-                                 border = BorderStroke(1.dp, Color.Red),
-                             ){
-                                 Text("The WebView installation is complete, Restart Application.")
-                             }
-
-
-                         }else{
-
-                             Column(
-                                 modifier = Modifier.fillMaxSize()
-                                     .background(color = MaterialTheme.colorScheme.surface)
-                             ) {
-                                 SecondaryTabRow(
-                                     selectedTabIndex,
-                                     Modifier.fillMaxWidth(),
-                                     MaterialTheme.colorScheme.surface,
-                                     MaterialTheme.colorScheme.primary,
-                                     { HorizontalDivider() }
-                                 ) {
-                                     MainTab.TabItem.entries.forEachIndexed { index, item ->
-                                         val interactionSource = remember { MutableInteractionSource() }
-                                         // InteractionSource의 상태 변화를 직접 감지하는 로직
-                                         LaunchedEffect(interactionSource) {
-                                             interactionSource.interactions.collectLatest { interaction ->
-                                                 when (interaction) {
-                                                     is PressInteraction.Press -> {
-                                                         if (selectedTabIndex != index) {
-                                                             selectedTabIndex = index
-                                                         }
-                                                     }
-                                                 }
-                                             }
-                                         }
-
-                                         Tab(
-                                             selected = selectedTabIndex == index,
-                                             onClick = {
-                                                 // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
-                                                 if (selectedTabIndex != index) {
-                                                     selectedTabIndex = index
-                                                 }
-                                             },
-                                             text = {
-                                                 Text(
-                                                     text = item.title(),
-                                                     fontSize = 16.sp,
-                                                     fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
-                                                     // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
-                                                     softWrap = false,
-                                                     maxLines = 1
-                                                 )
-                                             },
-                                             // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
-                                             interactionSource = interactionSource
-                                         )
-                                     }
-                                 }
-                                 Box(modifier = Modifier.fillMaxSize()) {
-                                     when (selectedTabIndex) {
-                                         0 -> {
-                                             AirQuality()
-                                         }
-                                         1 -> {
-                                             jvmMainOceanWaterQuality( )
-                                         }
-                                         2 -> {
-                                             TidalForecastMap( )
-                                         }
-                                         3 -> {
-                                             OceanCurrentWaveMap()
-                                         }
-
-                                         4 -> {
-                                             jvmMainHydroNuclearPower( )
-                                         }
-                                         5 -> {
-                                             CoastalFloodingMap( )
-                                         }
-                                     }
-                                 }
-                             }
-
-                         }
-
-
-
-
-                    }else {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            androidx.compose.material.Text(progressMsg)
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            if(isDownload){
-                                LinearProgressIndicator(progress = downloadProgress / 100f)
-                            } else {
-                                CircularProgressIndicator()
+            MaterialTheme(colorScheme = getColorScheme(false)) {
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                        .background(color = MaterialTheme.colorScheme.surface)
+                ) {
+                    PrimaryTabRow(
+                        primaryTabIndex,
+                        Modifier.fillMaxWidth(),
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.primary,
+                        { HorizontalDivider() }
+                    ) {
+                        listOf("MobileView", "WindowView").forEachIndexed { index, viewTitle ->
+                            val interactionSource = remember { MutableInteractionSource() }
+                            // InteractionSource의 상태 변화를 직접 감지하는 로직
+                            LaunchedEffect(interactionSource) {
+                                interactionSource.interactions.collectLatest { interaction ->
+                                    when (interaction) {
+                                        is PressInteraction.Press -> {
+                                            if (primaryTabIndex != index) {
+                                                primaryTabIndex =  index
+                                            }
+                                        }
+                                    }
+                                }
                             }
+
+                            Tab(
+                                selected = primaryTabIndex == index,
+                                onClick = {
+                                    // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                    if (primaryTabIndex != index) {
+                                        primaryTabIndex = index
+                                    }
+                                },
+                                text = {
+                                    Text(
+                                        text = viewTitle,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (primaryTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                        // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                        softWrap = false,
+                                        maxLines = 1
+                                    )
+                                },
+                                // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                interactionSource = interactionSource
+                            )
+
                         }
 
                     }
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        when (primaryTabIndex) {
+                            0 -> {
+                                MainView(modifier = Modifier.fillMaxSize())
+                            }
+                            1 -> {
+                                CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (initialized) {
+
+                                            if (progressMsg.contains("install.lock") || downloadProgress.equals(
+                                                    100.0f
+                                                )
+                                            ) {
+
+                                                TextButton(
+                                                    onClick = {
+                                                        // 1. 코루틴 스코프 내에서 실행 (필요한 경우)
+                                                        coroutineScope.launch(Dispatchers.IO) {
+                                                            restartHandler.invoke()
+                                                        }
+                                                    },
+                                                    shape = MaterialTheme.shapes.medium,
+                                                    border = BorderStroke(1.dp, Color.Red),
+                                                ) {
+                                                    Text("The WebView installation is complete, Restart Application.")
+                                                }
+
+
+                                            } else {
+
+                                                Column(
+                                                    modifier = Modifier.fillMaxSize()
+                                                        .background(color = MaterialTheme.colorScheme.surface)
+                                                ) {
+                                                    SecondaryTabRow(
+                                                        selectedTabIndex,
+                                                        Modifier.fillMaxWidth(),
+                                                        MaterialTheme.colorScheme.surface,
+                                                        MaterialTheme.colorScheme.primary,
+                                                        { HorizontalDivider() }
+                                                    ) {
+                                                        MainTab.TabItem.entries.forEachIndexed { index, item ->
+                                                            val interactionSource =
+                                                                remember { MutableInteractionSource() }
+                                                            // InteractionSource의 상태 변화를 직접 감지하는 로직
+                                                            LaunchedEffect(interactionSource) {
+                                                                interactionSource.interactions.collectLatest { interaction ->
+                                                                    when (interaction) {
+                                                                        is PressInteraction.Press -> {
+                                                                            if (selectedTabIndex != index) {
+                                                                                selectedTabIndex =
+                                                                                    index
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            Tab(
+                                                                selected = selectedTabIndex == index,
+                                                                onClick = {
+                                                                    // 고수준 onClick도 유지하되, 위 LaunchedEffect가 보조 역할을 수행합니다.
+                                                                    if (selectedTabIndex != index) {
+                                                                        selectedTabIndex = index
+                                                                    }
+                                                                },
+                                                                text = {
+                                                                    Text(
+                                                                        text = item.title(),
+                                                                        fontSize = 16.sp,
+                                                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Light,
+                                                                        // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
+                                                                        softWrap = false,
+                                                                        maxLines = 1
+                                                                    )
+                                                                },
+                                                                // interactionSource를 명시적으로 관리하면 시스템 부하 상황에서 더 잘 반응함
+                                                                interactionSource = interactionSource
+                                                            )
+                                                        }
+                                                    }
+                                                    Box(modifier = Modifier.fillMaxSize()) {
+                                                        when (selectedTabIndex) {
+                                                            0 -> {
+                                                                AirQuality()
+                                                            }
+
+                                                            1 -> {
+                                                                jvmMainOceanWaterQuality()
+                                                            }
+
+                                                            2 -> {
+                                                                TidalForecastMap()
+                                                            }
+
+                                                            3 -> {
+                                                                OceanCurrentWaveMap()
+                                                            }
+
+                                                            4 -> {
+                                                                jvmMainHydroNuclearPower()
+                                                            }
+
+                                                            5 -> {
+                                                                CoastalFloodingMap()
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                            }
+
+
+                                        } else {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                verticalArrangement = Arrangement.Center,
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                            ) {
+                                                androidx.compose.material.Text(progressMsg)
+                                                Spacer(modifier = Modifier.height(8.dp))
+
+                                                if (isDownload) {
+                                                    LinearProgressIndicator(progress = downloadProgress / 100f)
+                                                } else {
+                                                    CircularProgressIndicator()
+                                                }
+                                            }
+
+                                        }
+
+                                    }
+
+                                }
+                            }
+                        }
+                    }
                 }
 
+
+
             }
-
         }
-    }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            KCEF.disposeBlocking()
+        DisposableEffect(Unit) {
+            onDispose {
+                KCEF.disposeBlocking()
+            }
         }
-    }
 
 
 }
