@@ -234,9 +234,8 @@ fun main() = application {
                         MaterialTheme.colorScheme.primary,
                         { HorizontalDivider() }
                     ) {
-                        listOf("MobileView", "WindowView").forEachIndexed { index, viewTitle ->
+                        listOf("Mobile Layout", "Desktop Layout").forEachIndexed { index, viewTitle ->
                             val interactionSource = remember { MutableInteractionSource() }
-                            // InteractionSource의 상태 변화를 직접 감지하는 로직
                             LaunchedEffect(interactionSource) {
                                 interactionSource.interactions.collectLatest { interaction ->
                                     when (interaction) {
