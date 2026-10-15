@@ -2,6 +2,18 @@ package com.unchil.oceanwaterinfo.util
 
 const val DIV_WEB_MAIN = "webmain"
 
+object LayoutTab {
+    enum class TabItem {
+        MULTI_CONTENT, ONE_CONTENT
+    }
+    fun TabItem.title():String {
+        return when(this){
+            TabItem.MULTI_CONTENT -> "Multi Content Layout"
+            TabItem.ONE_CONTENT -> "One Content Layout"
+        }
+    }
+}
+
 object MainTab {
     enum class TabItem {
         AIR_QUALITY, OCEAN_WATER_QUALITY, OCEAN_TIDAL_SPEED, OCEAN_WAVE_HEIGHT, HYDRO_NUCLEAR, COASTAL_FLOODING

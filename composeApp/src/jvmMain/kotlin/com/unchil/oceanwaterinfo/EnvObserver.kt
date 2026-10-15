@@ -41,6 +41,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.unchil.oceanwaterinfo.util.LayoutTab
+import com.unchil.oceanwaterinfo.util.LayoutTab.title
 import com.unchil.oceanwaterinfo.util.MainTab
 import com.unchil.oceanwaterinfo.util.MainTab.title
 import dev.datlag.kcef.KCEF
@@ -234,7 +236,7 @@ fun main() = application {
                         MaterialTheme.colorScheme.primary,
                         { HorizontalDivider() }
                     ) {
-                        listOf("Desktop Layout", "Mobile Layout").forEachIndexed { index, viewTitle ->
+                        LayoutTab.TabItem.entries.forEachIndexed { index, item ->
                             val interactionSource = remember { MutableInteractionSource() }
                             LaunchedEffect(interactionSource) {
                                 interactionSource.interactions.collectLatest { interaction ->
@@ -258,7 +260,7 @@ fun main() = application {
                                 },
                                 text = {
                                     Text(
-                                        text = viewTitle,
+                                        text = item.title(),
                                         fontSize = 12.sp,
                                         fontWeight = if (primaryTabIndex == index) FontWeight.Bold else FontWeight.Light,
                                         // 리사이즈 도중 텍스트가 잘려나가는 것을 방지
