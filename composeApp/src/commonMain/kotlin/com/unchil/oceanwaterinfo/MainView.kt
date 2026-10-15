@@ -43,6 +43,7 @@ import io.github.koalaplot.core.style.KoalaPlotTheme
 import io.github.vooft.compose.treeview.core.TreeView
 import io.github.vooft.compose.treeview.core.node.Branch
 import io.github.vooft.compose.treeview.core.node.Leaf
+import io.github.vooft.compose.treeview.core.node.Node
 import io.github.vooft.compose.treeview.core.tree.Tree
 
 
@@ -168,6 +169,12 @@ private fun <S> EnvObservationScaffold(
                         samplesTree,
                         modifier = Modifier.weight(1f),
                         onClick = { node ->
+
+                            previousNode?.let {
+                                samplesTree.unselectNode(it as Node<ChartViewContent>)
+                            }
+                            samplesTree.selectNode(node)
+
                             if (previousNode != node) {
                                 previousNode = node
                                 val content = node.content
@@ -180,6 +187,8 @@ private fun <S> EnvObservationScaffold(
                                 }
                             }
                         },
+                        onDoubleClick = {node -> },
+                        onLongClick = {node -> },
                         listState = listState,
                     )
                     if (scaffoldState.scaffoldValue.secondary == PaneAdaptedValue.Expanded &&
