@@ -1,6 +1,5 @@
 package com.unchil.oceanwaterinfo
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.unchil.oceanwaterinfo.util.MainTab
 import io.github.koalaplot.core.style.KoalaPlotTheme
 import io.github.vooft.compose.treeview.core.TreeView
 import io.github.vooft.compose.treeview.core.node.Branch
@@ -228,7 +226,7 @@ private fun <S> EnvObservationScaffold(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-private fun <S> ChartPaneView(
+fun <S> ChartPaneView(
     item: ChartView<S>?,
     state: S?,
     isOptions: Boolean,
@@ -263,7 +261,7 @@ private fun <S> ChartPaneView(
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Immutable
-private data class ChartScaffoldState(
+data class ChartScaffoldState(
     val scaffoldValue: ThreePaneScaffoldValue,
     val directive: PaneScaffoldDirective,
     val onSelect: (ChartView<*>?) -> Unit,
@@ -272,7 +270,7 @@ private data class ChartScaffoldState(
 
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun computeThreePaneScaffoldValue(
+fun computeThreePaneScaffoldValue(
     directive: PaneScaffoldDirective,
     destination: ThreePaneScaffoldDestinationItem<*>,
     item: ChartView<*>?,

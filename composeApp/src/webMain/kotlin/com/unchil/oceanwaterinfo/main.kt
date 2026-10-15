@@ -55,6 +55,8 @@ fun main(){
         LaunchedEffect( primaryTabIndex) {
             if(primaryTabIndex == 1) {
                 clearSelectedTab()
+            }else{
+                changeSelectedTab(selectedTabIndex)
             }
         }
 
@@ -197,7 +199,7 @@ fun main(){
                             }
                         }
                         1 -> {
-                            MainView(modifier = Modifier.fillMaxSize(), envObservationTreeForWeb())
+                            MainViewForWeb(modifier = Modifier.fillMaxSize())
                         }
                     }
 
