@@ -234,7 +234,7 @@ fun main() = application {
                         MaterialTheme.colorScheme.primary,
                         { HorizontalDivider() }
                     ) {
-                        listOf("Mobile Layout", "Desktop Layout").forEachIndexed { index, viewTitle ->
+                        listOf("Desktop Layout", "Mobile Layout").forEachIndexed { index, viewTitle ->
                             val interactionSource = remember { MutableInteractionSource() }
                             LaunchedEffect(interactionSource) {
                                 interactionSource.interactions.collectLatest { interaction ->
@@ -276,9 +276,6 @@ fun main() = application {
                     Box(modifier = Modifier.fillMaxSize()) {
                         when (primaryTabIndex) {
                             0 -> {
-                                MainView(modifier = Modifier.fillMaxSize())
-                            }
-                            1 -> {
                                 CompositionLocalProvider(LocalPlatform provides getPlatform()) {
 
                                     Box(
@@ -412,6 +409,9 @@ fun main() = application {
                                     }
 
                                 }
+                            }
+                            1 -> {
+                                MainView(modifier = Modifier.fillMaxSize())
                             }
                         }
                     }
