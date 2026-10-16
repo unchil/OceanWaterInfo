@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -9,9 +10,34 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import oceanwaterinfo.composeapp.generated.resources.Res
+import oceanwaterinfo.composeapp.generated.resources.upward
+import org.jetbrains.compose.resources.painterResource
 
 val ChartBottonBarHeight = 100.dp
+
+
+val EmptyContent = object : SimpleChartView {
+    override val name: String = "Environmental Observation Information"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement= Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Image(
+                painter = painterResource(Res.drawable.upward),
+                contentDescription = "Upward",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+        }
+    }
+}
 
 val OceanWaterInfoDataGrid = object : SimpleChartView {
     override val name: String = "OceanWaterInfoDataGrid"

@@ -95,14 +95,14 @@ fun MainView(modifier: Modifier = Modifier, tree: Tree<ChartViewContent> = envOb
 
         KoalaPlotTheme {
             val samplesTree = tree
-            var selectedItem by remember { mutableStateOf<ChartView<*>?>(null) }
+            var selectedItem by remember { mutableStateOf<ChartView<*>?>(EmptyContent) }
             var showOptions by remember { mutableStateOf(false) }
 
             val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfo(true)).copy(
                 horizontalPartitionSpacerSize = 0.dp,
             )
             val destination = remember(selectedItem, showOptions, directive.maxHorizontalPartitions) {
-                if (selectedItem == null) {
+                if (selectedItem?.equals(EmptyContent) == true) {
                     ThreePaneScaffoldDestinationItem(ListDetailPaneScaffoldRole.List, contentKey = null)
                 } else if (showOptions && directive.maxHorizontalPartitions < 3) {
                     ThreePaneScaffoldDestinationItem(ListDetailPaneScaffoldRole.Extra, contentKey = selectedItem)
@@ -253,9 +253,14 @@ private fun <S> ChartPaneView(
         TopAppBar(
             title = { Text(item?.name ?: "") },
             navigationIcon = {
-                IconButton(onClick = {
-                    if (isOptions) scaffoldState.onShowOptions(false) else scaffoldState.onSelect(null)
-                }) {
+                IconButton(
+                    onClick = {
+                        if (isOptions)
+                            scaffoldState.onShowOptions(false)
+                        else
+                            scaffoldState.onSelect(EmptyContent)
+                    }
+                ){
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                 }
             },
