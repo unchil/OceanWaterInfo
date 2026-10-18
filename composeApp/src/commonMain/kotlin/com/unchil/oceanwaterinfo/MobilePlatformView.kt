@@ -13,9 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import oceanwaterinfo.composeapp.generated.resources.Res
-import oceanwaterinfo.composeapp.generated.resources.upward
 import org.jetbrains.compose.resources.painterResource
-
+import oceanwaterinfo.composeapp.generated.resources.background
 val ChartBottonBarHeight = 100.dp
 
 
@@ -30,7 +29,7 @@ val EmptyContent = object : SimpleChartView {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
-                painter = painterResource(Res.drawable.upward),
+                painter = painterResource(Res.drawable.background),
                 contentDescription = "Upward",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
