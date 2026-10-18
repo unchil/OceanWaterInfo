@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -119,7 +120,14 @@ private fun <S> ChartPaneView(
 
                     }
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    if(item?.name?.equals("Environmental Observation Information") == true){
+                        Icon(
+                            imageVector = Icons.Default.Public,
+                            contentDescription = "Global Environmental Observation"
+                        )
+                    }else{
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    }
                 }
             },
             actions = {
