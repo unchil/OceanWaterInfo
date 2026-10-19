@@ -1,12 +1,19 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.unchil.oceanwaterinfo.util.MainTab
 import com.unchil.oceanwaterinfo.util.MainTab.elementID
 import io.github.vooft.compose.treeview.core.node.Branch
@@ -46,8 +53,26 @@ fun envObservationTreeForWeb(): Tree<ChartViewContent> = Tree {
         Leaf<ChartViewContent>(OceanCurrentWaveMapForWeb)
     }
 
-    Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
+    Leaf<ChartViewContent>(OceanWaterInfoDataGridForWeb)
 
+}
+
+val OceanWaterInfoDataGridForWeb = object : SimpleChartView {
+    override val name: String = "OceanWaterInfoDataGrid"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val gridHeight = (maxHeight - 120.dp).coerceAtLeast(200.dp)
+            val gridModifier = Modifier
+                .height(gridHeight)
+                .border(
+                    border = BorderStroke(width = 1.dp, Color.LightGray),
+                    shape = ShapeDefaults.ExtraSmall
+                )
+            webMainOceanWaterInfoDataGrid(gridModifier)
+        }
+    }
 }
 
 

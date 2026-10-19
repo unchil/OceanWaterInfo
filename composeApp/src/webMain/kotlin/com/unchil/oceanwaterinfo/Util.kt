@@ -1,5 +1,7 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
 import com.unchil.oceanwaterinfo.util.MainTab
@@ -11,7 +13,26 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 
+/** 브라우저의 좌우 스와이프 뒤로 가기 제스처 및 Popstate 이벤트를 차단하는 Composable Effect */
+@OptIn(ExperimentalWasmJsInterop::class)
+@Composable
+fun PreventSwipeBackEffect() {
+    DisposableEffect(Unit) {
+        // 1. overscroll-behavior-x 스타일 적용 (좌우 스와이프 내비게이션 방지)
+        val bodyStyle = document.body?.style
+        val originalOverscroll = bodyStyle?.getPropertyValue("overscroll-behavior-x") ?: ""
+        bodyStyle?.setProperty("overscroll-behavior-x", "none")
 
+        onDispose {
+            // 화면 이탈 시 원래 스타일 복구 및 이벤트 리스너 제거
+            if (originalOverscroll.isNotEmpty()) {
+                bodyStyle?.setProperty("overscroll-behavior-x", originalOverscroll)
+            } else {
+                bodyStyle?.removeProperty("overscroll-behavior-x")
+            }
+        }
+    }
+}
 
 fun sendPostMsg (iframeId:String, msgKey:String, values:String? = null ){
     val message = if(values != null){
@@ -133,7 +154,7 @@ val setElementVisibilityByVisible = { elementId: String ->
 private external fun jsPostMessage(window: org.w3c.dom.Window, msgKey:String, grade:String, wasmArray: JsAny, origin: String)
 
 @OptIn(ExperimentalWasmJsInterop::class)
-fun sendPostMsgRaw(iframeId: String, msgKey:String,  grade: String, geojsonBytes: ByteArray,){
+fun sendPostMsgRaw(iframeId: String, msgKey: String, grade: String, geojsonBytes: ByteArray){
     val iframe = document.getElementById(iframeId) as? HTMLIFrameElement ?: return
     val contentWindow = iframe.contentWindow ?: return
     jsPostMessage(contentWindow, msgKey, grade, geojsonBytes.toInt8Array(),  "*")
