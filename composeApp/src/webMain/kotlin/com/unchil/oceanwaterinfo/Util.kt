@@ -13,27 +13,6 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
 
 
-/** 브라우저의 좌우 스와이프 뒤로 가기 제스처 및 Popstate 이벤트를 차단하는 Composable Effect */
-@OptIn(ExperimentalWasmJsInterop::class)
-@Composable
-fun PreventSwipeBackEffect() {
-    DisposableEffect(Unit) {
-        // 1. overscroll-behavior-x 스타일 적용 (좌우 스와이프 내비게이션 방지)
-        val bodyStyle = document.body?.style
-        val originalOverscroll = bodyStyle?.getPropertyValue("overscroll-behavior-x") ?: ""
-        bodyStyle?.setProperty("overscroll-behavior-x", "none")
-
-        onDispose {
-            // 화면 이탈 시 원래 스타일 복구 및 이벤트 리스너 제거
-            if (originalOverscroll.isNotEmpty()) {
-                bodyStyle?.setProperty("overscroll-behavior-x", originalOverscroll)
-            } else {
-                bodyStyle?.removeProperty("overscroll-behavior-x")
-            }
-        }
-    }
-}
-
 fun sendPostMsg (iframeId:String, msgKey:String, values:String? = null ){
     val message = if(values != null){
         "{ \"msgKey\": \"${msgKey}\", \"values\":${values}}"

@@ -6,6 +6,10 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden; /* 스크롤이 필요하다면 auto */
+
+    /* 좌우 스와이프 제스처로 인한 브라우저 페이지 뒤로/앞으로 가기 차단 */
+    overscroll-behavior-x: none;
+    overscroll-behavior: none;
 }
 
 #un7map {

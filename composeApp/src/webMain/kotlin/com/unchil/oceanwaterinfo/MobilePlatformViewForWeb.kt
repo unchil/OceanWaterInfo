@@ -53,26 +53,8 @@ fun envObservationTreeForWeb(): Tree<ChartViewContent> = Tree {
         Leaf<ChartViewContent>(OceanCurrentWaveMapForWeb)
     }
 
-    Leaf<ChartViewContent>(OceanWaterInfoDataGridForWeb)
+    Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
 
-}
-
-val OceanWaterInfoDataGridForWeb = object : SimpleChartView {
-    override val name: String = "OceanWaterInfoDataGrid"
-    override fun toString(): String = name
-    @Composable
-    override fun Content() {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val gridHeight = (maxHeight - 120.dp).coerceAtLeast(200.dp)
-            val gridModifier = Modifier
-                .height(gridHeight)
-                .border(
-                    border = BorderStroke(width = 1.dp, Color.LightGray),
-                    shape = ShapeDefaults.ExtraSmall
-                )
-            webMainOceanWaterInfoDataGrid(gridModifier)
-        }
-    }
 }
 
 

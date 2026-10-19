@@ -144,7 +144,7 @@ fun webMainOceanWaterQuality(){
                     }
                 }
 
-                webMainOceanWaterInfoDataGrid()
+                OceanWaterInfoDataGrid()
 
                 OceanWaterInfo_MOF()
             }
