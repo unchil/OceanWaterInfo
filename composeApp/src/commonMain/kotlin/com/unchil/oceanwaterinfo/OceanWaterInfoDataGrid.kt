@@ -32,16 +32,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.unchil.oceanwaterinfo.viewmodel.ObservatoryViewModel
 import com.unchil.un7datagrid.Un7KCMPDataGrid
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 val LocalPlatform = compositionLocalOf<Platform> { error("No Platform found!") }
 
 
 @Composable
-fun OceanWaterInfoDataGrid(){
+fun OceanWaterInfoDataGrid(gridModifier: Modifier? = null){
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -106,12 +104,16 @@ fun OceanWaterInfoDataGrid(){
                         fontWeight = FontWeight.Normal,
                     )
 
+                    val modifier = gridModifier ?: Modifier
+                        .height(350.dp)
+                        .border(
+                            border = BorderStroke(width=1.dp, Color.LightGray),
+                            shape = ShapeDefaults.ExtraSmall
+                        )
 
                     Un7KCMPDataGrid(
                         gridData.value,
-                        modifier = Modifier
-                            .height(350.dp)
-                            .border(border = BorderStroke(width=1.dp, Color.LightGray), shape = ShapeDefaults.ExtraSmall),
+                        modifier = modifier,
                         onClick = { rowsData ->
                             /*
                             coroutineScope.launch {

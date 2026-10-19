@@ -1,20 +1,26 @@
 package com.unchil.oceanwaterinfo
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import oceanwaterinfo.composeapp.generated.resources.Res
-import org.jetbrains.compose.resources.painterResource
 import oceanwaterinfo.composeapp.generated.resources.background
+import org.jetbrains.compose.resources.painterResource
+
 val ChartBottonBarHeight = 100.dp
 
 
@@ -43,12 +49,15 @@ val OceanWaterInfoDataGrid = object : SimpleChartView {
     override fun toString(): String = name
     @Composable
     override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            OceanWaterInfoDataGrid()
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val gridHeight = (maxHeight - 120.dp).coerceAtLeast(200.dp)
+            val gridModifier = Modifier
+                .height(gridHeight)
+                .border(
+                    border = BorderStroke(width = 1.dp, Color.LightGray),
+                    shape = ShapeDefaults.ExtraSmall
+                )
+            OceanWaterInfoDataGrid(gridModifier)
         }
     }
 }
