@@ -103,6 +103,7 @@ private fun <S> ChartPaneView(
     state: S?,
     isOptions: Boolean,
     scaffoldState: ChartScaffoldState,
+    onResetSelection: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize()) {
@@ -113,10 +114,12 @@ private fun <S> ChartPaneView(
                     onClick = {
                         setAllElementVisibilityByHidden()
 
-                        if (isOptions)
+                        if (isOptions) {
                             scaffoldState.onShowOptions(false)
-                        else
+                        } else {
+                            onResetSelection?.invoke()
                             scaffoldState.onSelect(EmptyContent)
+                        }
 
                     }
                 ) {
@@ -164,6 +167,13 @@ private fun <S> EnvObservationScaffold(
 // 2. 이전에 클릭한 노드를 기억하는 상태 추가
     var previousNode by remember { mutableStateOf<Any?>(null) }
 
+    // 선택 해제 공통 처리 람다
+    val onResetSelection:(()->Unit)  = {
+        previousNode?.let { node ->
+            samplesTree.unselectNode(node as Node<ChartViewContent>)
+            previousNode = null
+        }
+    }
 
     ListDetailPaneScaffold(
         directive = scaffoldState.directive,
@@ -209,7 +219,7 @@ private fun <S> EnvObservationScaffold(
         detailPane = {
             AnimatedPane {
                 Row(Modifier.fillMaxSize()) {
-                    ChartPaneView(item, state, false, scaffoldState, Modifier.weight(1f))
+                    ChartPaneView(item, state, false, scaffoldState, onResetSelection, Modifier.weight(1f))
                     if (scaffoldState.scaffoldValue.primary == PaneAdaptedValue.Expanded &&
                         scaffoldState.scaffoldValue.tertiary == PaneAdaptedValue.Expanded
                     ) {
