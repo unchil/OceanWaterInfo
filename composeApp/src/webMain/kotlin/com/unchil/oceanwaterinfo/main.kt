@@ -196,6 +196,13 @@ fun main(){
                                         5 -> {
                                             webMainCoastalFloodingMap()
                                         }
+                                        6 -> {
+
+                                            webMainEatrhOcean()
+                                        }
+                                        7 -> {
+                                            webMainEatrhAir()
+                                        }
                                     }
                                 }
 
