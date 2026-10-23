@@ -21,7 +21,7 @@ import com.unchil.oceanwaterinfo.util.MainTab.elementID
 import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 
 @Composable
-fun webMainEatrhAir(){
+fun webMainEarthEnv(){
     val density = LocalDensity.current
 
     BoxWithConstraints(
@@ -36,7 +36,7 @@ fun webMainEatrhAir(){
         ) {
 
             PageTitle(
-                TabItem.EARTH_AIR.subTitle(),
+                TabItem.EARTH_ENVIRONMENTAL.subTitle(),
                 modifier = Modifier.fillMaxWidth()
                     .padding(vertical = 15.dp)
             )
@@ -54,7 +54,7 @@ fun webMainEatrhAir(){
                             coordinates,
                             density,
                             DIV_WEB_MAIN,
-                            MainTab.TabItem.EARTH_AIR.elementID()
+                            MainTab.TabItem.EARTH_ENVIRONMENTAL.elementID()
                         )
                     },
                 contentAlignment = Alignment.Center

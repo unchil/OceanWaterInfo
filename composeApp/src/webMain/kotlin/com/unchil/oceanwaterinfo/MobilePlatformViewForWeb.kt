@@ -47,6 +47,7 @@ fun envObservationTreeForWeb(): Tree<ChartViewContent> = Tree {
     }
 
     Branch(ChartViewCategory("Prediction Information Map")){
+        Leaf<ChartViewContent>(EarthEnvMapForWeb)
         Leaf<ChartViewContent>(AirQualityForWeb)
         Leaf<ChartViewContent>(CoastalFloodingMapForWeb)
         Leaf<ChartViewContent>(TidalForecastMapForWeb)
@@ -130,6 +131,25 @@ val CoastalFloodingMapForWeb = object : SimpleChartView {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             webMainCoastalFloodingMap()
+        }
+    }
+}
+
+val EarthEnvMapForWeb = object : SimpleChartView {
+    override val name: String = "Earth Environmental"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+
+        LaunchedEffect(Unit) {
+            setElementVisibilityByVisible( MainTab.TabItem.EARTH_ENVIRONMENTAL.elementID()  )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            webMainEarthEnv()
         }
     }
 }

@@ -198,10 +198,7 @@ fun main(){
                                         }
                                         6 -> {
 
-                                            webMainEatrhOcean()
-                                        }
-                                        7 -> {
-                                            webMainEatrhAir()
+                                            webMainEarthEnv()
                                         }
                                     }
                                 }

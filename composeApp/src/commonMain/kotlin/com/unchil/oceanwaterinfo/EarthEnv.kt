@@ -19,13 +19,13 @@ import com.unchil.oceanwaterinfo.util.MainTab.subTitle
 
 
 @Composable
-fun EarthOcean(){
+fun EarthEnv(){
 
-    val localUrl = MainTab.TabItem.EARTH_OCEAN.iframeUrl()
+    val localUrl = MainTab.TabItem.EARTH_ENVIRONMENTAL.iframeUrl()
 
     val webController = remember { PlatformWebViewController() }
 
-    val bottomBarHeight = remember{80.dp}
+    val bottomBarHeight = remember{ 20.dp}
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
@@ -45,7 +45,7 @@ fun EarthOcean(){
             ) {
 
                 PageTitle(
-                    MainTab.TabItem.EARTH_OCEAN.subTitle(),
+                    MainTab.TabItem.EARTH_ENVIRONMENTAL.subTitle(),
                     modifier = Modifier.fillMaxWidth()
                         .padding(vertical = 15.dp)
                 )

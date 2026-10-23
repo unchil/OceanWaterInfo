@@ -368,3 +368,17 @@ val CoastalFloodingMap = object : SimpleChartView {
         }
     }
 }
+
+val EarthEnv= object : SimpleChartView {
+    override val name: String = "Earth Environmental"
+    override fun toString(): String = name
+    @Composable
+    override fun Content() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            EarthEnv()
+        }
+    }
+}

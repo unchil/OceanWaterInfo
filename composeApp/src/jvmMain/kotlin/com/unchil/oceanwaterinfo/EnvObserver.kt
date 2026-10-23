@@ -384,11 +384,9 @@ fun main() = application {
                                                                 CoastalFloodingMap()
                                                             }
                                                             6 -> {
-                                                                EarthOcean()
+                                                                EarthEnv()
                                                             }
-                                                            7 -> {
-                                                                EarthAir()
-                                                            }
+
                                                         }
                                                     }
                                                 }

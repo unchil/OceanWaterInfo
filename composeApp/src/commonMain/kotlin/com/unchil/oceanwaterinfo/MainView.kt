@@ -75,6 +75,7 @@ fun envObservationTree(): Tree<ChartViewContent> = Tree {
         }
 
         Branch(ChartViewCategory("Prediction Information Map")){
+            Leaf<ChartViewContent>(EarthEnv)
             Leaf<ChartViewContent>(AirQuality)
             Leaf<ChartViewContent>(CoastalFloodingMap)
             Leaf<ChartViewContent>(TidalForecastMap)

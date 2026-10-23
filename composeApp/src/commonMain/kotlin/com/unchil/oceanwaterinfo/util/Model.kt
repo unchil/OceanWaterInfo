@@ -16,7 +16,7 @@ object LayoutTab {
 
 object MainTab {
     enum class TabItem {
-        AIR_QUALITY, OCEAN_WATER_QUALITY, OCEAN_TIDAL_SPEED, OCEAN_WAVE_HEIGHT, HYDRO_NUCLEAR, COASTAL_FLOODING, EARTH_OCEAN, EARTH_AIR
+        AIR_QUALITY, OCEAN_WATER_QUALITY, OCEAN_TIDAL_SPEED, OCEAN_WAVE_HEIGHT, HYDRO_NUCLEAR, COASTAL_FLOODING, EARTH_ENVIRONMENTAL
     }
 
     fun TabItem.title():String{
@@ -27,9 +27,7 @@ object MainTab {
             TabItem.OCEAN_WAVE_HEIGHT -> "Ocean Wave Height Map"
             TabItem.HYDRO_NUCLEAR -> "Hydro & Nuclear Power"
             TabItem.COASTAL_FLOODING -> "Coastal Flooding Map"
-            TabItem.EARTH_OCEAN -> "Seawater on Earth"
-            TabItem.EARTH_AIR -> "Atmospheric on Earth"
-
+            TabItem.EARTH_ENVIRONMENTAL -> "Earth's Environment"
         }
     }
 
@@ -41,9 +39,7 @@ object MainTab {
             TabItem.OCEAN_WAVE_HEIGHT -> "seaFlowHexagonMap"
             TabItem.HYDRO_NUCLEAR -> "waterInfoMap"
             TabItem.COASTAL_FLOODING -> "coastalFloodingMap"
-            TabItem.EARTH_OCEAN -> "earthOcean"
-            TabItem.EARTH_AIR -> "earthAir"
-
+            TabItem.EARTH_ENVIRONMENTAL -> "earth"
         }
     }
 
@@ -61,9 +57,7 @@ object MainTab {
             TabItem.OCEAN_WAVE_HEIGHT -> "iframe_seaFlowHexagon"
             TabItem.HYDRO_NUCLEAR -> "iframe_waterInfo"
             TabItem.COASTAL_FLOODING -> "iframe_coastalFlooding"
-            TabItem.EARTH_OCEAN -> "iframe_earth_ocean"
-            TabItem.EARTH_AIR -> "iframe_earth_air"
-
+            TabItem.EARTH_ENVIRONMENTAL -> "iframe_earth"
         }
     }
 
@@ -75,10 +69,7 @@ object MainTab {
             TabItem.OCEAN_WAVE_HEIGHT -> "iFrame/seaFlowMapHexagonLayer.html"
             TabItem.HYDRO_NUCLEAR -> "iFrame/waterInfoGoogleMap.html"
             TabItem.COASTAL_FLOODING -> "iFrame/coastalFloodingMap.html"
-            TabItem.EARTH_OCEAN -> "https://earth.nullschool.net/#current/ocean/primary/waves/overlay=currents/orthographic=126.93,37.39,6375/loc=126.933,37.388"
-            TabItem.EARTH_AIR-> "https://earth.nullschool.net/#current/wind/surface/level/orthographic=126.93,37.39,1487/loc=126.933,37.388"
-
-
+            TabItem.EARTH_ENVIRONMENTAL -> "https://earth.nullschool.net/#current/wind/isobaric/700hPa/orthographic=126.94,37.39,1487/loc=126.936,37.386"
         }
     }
 
@@ -90,8 +81,7 @@ object MainTab {
             TabItem.OCEAN_WAVE_HEIGHT -> "Ocean Waves Height Information"
             TabItem.HYDRO_NUCLEAR -> "Information regarding Korea Hydro & Nuclear Power"
             TabItem.COASTAL_FLOODING -> "Korean Coastal Flooding Prediction Information"
-            TabItem.EARTH_OCEAN -> "The movement of seawater on Earth"
-            TabItem.EARTH_AIR -> "Atmospheric flow on Earth"
+            TabItem.EARTH_ENVIRONMENTAL -> "Earth's Ocean & Air Information"
         }
     }
 
