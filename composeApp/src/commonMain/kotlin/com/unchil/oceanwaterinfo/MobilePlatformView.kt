@@ -327,33 +327,7 @@ val AirQuality= object : SimpleChartView {
     }
 }
 
-val TidalForecastMap= object : SimpleChartView {
-    override val name: String = "TidalForecastMap"
-    override fun toString(): String = name
-    @Composable
-    override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            TidalForecastMap()
-        }
-    }
-}
 
-val OceanCurrentWaveMap = object : SimpleChartView {
-    override val name: String = "OceanCurrentWaveMap"
-    override fun toString(): String = name
-    @Composable
-    override fun Content() {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            OceanCurrentWaveMap()
-        }
-    }
-}
 
 val CoastalFloodingMap = object : SimpleChartView {
     override val name: String = "CoastalFloodingMap"

@@ -50,8 +50,6 @@ fun envObservationTreeForWeb(): Tree<ChartViewContent> = Tree {
         Leaf<ChartViewContent>(EarthEnvMapForWeb)
         Leaf<ChartViewContent>(AirQualityForWeb)
         Leaf<ChartViewContent>(CoastalFloodingMapForWeb)
-        Leaf<ChartViewContent>(TidalForecastMapForWeb)
-        Leaf<ChartViewContent>(OceanCurrentWaveMapForWeb)
     }
 
     Leaf<ChartViewContent>(OceanWaterInfoDataGrid)
@@ -79,42 +77,6 @@ val AirQualityForWeb= object : SimpleChartView {
     }
 }
 
-val TidalForecastMapForWeb= object : SimpleChartView {
-    override val name: String = "TidalForecastMapForWeb"
-    override fun toString(): String = name
-    @Composable
-    override fun Content() {
-
-        LaunchedEffect(Unit) {
-            setElementVisibilityByVisible( MainTab.TabItem.OCEAN_TIDAL_SPEED.elementID() )
-        }
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            webMainTidalForecastMap()
-        }
-    }
-}
-
-val OceanCurrentWaveMapForWeb = object : SimpleChartView {
-    override val name: String = "OceanCurrentWaveMapForWeb"
-    override fun toString(): String = name
-    @Composable
-    override fun Content() {
-        LaunchedEffect(Unit) {
-            setElementVisibilityByVisible(MainTab.TabItem.OCEAN_WAVE_HEIGHT.elementID()  )
-        }
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            webMainOceanCurrentWaveMap()
-        }
-    }
-}
 
 val CoastalFloodingMapForWeb = object : SimpleChartView {
     override val name: String = "CoastalFloodingMapForWeb"

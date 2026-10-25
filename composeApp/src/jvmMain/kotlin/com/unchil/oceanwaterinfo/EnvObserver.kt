@@ -369,21 +369,14 @@ fun main() = application {
                                                             }
 
                                                             2 -> {
-                                                                TidalForecastMap()
-                                                            }
-
-                                                            3 -> {
-                                                                OceanCurrentWaveMap()
-                                                            }
-
-                                                            4 -> {
                                                                 jvmMainHydroNuclearPower()
                                                             }
 
-                                                            5 -> {
+                                                            3 -> {
                                                                 CoastalFloodingMap()
                                                             }
-                                                            6 -> {
+
+                                                            4 -> {
                                                                 EarthEnv()
                                                             }
 
