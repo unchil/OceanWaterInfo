@@ -61,7 +61,7 @@ object MainTab {
             TabItem.OCEAN_WATER_QUALITY -> "iFrame/oceanWaterInfoGoogleMap.html"
             TabItem.HYDRO_NUCLEAR -> "iFrame/waterInfoGoogleMap.html"
             TabItem.COASTAL_FLOODING -> "iFrame/coastalFloodingMap.html"
-            TabItem.EARTH_ENVIRONMENTAL -> "https://earth.nullschool.net/#current/wind/isobaric/700hPa/orthographic=126.94,37.39,1487/loc=126.936,37.386"
+            TabItem.EARTH_ENVIRONMENTAL -> "https://earth.nullschool.net/#current/ocean/isobaric/700hPa/overlay=currents/orthographic=126.94,37.38,1487/loc=126.943,37.375"
         }
     }
 
