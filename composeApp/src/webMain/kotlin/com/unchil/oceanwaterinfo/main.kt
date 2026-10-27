@@ -183,14 +183,21 @@ fun main(){
                                             webMainOceanWaterQuality()
                                         }
                                         2-> {
-                                            webMainHydroNuclearPower()
+                                            webMainTidalForecastMap()
                                         }
 
                                         3 -> {
-                                            webMainCoastalFloodingMap()
+                                            webMainOceanCurrentWaveMap()
                                         }
 
                                         4 -> {
+                                            webMainHydroNuclearPower()
+                                        }
+                                        5 -> {
+                                            webMainCoastalFloodingMap()
+                                        }
+                                        6 -> {
+
                                             webMainEarthEnv()
                                         }
                                     }
