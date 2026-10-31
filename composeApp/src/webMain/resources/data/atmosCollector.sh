@@ -105,7 +105,7 @@ for src_file in "${DIR_DOWNLOAD}"/gfs.t*z.pgrb2.1p00.f*; do
         echo "Decoding ${filename} -> ${target_date_dir}/${target_filename} (surface: ${FS}, value: ${FV})..."
         grib2json -d -n -c --fp wind --fs "${FS}" --fv "${FV}" -o "${target_file_path}" "${src_file}"
 
-        # prefix가 "0000"일 경우 DIR_ATMOS/current 에도 current-wind- 파일로 복사/추가
+        # f_num "000"일 경우 DIR_ATMOS/current 에도 current-wind- 파일로 복사/추가
         if [ "${f_num}" = "000" ]; then
             current_dir="${DIR_ATMOS}/current"
             mkdir -p "${current_dir}"
