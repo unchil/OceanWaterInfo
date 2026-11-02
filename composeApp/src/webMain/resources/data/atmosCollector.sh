@@ -124,7 +124,7 @@ for (( i = 0; i <= MAX_HOUR; i += 3 )); do
       rm -rf "${DIR_DOWNLOAD:?}"/*(N)
 
       # 다음 반복에서 i += 3 이 적용되어 i = 0 (f000) 부터 다시 시작
-      i=0
+      ((i -= 3))
       continue
     fi
 
