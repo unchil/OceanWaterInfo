@@ -4,7 +4,7 @@
 # 사용법: ./atmosCollector.sh [최대예보시간(기본 72)] [간격(기본 3)]
 # 예) ./atmosCollector.sh          -> 0~72시간, 3시간 간격
 #     ./atmosCollector.sh 120     -> 0~120시간, 3시간 간격
-MAX_HOUR="${1:-12}"
+MAX_HOUR="${1:-72}"
 
 if [[ ! "$MAX_HOUR" =~ ^[0-9]+$ ]]; then
     echo "사용법: $0 [최대예보시간(정수, 기본 72)]"
@@ -16,7 +16,8 @@ echo "=== 입력된 최대예보시간:${MAX_HOUR} ==="
 
 # NOMADS GFS 1.0도 기본 URL
 BASE_URL="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl"
-DIR_DOWNLOAD="./download"
+
+DIR_DOWNLOAD="../download"
 
 
 # 다운로드할 변수 목록 (추가/삭제 시 이 배열만 수정) -> var_<이름>=on
@@ -89,6 +90,7 @@ echo "-> ${DIR_DOWNLOAD} 디렉터리를 비웠습니다."
 for (( i = 0; i <= MAX_HOUR; i += 3 )); do
   # 3자리 숫자로 포맷팅 (예: 0 -> 000, 3 -> 003, 72 -> 072)
   f_num=$(printf "%03d" $i)
+  echo "Downloading $f_num..."
 
   FILENAME="gfs.t${LATEST_CYCLE}z.pgrb2.1p00.f${f_num}"
 
@@ -102,7 +104,7 @@ for (( i = 0; i <= MAX_HOUR; i += 3 )); do
   # 서버가 GRIB2 대신 "data file is not present" HTML 을 돌려준 경우 저장하지 않고 스킵
   if grep -qa ">data file is not present" "${TMP_FILE}"; then
     # 최초 발견 시: 하루 이전 날짜의 마지막 사이클로 전환 후 f000 부터 다시 다운로드
-    if (( i == 3 )); then
+    if (( i == 0 )); then
       echo "-> ${FILENAME}: 서버에 데이터 파일이 없습니다. 하루 이전 날짜의 마지막 사이클로 전환합니다."
 
       # 하루 이전 날짜 계산 (macOS / BSD date 와 Linux GNU date 분기)
@@ -140,7 +142,7 @@ done
 echo "=== 모든 데이터 다운로드 완료 ==="
 
 
-DIR_ATMOS="./weather"
+DIR_ATMOS="../weather"
 
 # Available Ranges and Values: (surface, level, filter_surface, filter_value)
 LAYERS=(
