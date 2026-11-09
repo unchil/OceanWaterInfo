@@ -41,12 +41,6 @@ fun webMainEarthEnv(){
                     .padding(vertical = 15.dp)
             )
 
-            CaptionText(
-                "from https://earth.nullschool.net",
-                textAlign = TextAlign.Center
-            )
-
-
             Box(
                 modifier = Modifier.fillMaxSize()
                     .onGloballyPositioned { coordinates ->
