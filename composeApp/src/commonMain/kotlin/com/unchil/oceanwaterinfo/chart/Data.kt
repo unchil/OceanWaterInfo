@@ -455,7 +455,7 @@ object AirQualityManager {
             ChemicalElement.no2 -> "Nitrogen dioxide(NO2)" //이산화질소
             ChemicalElement.co -> "Carbon monoxide(CO)" // 일산화탄소
             ChemicalElement.so2 -> "Sulfur dioxide(SO2)"  // 이산화황
-            ChemicalElement.nh3 -> "Ammonia/Hydrogen Nitride(NH3)" // 암모니아
+            ChemicalElement.nh3 -> "Ammonia(NH3)" // 암모니아
             ChemicalElement.h2s -> "Hydrogen sulfide(H2S)" // 황화수소
             ChemicalElement.o3 -> "Ozone(O3)" // 오존
             ChemicalElement.pm10 -> "Particulate Matter(PM10)"
