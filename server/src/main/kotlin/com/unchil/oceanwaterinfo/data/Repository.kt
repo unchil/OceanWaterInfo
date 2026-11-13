@@ -58,7 +58,7 @@ private val cacheStorage_KHNPPlantState = ConcurrentHashMap<String, Pair<List<KH
 private val cacheStorage_CoastalFloodingGeo = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeo>, Long>>()
 private val cacheStorage_CoastalFloodingGeoJsonObject = ConcurrentHashMap<String, Pair<List<CoastalFloodingGeoJsonObject>, Long>>()
 
-private val cacheStorage_Grib2Json = ConcurrentHashMap<String, Pair< List<Grib2Json>, Long> >()
+private val cacheStorage_Grib2Json = ConcurrentHashMap<String, Pair< String, Long> >()
 
 const val KEYHEADER = "CACHE"
 
@@ -79,7 +79,7 @@ object Repository{
         get() = config.property("cache.expiryDay").getString().toLong()
 
 
-    suspend fun getGrib2json(time:String, mode:String, type:String, surface:String, level:String ): List<Grib2Json>{
+    suspend fun getGrib2json(time:String, mode:String, type:String, surface:String, level:String ): String {
         val funcName = ::getGrib2json.name
         val key = "${KEYHEADER}_${funcName}_${time}_${mode}_${type}_${surface}_${level}"
         val now = System.currentTimeMillis()
@@ -93,9 +93,9 @@ object Repository{
         LOGGER.debug("${RepositoryLogHeader.ServingFromDb.name}:${funcName}")
         val resultFromDb = fetchGrib2JsonFromDb(time, mode, type, surface, level)
 
-        cacheStorage_Grib2Json[key] = Pair( resultFromDb , now)
+        cacheStorage_Grib2Json[key] = Pair( resultFromDb ?: "" , now)
 
-        return resultFromDb
+        return resultFromDb ?: ""
 
     }
 
@@ -502,23 +502,38 @@ object Repository{
     }
 
 
-    suspend fun fetchGrib2JsonFromDb( time:String, mode:String, type:String, surface:String, level:String): List<Grib2Json>
+    suspend fun fetchGrib2JsonFromDb( time:String, mode:String, type:String, surface:String, level:String): String?
     = suspendTransaction (Database.connect(dataSource)){
-        val result =  Earth_Tbl
-            .select(Earth_Tbl.grib2json)
-            .where {
-                (Earth_Tbl.forecast_time eq time) and
-                        (Earth_Tbl.mode eq mode) and
-                        (Earth_Tbl.type eq type) and
-                        (Earth_Tbl.surface eq surface) and
-                        (Earth_Tbl.level eq level)
-            }
-            .limit(1)
-            .map{
-                Grib2Json(
-                    grib2json = it[Earth_Tbl.grib2json]
-                )
-            }
+
+        val result =  if(time.equals("current")){
+            Earth_Current_Tbl
+                .select(Earth_Current_Tbl.grib2json)
+                .where {
+                    (Earth_Current_Tbl.mode eq mode) and
+                    (Earth_Current_Tbl.type eq type) and
+                    (Earth_Current_Tbl.surface eq surface) and
+                    (Earth_Current_Tbl.level eq level)
+                }
+                .limit(1)
+                .map{
+                    it[Earth_Current_Tbl.grib2json]
+                }.singleOrNull()
+        }else{
+            Earth_Tbl
+                .select(Earth_Tbl.grib2json)
+                .where {
+                    (Earth_Tbl.forecast_time eq time) and
+                    (Earth_Tbl.mode eq mode) and
+                    (Earth_Tbl.type eq type) and
+                    (Earth_Tbl.surface eq surface) and
+                    (Earth_Tbl.level eq level)
+                }
+                .limit(1)
+                .map{
+                    it[Earth_Tbl.grib2json]
+                }.singleOrNull()
+        }
+
 
         return@suspendTransaction result
     }
