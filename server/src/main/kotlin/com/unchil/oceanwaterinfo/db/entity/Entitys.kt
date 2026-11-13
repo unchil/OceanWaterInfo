@@ -4,6 +4,31 @@ package com.unchil.oceanwaterinfo
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 
+object Earth_Tbl: Table("Earth_Tbl"){
+    val forecast_time = varchar("forecast_time", 10)
+    val mode = varchar("mode", 10)
+    val type = varchar("type", 30)
+    val surface = varchar("surface", 30)
+    val level = varchar("level", 30)
+    val grib2json = text("grib2json")
+
+    override val primaryKey = PrimaryKey(forecast_time, mode, type, surface, level , name = "primaryKey")
+}
+
+object Earth_Current_Tbl: Table("Earth_Current_Tbl"){
+    val forecast_time = varchar("forecast_time", 10)
+    val mode = varchar("mode", 10)
+    val type = varchar("type", 30)
+    val surface = varchar("surface", 30)
+    val level = varchar("level", 30)
+    val grib2json = text("grib2json")
+
+    override val primaryKey = PrimaryKey(forecast_time, mode, type, surface, level , name = "primaryKey")
+}
+
+
+
+
 
 object WaveInfoObservatory: Table("WaveInfoObservatory"){
     val code = varchar("code", 30)

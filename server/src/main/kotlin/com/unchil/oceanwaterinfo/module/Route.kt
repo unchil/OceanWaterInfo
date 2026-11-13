@@ -430,3 +430,36 @@ fun Route.RouteMOFStatusBoard(){
         }
     }
 }
+
+fun Route.RouteEarth(){
+    route("/earth"){
+        get("/env"){
+            val time = call.parameters["time"]?.trim() ?: ""
+            val mode = call.parameters["mode"]?.trim() ?: "air"
+            val type = call.parameters["type"]?.trim() ?: "wind"
+            val surface = call.parameters["surface"]?.trim() ?: "surface"
+            val level = call.parameters["level"]?.trim() ?: "level"
+
+            val callUrl = "/earth/env?time=${time}&mode=${mode}&type=${type}&surface=${surface}&level=${level}"
+
+            LOGGER.debug("${ApplicationLogHeader.Service_Call.name}: ${callUrl}")
+
+            try {
+                val result = Repository.getGrib2json(time, mode, type, surface, level)
+                if (result.isEmpty()) {
+                    LOGGER.debug("${ApplicationLogHeader.Respond_NotFound.name}: ${callUrl}")
+                    call.respond(HttpStatusCode.NotFound)
+                    return@get
+                }
+                LOGGER.debug("${ApplicationLogHeader.Respond_Data.name}: ${callUrl}")
+                call.respond(result)
+            } catch (ex: IllegalArgumentException) {
+                LOGGER.error("${ApplicationLogHeader.Respond_Error.name}: ${callUrl}[${ex.localizedMessage}]")
+                call.respond(HttpStatusCode.BadRequest)
+            }
+
+
+
+        }
+    }
+}

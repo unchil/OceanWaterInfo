@@ -128,6 +128,10 @@ object POWER_PLANT_AREA {
     }
 }
 
+@Serializable
+data class Grib2Json(
+    val grib2json:String
+)
 
 @Serializable
 data class SeaWaterInformation(

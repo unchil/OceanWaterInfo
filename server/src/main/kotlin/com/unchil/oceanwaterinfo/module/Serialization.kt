@@ -1,5 +1,6 @@
 package com.unchil.oceanwaterinfo
 
+import com.unchil.oceanwaterinfo.module.RouteEarth
 import com.unchil.oceanwaterinfo.module.RouteKHNPStatusBoard
 import com.unchil.oceanwaterinfo.module.RouteKHOAStatusBoard
 import com.unchil.oceanwaterinfo.module.RouteMOFStatusBoard
@@ -36,6 +37,7 @@ fun Application.configureSerialization() {
         RouteKHOAStatusBoard()
         RouteNIFSStatusBoard()
         RouteMOFStatusBoard()
+        RouteEarth()
     }
 
 }
